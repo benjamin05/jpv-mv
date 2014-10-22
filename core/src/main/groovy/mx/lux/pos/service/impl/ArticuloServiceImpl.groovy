@@ -197,9 +197,9 @@ class ArticuloServiceImpl implements ArticuloService {
     boolean registrado = false
     if ( ( pListaArticulo != null ) && ( pListaArticulo.size() > 0 ) ) {
       articuloRepository.save( pListaArticulo )
+      articuloRepository.flush()
       registrado = true
     }
-    //articuloRepository.flush()
     return registrado
   }
 
