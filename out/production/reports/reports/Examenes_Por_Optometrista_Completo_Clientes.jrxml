@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Examenes_Por_Optometrista_Completo_Clientes" language="groovy" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="0d9a0d5d-2e6f-4786-aa29-b4cb4bb84a48">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<field name="factura" class="java.lang.String"/>
+	<field name="fecha" class="java.util.Date"/>
+	<field name="cliente" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="15178ad9-7722-4245-9350-e635ccc4f704" x="0" y="0" width="73" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fecha}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="d95b2347-0c2e-45ec-9618-075b938d629f" x="213" y="0" width="97" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{factura}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="ff6e07c8-eb1e-4d4e-8d45-2af4fbc84514" x="73" y="0" width="140" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cliente}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

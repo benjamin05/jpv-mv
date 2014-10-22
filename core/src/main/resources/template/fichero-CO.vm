@@ -1,0 +1,6 @@
+#define($CR)${writer.write(13)}#end
+#macro(GET $dato)#if($dato)${dato}#end#end
+${sucursal.id}|${fecha_cierre}|
+#foreach( $cotizacion in $cotizaciones )
+#GET(${cotizacion.idCotiza})|#GET(${cotizacion.idSucursal})|#GET(${cotizacion.idCliente})|#GET(${cotizacion.idEmpleado})|#GET(${cotizacion.idReceta})|#GET(${cotizacion.fechaMod})|#GET(${cotizacion.idFactura})|#GET(${cotizacion.fechaVenta})|#GET(${cotizacion.nombre})|#GET(${cotizacion.tel})|#GET(${cotizacion.observaciones})|#GET(${cotizacion.udf1})|#GET(${cotizacion.titulo})|#GET(${cotizacion.fechaCotizacion})|
+#end

@@ -1,0 +1,27 @@
+#parse("template/constantes-impresora.vm")
+#parse("template/macros.vm")
+#define($COLUMNAS)${GS}P${writer.write(32)}${writer.write(32)}#end
+#define($COL_DET_0)${ESC}${writer.write(36)}${writer.write(0)}${writer.write(0)}#end
+#define($COL_DET_0_5)${ESC}${writer.write(36)}${writer.write(15)}${writer.write(0)}#end
+#define($COL_DET_1)${ESC}${writer.write(36)}${writer.write(25)}${writer.write(0)}#end
+#define($COL_DET_1_5)${ESC}${writer.write(36)}${writer.write(40)}${writer.write(0)}#end
+#define($COL_DET_2)${ESC}${writer.write(36)}${writer.write(60)}${writer.write(0)}#end
+## Inicia ticket
+#LINEA_SEPARACION_SIMPLE()
+#SET_STYLE(${FUENTE_A} 0 ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)     VENTA DE LC
+#LINEA_SEPARACION_SIMPLE()
+${COLUMNAS}
+#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 0)${COL_DET_1_5}Ticket: ${ticket}${LF}
+#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)Fecha: ${fecha}${LF}
+#foreach( $det in $pedidos_det )
+#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)Modelo: ${det.modelo}
+#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)Cantidad: ${det.cantidad}
+#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)Rx:
+#SET_STYLE(${FUENTE_B} 0 0 0 0)Esfera${COL_DET_1}Cilindro${COL_DET_2}Eje
+#SET_STYLE(${FUENTE_B} 0 0 0 0)${det.esfera}${COL_DET_1}${det.cilindro}${COL_DET_2}${det.eje}${LF}
+#end
+
+#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)                   FOLIO:___________________________
+#FIN_ESTILO()
+#AVANZAR_LINEAS(5)
+#CORTE()

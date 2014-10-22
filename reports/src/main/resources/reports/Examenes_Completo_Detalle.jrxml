@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Examenes_Completo_Detalle" language="groovy" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="af5697b9-c34b-4228-b30b-0169e11002fd">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/opticalux/proyectos/jpv/reports/src/main/resources/reports/"]]></defaultValueExpression>
+	</parameter>
+	<field name="idEmpleado" class="java.lang.String"/>
+	<field name="nombreEmpleado" class="java.lang.String"/>
+	<field name="descuentos" class="java.util.List"/>
+	<field name="total" class="java.lang.Integer"/>
+	<field name="rxConVenta" class="java.lang.Integer"/>
+	<field name="rxSinVenta" class="java.lang.Integer"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="83" splitType="Stretch">
+			<textField>
+				<reportElement uuid="1c4673cc-fcab-428d-8bbe-6e6ed15a6018" x="0" y="0" width="41" height="14"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{idEmpleado}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="32368d7c-7eea-4b14-9648-95a592057d4f" x="41" y="0" width="166" height="14"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nombreEmpleado}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement uuid="55c91b65-2bce-41b5-a0a5-e810a0de60d5" x="41" y="14" width="571" height="39"/>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{descuentos})]]></dataSourceExpression>
+				<subreportExpression><![CDATA["reports/Examenes_Completo_Lista.jasper"]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement uuid="ecaa987a-4ee7-4c28-92dc-f5c626f61f95" positionType="Float" x="164" y="58" width="59" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{rxConVenta}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="cc7dc969-620f-4eb6-b451-72e1f7214c97" positionType="Float" x="41" y="58" width="123" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Examenes con Venta:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="4a28b539-1cde-457d-b6fc-453a2f6c1243" positionType="Float" x="223" y="58" width="111" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Examenes sin Venta:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="ad1d5126-260b-45bd-9d84-c588f86a5693" positionType="Float" x="337" y="58" width="100" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{rxSinVenta}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

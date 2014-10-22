@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
+    <persistence-unit name="soi" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.ejb.HibernatePersistence</provider>
+        <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode>
+        <properties>
+            <property name="hibernate.ejb.cfgfile" value="hibernate.cfg.xml"/>
+            <property name="c3p0.acquire_increment">1</property>
+            <property name="c3p0.idle_test_period">0</property><!-- seconds -->
+            <property name="c3p0.max_size">5</property>
+            <property name="c3p0.max_statements">10</property>
+            <property name="c3p0.min_size">3</property>
+            <property name="c3p0.timeout">20</property>
+        </properties>
+    </persistence-unit>
+</persistence>

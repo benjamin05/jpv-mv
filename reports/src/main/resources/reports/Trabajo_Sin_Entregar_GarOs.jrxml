@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Trabajo_Sin_Entregar_GarOs" language="groovy" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="e71bda80-a8ea-49ae-992a-dc2fe42ba857">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<field name="notaVenta.id" class="java.lang.String"/>
+	<field name="saldo" class="java.math.BigDecimal"/>
+	<field name="notaVenta.fechaHoraFactura" class="java.util.Date"/>
+	<field name="notaVenta.factura" class="java.lang.String"/>
+	<field name="notaVenta.ventaNeta" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="14">
+			<staticText>
+				<reportElement uuid="cf13bb26-29f8-4a07-b9f7-7fa96c115856" x="0" y="0" width="69" height="14"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fecha]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="64362128-8dce-449e-b825-e1a1c3902b01" x="183" y="0" width="70" height="14"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Venta]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d51a1b21-7bc8-484f-a4a4-46fd9bc49c44" x="128" y="0" width="55" height="14"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SOI]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="251534e3-9abf-44e6-8888-6997e10ba7fe" x="253" y="0" width="65" height="14"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Saldo]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="713cd657-9194-4897-8c67-5980d8170795" x="69" y="0" width="59" height="14"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Factura]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="4f3e9c09-ffbb-4438-9852-5c20fb4921df" x="128" y="0" width="55" height="14" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{notaVenta.id}]]></textFieldExpression>
+			</textField>
+			<textField pattern="$#,##0.00" isBlankWhenNull="true">
+				<reportElement uuid="b5ebd3dc-e60e-4bc1-bca2-b4be574a8982" x="253" y="0" width="65" height="14" isRemoveLineWhenBlank="true"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{saldo}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="40fb69cd-f483-464c-8330-2d5b690ae713" x="0" y="0" width="69" height="14" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{notaVenta.fechaHoraFactura}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="a0bf0f58-af9d-4f28-8619-1d7fbbe70388" x="69" y="0" width="59" height="14"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{notaVenta.factura}]]></textFieldExpression>
+			</textField>
+			<textField pattern="$#,##0.00" isBlankWhenNull="true">
+				<reportElement uuid="72f9888c-3ff8-4e0b-8970-f8da297e13a0" x="183" y="0" width="70" height="14"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{notaVenta.ventaNeta}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

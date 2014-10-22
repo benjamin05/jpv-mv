@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Bodegas_Det_Fact" language="groovy" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="73e20bf5-2b3a-46c4-b708-a5420536db5e">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/sucursal/soi/jpv-sun/reports/src/main/resources/reports/"]]></defaultValueExpression>
+	</parameter>
+	<field name="fecha" class="java.util.Date"/>
+	<field name="factura" class="java.lang.String"/>
+	<field name="lstArticulos" class="java.util.List"/>
+	<field name="cliente" class="java.lang.String"/>
+	<field name="contacto" class="java.lang.String"/>
+	<field name="venta" class="java.math.BigDecimal"/>
+	<field name="saldo" class="java.lang.String"/>
+	<field name="fechaPromesa" class="java.util.Date"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="18" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="c45a8162-57e0-4143-8526-c23fa8e99f82" x="64" y="5" width="64" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fecha Venta]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0abb606c-371d-4817-bcef-6a0ac1d9b434" x="128" y="5" width="50" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Factura]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b06cc2c4-74c3-44ab-b222-0bd59718a14f" x="178" y="5" width="63" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Articulos]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8307592d-fbf1-47b4-bd27-6d88fd60578e" x="241" y="5" width="143" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Cliente]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f96f1ee9-9961-479e-a883-040109b22258" x="384" y="5" width="142" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Telefonos]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="bd34ef85-3562-4a5d-a000-867557141083" x="496" y="5" width="55" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Venta]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="316ac595-b626-4f57-ac95-c49cffdf0db5" x="554" y="5" width="45" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Saldo]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="6f586130-f7a7-4395-9fd6-3e7de3d58f49" x="0" y="5" width="64" height="13"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fecha Prom.]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="21" splitType="Stretch">
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="8c30109b-6f47-4a21-9a02-867e87e8e541" x="64" y="2" width="64" height="12" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fecha}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a095f138-579e-4c62-aa2a-e76cb89786f3" x="128" y="2" width="50" height="12" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{factura}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9f0c5752-5b89-4f22-8f81-6c605062d18d" x="241" y="2" width="143" height="12" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cliente}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7b88a24a-bf69-4510-adf2-3f5ea72ca2b1" x="384" y="2" width="142" height="12" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{contacto}]]></textFieldExpression>
+			</textField>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="324a30c8-81ff-4e31-ae19-116349a01018" x="496" y="2" width="55" height="12" isRemoveLineWhenBlank="true"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{venta}]]></textFieldExpression>
+			</textField>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="df548e4d-a5fd-408d-b532-8fbbb621e184" x="554" y="2" width="45" height="12" isRemoveLineWhenBlank="true"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{saldo}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement uuid="59aa6a8d-550d-4d05-a756-2c1d3f213d82" x="178" y="2" width="63" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{lstArticulos})]]></dataSourceExpression>
+				<subreportExpression><![CDATA["reports/Bodegas_Det_Art.jasper"]]></subreportExpression>
+			</subreport>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="914cab8f-c121-4ac2-aa8c-21b128f078a8" x="0" y="2" width="64" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fechaPromesa}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CuponesMvDet" language="groovy" pageWidth="720" pageHeight="792" columnWidth="720" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="f11dc3b8-0e23-4e60-8be1-4ef7b353c87c">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Title" fontName="Arial" fontSize="26" isBold="true" pdfFontName="Helvetica-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Arial" fontSize="18"/>
+	<style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
+	<style name="Detail" fontName="Arial" fontSize="12"/>
+	<field name="cliente" class="java.lang.String"/>
+	<field name="telefono" class="java.lang.String"/>
+	<field name="facturaOri" class="java.lang.String"/>
+	<field name="fechaVenta" class="java.util.Date"/>
+	<field name="fechaEntrega" class="java.util.Date"/>
+	<field name="montoCupon" class="java.math.BigDecimal"/>
+	<field name="tipoCupon" class="java.lang.String"/>
+	<field name="vigencia" class="java.util.Date"/>
+	<field name="facturaDest" class="java.lang.String"/>
+	<field name="fechaAplic" class="java.util.Date"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="1dddd846-24ba-4dd6-83d5-bcc8919a65ee" x="0" y="0" width="180" height="15"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Cliente]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d15b29a7-19aa-4ef5-a06c-c3065bf44e03" x="180" y="0" width="126" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Telefono]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5212b0c2-6288-477c-90da-9bcb490bd6c8" x="306" y="0" width="42" height="15"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Origen]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="861f6616-720f-4ea2-923d-80afe69542ab" x="348" y="0" width="58" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Venta]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="a95cb4f6-6747-415a-908c-a8257668d3c2" x="406" y="0" width="58" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Entrega]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3dd594c2-8ad7-41e0-bf0d-3c479f527a4f" x="464" y="0" width="51" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Monto]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="aa67b112-6f59-4820-85b6-cae7668d1415" x="515" y="0" width="25" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Tipo]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="7f0ca783-95d2-43c0-9728-c692d4e4ea59" x="603" y="0" width="45" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Destino]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="dbf5d396-6422-423d-a2a0-698851b03ec5" x="648" y="0" width="60" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Aplicacion]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3f974cc4-7c39-4487-aae3-4b2a907b1694" x="540" y="0" width="63" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Vigencia]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField pattern="">
+				<reportElement uuid="a8b8a2e5-8813-4826-9120-1400da4b171c" x="0" y="0" width="180" height="15"/>
+				<textElement markup="none">
+					<font fontName="DejaVu Sans" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cliente}]]></textFieldExpression>
+				<patternExpression><![CDATA[$F{cliente}.replaceAll( "Ã", "\u00D1" )]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="d6a670d5-2fd7-4960-bdd0-9cc5ece0ded5" stretchType="RelativeToBandHeight" x="180" y="0" width="126" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{telefono}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="0170b9c5-48f5-4b1f-8e1c-664032ae2b04" x="306" y="0" width="42" height="15"/>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{facturaOri}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="e16934c4-49b2-4fa6-8ef2-9dbfaadcc079" x="348" y="0" width="58" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fechaVenta}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="60429464-67f4-44ff-ac5a-ede63044cfa5" x="406" y="0" width="58" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fechaEntrega}]]></textFieldExpression>
+			</textField>
+			<textField pattern="$#,##0.00" isBlankWhenNull="true">
+				<reportElement uuid="fca45719-8713-4290-8e5c-070c2c3f1c23" x="464" y="0" width="51" height="15"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{montoCupon}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="5c52117e-cfb7-4c28-a8e6-8c9369f2100a" x="515" y="0" width="25" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tipoCupon}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b411cd32-58b8-474a-9914-e5324d402786" x="603" y="0" width="45" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{facturaDest}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="ab36788b-a8c5-43fd-a46d-4763d764366d" x="648" y="0" width="60" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fechaAplic}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="98d6afc2-7fa4-4086-9282-ea31a93bbe13" x="540" y="0" width="63" height="15"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{vigencia}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

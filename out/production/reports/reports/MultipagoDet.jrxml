@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MultipagoDet" language="groovy" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="95627253-68a5-410a-8d8c-c477bb57e494">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/sucursal/soi/jpv-sun/reports/src/main/resources/reports/"]]></defaultValueExpression>
+	</parameter>
+	<field name="cliente" class="java.lang.String"/>
+	<field name="lstDetalles" class="java.util.List"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<textField>
+				<reportElement uuid="3b3ef3ff-b7a0-4e7f-8a30-41ecd46580fd" x="0" y="0" width="323" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cliente}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement uuid="4388c4b9-d264-415e-a08c-fe3b614c952e" x="25" y="18" width="587" height="12"/>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{lstDetalles})]]></dataSourceExpression>
+				<subreportExpression><![CDATA["reports/MultipagoData.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Trabajos_Sin_Entregar" language="groovy" pageWidth="612" pageHeight="792" columnWidth="572" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="3aeb0ff7-b177-4089-a63e-9c0e68f93018">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="60"/>
+	<style name="Title" fontName="Arial" fontSize="26" isBold="true" pdfFontName="Helvetica-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Arial" fontSize="18"/>
+	<style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
+	<style name="Detail" fontName="Arial" fontSize="12"/>
+	<parameter name="fechaActual" class="java.lang.String"/>
+	<parameter name="sucursal" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/opticalux/proyectos/jpv/reports/src/main/resources/reports/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="lstTrabajosSuc" class="java.util.List"/>
+	<parameter name="lstTrabajosPin" class="java.util.List"/>
+	<parameter name="lstTrabajosRet" class="java.util.List"/>
+	<parameter name="totalVentas" class="java.math.BigDecimal"/>
+	<parameter name="totalSaldos" class="java.math.BigDecimal"/>
+	<parameter name="totalFacturas" class="java.lang.Integer"/>
+	<parameter name="totalVentasSuc" class="java.math.BigDecimal"/>
+	<parameter name="totalSaldosSuc" class="java.math.BigDecimal"/>
+	<parameter name="totalFacturasSuc" class="java.math.BigDecimal"/>
+	<parameter name="totalVentasPin" class="java.math.BigDecimal"/>
+	<parameter name="totalSaldosPin" class="java.math.BigDecimal"/>
+	<parameter name="totalFacturasPin" class="java.math.BigDecimal"/>
+	<parameter name="totalVentasRet" class="java.math.BigDecimal"/>
+	<parameter name="totalSaldosRet" class="java.math.BigDecimal"/>
+	<parameter name="totalFacturasRet" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="62" splitType="Stretch">
+			<textField>
+				<reportElement uuid="6c7fbabe-75a6-47ed-8d49-88a243190f07" x="518" y="31" width="37" height="18"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="5220a4ba-d547-4498-86ab-6ade7af30d88" style="Title" x="150" y="14" width="267" height="17"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14"/>
+				</textElement>
+				<text><![CDATA[Reporte de Trabajos Sin Entregar]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="65675e50-6ccf-4a9b-b6da-bfc9afe626b0" x="181" y="31" width="247" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{sucursal}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="5220a4ba-d547-4498-86ab-6ade7af30d88" style="Title" x="101" y="31" width="77" height="18"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14"/>
+				</textElement>
+				<text><![CDATA[Sucursal]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="ffe6a895-d208-477d-895d-2e075cc94b0d" x="0" y="61" width="555" height="1"/>
+			</line>
+			<textField pattern="h.mm a">
+				<reportElement uuid="bb239c15-560d-4dab-a13b-4bee54bb51c7" x="0" y="14" width="100" height="17"/>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{fechaActual}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="5220a4ba-d547-4498-86ab-6ade7af30d88" style="Title" x="483" y="31" width="35" height="18"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14"/>
+				</textElement>
+				<text><![CDATA[Pag:]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="b86a4d91-a506-4518-85ba-43c3ca87629c" x="0" y="1" width="555" height="1"/>
+			</line>
+		</band>
+	</title>
+	<detail>
+		<band height="258" splitType="Stretch">
+			<subreport>
+				<reportElement uuid="1eb3705f-d61a-449d-8185-68162e9429f4" positionType="Float" x="77" y="84" width="389" height="14"/>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($P{lstTrabajosSuc})]]></dataSourceExpression>
+				<subreportExpression><![CDATA["reports/Trabajo_Sin_Entregar_GarOs.jasper"]]></subreportExpression>
+			</subreport>
+			<textField pattern="$#,##0.00" isBlankWhenNull="true">
+				<reportElement uuid="39bb30f4-40db-459c-abeb-9fa41944cf10" positionType="Float" x="212" y="7" width="94" height="14"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalVentas}]]></textFieldExpression>
+			</textField>
+			<textField pattern="$#,##0.00" isBlankWhenNull="true">
+				<reportElement uuid="44bf0c3e-6544-4420-8c29-ab3c7ad27439" positionType="Float" x="306" y="7" width="88" height="14"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalSaldos}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="c0489227-5f91-4cd1-bad6-1bca0169ee6f" positionType="Float" x="77" y="7" width="59" height="14"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="3ee3f7e6-eb84-4106-9a96-53f532f859f2" positionType="Float" x="136" y="7" width="75" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalFacturas}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement uuid="1eb3705f-d61a-449d-8185-68162e9429f4" positionType="Float" x="77" y="163" width="389" height="14"/>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($P{lstTrabajosPin})]]></dataSourceExpression>
+				<subreportExpression><![CDATA["reports/Trabajo_Sin_Entregar_GarOs.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement uuid="1eb3705f-d61a-449d-8185-68162e9429f4" positionType="Float" x="77" y="244" width="389" height="14"/>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($P{lstTrabajosRet})]]></dataSourceExpression>
+				<subreportExpression><![CDATA["reports/Trabajo_Sin_Entregar_GarOs.jasper"]]></subreportExpression>
+			</subreport>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="576470f1-d3bf-4110-9986-3fe472b65eae" positionType="Float" x="227" y="64" width="79" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalVentasSuc}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="95194413-f7dc-4f3f-abb0-edef4e8be401" positionType="Float" x="19" y="64" width="132" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Recibe Sucursal:]]></text>
+			</staticText>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="d588e3e4-1e3c-41b3-b6fa-04e9921113e6" positionType="Float" x="307" y="64" width="79" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalSaldosSuc}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement uuid="982369e2-56ac-4fdb-a17e-9e0081a5576e" positionType="Float" x="154" y="64" width="58" height="12"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalFacturasSuc}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="6a8eb4ae-9c18-43b1-90db-8df91fc498d5" positionType="Float" x="77" y="142" width="73" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Pino:]]></text>
+			</staticText>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="1bb46a18-ff6c-47dd-b62c-24becdd3857e" positionType="Float" x="227" y="142" width="79" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalVentasPin}]]></textFieldExpression>
+			</textField>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="f11ef740-25e6-4f5d-921d-e4fb6a44079c" positionType="Float" x="307" y="142" width="79" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalSaldosPin}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement uuid="aa8a055a-e721-4976-8776-6174de513348" positionType="Float" x="151" y="142" width="61" height="12"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalFacturasPin}]]></textFieldExpression>
+			</textField>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="18db27bf-5864-4933-9059-04a8b10baa72" positionType="Float" x="227" y="217" width="73" height="12"/>
+				<textElement textAlignment="Right">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalVentasRet}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="5c316a86-3ccb-495b-8d6f-57bdfc3f18d2" positionType="Float" x="55" y="217" width="95" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Retenidos:]]></text>
+			</staticText>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="662d9f27-9600-4550-9697-354bca6fc223" positionType="Float" x="302" y="217" width="84" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalSaldosRet}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b12c9ae4-80f4-4e30-8167-c8e66b8e3d6b" positionType="Float" x="154" y="217" width="58" height="12"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalFacturasRet}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MultipagoData" language="groovy" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="ad3af93d-64ef-40a5-bf40-d18fbde178ba">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<field name="factura" class="java.lang.String"/>
+	<field name="fechaVenta" class="java.util.Date"/>
+	<field name="importe" class="java.math.BigDecimal"/>
+	<field name="articulos" class="java.lang.String"/>
+	<field name="formasPago" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="12" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="8250fbe2-ff5f-40f5-95c9-dcbafb3a478b" x="55" y="0" width="76" height="12"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fecha Venta]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="caf6203b-2a5b-4773-bf55-74381ff26b1a" x="0" y="0" width="55" height="12"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Factura]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0797058e-885c-48fd-a94b-fc02874ceb13" x="131" y="0" width="75" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Importe]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9a23dccb-6a39-4c27-a4bd-66b4c3a34cd0" x="206" y="0" width="168" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Articulos]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="79bdfa5e-cf1e-4ddd-ade9-e4feea686990" x="374" y="0" width="238" height="12"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Formas de Pago]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<textField>
+				<reportElement uuid="83caeee6-f040-43c9-8c49-e3fafd8387d7" x="0" y="2" width="55" height="12"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{factura}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="cc9918f4-56c1-4f98-b4cf-ddf8ef928a37" x="55" y="2" width="76" height="12"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fechaVenta}]]></textFieldExpression>
+			</textField>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="caf2e475-d673-4b37-b285-4d98d2613940" x="131" y="2" width="75" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{importe}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="3edbd5a4-d8e5-4bdc-b911-4777630354aa" x="206" y="0" width="168" height="14"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{articulos}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="733a707f-df46-43c6-8f34-186292c60f42" x="374" y="2" width="238" height="12"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{formasPago}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

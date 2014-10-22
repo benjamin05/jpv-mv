@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CuponesMv" language="groovy" pageWidth="720" pageHeight="792" columnWidth="720" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="a10dfeb7-56e4-4b45-b46c-13597e8b7f5b">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="49"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Title" fontName="Arial" fontSize="26" isBold="true" pdfFontName="Helvetica-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Arial" fontSize="18"/>
+	<style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
+	<style name="Detail" fontName="Arial" fontSize="12"/>
+	<parameter name="fechaActual" class="java.lang.String"/>
+	<parameter name="fechaFin" class="java.lang.String"/>
+	<parameter name="sucursal" class="java.lang.String"/>
+	<parameter name="lstCuponesMv" class="java.util.List"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/sucursal/soi/jpv-sun/reports/src/main/resources/reports/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="totalCupones" class="java.lang.Integer"/>
+	<parameter name="total2Par" class="java.lang.Integer"/>
+	<parameter name="total3Par" class="java.lang.Integer"/>
+	<parameter name="cuponesApli" class="java.lang.Integer"/>
+	<parameter name="porcentajeCupApli" class="java.lang.String"/>
+	<parameter name="extemporaneos" class="java.lang.Boolean"/>
+	<parameter name="aplicados2Par" class="java.lang.String"/>
+	<parameter name="porcentajeCupApli2" class="java.lang.String"/>
+	<parameter name="porcentajeCupApli3" class="java.lang.String"/>
+	<parameter name="aplicados3Par" class="java.lang.String"/>
+	<parameter name="titulo" class="java.lang.String"/>
+	<parameter name="todo" class="java.lang.Boolean"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="67" splitType="Stretch">
+			<line>
+				<reportElement uuid="b86a4d91-a506-4518-85ba-43c3ca87629c" x="76" y="6" width="554" height="1"/>
+			</line>
+			<staticText>
+				<reportElement uuid="5220a4ba-d547-4498-86ab-6ade7af30d88" style="Title" x="177" y="35" width="77" height="18"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Sucursal]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5220a4ba-d547-4498-86ab-6ade7af30d88" style="Title" x="558" y="35" width="35" height="18"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Pag:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5220a4ba-d547-4498-86ab-6ade7af30d88" style="Title" x="177" y="18" width="221" height="17"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[REPORTE DE CUPONES]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="65675e50-6ccf-4a9b-b6da-bfc9afe626b0" x="257" y="35" width="247" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{sucursal}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="ffe6a895-d208-477d-895d-2e075cc94b0d" x="76" y="65" width="554" height="1"/>
+			</line>
+			<textField pattern="h.mm a">
+				<reportElement uuid="bb239c15-560d-4dab-a13b-4bee54bb51c7" x="76" y="18" width="68" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{fechaActual}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="6c7fbabe-75a6-47ed-8d49-88a243190f07" x="593" y="35" width="37" height="18"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="2173d131-6f04-43f9-8694-e0c23e41d502" x="401" y="18" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{titulo}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="135" splitType="Stretch">
+			<subreport>
+				<reportElement uuid="632ca603-e1a6-4e82-b1c9-ff89e84a37db" x="0" y="76" width="720" height="59"/>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($P{lstCuponesMv})]]></dataSourceExpression>
+				<subreportExpression><![CDATA["reports/CuponesMvDet.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement uuid="0b7542f4-33e1-4fce-8b78-0c94faa178b1" x="2" y="17" width="41" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="421e17b1-1092-4ed1-8e78-0a23d9706b41" x="43" y="17" width="50" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalCupones}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="14f5361a-6eec-420f-a47a-c7bc595acee5" x="98" y="17" width="60" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[2do Par:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="9d60e770-6b2a-47dd-8c50-e3d24569881b" x="158" y="17" width="45" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{total2Par}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="3ac0532b-aa8d-4032-aeef-070bc8f5c0b6" x="403" y="17" width="60" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[3er Par:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="45b90c45-19d0-44e8-a2ac-a185b0c1135d" x="463" y="17" width="45" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{total3Par}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="406aba23-2ada-4b2e-b0b0-4475abeda35b" x="208" y="17" width="75" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Aplicados:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="a02ac2ad-97e5-40e4-b7ea-2702705cb5e5" x="283" y="17" width="45" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{aplicados2Par}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="8583da4d-390f-4f21-bff7-f80e800d5cbe" x="333" y="17" width="20" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[%:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="c66fb838-d65b-466a-abd2-eb983675532d" x="353" y="17" width="45" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{porcentajeCupApli2}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="5dc38e79-16ff-4113-9f6b-d4b90f420bc4" x="633" y="17" width="20" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[%:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c2f92f54-80d5-452f-9bc2-9dce8427392c" x="513" y="17" width="75" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Aplicados:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="a42a1f65-bf0d-4e46-a8df-f6f7156af1e0" x="588" y="17" width="45" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{aplicados3Par}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="baebd6b7-3975-4e8c-aa2c-fa83bd2a4a1f" x="653" y="17" width="45" height="15">
+					<printWhenExpression><![CDATA[$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{porcentajeCupApli3}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="0b7542f4-33e1-4fce-8b78-0c94faa178b1" x="217" y="32" width="41" height="15">
+					<printWhenExpression><![CDATA[!$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="14f5361a-6eec-420f-a47a-c7bc595acee5" x="313" y="32" width="60" height="15">
+					<printWhenExpression><![CDATA[!$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[2do Par:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3ac0532b-aa8d-4032-aeef-070bc8f5c0b6" x="418" y="32" width="60" height="15">
+					<printWhenExpression><![CDATA[!$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[3er Par:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="9d60e770-6b2a-47dd-8c50-e3d24569881b" x="373" y="32" width="45" height="15">
+					<printWhenExpression><![CDATA[!$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{total2Par}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="421e17b1-1092-4ed1-8e78-0a23d9706b41" x="258" y="32" width="50" height="15">
+					<printWhenExpression><![CDATA[!$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalCupones}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="45b90c45-19d0-44e8-a2ac-a185b0c1135d" x="478" y="32" width="45" height="15">
+					<printWhenExpression><![CDATA[!$P{todo}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{total3Par}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Bodegas_Det" language="groovy" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="869a4f07-38fd-4967-9911-c56a5d42a3be">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/sucursal/soi/jpv-sun/reports/src/main/resources/reports/"]]></defaultValueExpression>
+	</parameter>
+	<field name="mesDesc" class="java.lang.String"/>
+	<field name="lstBodegasDet" class="java.util.List"/>
+	<field name="cantFacturas" class="java.lang.String"/>
+	<field name="totalVenta" class="java.math.BigDecimal"/>
+	<field name="totalSaldo" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="83" splitType="Stretch">
+			<textField>
+				<reportElement uuid="19281cbc-0b40-4557-8cb5-dcea2c53affb" x="0" y="0" width="83" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{mesDesc}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement uuid="a013920a-1c06-4460-a1f7-2f4505a6b45c" x="13" y="19" width="599" height="40"/>
+				<subreportParameter name="SUBREPORT_DIR"/>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{lstBodegasDet})]]></dataSourceExpression>
+				<subreportExpression><![CDATA["reports/Bodegas_Det_Fact.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement uuid="a2c8cd03-b105-43fc-bc56-4947c98ec5a4" x="93" y="0" width="93" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Facturas:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="7144d83f-dab8-4dec-90c5-566396cd7c29" x="186" y="0" width="64" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cantFacturas}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="ee39298b-90a7-4f93-b616-19f58aeddcda" x="254" y="0" width="76" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Venta:]]></text>
+			</staticText>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="599c221d-5ec7-4e8e-9034-928c916e22c3" x="330" y="0" width="88" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalVenta}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="57c444e6-7f37-49c8-a3aa-4097477b0a81" x="425" y="0" width="73" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Saldo:]]></text>
+			</staticText>
+			<textField pattern="$#,##0.00">
+				<reportElement uuid="a914669f-d983-42c8-b27b-96e565c97404" x="498" y="0" width="100" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalSaldo}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

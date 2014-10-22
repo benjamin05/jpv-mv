@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Cotizaciones_Detalle_Articulos" language="groovy" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="c8ec7512-7fb0-463f-8b7b-1140798d80f1">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/sucursal/soi/jpv-sun/reports/src/main/resources/reports/"]]></defaultValueExpression>
+	</parameter>
+	<field name="fecha" class="java.util.Date"/>
+	<field name="idCotizacion" class="java.lang.String"/>
+	<field name="cliente" class="java.lang.String"/>
+	<field name="contacto" class="java.lang.String"/>
+	<field name="lstArticulos" class="java.util.List"/>
+	<field name="importeTotal" class="java.math.BigDecimal"/>
+	<field name="factura" class="java.lang.String"/>
+	<field name="articulos" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="12">
+			<staticText>
+				<reportElement uuid="d2877da1-3e89-4192-bc31-67ff9e787af1" x="0" y="0" width="55" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fecha]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5bb4523f-320d-447f-822c-f9e947a985c6" x="55" y="0" width="53" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Cotizacion]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b694761c-3088-4f83-bc57-3febae8d2c30" x="108" y="0" width="158" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Cliente]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b6ca9e35-b17d-447e-b4f4-1e6c39ff0584" x="266" y="0" width="162" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Contacto]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="51ee3132-2484-4ce0-9d99-742b608c7bc9" x="428" y="0" width="53" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Articulos]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e95c30fd-62c3-42bf-92b7-b1afe34b9597" x="481" y="0" width="70" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Importe Total]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e4e6684e-f3b4-41fb-bb39-425b0e540498" x="559" y="0" width="48" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Factura]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="28" splitType="Stretch">
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="df3adcaa-dac9-42e7-be9f-f31e8345a470" x="0" y="10" width="55" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fecha}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="f43e7a32-bfed-4c96-b378-15520289f168" x="55" y="10" width="53" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{idCotizacion}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="08a088d1-c0ed-410d-97b4-6371c67d70b7" x="108" y="10" width="158" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cliente}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7415a46d-71d8-4921-94cb-5745df9f8301" x="266" y="10" width="162" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{contacto}]]></textFieldExpression>
+			</textField>
+			<textField pattern="$#,##0.00" isBlankWhenNull="true">
+				<reportElement uuid="5c512bb7-7a96-4490-8b29-99cd7388d89d" x="481" y="10" width="70" height="12"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{importeTotal}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="819d33eb-f18f-427c-a269-4f3a3285692b" x="559" y="10" width="49" height="12"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{factura}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement uuid="4e3cb984-ac4b-43a9-a345-cf8096ce5def" x="428" y="10" width="53" height="12"/>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{lstArticulos})]]></dataSourceExpression>
+				<subreportExpression><![CDATA["reports/Cotizaciones_Articulos.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>
