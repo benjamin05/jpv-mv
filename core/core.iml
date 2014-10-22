@@ -9,6 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/test/groovy" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/resources" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated-sources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.gradle" />
     </content>
     <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
@@ -834,6 +835,15 @@
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../lib/contents/gpayAPI.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../lib/contents/commons-beanutils-1.6.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
