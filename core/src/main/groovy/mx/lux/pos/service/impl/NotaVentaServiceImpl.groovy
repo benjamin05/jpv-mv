@@ -1990,6 +1990,26 @@ class NotaVentaServiceImpl implements NotaVentaService {
     return pedidoLcRepository.findOne( idFactura )
   }
 
+    @Override
+    NotaVenta obtenerUltimaNotaVentaPorCliente( Integer id ){
+        log.debug( "obtenerUltimaNotaVentaPorCliente( $id )" )
 
+        if ( id == null ) {
+            return null
+        }
+
+        QNotaVenta nv = QNotaVenta.notaVenta
+        List<NotaVenta> notasTmp = notaVentaRepository.findAll( nv.idCliente.eq(id), nv.fechaHoraFactura.desc() )
+
+        NotaVenta nota = null;
+
+
+        for(NotaVenta notv : notasTmp){
+            nota = notv
+            break
+        }
+
+        return nota
+    }
 
 }

@@ -12,6 +12,7 @@ import mx.lux.pos.ui.view.dialog.ContactDialogNewCustomer
 import mx.lux.pos.ui.view.dialog.NewCustomerAndRxDialog
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang3.StringUtils
+import org.apache.poi.util.StringUtil
 
 import javax.swing.*
 import java.awt.*
@@ -189,6 +190,51 @@ class CustomerPanel extends JPanel {
 
             }
 
+            panel(border: titledBorder('Contacto'), layout: new MigLayout("wrap 5", "[fill][fill][fill,grow][fill][fill,grow]")) {
+                typeContact = buttonGroup()
+
+                cbEmail = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_CORREO )},
+                        constraints: 'hidemode 3', visible: !edit )
+                label( text: 'Correo:', constraints: 'hidemode 3', visible: !edit )
+                txtEmail = textField( constraints: 'hidemode 3', visible: !edit )
+                arroba = label(text: '@', visible: !edit)
+                dominio = comboBox(items: dominios, visible: !edit,editable:true )
+
+
+                cbCell = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_SMS )},
+                        constraints: 'hidemode 3', visible: !edit )
+                label( text: 'Celular:', constraints: 'hidemode 3', visible: !edit )
+                txtSms = textField( constraints: 'hidemode 3', visible: !edit )
+                label()
+                label()
+
+                cbHouse = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_TELEFONO )},
+                        constraints: 'hidemode 3', visible: !edit )
+                label( text: 'Telefono:', constraints: 'hidemode 3', visible: !edit )
+                txtTelefono = textField( constraints: 'hidemode 3', visible: !edit )
+                label()
+                label()
+
+
+
+                contactReg = panel( layout: new MigLayout("wrap", "[fill,grow]"), visible: true, constraints: 'span 5') {
+                    scrollPane(
+                            mouseClicked: { MouseEvent ev -> onMouseClickedAtContact(ev) },
+                            mouseReleased: { MouseEvent ev -> onMouseClickedAtContact(ev) }) {
+                        tFormas = table(selectionMode: ListSelectionModel.SINGLE_SELECTION,
+                                mouseClicked: { MouseEvent ev -> onMouseClickedAtContact(ev) },
+                                mouseReleased: { MouseEvent ev -> onMouseClickedAtContact(ev) }) {
+                            model = tableModel(list: formasContacto) {
+                                closureColumn(header: 'Tipo de Contacto', minWidth: 100, read: { row -> return row.tipoContacto.descripcion })
+                                closureColumn(header: 'Dato', minWidth: 180, read: { row -> return row.contacto })
+                            } as DefaultTableModel
+                        }
+                    }
+                }
+
+
+            }
+
             panel(border: titledBorder('Dirección'), layout: new MigLayout('wrap 3', '[][fill,grow][]'), constraints: 'hidemode 3') {
                 label('Calle y Número')
                 primary = textField(document: new UpperCaseDocument(), constraints: 'span 2')
@@ -207,43 +253,6 @@ class CustomerPanel extends JPanel {
                 button('Buscar', actionPerformed: doSearch)
             }
 
-            panel(border: titledBorder('Contacto'), layout: new MigLayout("wrap 5", "[fill][fill][fill,grow][fill][fill,grow]")) {
-                typeContact = buttonGroup()
-                cbHouse = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_TELEFONO )},
-                        constraints: 'hidemode 3', visible: !edit )
-                label( text: 'Telefono:', constraints: 'hidemode 3', visible: !edit )
-                txtTelefono = textField( constraints: 'hidemode 3', visible: !edit )
-                label()
-                label()
-                cbCell = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_SMS )},
-                        constraints: 'hidemode 3', visible: !edit )
-                label( text: 'Celular:', constraints: 'hidemode 3', visible: !edit )
-                txtSms = textField( constraints: 'hidemode 3', visible: !edit )
-                label()
-                label()
-                cbEmail = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_CORREO )},
-                        constraints: 'hidemode 3', visible: !edit )
-                label( text: 'Correo:', constraints: 'hidemode 3', visible: !edit )
-                txtEmail = textField( constraints: 'hidemode 3', visible: !edit )
-                arroba = label(text: '@', visible: !edit)
-                dominio = comboBox(items: dominios, visible: !edit,editable:true )
-                contactReg = panel( layout: new MigLayout("wrap", "[fill,grow]"), visible: true, constraints: 'span 5') {
-                    scrollPane(
-                            mouseClicked: { MouseEvent ev -> onMouseClickedAtContact(ev) },
-                            mouseReleased: { MouseEvent ev -> onMouseClickedAtContact(ev) }) {
-                        tFormas = table(selectionMode: ListSelectionModel.SINGLE_SELECTION,
-                                mouseClicked: { MouseEvent ev -> onMouseClickedAtContact(ev) },
-                                mouseReleased: { MouseEvent ev -> onMouseClickedAtContact(ev) }) {
-                            model = tableModel(list: formasContacto) {
-                                closureColumn(header: 'Tipo de Contacto', minWidth: 100, read: { row -> return row.tipoContacto.descripcion })
-                                closureColumn(header: 'Dato', minWidth: 180, read: { row -> return row.contacto })
-                            } as DefaultTableModel
-                        }
-                    }
-                }
-
-
-            }
 
 
 
@@ -396,20 +405,29 @@ class CustomerPanel extends JPanel {
 
 
     private def doSubmit = { ActionEvent ev ->
+
         JButton source = ev.source as JButton
         source.enabled = false
+
+        if ( ! validaDatos() ) {
+            source.enabled = true
+            return
+        }
+
         SimpleDateFormat dF = new SimpleDateFormat("dd-MM-yyyy");
         customer?.contacts?.clear()
         Boolean validData = true
+
         if (isValidInput()) {
             customer.dob = StringUtils.trimToEmpty(txtBirthDate.text).length() > 0 ? dF.parse( txtBirthDate.text ) : null
             Customer tmpCustomer = new Customer()
             if (edit == false) {
                 tmpCustomer = CustomerController.addCustomer(this.customer)
-                CustomerController.addClienteProceso(tmpCustomer)   //Se agrega registro en la tabla cliente_proceso
+                CustomerController.addClienteProceso( tmpCustomer )   //Se agrega registro en la tabla cliente_proceso
                 CustomerController.changeMainContact( customer.id, formaContacto )
             } else {
                 tmpCustomer = customer
+                CustomerController.addClienteProceso( tmpCustomer )   //Se agrega registro en la tabla cliente_proceso
             }
             if (tmpCustomer?.id) {
                 customer = tmpCustomer
@@ -468,8 +486,7 @@ class CustomerPanel extends JPanel {
         if (SwingUtilities.isRightMouseButton(pEvent) && (pEvent.getID() == MouseEvent.MOUSE_CLICKED)) {
 
             for (int a = 0; a < this.formasContacto.size(); a++) {
-                  println('id_tipo_contacto: '+this.formasContacto.getAt(a)?.tipoContacto?.id_tipo_contacto)
-                if (this.formasContacto.getAt(a)?.tipoContacto?.id_tipo_contacto == 1) {
+                if ( this.formasContacto.getAt(a)?.tipoContacto?.id_tipo_contacto == 1 ) {
                    list.remove('Correo')
                 } else if (this.formasContacto.getAt(a)?.tipoContacto?.id_tipo_contacto == 2) {
                     list.remove('Recados')
@@ -482,8 +499,8 @@ class CustomerPanel extends JPanel {
 
             if(list.size()>0){
 
-            ContactDialogNewCustomer contacto = new ContactDialogNewCustomer(new FormaContacto(), false, list)
-            contacto.activate()
+                ContactDialogNewCustomer contacto = new ContactDialogNewCustomer(new FormaContacto(), false, list)
+                contacto.activate()
 
                 if (contacto.formaContacto?.tipoContacto?.id_tipo_contacto != null) {
                     this.formasContacto.add(contacto.formaContacto)
@@ -685,5 +702,86 @@ class CustomerPanel extends JPanel {
           }
         }
         return dateFormat
+    }
+
+    private Boolean validaDatos() {
+
+        Boolean completo = true
+
+
+        if ( firstName.getText().equals("") ) {
+            completo = false
+        }
+
+        if ( fathersName.getText().equals("") ) {
+            completo = false
+        }
+
+        if ( mothersName.getText().equals("") ) {
+            completo = false
+        }
+
+        if ( txtBirthDate.getText().equals("") ) {
+            completo = false
+        }
+
+        if ( this.edit == true ) {
+            if ( model.size() == 0 ) {
+                completo = false
+            }
+        } else {
+            if (formaContacto == 1) { // Correo
+                if (txtEmail.getText().equals("")) {
+                    completo = false
+                }
+
+                if (StringUtils.trimToEmpty(dominio.getSelectedItem().toString()).equals("")) {
+                    completo = false
+                }
+            }
+
+            if (formaContacto == 3) { // SMS
+                if (txtSms.getText().equals("")) {
+                    completo = false
+                }
+            }
+
+            if (formaContacto == 4) { // Telefono
+                if (txtTelefono.getText().equals("")) {
+                    completo = false
+                }
+            }
+
+            if (formaContacto == 0) {
+                completo = false
+            }
+        }
+
+        if ( primary.getText().equals("") ) {
+            completo = false
+        }
+
+        if ( stateField.getSelectedItem() == null ) {
+            completo = false
+        }
+
+        if ( city.getSelectedItem() == null ) {
+            completo = false
+        }
+
+        if ( locationField.getSelectedItem() == null ) {
+            completo = false
+        }
+
+        if ( StringUtils.trimToEmpty( zipcode.getSelectedItem().toString() ).equals("") ) {
+            completo = false
+        }
+
+        if ( ! completo ) {
+            JOptionPane.showMessageDialog(new JLabel(), 'Verificar captura o poner ND en el campo faltante',
+                    'Captura incorrecta', JOptionPane.INFORMATION_MESSAGE)
+        }
+
+        return completo
     }
 }

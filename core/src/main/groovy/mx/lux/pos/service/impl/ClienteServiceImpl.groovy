@@ -8,6 +8,7 @@ import mx.lux.pos.service.ClienteService
 import mx.lux.pos.service.business.Registry
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.time.DateUtils
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -95,9 +96,54 @@ class ClienteServiceImpl implements ClienteService {
       log.debug( "se obtiene lista con: ${result?.size()} elementos" )
       return result
     }
-    log.warn( "parametros insuficientes" )
-    return [ ] as List<Cliente>
+      log.warn("parametros insuficientes")
+      return [] as List<Cliente>
   }
+
+    @Override
+    List<Cliente> buscarClienteApellidoPatAndFechaNac(String apellidoPaterno, Date fechaNacimiento) {
+        log.debug("buscarClienteApellidoPatAndFechaNac ( $apellidoPaterno, $fechaNacimiento)")
+
+        apellidoPaterno = StringUtils.trimToNull(apellidoPaterno)
+//        fechaNacimiento = StringUtils.trimToNull(fechaNacimiento)
+
+        String firtsChar = null
+
+        if ( apellidoPaterno != null ) {
+
+            if ( apellidoPaterno.length() > 2 ) {
+                firtsChar = apellidoPaterno.toString();
+            }else {
+                firtsChar = apellidoPaterno.getAt(0);
+            }
+        }
+
+        log.debug("Parametros: ($firtsChar, $fechaNacimiento)")
+
+        if ( firtsChar != null && fechaNacimiento != null ) {
+            //def result = clienteRepository.findByStartApellidoPaternoAndFechaNacimiento(firtsChar, fechaNacimiento)
+            def result = clienteRepository.listaClientesStartApellidoPatCliFechaNac(firtsChar, fechaNacimiento)
+            log.debug("se obtiene lista con: ${result?.size()} elementos por fecha y apellido")
+            return result
+        }else if ( firtsChar != null && fechaNacimiento == null ) {
+            //def result = clienteRepository.findByStartApellidoPaterno(firtsChar)
+            def result = clienteRepository.listaClientesStartApellidoPatCli( firtsChar )
+            log.debug("se obtiene lista con: ${result?.size()} elementos, por apellido")
+            return result
+        }else if ( firtsChar == null && fechaNacimiento != null ) {
+            //def result = clienteRepository.findByFechaNacimiento(fechaNacimiento)
+            def result = clienteRepository.listaClientesFechaNac(fechaNacimiento)
+            log.debug("se obtiene lista con: ${result?.size()} elementos, por fecha")
+            return result
+        }else{
+            log.debug("Parametro no validos para busqueda de clientes")
+            log.debug("se obtiene lista con: 0 elementos")
+            return [] as List<Cliente>
+        }
+
+        //log.warn("parametros insuficientes")
+        return [] as List<Cliente>
+    }
 
   Cliente agregarCliente( Cliente cliente ) {
     return agregarCliente( cliente, null, null )
@@ -423,6 +469,5 @@ class ClienteServiceImpl implements ClienteService {
             and(qNotaVenta.factura.isNotNull()).and(qNotaVenta.factura.isNotEmpty()) )
     return lstNotas
   }
-
 
 }

@@ -85,7 +85,6 @@ class InvTrController {
     log.debug( "[Controller] Update Part Master with Parts in Receiving Document" )
     if ( ( pDocument != null ) && ( pDocument.partShadows.size() > 0 ) ) {
       ArticuloService partMaster = ServiceManager.partService
-
       partMaster.actualizarArticulosConSombra( pDocument.partShadows )
     }
   }

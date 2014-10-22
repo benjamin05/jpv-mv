@@ -199,7 +199,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   }
 
   void requestCouponDiscount(){
-    if( CustomerController.validCustomerApplyCoupon( view.order.customer.id ) ){
+    if( view.order.customer.id != CustomerController.findDefaultCustomer().id ){
       DiscountCouponDialog couponDiscount = new DiscountCouponDialog(true,view.order.id)
       couponDiscount.setOrderTotal( view.order.total )
       couponDiscount.setVerifier( this )

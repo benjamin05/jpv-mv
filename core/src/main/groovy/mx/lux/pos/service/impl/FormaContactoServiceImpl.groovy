@@ -87,5 +87,22 @@ class FormaContactoServiceImpl extends QueryDslRepositorySupport  implements For
       return fcFam
     }
 
+    @Override
+    FormaContacto findByidClienteTipoContacto( Integer idCliente, Integer tipoContacto ) {
+        FormaContacto fcFam = new FormaContacto()
 
+        QFormaContacto fc = QFormaContacto.formaContacto
+        List<FormaContacto> lstFormasContacto = formaContactoRepository.findAll( fc.id_cliente.eq(idCliente).and(fc.id_tipo_contacto.eq(tipoContacto)), fc.fecha_mod.asc() )
+
+        FormaContacto formaContacto = null;
+
+        for( FormaContacto f : lstFormasContacto ){
+            formaContacto = f
+        }
+
+        if ( formaContacto != null )
+            return formaContacto
+
+        return null
+    }
 }

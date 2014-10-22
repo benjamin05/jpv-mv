@@ -95,6 +95,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static boolean ticketRx
     private String armazonString = null
     private Boolean activeDialogProccesCustomer = true
+    private Boolean activeDialogBusquedaCliente = true
     private Boolean advanceOnlyInventariable
     private String sComments = ''
     private HelpItemSearchDialog helpItemSearchDialog
@@ -426,8 +427,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     break
                 case OperationType.NEW:
                     sb.doLater {
-                        CustomerController.requestNewCustomer(this)
-
+                        if ( activeDialogBusquedaCliente ) {
+                            CustomerController.requestBusquedaCliente(this)
+                        }
+//                        CustomerController.requestNewCustomer(this)
                     }
                     break
                 case OperationType.PENDING:

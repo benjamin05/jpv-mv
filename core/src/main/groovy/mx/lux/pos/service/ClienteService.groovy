@@ -1,12 +1,15 @@
 package mx.lux.pos.service
 
 import mx.lux.pos.model.*
+import org.springframework.data.jpa.repository.Query
 
 interface ClienteService {
 
   Cliente obtenerCliente( Integer id )
 
   List<Cliente> buscarCliente( String nombre, String apellidoPaterno, String apellidoMaterno )
+
+  List<Cliente> buscarClienteApellidoPatAndFechaNac( String apellido, Date fecha)
 
   Cliente agregarCliente( Cliente cliente )
 
@@ -45,4 +48,6 @@ interface ClienteService {
   void saveMainFC (Integer idCliente, Integer formaContacto)
 
   List<NotaVenta> obtenernotasActivas( Integer idCliente )
+
+
 }

@@ -289,9 +289,9 @@ class IOServiceImpl implements IOService {
           acuse.contenido = String.format( 'sistemaVal=%s|', tipo.trim() )
           acuse.contenido += String.format( 'id_sucVal=%s|', transInv.sucursal.toString().trim() )
           acuse.contenido += String.format( 'horaVal=%s|', CustomDateUtils.format(transInv.fechaMod, 'HH:mm') )
-          acuse.contenido += String.format( 'doctoVal=%s|', String.format( '%s', remesa.idDocto.trim() ) )
+          acuse.contenido += String.format( 'doctoVal=%s|', String.format( '%s', StringUtils.trimToEmpty(remesa?.idDocto)) )
           acuse.contenido += String.format( 'id_acuseVal=%s|', String.format( '%d', acuse.id ) )
-          acuse.contenido += String.format( 'transaVal=%s|', String.format( '%s', remesa.docto.trim() ) )
+          acuse.contenido += String.format( 'transaVal=%s|', String.format( '%s', StringUtils.trimToEmpty(remesa?.docto) ) )
           try {
               acuse = acuses.saveAndFlush( acuse )
               logger.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )

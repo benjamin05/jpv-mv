@@ -5,6 +5,7 @@ import com.mysema.query.types.OrderSpecifier
 import com.mysema.query.types.Predicate
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
+import mx.lux.pos.model.JbTrack
 import mx.lux.pos.repository.*
 import mx.lux.pos.service.CancelacionService
 import mx.lux.pos.service.NotaVentaService

@@ -499,10 +499,6 @@ class Registry {
     return isTrue( TipoParametro.ACUSE_LOG_DETALLE )
   }
 
-  static Boolean validCustomerToApplyCoupon() {
-    return isTrue( TipoParametro.VALIDA_APLICAR_CUPON_PUBLICO_GENERAL )
-  }
-
   static Boolean transCanSameDay() {
         return isTrue( TipoParametro.TRANS_CAN_MISMO_DIA )
   }

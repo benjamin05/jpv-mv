@@ -4,8 +4,10 @@ import groovy.util.logging.Slf4j
 import mx.lux.pos.model.TipoContacto
 import mx.lux.pos.repository.TipoContactoRepository
 import mx.lux.pos.service.ContactoService
+import mx.lux.pos.service.FormaPagoService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+
 
 import javax.annotation.Resource
 
@@ -23,4 +25,5 @@ class ContactoServiceImpl implements ContactoService{
 
      return contactos
     }
+
 }

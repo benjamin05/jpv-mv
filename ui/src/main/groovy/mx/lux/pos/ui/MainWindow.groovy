@@ -13,6 +13,7 @@ import mx.lux.pos.ui.view.dialog.EntregaTrabajoDialog
 import mx.lux.pos.ui.view.dialog.ImportEmployeeDialog
 import mx.lux.pos.ui.view.panel.*
 import net.miginfocom.swing.MigLayout
+import org.apache.commons.lang.StringUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
@@ -44,6 +45,7 @@ class MainWindow extends JFrame implements KeyListener {
     private LcView lcView
     private CustomerSearchDialog customerDialog
     private JPanel dailyClosePanel
+    private JPanel consultaPanel
     private JPanel priceListPanel
     private JPanel invoicePanel
     private JToolBar infoBar
@@ -57,6 +59,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenu lcMenu
     private JMenu inventoryMenu
     private JMenu reportsMenu
+    private JMenu controlTrabajosMenu
     private JMenuItem orderMenuItem
     private JMenuItem orderSearchMenuItem
     private JMenuItem dailyCloseMenuItem
@@ -107,6 +110,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem multipaymentMenuItem
     private JMenuItem disactivateSPItem
     private JMenuItem cellarReportMenuItem
+    private JMenuItem consultaMenuItem
     private PromotionService promotionService
 
 
@@ -578,6 +582,27 @@ class MainWindow extends JFrame implements KeyListener {
                                 }
                         )*/
                     }
+                    /*controlTrabajosMenu = menu( text: 'Control de Trabajos', mnemonic: 'C',
+                            menuSelected: {
+                                boolean userLoggedIn = Session.contains( SessionItem.USER )
+                                consultaMenuItem.visible = userLoggedIn
+                            }
+                    ) {
+                        consultaMenuItem = menuItem( text: 'Consulta Trabajos',
+                                visible: true,
+                                actionPerformed: {
+                                    actionPerformed: {
+                                        clean( consultaPanel )
+                                        if( consultaPanel == null ){
+                                            consultaPanel = new ConsultaPanel();
+                                            mainPanel.add( 'consultaPanel', consultaPanel )
+                                        }
+                                        consultaPanel.limpiaPantalla()
+                                        mainPanel.layout.show( mainPanel, 'consultaPanel' )
+                                    }
+                                }
+                        )
+                    }*/
                     toolsMenu = menu( text: 'Herramientas', mnemonic: 'H',
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
@@ -754,6 +779,7 @@ class MainWindow extends JFrame implements KeyListener {
 
     void requestLogout( ) {
         if(orderPanel != null && orderPanel?.order?.id != null){
+            OrderController.deleteCuponMv( StringUtils.trimToEmpty(orderPanel.order.id) )
             orderPanel.promotionDriver.requestPromotionSave(orderPanel.order?.id, false)
         }
         openSoi = false
@@ -778,6 +804,7 @@ class MainWindow extends JFrame implements KeyListener {
 
     void requestExit(){
       if(orderPanel != null && orderPanel?.order?.id != null){
+        OrderController.deleteCuponMv( StringUtils.trimToEmpty(orderPanel.order.id) )
         orderPanel.promotionDriver.requestPromotionSave(orderPanel.order?.id, false)
       }
       //new ExitAction().action

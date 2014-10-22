@@ -650,15 +650,22 @@ class TicketServiceImpl implements TicketService {
         monto3Par = cuponMv.get(0).montoCupon
       } else if(cuponMv.size() == 2 && Registry.tirdthPairValid()){
         leyendaCupon = "SOLICITA TUS TICKETS."
-        cupon2Par = true
+        //cupon2Par = true
         monto2Par = Math.max(cuponMv.get(0).montoCupon.doubleValue(),cuponMv.get(1).montoCupon.doubleValue())
-        cupon3Par = true
+        //cupon3Par = true
         monto3Par = Math.min(cuponMv.get(0).montoCupon.doubleValue(),cuponMv.get(1).montoCupon.doubleValue())
+        if( monto2Par.compareTo(BigDecimal.ZERO) > 0 && monto3Par.compareTo(BigDecimal.ZERO) > 0 ){
+          cupon2Par = true
+          cupon3Par = true
+        }
       } else {
         if(cuponMv.size() > 0){
           leyendaCupon = "SOLICITA TU TICKET."
-          cupon2Par = true
+          //cupon2Par = true
           monto2Par = cuponMv.size() > 1 ? Math.max(cuponMv.get(0).montoCupon.doubleValue(),cuponMv.get(1).montoCupon.doubleValue()) : cuponMv.get(0).montoCupon
+          if( monto2Par.compareTo(BigDecimal.ZERO) > 0 ){
+            cupon2Par = true
+          }
         }
       }
       def items = [

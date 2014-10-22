@@ -1,5 +1,6 @@
 package mx.lux.pos.repository.impl
 
+import groovy.util.logging.Slf4j
 import com.mysema.query.jpa.JPQLQuery
 import com.mysema.query.types.Predicate
 import mx.lux.pos.model.Cliente
@@ -43,4 +44,53 @@ class ClienteRepositoryImpl extends QueryDslRepositorySupport implements Cliente
 	}
 	[ ]
   }
+
+    @Override
+    List<Cliente> findByStartApellidoPaterno(String apellido ) {
+
+        if ( apellido != null ) {
+            QCliente cliente = QCliente.cliente
+            def predicates = []
+            predicates.add( cliente.apellidoPaterno.startsWithIgnoreCase( apellido ) )
+            JPQLQuery query = from ( cliente )
+            query.where( predicates as Predicate [] )
+            return query.list( cliente )
+        }
+        []
+    }
+
+    @Override
+    List<Cliente> findByFechaNacimiento(Date fecha) {
+
+        if ( fecha != null ) {
+            QCliente cliente = QCliente.cliente
+            def predicates = [ ]
+            Date fechaInicio = fecha
+            predicates.add( cliente.fechaNacimiento.between( fechaInicio, fechaInicio ) )
+            JPQLQuery query = from ( cliente )
+            query.where( predicates as Predicate[] )
+            return query.list( cliente )
+        }
+        [ ]
+    }
+
+    @Override
+    List<Cliente> findByStartApellidoPaternoAndFechaNacimiento(String apellido, Date fecha ) {
+
+        if ( apellido != null && fecha != null ) {
+            QCliente cliente = QCliente.cliente
+            def predicates = []
+            Date fechaNac = fecha
+
+            predicates.add( cliente.apellidoPaterno.startsWithIgnoreCase( apellido ) )
+            predicates.add( cliente.fechaNacimiento.between(fechaNac, fechaNac) )
+
+            JPQLQuery query = from( cliente )
+            query.where( predicates as Predicate[] )
+
+            return query.list( cliente )
+        }
+        []
+    }
+
 }

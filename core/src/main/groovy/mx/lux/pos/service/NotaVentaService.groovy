@@ -151,4 +151,6 @@ interface NotaVentaService {
   Pago actualizarPagoEnNotaVenta( String idOrder, Pago pago )
 
   PedidoLc obtienePedidoLc( String idFactura )
+
+    NotaVenta obtenerUltimaNotaVentaPorCliente ( Integer id)
 }
