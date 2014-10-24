@@ -730,7 +730,7 @@ class CustomerPanel extends JPanel {
                 completo = false
             }
         } else {
-            if (formaContacto == 1) { // Correo
+//            if (formaContacto == 1) { // Correo
                 if (txtEmail.getText().equals("")) {
                     completo = false
                 }
@@ -738,23 +738,23 @@ class CustomerPanel extends JPanel {
                 if (StringUtils.trimToEmpty(dominio.getSelectedItem().toString()).equals("")) {
                     completo = false
                 }
-            }
+//            }
 
-            if (formaContacto == 3) { // SMS
+//            if (formaContacto == 3) { // SMS
                 if (txtSms.getText().equals("")) {
                     completo = false
                 }
-            }
+//            }
 
-            if (formaContacto == 4) { // Telefono
+//            if (formaContacto == 4) { // Telefono
                 if (txtTelefono.getText().equals("")) {
                     completo = false
                 }
-            }
+//            }
 
-            if (formaContacto == 0) {
-                completo = false
-            }
+//            if (formaContacto == 0) {
+//                completo = false
+//            }
         }
 
         if ( primary.getText().equals("") ) {
