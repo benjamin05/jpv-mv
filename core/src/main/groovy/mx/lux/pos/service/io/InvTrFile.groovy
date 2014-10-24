@@ -166,9 +166,17 @@ class InvTrFile {
   }
 
   protected File getInvTrFile( TransInv pInvTr ) {
-    String filename = String.format( "%s.%d.%s.DA.%06d", 2.toString(), pInvTr.sucursal, CustomDateUtils.format( pInvTr.fecha, "dd-MM-yyyy" ),
+    Articulo articulo = ServiceFactory.partMaster.obtenerArticulo( pInvTr.trDet.first().sku )
+    String filename = ""
+    if( StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase("E") ){
+      filename = String.format( "%s.%d.%s.DE.%06d", 2.toString(), pInvTr.sucursal, CustomDateUtils.format( pInvTr.fecha, "dd-MM-yyyy" ),
             pInvTr.folio,
-         )
+      )
+    } else {
+      filename = String.format( "%s.%d.%s.DA.%06d", 2.toString(), pInvTr.sucursal, CustomDateUtils.format( pInvTr.fecha, "dd-MM-yyyy" ),
+            pInvTr.folio,
+      )
+    }
     String absolutePath = String.format( "%s%s%s", this.location, File.separator, filename )
     return new File( absolutePath )
   }

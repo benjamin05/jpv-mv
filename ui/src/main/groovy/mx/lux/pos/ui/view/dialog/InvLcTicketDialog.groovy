@@ -182,7 +182,8 @@ class InvLcTicketDialog extends JDialog implements InvOhListener {
     logger.debug( "Notify Data Changed" )
     Collection<Generico> genreList = ohData.genreList
     genreModel.setupGenreLc( genreList )
-    if ( ( genreList.size() > 1 ) || ( genreList.size() == 0 ) ) {
+    //if ( ( genreList.size() > 1 ) || ( genreList.size() == 0 ) ) {
+    if ( genreList.size() >= 0 ) {
       genreSelector.setSelectedIndex( 0 )
     } else {
       genreSelector.setSelectedIndex( 1 )
