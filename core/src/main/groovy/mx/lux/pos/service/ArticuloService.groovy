@@ -56,6 +56,8 @@ interface ArticuloService {
 
   Boolean validaUnSoloPaquete( List<Integer> lstIds, Integer idArticulo )
 
+  Boolean validaUnSoloLente( List<Integer> lstIds, Integer idArticulo )
+
   Boolean validarArticuloSurte( DetalleNotaVenta detalle )
 
   Boolean esLenteContacto( Integer id )
