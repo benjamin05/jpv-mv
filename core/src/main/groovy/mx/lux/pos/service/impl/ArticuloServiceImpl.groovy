@@ -61,6 +61,7 @@ class ArticuloServiceImpl implements ArticuloService {
   private static final Integer CANT_CARACTEREZ_COD_BAR = 15
   private static final String TAG_SURTE_SUCURSAL = 'S'
   private static final String TAG_GENERICO_H = 'H'
+  private static final String TAG_GENERICO_B = 'B'
   private static final String TAG_ID_GEN_TIPO_LC = 'NC'
   private static final String TAG_ARTICULOS_VIGENTES = 'V'
 
@@ -387,6 +388,38 @@ class ArticuloServiceImpl implements ArticuloService {
       esUnSoloPaq = false
     }
     return  esUnSoloPaq
+  }
+
+
+    @Override
+  Boolean validaUnSoloLente( List<Integer> lstIds, Integer idArticulo ){
+    log.debug( "validaUnSoloLente( )" )
+    Boolean esUnSoloLente = true
+    Boolean esLente = false
+    Boolean existeLente = false
+    Articulo articulo = articuloRepository.findOne( idArticulo )
+    List<Articulo> lstArticulo = new ArrayList<Articulo>()
+    for(Integer id : lstIds){
+      Articulo articulo1 = new Articulo()
+      articulo1 = articuloRepository.findOne( id )
+      if(articulo1 != null){
+        lstArticulo.add( articulo1 )
+      }
+    }
+    if( articulo != null ){
+      if(StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_B)){
+        esLente = true
+      }
+    }
+    for(Articulo art : lstArticulo){
+      if( StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_B) ){
+        existeLente = true
+      }
+    }
+    if( esLente && existeLente ){
+      esUnSoloLente = false
+    }
+    return  esUnSoloLente
   }
 
 

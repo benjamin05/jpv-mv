@@ -1488,6 +1488,16 @@ class OrderController {
     }
 
 
+    static Boolean validOnlyOneLens( List<OrderItem> lstItems, Integer idItem ){
+        List<Integer> lstIds = new ArrayList<Integer>()
+        for(OrderItem item : lstItems){
+            lstIds.add( item.item.id )
+        }
+        Boolean unLente = articuloService.validaUnSoloLente( lstIds, idItem )
+        return unLente
+    }
+
+
     static Boolean validReusoTicket( String ticket, Integer idArticulo ){
       Boolean ticketValido = notaVentaService.ticketReusoValido( ticket, idArticulo )
       return ticketValido
