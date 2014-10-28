@@ -75,6 +75,7 @@ class OrderController {
     private static JbNotasRepository jbNotasRepository
     private static DescuentoRepository descuentoRepository
     private static CuponMvRepository cuponMvRepository
+    private static NotaVentaRepository notaVentaRepository
     private static final String TAG_USD = "USD"
     private static Integer numberQuote = 0
 
@@ -108,7 +109,8 @@ class OrderController {
             DescuentoRepository descuentoRepository,
             CotizacionService cotizacionService,
             FormaContactoService formaContactoService,
-            CuponMvRepository cuponMvRepository
+            CuponMvRepository cuponMvRepository,
+            NotaVentaRepository notaVentaRepository
 
     ) {
         this.notaVentaService = notaVentaService
@@ -140,6 +142,7 @@ class OrderController {
         this.jbService = jbService
         this.formaContactoService = formaContactoService
         this.cuponMvRepository = cuponMvRepository
+        this.notaVentaRepository = notaVentaRepository
     }
 
     static Order getOrder(String orderId) {
@@ -387,6 +390,10 @@ class OrderController {
                 Articulo i = articuloService.obtenerArticulo(orderItem?.item?.id.toInteger())
 
                 if (!i?.indice_dioptra.equals(null)) {
+                    if(StringUtils.trimToEmpty(i?.idGenerico).equalsIgnoreCase(TAG_GENERICO_B)){
+                      nota.receta = null
+                      notaVentaRepository.save( nota )
+                    }
                     Dioptra actDioptra = validaDioptra(generaDioptra(preDioptra(nota.codigo_lente)), generaDioptra(i.indice_dioptra))
                     o = Order.toOrder(notaVenta)
 
