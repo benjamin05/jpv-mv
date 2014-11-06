@@ -87,6 +87,7 @@ enum TipoParametro {
   VALIDA_SP( 'valida_sp', '' ),
   VALIDA_EMPLEADO( 'valida_empleado', '' ),
   VALIDA_DIA_CERRADO_VENTA( 'valida_dia_cerrado_venta', 'no' ),
+  VALIDA_APLICAR_CUPON_PUBLICO_GENERAL( 'valida_aplicar_cupon_publico_general', 'no' ),
   VENTA_NEGATIVA_AUTORIZACION( 'venta_negativo_aut', 'S' ),
   VIGENCIA_CUPON('vigencia_cupon','15'),
   ALMACENES('almacenes','00000'),

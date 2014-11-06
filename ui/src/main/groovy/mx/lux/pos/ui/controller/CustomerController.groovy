@@ -3,6 +3,7 @@ package mx.lux.pos.ui.controller
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
 import mx.lux.pos.service.*
+import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.impl.FormaContactoService
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.view.dialog.*
@@ -723,5 +724,17 @@ class CustomerController {
 
         return null
     }
+
+
+  static validCustomerApplyCoupon( Integer idCustomer ){
+    Boolean valid = true
+    if( Registry.validCustomerToApplyCoupon() ){
+      if( idCustomer == findDefaultCustomer().id ){
+        valid = false
+      }
+    }
+    return valid
+  }
+
 
 }

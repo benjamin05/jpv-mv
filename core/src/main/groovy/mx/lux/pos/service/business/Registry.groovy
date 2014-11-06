@@ -23,6 +23,7 @@ class Registry {
     return p
   }
 
+
   static AcusesTipo findUrl( TipoUrl pUrl ) {
       AcusesTipo p = RepositoryFactory.getAcusesTipoRepository().findOne( pUrl.getValue() )
       if ( p == null ) {
@@ -497,6 +498,10 @@ class Registry {
 
   static Boolean isAckDebugEnabled() {
     return isTrue( TipoParametro.ACUSE_LOG_DETALLE )
+  }
+
+  static Boolean validCustomerToApplyCoupon() {
+    return isTrue( TipoParametro.VALIDA_APLICAR_CUPON_PUBLICO_GENERAL )
   }
 
   static Boolean transCanSameDay() {
