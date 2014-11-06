@@ -197,7 +197,7 @@ class InvLcTicketDialog extends JDialog implements InvOhListener {
     notifyDataChanged()
   }
 
-  // UI Performance  
+  // UI Performance
   protected void onButtonCancel( ) {
     logger.debug( "On Button Cancel" )
     this.setVisible( false )
