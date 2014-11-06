@@ -2065,7 +2065,14 @@ class TicketServiceImpl implements TicketService {
         Articulo part = articuloRepository.findOne( det.sku )
         List<Precio> precios = precioRepository.findByArticulo(part.articulo.trim())
         Precio precio = new Precio()
-        if(precios.size() > 0){
+        Boolean oferta = false
+        for(Precio price : precios){
+          if( StringUtils.trimToEmpty(price.lista).equalsIgnoreCase("O") && price.precio.compareTo(BigDecimal.ZERO) > 0 ){
+            precio = price
+            oferta = true
+          }
+        }
+        if(precios.size() > 0 && !oferta){
           precio = precios.first()
         }
         String cantidad = ( det.cantidad != 1 ? String.format( '(%d@%,.2f)', det.cantidad, part.precio ) : '' )
