@@ -109,10 +109,10 @@ class PromotionCommit {
       RepositoryFactory.orderLines.save( dbOrderLine )
     }
     RepositoryFactory.orderLines.flush()
-    dbOrder.ventaNeta = asAmount( netAmount.round() )
-    dbOrder.ventaTotal = asAmount( netAmount.round() )
+    dbOrder.ventaNeta = asAmount( netAmount )
+    dbOrder.ventaTotal = asAmount( netAmount )
     if ( pModel.hasOrderDiscountApplied() ) {
-      dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount.round() )
+      dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount )
       dbOrder.por100Descuento = Math.round( pModel.orderDiscount.discountPercent * 100.0 ) as Integer
     } else {
       dbOrder.montoDescuento = BigDecimal.ZERO
