@@ -70,7 +70,7 @@ class OrdenPromDetList {
           promDet.precioBase = asAmount( promDet.precioBase.doubleValue( ) +  promotionLine.baseAmount )
           promDet.descuentoMonto = asAmount( promDet.descuentoMonto.doubleValue( ) + promotionLine.discountAmount )
           if ( Math.abs( promDet.precioBase.doubleValue( ) ) > ZERO_TOLERANCE ) {
-            Double percent = ( 100.0 * promDet.descuentoMonto.doubleValue( ) ) /  promDet.precioBase.doubleValue( )  
+            Double percent = ( 100.0 * promDet.descuentoMonto.doubleValue( ) ) /  promDet.precioBase.doubleValue( )
             promDet.descuentoPorcentaje = asPercent( percent )
           } else {
             promDet.descuentoPorcentaje = BigDecimal.ZERO
