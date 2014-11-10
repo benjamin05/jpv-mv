@@ -107,11 +107,11 @@ class CustomerPanel extends JPanel {
             this.formasContacto = ContactController.findCustomerContact(customer?.id)
 
             for ( FormaContacto fc : this.formasContacto ) {
-                if ( fc.tipoContacto.id_tipo_contacto == 4 ) { // Telefono
+                if ( fc.tipoContacto.id_tipo_contacto == 3 ) { // Telefono
                     showTelefono = false
                 }
 
-                if ( fc.tipoContacto.id_tipo_contacto == 3 ) { // Movil
+                if ( fc.tipoContacto.id_tipo_contacto == 4 ) { // Movil
                     showMovil = false
                 }
 
@@ -224,8 +224,8 @@ class CustomerPanel extends JPanel {
                     label(' ')
 
                 }
-
             }
+
             panel(border: titledBorder('Contacto'), layout: new MigLayout("wrap 5", "[fill][fill][fill,grow][fill][fill,grow]")) {
                 typeContact = buttonGroup()
 
@@ -240,14 +240,20 @@ class CustomerPanel extends JPanel {
                 arroba = label(text: '@', constraints: 'hidemode 3',  visible: showCorreo)
                 dominio = comboBox(items: dominios, constraints: 'hidemode 3', visible: showCorreo,editable:true )
 
+                if ( edit ) {
+                    txtEmail.setBorder(BorderFactory.createLineBorder(Color.RED))
+                    txtEmail.setBackground(Color.RED)
+                }
+
                 cbCell = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_SMS )},
                         constraints: 'hidemode 3', visible: showMovil )
                 label( text: 'Celular:', constraints: 'hidemode 3', visible: showMovil )
                 txtSms = textField( constraints: 'hidemode 3', visible: showMovil )
 
-
-                txtSms.setBorder( BorderFactory.createLineBorder( Color.RED ) )
-                txtSms.setBackground( Color.RED )
+                if ( edit ) {
+                    txtSms.setBorder(BorderFactory.createLineBorder(Color.RED))
+                    txtSms.setBackground(Color.RED)
+                }
 
                 label( text: ' ', constraints: 'hidemode 3', visible: showMovil )
                 label( text: ' ', constraints: 'hidemode 3', visible: showMovil )
@@ -438,7 +444,7 @@ class CustomerPanel extends JPanel {
               Calendar fecha = new GregorianCalendar();
               Integer currentYear = fecha.get(Calendar.YEAR);
               if( validDate != null && validDate.before(new Date()) && (dayInt <= 31 && monthInt <= 12 && yearInt < currentYear) ){
-                validData = true
+//                validData = true
               } else {
                 validData = false
                 sb.optionPane(message: 'La fecha de nacimiento debe ser menor a la fecha actual')
@@ -530,7 +536,7 @@ class CustomerPanel extends JPanel {
                         } else {
                             validData = false
                             sb.optionPane(message: 'El telefono debe tener 10 digitos')
-                                    .createDialog(txtTelefono, 'Telefono incorrecto')
+                                    .createDialog(txtSms, 'Telefono incorrecto')
                                     .show()
                         }
                     }
@@ -612,7 +618,7 @@ class CustomerPanel extends JPanel {
         firstName.text = null
         fathersName.text = null
         mothersName.text = null
-        salutation.selectedItem = null
+//        salutation.selectedItem = null
         dob.value = new Date()
         Calendar cal = Calendar.getInstance()
         cal.setTime( new Date() )
@@ -816,7 +822,7 @@ class CustomerPanel extends JPanel {
 
 //            if (formaContacto == 4) { // Telefono
                 if (txtTelefono.getText().equals("")) {
-                    completo = false
+//                    completo = false
                 }
 //            }
 
