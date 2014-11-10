@@ -25,6 +25,8 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.List
 
+import static java.awt.Color.BLUE
+
 class CustomerPanel extends JPanel {
 
     private static final String TXT_TAB_TITLE = 'Cliente'
@@ -71,9 +73,9 @@ class CustomerPanel extends JPanel {
     private static List<String> dominios
     private static JTextField infoTipo
 
-    private static JTextField txtTelefono
-    private static JTextField txtSms
-    private static JTextField txtEmail
+    private JTextField txtTelefono
+    private JTextField txtSms
+    private JTextField txtEmail
     private static JPanel contactEdit
     private static JPanel contactReg
     private static JPanel addContact
@@ -85,7 +87,9 @@ class CustomerPanel extends JPanel {
     private static final Integer TAG_ID_TELEFONO = 4
     private static final Integer TAG_ID_SMS = 3
     private static final Integer TAG_ID_CORREO = 1
-
+    private static boolean showTelefono
+    private static boolean showMovil
+    private static boolean showCorreo
 
     private JTable tFormas
     private DefaultTableModel model
@@ -94,9 +98,27 @@ class CustomerPanel extends JPanel {
         CustomerAndDialog = parent
         edit = editar
         dominios = CustomerController.findAllCustomersDomains()
+
+        showTelefono = true
+        showMovil    = true
+        showCorreo   = true
+
         if (editar == true) {
             this.formasContacto = ContactController.findCustomerContact(customer?.id)
 
+            for ( FormaContacto fc : this.formasContacto ) {
+                if ( fc.tipoContacto.id_tipo_contacto == 4 ) { // Telefono
+                    showTelefono = false
+                }
+
+                if ( fc.tipoContacto.id_tipo_contacto == 3 ) { // Movil
+                    showMovil = false
+                }
+
+                if ( fc.tipoContacto.id_tipo_contacto == 1 ) { // Correo
+                    showCorreo = false
+                }
+            }
         }
         sb = new SwingBuilder()
         this.customer = customer
@@ -123,6 +145,7 @@ class CustomerPanel extends JPanel {
     }
 
     private void initialize(Customer customer) {
+
         if (edit == true) {
             this.customer.type = customer?.type
             this.customer.rfc = customer.rfc
@@ -158,63 +181,83 @@ class CustomerPanel extends JPanel {
 
     private void buildUI() {
         sb.panel(this, layout: new MigLayout('fill,wrap', '[fill]')) {
-            panel(border: titledBorder(''), layout: new MigLayout('wrap 4', '[][fill,grow][][fill,grow]','[][]')) {
-                label('Saludo')
-                salutation = comboBox(items: titles*.title, itemStateChanged: titleChanged)
+            panel (border: titledBorder(''), layout: new MigLayout('fill', '[320!,fill][fill]', '[]')) {
+//            panel(border: titledBorder(''), layout: new MigLayout('wrap 4', '[][fill,grow][][fill,grow]','[][]')) {
+                panel( layout: new MigLayout('wrap', '[fill][fill,grow]', '[]')) {
+//                label('Saludo')
+//                salutation = comboBox(items: titles*.title, itemStateChanged: titleChanged)
 
-                label('Sexo')
-                gender = comboBox(items: GenderType.values())
+                    label('Nombre')
+                    firstName = textField(document: new UpperCaseDocument())
 
-                label('Nombre')
-                firstName = textField(document: new UpperCaseDocument())
+                    label('Apellido Paterno')
+                    fathersName = textField(document: new UpperCaseDocument())
 
-                label( 'Apellido Paterno' )
-                fathersName = textField( document: new UpperCaseDocument() )
+                    label('Apellido Materno')
+                    mothersName = textField(document: new UpperCaseDocument())
 
-                label( 'Apellido Materno' )
-                mothersName = textField( document: new UpperCaseDocument() )
+                }
 
-                label( 'F. Nacimiento' )
-                //dob = spinner( model: spinnerDateModel() )
-                txtBirthDate = textField( text: birthDate )
-                txtBirthDate.addFocusListener( new FocusListener() {
-                    @Override
-                    void focusGained(FocusEvent e) {
-                    }
+                panel( layout: new MigLayout('wrap', '[][fill,grow]', '[]')) {
+//                panel(layout: new MigLayout('wrap 2,debug', '[][fill][]', '[]')) {
+//                label('Saludo')
+//                salutation = comboBox(items: titles*.title, itemStateChanged: titleChanged)
 
-                    @Override
-                    void focusLost(FocusEvent e) {
-                      txtBirthDate.setText(setValidDate( txtBirthDate.text ))
-                    }
-                })
+                    label('Sexo')
+                    gender = comboBox(items: GenderType.values())
+
+                    label('F. Nacimiento')
+                    //dob = spinner( model: spinnerDateModel() )
+                    txtBirthDate = textField(text: birthDate)
+                    txtBirthDate.addFocusListener(new FocusListener() {
+                        @Override
+                        void focusGained(FocusEvent e) {
+                        }
+
+                        @Override
+                        void focusLost(FocusEvent e) {
+                            txtBirthDate.setText(setValidDate(txtBirthDate.text))
+                        }
+                    })
+
+                    label(' ')
+                    label(' ')
+
+                }
 
             }
-
             panel(border: titledBorder('Contacto'), layout: new MigLayout("wrap 5", "[fill][fill][fill,grow][fill][fill,grow]")) {
                 typeContact = buttonGroup()
 
-                cbEmail = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_CORREO )},
-                        constraints: 'hidemode 3', visible: !edit )
-                label( text: 'Correo:', constraints: 'hidemode 3', visible: !edit )
-                txtEmail = textField( constraints: 'hidemode 3', visible: !edit )
-                arroba = label(text: '@', visible: !edit)
-                dominio = comboBox(items: dominios, visible: !edit,editable:true )
+                //showCorreo = true
+                //showMovil = true
+                //showTelefono = true
 
+                cbEmail = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_CORREO )},
+                        constraints: 'hidemode 3', visible: showCorreo )
+                label( text: 'Correo:', constraints: 'hidemode 3', visible: showCorreo )
+                txtEmail = textField( constraints: 'hidemode 3', visible: showCorreo )
+                arroba = label(text: '@', constraints: 'hidemode 3',  visible: showCorreo)
+                dominio = comboBox(items: dominios, constraints: 'hidemode 3', visible: showCorreo,editable:true )
 
                 cbCell = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_SMS )},
-                        constraints: 'hidemode 3', visible: !edit )
-                label( text: 'Celular:', constraints: 'hidemode 3', visible: !edit )
-                txtSms = textField( constraints: 'hidemode 3', visible: !edit )
-                label()
-                label()
+                        constraints: 'hidemode 3', visible: showMovil )
+                label( text: 'Celular:', constraints: 'hidemode 3', visible: showMovil )
+                txtSms = textField( constraints: 'hidemode 3', visible: showMovil )
+
+
+                txtSms.setBorder( BorderFactory.createLineBorder( Color.RED ) )
+                txtSms.setBackground( Color.RED )
+
+                label( text: ' ', constraints: 'hidemode 3', visible: showMovil )
+                label( text: ' ', constraints: 'hidemode 3', visible: showMovil )
 
                 cbHouse = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_TELEFONO )},
-                        constraints: 'hidemode 3', visible: !edit )
-                label( text: 'Telefono:', constraints: 'hidemode 3', visible: !edit )
-                txtTelefono = textField( constraints: 'hidemode 3', visible: !edit )
-                label()
-                label()
-
+                        constraints: 'hidemode 3', visible: showTelefono )
+                label( text: 'Telefono:', constraints: 'hidemode 3', visible: showTelefono )
+                txtTelefono = textField( constraints: 'hidemode 3', visible: showTelefono )
+                label( text: ' ', constraints: 'hidemode 3', visible: showTelefono )
+                label( text: ' ', constraints: 'hidemode 3', visible: showTelefono )
 
 
                 contactReg = panel( layout: new MigLayout("wrap", "[fill,grow]"), visible: true, constraints: 'span 5') {
@@ -239,18 +282,18 @@ class CustomerPanel extends JPanel {
                 label('Calle y Número')
                 primary = textField(document: new UpperCaseDocument(), constraints: 'span 2')
 
-                label('Estado')
-                stateField = comboBox(items: states, itemStateChanged: stateChanged, constraints: 'span 2')
-
-                label('Delegación/Mnpo')
-                city = comboBox(itemStateChanged: cityChanged, constraints: 'span 2')
+                label('C.P.')
+                zipcode = comboBox(editable: true)
+                button('Buscar', actionPerformed: doSearch)
 
                 label('Colonia')
                 locationField = comboBox(itemStateChanged: locationChanged, constraints: 'span 2')
 
-                label('C.P.')
-                zipcode = comboBox(editable: true)
-                button('Buscar', actionPerformed: doSearch)
+                label('Delegación/Mnpo')
+                city = comboBox(itemStateChanged: cityChanged, constraints: 'span 2')
+
+                label('Estado')
+                stateField = comboBox(items: states, itemStateChanged: stateChanged, constraints: 'span 2')
             }
 
 
@@ -286,7 +329,7 @@ class CustomerPanel extends JPanel {
             bean(firstName, text: bind(source: customer, sourceProperty: 'name', mutual: true))
             bean(fathersName, text: bind(source: customer, sourceProperty: 'fathersName', mutual: true))
             bean(mothersName, text: bind(source: customer, sourceProperty: 'mothersName', mutual: true))
-            bean(salutation, selectedItem: bind(source: customer, sourceProperty: 'title', mutual: true))
+//            bean(salutation, selectedItem: bind(source: customer, sourceProperty: 'title', mutual: true))
             //bean(dob, value: bind(source: customer, sourceProperty: 'dob', mutual: true))
             bean(gender, selectedItem: bind(source: customer, sourceProperty: 'gender', mutual: true))
             bean(primary, text: bind(source: customer.address, sourceProperty: 'primary', mutual: true))
@@ -354,20 +397,31 @@ class CustomerPanel extends JPanel {
             if( StringUtils.trimToEmpty(txtTelefono.text).length() == 10 ){
 
             } else {
-                validData = false
-                sb.optionPane(message: 'El telefono debe tener 10 digitos')
-                        .createDialog(txtTelefono, 'Telefono incorrecto')
-                        .show()
+                String tel = StringUtils.trimToEmpty(txtTelefono.text)
+                tel = tel.toUpperCase()
+
+                if ( ! tel.equals("ND") ) {
+
+                    validData = false
+                    sb.optionPane(message: 'El telefono debe tener 10 digitos')
+                            .createDialog(txtTelefono, 'Telefono incorrecto')
+                            .show()
+                }
             }
         }
         if( StringUtils.trimToEmpty(txtSms.text) != '' ){
             if( StringUtils.trimToEmpty(txtSms.text).length() == 10 ){
 
             } else {
-                validData = false
-                sb.optionPane(message: 'El telefono debe tener 10 digitos')
-                        .createDialog(txtTelefono, 'Telefono incorrecto')
-                        .show()
+                String tel = StringUtils.trimToEmpty(txtSms.text)
+                tel = tel.toUpperCase()
+
+                if ( ! tel.equals("ND") ) {
+                    validData = false
+                    sb.optionPane(message: 'El telefono debe tener 10 digitos')
+                            .createDialog(txtSms, 'Telefono incorrecto')
+                            .show()
+                }
             }
         }
         if( StringUtils.trimToEmpty(txtBirthDate.text).length() > 0 ){
@@ -447,25 +501,39 @@ class CustomerPanel extends JPanel {
                         CustomerController.saveContact(customer,3,this.formasContacto.getAt(a)?.contacto)
                     }
                 }
-                if( StringUtils.trimToEmpty(txtTelefono.text) != '' ){
-                    if( StringUtils.trimToEmpty(txtTelefono.text).length() == 10 ){
-                      CustomerController.saveContact(customer,2,StringUtils.trimToEmpty(txtTelefono.text))
-                    } else {
-                        validData = false
-                        sb.optionPane(message: 'El telefono debe tener 10 digitos')
-                                .createDialog(txtTelefono, 'Telefono incorrecto')
-                                .show()
+
+                String tel
+
+                tel = StringUtils.trimToEmpty(txtTelefono.text)
+                tel = tel.toLowerCase()
+
+                if( tel != '' ){
+                    if ( ! tel.equals("nd") ) {
+                        if (StringUtils.trimToEmpty(txtTelefono.text).length() == 10) {
+                            CustomerController.saveContact(customer, 2, StringUtils.trimToEmpty(txtTelefono.text))
+                        } else {
+                            validData = false
+                            sb.optionPane(message: 'El telefono debe tener 10 digitos')
+                                    .createDialog(txtTelefono, 'Telefono incorrecto')
+                                    .show()
+                        }
                     }
                 }
-                if( StringUtils.trimToEmpty(txtSms.text) != '' ){
-                  if( StringUtils.trimToEmpty(txtSms.text).length() == 10 ){
-                    CustomerController.saveContact(customer,3,StringUtils.trimToEmpty(txtSms.text))
-                  } else {
-                    validData = false
-                      sb.optionPane(message: 'El telefono debe tener 10 digitos')
-                              .createDialog(txtTelefono, 'Telefono incorrecto')
-                      .show()
-                  }
+
+                tel = StringUtils.trimToEmpty(txtSms.text)
+                tel = tel.toLowerCase()
+
+                if( tel != '' ){
+                    if ( ! tel.equals("nd") ) {
+                        if (StringUtils.trimToEmpty(txtSms.text).length() == 10) {
+                            CustomerController.saveContact(customer, 3, StringUtils.trimToEmpty(txtSms.text))
+                        } else {
+                            validData = false
+                            sb.optionPane(message: 'El telefono debe tener 10 digitos')
+                                    .createDialog(txtTelefono, 'Telefono incorrecto')
+                                    .show()
+                        }
+                    }
                 }
                 if( StringUtils.trimToEmpty(txtEmail.text) != '' ){
                     String correo = txtEmail?.text + '@' + dominio?.selectedItem?.toString()
@@ -758,23 +826,23 @@ class CustomerPanel extends JPanel {
         }
 
         if ( primary.getText().equals("") ) {
-            completo = false
+//            completo = false
         }
 
         if ( stateField.getSelectedItem() == null ) {
-            completo = false
+//            completo = false
         }
 
         if ( city.getSelectedItem() == null ) {
-            completo = false
+//            completo = false
         }
 
         if ( locationField.getSelectedItem() == null ) {
-            completo = false
+//            completo = false
         }
 
         if ( StringUtils.trimToEmpty( zipcode.getSelectedItem().toString() ).equals("") ) {
-            completo = false
+//            completo = false
         }
 
         if ( ! completo ) {
