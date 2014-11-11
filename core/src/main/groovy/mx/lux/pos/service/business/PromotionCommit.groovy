@@ -88,6 +88,9 @@ class PromotionCommit {
         }
         RepositoryFactory.orderPromotionDetail.flush()
         opdl.setRelation( commited )
+        for(OrdenPromDet det : opdl.list){
+          det.setDescuentoPorcentaje( det.descuentoPorcentaje.setScale(2, BigDecimal.ROUND_CEILING) )
+        }
         RepositoryFactory.orderLinePromotionDetail.save( opdl.list )
         RepositoryFactory.orderLinePromotionDetail.flush()
       }
