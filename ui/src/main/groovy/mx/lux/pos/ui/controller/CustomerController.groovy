@@ -675,10 +675,12 @@ class CustomerController {
             log.debug("resultados de localidades: ${results*.usuario}")
             def localidad = results?.any() ? results?.first() : null
             Cliente cliente = clienteService.obtenerCliente(customer.id)
+
             cliente.nombre = customer.name
             cliente.apellidoPaterno = customer.fathersName
             cliente.apellidoMaterno = customer.mothersName
-            cliente.titulo = customer.title
+            cliente.titulo = null
+//            cliente.titulo = customer.title
             cliente.sexo = customer.gender?.equals(GenderType.MALE)
             cliente.fechaNacimiento = customer.dob
             cliente.direccion = customer.address?.primary

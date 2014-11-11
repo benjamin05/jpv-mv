@@ -120,6 +120,7 @@ class CustomerPanel extends JPanel {
                 }
             }
         }
+
         sb = new SwingBuilder()
         this.customer = customer
         defaultState = CustomerController.findDefaultState()
@@ -229,10 +230,6 @@ class CustomerPanel extends JPanel {
             panel(border: titledBorder('Contacto'), layout: new MigLayout("wrap 5", "[fill][fill][fill,grow][fill][fill,grow]")) {
                 typeContact = buttonGroup()
 
-                //showCorreo = true
-                //showMovil = true
-                //showTelefono = true
-
                 cbEmail = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_CORREO )},
                         constraints: 'hidemode 3', visible: showCorreo )
                 label( text: 'Correo:', constraints: 'hidemode 3', visible: showCorreo )
@@ -242,7 +239,11 @@ class CustomerPanel extends JPanel {
 
                 if ( edit ) {
                     txtEmail.setBorder(BorderFactory.createLineBorder(Color.RED))
-                    txtEmail.setBackground(Color.RED)
+                    if ( showCorreo ) {
+                        dominio.setSelectedItem(null)
+                    }
+                }else{
+                    dominio.setSelectedItem(null)
                 }
 
                 cbCell = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_SMS )},
@@ -252,7 +253,6 @@ class CustomerPanel extends JPanel {
 
                 if ( edit ) {
                     txtSms.setBorder(BorderFactory.createLineBorder(Color.RED))
-                    txtSms.setBackground(Color.RED)
                 }
 
                 label( text: ' ', constraints: 'hidemode 3', visible: showMovil )
@@ -301,9 +301,6 @@ class CustomerPanel extends JPanel {
                 label('Estado')
                 stateField = comboBox(items: states, itemStateChanged: stateChanged, constraints: 'span 2')
             }
-
-
-
 
             panel(layout: new MigLayout('right', '[fill,100!]')) {
                 /*button('Borrar',
@@ -459,6 +456,17 @@ class CustomerPanel extends JPanel {
                         .show()
           }
         }
+
+        if ( StringUtils.trimToEmpty(txtEmail.text) != '' ) {
+            if ( StringUtils.trimToEmpty(txtEmail.text).toUpperCase().equals("ND") ) {
+
+            }else{
+                if ( StringUtils.trimToEmpty( dominio?.selectedItem?.toString() ).equals("") ) {
+                    validData = false
+                }
+            }
+        }
+
         return validData
     }
 
@@ -486,7 +494,10 @@ class CustomerPanel extends JPanel {
                 CustomerController.addClienteProceso( tmpCustomer )   //Se agrega registro en la tabla cliente_proceso
                 CustomerController.changeMainContact( customer.id, formaContacto )
             } else {
+
                 tmpCustomer = customer
+                customer.title = ""
+                tmpCustomer.title = ""
                 CustomerController.addClienteProceso( tmpCustomer )   //Se agrega registro en la tabla cliente_proceso
             }
             if (tmpCustomer?.id) {
@@ -542,10 +553,13 @@ class CustomerPanel extends JPanel {
                     }
                 }
                 if( StringUtils.trimToEmpty(txtEmail.text) != '' ){
-                    String correo = txtEmail?.text + '@' + dominio?.selectedItem?.toString()
-                    CustomerController.saveContact(customer,0,StringUtils.trimToEmpty(correo))
+                    if ( ! StringUtils.trimToEmpty(txtEmail.text).toUpperCase().equals("ND") ) {
+                        String correo = txtEmail?.text + '@' + dominio?.selectedItem?.toString()
+                        CustomerController.saveContact(customer, 0, StringUtils.trimToEmpty(correo))
+                    }
                 }
                 if( validData ){
+                    tmpCustomer.title = null
                   CustomerController.updateCustomer(tmpCustomer)
                   this.doCancel()
                 }
@@ -648,8 +662,6 @@ class CustomerPanel extends JPanel {
             }
         }
     }
-
-
 
     private def stateChanged = { ItemEvent ev ->
         if (ev.stateChange == ItemEvent.SELECTED) {
@@ -801,16 +813,38 @@ class CustomerPanel extends JPanel {
 
         if ( this.edit == true ) {
             if ( model.size() == 0 ) {
-                completo = false
+//                completo = false
+            }
+
+            if ( showMovil ) {
+                if (txtSms.getText().equals("")) {
+                    completo = false
+                }
+            }
+
+            if ( showTelefono ) {
+                if (txtTelefono.getText().equals("")) {
+                    completo = false
+                }
+            }
+
+            if ( showCorreo ) {
+                if ( StringUtils.trimToEmpty( txtEmail.getText() ).equals("") || StringUtils.trimToEmpty( dominio.selectedItem?.toString() ).equals("") ) {
+                    if ( StringUtils.trimToEmpty( txtEmail.getText() ).toUpperCase().equals("ND") ) {
+
+                    }else {
+                        completo = false
+                    }
+                }
             }
         } else {
 //            if (formaContacto == 1) { // Correo
-                if (txtEmail.getText().equals("")) {
-                    completo = false
-                }
+                if ( StringUtils.trimToEmpty( txtEmail.getText() ).equals("") || StringUtils.trimToEmpty( dominio.selectedItem?.toString() ).equals("") ) {
+                    if ( StringUtils.trimToEmpty( txtEmail.getText() ).toUpperCase().equals("ND") ) {
 
-                if (StringUtils.trimToEmpty(dominio.getSelectedItem().toString()).equals("")) {
-                    completo = false
+                    }else {
+                        completo = false
+                    }
                 }
 //            }
 
@@ -822,7 +856,7 @@ class CustomerPanel extends JPanel {
 
 //            if (formaContacto == 4) { // Telefono
                 if (txtTelefono.getText().equals("")) {
-//                    completo = false
+                    completo = false
                 }
 //            }
 
