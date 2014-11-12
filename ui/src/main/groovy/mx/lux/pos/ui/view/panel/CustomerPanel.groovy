@@ -614,7 +614,6 @@ class CustomerPanel extends JPanel {
                     model.fireTableDataChanged()
                     }
                 }
-
             }
         }
     }
@@ -633,17 +632,24 @@ class CustomerPanel extends JPanel {
         fathersName.text = null
         mothersName.text = null
 //        salutation.selectedItem = null
-        dob.value = new Date()
-        Calendar cal = Calendar.getInstance()
-        cal.setTime( new Date() )
-        cal.add(Calendar.YEAR, -5)
+//        dob.value = new Date()
+//        Calendar cal = Calendar.getInstance()
+//        cal.setTime( new Date() )
+//        cal.add(Calendar.YEAR, -5)
         birthDate = ""
+        txtBirthDate.text = ""
         gender.selectedItem = GenderType.MALE
         primary.text = null
         stateField.selectedItem = defaultState
         city.selectedItem = null
         locationField.selectedItem = null
         zipcode.selectedItem = null
+
+        dominio.selectedItem = null
+        txtEmail.text = ""
+        txtSms.text = ""
+        txtTelefono.text = ""
+
     }
 
     private def titleChanged = { ItemEvent ev ->
