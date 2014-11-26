@@ -176,6 +176,7 @@ class DailyCloseController {
       String parametroGerente = Registry.idManager
       Empleado employee = empleadoService.obtenerEmpleado( parametroGerente )
       ticketService.imprimeResumenDiario( closeDate, employee )
+      ticketService.imprimeDepositosResumenDiario( closeDate )
     } catch ( Exception e ) {
       log.error( "Error al cerrar el Cierre Diario: ${e.getMessage()}" )
       return false

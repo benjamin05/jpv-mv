@@ -18,6 +18,8 @@ interface TicketService {
 
   void imprimeResumenDiario( Date fechaCierre, Empleado empleado )
 
+  void imprimeDepositosResumenDiario( Date fechaCierre )
+
   void imprimeUbicacionListaPrecios( ListaPrecios listaPrecios, List<Articulo> articulos )
 
   void imprimeCargaListaPrecios( ListaPrecios listaPrecios )

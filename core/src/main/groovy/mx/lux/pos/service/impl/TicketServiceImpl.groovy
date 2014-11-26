@@ -2471,4 +2471,23 @@ class TicketServiceImpl implements TicketService {
     }
 
 
+    void imprimeDepositosResumenDiario( Date fechaCierre ){
+      log.debug( "imprimeDepositosResumenDiario( )" )
+      NumberFormat formatterMoney = new DecimalFormat( '$#,##0.00' )
+      SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
+      QDeposito qDeposito = QDeposito.deposito
+      List<Deposito> depositos = depositoRepository.findAll( qDeposito.fechaCierre.eq(fechaCierre) ) as List<Deposito>
+      Sucursal sucursal = sucursalRepository.findOne( Registry.currentSite )
+      for(Deposito deposito : depositos){
+        def datos = [
+             nombre_ticket: 'ticket-deposito',
+             sucursal: String.format("%s %s",sucursal.centroCostos,sucursal.nombre),
+             importe: formatterMoney.format(deposito.monto),
+             fechaIngreso: df.format(fechaCierre)
+        ]
+        this.imprimeTicket( 'template/ticket-deposito.vm', datos )
+      }
+    }
+
+
 }
