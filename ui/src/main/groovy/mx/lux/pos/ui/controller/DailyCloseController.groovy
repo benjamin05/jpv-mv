@@ -131,6 +131,7 @@ class DailyCloseController {
     User user = Session.get( SessionItem.USER ) as User
     Empleado employee = empleadoService.obtenerEmpleado( user.username )
     ticketService.imprimeResumenDiario( closeDate, employee )
+    ticketService.imprimeDepositosResumenDiario( closeDate )
   }
 
   static boolean closeDailyClose( Date closeDate, String observations ) {
