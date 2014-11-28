@@ -58,6 +58,7 @@ class DiscountContextMenu extends JPopupMenu {
     for(Payment payment : driver.view.order.payments){
       OrderController.removePaymentFromOrder( driver.view.order.id, payment )
     }
+    OrderController.saveOrder( driver.view.order )
     orderPanel.updateOrder( driver.view.order.id )
   }
   
@@ -66,6 +67,7 @@ class DiscountContextMenu extends JPopupMenu {
     for(Payment payment : driver.view.order.payments){
       OrderController.removePaymentFromOrder( driver.view.order.id, payment )
     }
+    OrderController.saveOrder( driver.view.order )
     orderPanel.updateOrder( driver.view.order.id )
   }
 
@@ -74,6 +76,7 @@ class DiscountContextMenu extends JPopupMenu {
       for(Payment payment : driver.view.order.payments){
           OrderController.removePaymentFromOrder( driver.view.order.id, payment )
       }
+      OrderController.saveOrder( driver.view.order )
       orderPanel.updateOrder( driver.view.order.id )
   }
 

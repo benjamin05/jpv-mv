@@ -1277,6 +1277,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       for(Payment payment : order.payments){
         OrderController.removePaymentFromOrder( order.id, payment )
       }
+      OrderController.saveOrder( order )
       updateOrder(order?.id)
     }
 
