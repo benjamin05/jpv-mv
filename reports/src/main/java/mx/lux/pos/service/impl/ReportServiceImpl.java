@@ -1577,17 +1577,17 @@ public class ReportServiceImpl implements ReportService {
         Integer totalDesc = lstDescuentos.size();
         BigDecimal importeTotalDesc = BigDecimal.ZERO;
         for(Descuento desc : lstDescuentos){
-            importeTotalDesc = importeTotalDesc.add(desc.getNotaVenta() != null ? desc.getNotaVenta().getMontoDescuento() : BigDecimal.ZERO);
-            if( desc.getDescuentosClave() == null ){
-                desc.setDescuentosClave(new DescuentoClave());
-                if( isNumeric(StringUtils.trimToEmpty(desc.getClave())) ){
-                    desc.getDescuentosClave().setClave_descuento(desc.getClave());
-                    desc.getDescuentosClave().setDescripcion_descuento("DIRECCION");
-                } else {
-                    desc.getDescuentosClave().setClave_descuento(desc.getClave());
-                    desc.getDescuentosClave().setDescripcion_descuento(desc.getClave().startsWith("8") ? "CUPON 2P" : "CUPON 3P");
-                }
+          importeTotalDesc = importeTotalDesc.add(desc.getNotaVenta() != null ? desc.getNotaVenta().getMontoDescuento() : BigDecimal.ZERO);
+          if( desc.getDescuentosClave() == null ){
+            desc.setDescuentosClave(new DescuentoClave());
+            if( isNumeric(StringUtils.trimToEmpty(desc.getClave())) ){
+              desc.getDescuentosClave().setClave_descuento(desc.getClave());
+              desc.getDescuentosClave().setDescripcion_descuento("DIRECCION");
+            } else {
+              desc.getDescuentosClave().setClave_descuento(desc.getClave());
+              desc.getDescuentosClave().setDescripcion_descuento(desc.getClave().startsWith("8") ? "CUPON 2P" : "CUPON 3P");
             }
+          }
         }
 
         Map<String, Object> parametros = new HashMap<String, Object>();
