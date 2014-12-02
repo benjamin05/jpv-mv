@@ -543,7 +543,8 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
           pais: paisCliente,
           codigoDioptra: codigoDioptra.trim(),
           idOpto: idOpt != null ? idOpt : "",
-          tipo_cliente: ''
+          tipo_cliente: '',
+          fecha_promesa: nv.fechaPrometida != null ? CustomDateUtils.format( nv.fechaPrometida, 'dd-MM-yyyy' ) : ''
       ]
     }
     def datos = [ sucursal: sucursal,

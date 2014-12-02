@@ -1,5 +1,5 @@
 #define($CR)${writer.write(13)}#end
 $sucursal.id|$fecha_cierre|$numero_registros|
 #foreach( $nv in $notas_venta )
-$foreach.count|$nv.factura|$nv.id_factura|$nv.id_empleado|$nv.id_convenio|$nv.id_cliente|$nv.s_factura|$nv.total|$nv.udf4|$referido|$nv.porcentajeDescSunI|$nv.tipo_descuentoSunI|$nv.claveSunI|$nv.tipo_cliente|$nv.fecha_entrega|$nv.hora_venta|$nv.codigoDioptra|$nv.idOpto|
+$foreach.count|$nv.factura|$nv.id_factura|$nv.id_empleado|$nv.id_convenio|$nv.id_cliente|$nv.s_factura|$nv.total|$nv.udf4|$referido|$nv.porcentajeDescSunI|$nv.tipo_descuentoSunI|$nv.claveSunI|$nv.tipo_cliente|$nv.fecha_entrega|$nv.hora_venta|$nv.codigoDioptra|$nv.idOpto|$nv.fecha_promesa|
 #end
