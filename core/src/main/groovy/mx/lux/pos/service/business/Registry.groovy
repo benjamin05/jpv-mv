@@ -459,6 +459,10 @@ class Registry {
         return  asInteger(TipoParametro.VIGENCIA_CUPON)
     }
 
+    static Integer getDiasVigenciaCuponFF() {
+      return  asInteger(TipoParametro.VIGENCIA_CUPON_FF)
+    }
+
     static String getPackages() {
         return  asString(TipoParametro.PAQUETES)
     }
@@ -494,6 +498,18 @@ class Registry {
     }
   static Double getAckDelay( ) {
     return asDouble( TipoParametro.ACUSE_RETRASO )
+  }
+
+  static Double getAmountToGenerateFFCoupon( ) {
+    return asDouble( TipoParametro.MONTO_GENERA_FF_CUPON )
+  }
+
+  static Double getAmountToApplyFFCoupon( ) {
+    return asDouble( TipoParametro.MONTO_APLICA_FF_CUPON )
+  }
+
+  static Double getAmountFFCoupon( ) {
+    return asDouble( TipoParametro.MONTO_FF_CUPON )
   }
 
   static Boolean isAckDebugEnabled() {

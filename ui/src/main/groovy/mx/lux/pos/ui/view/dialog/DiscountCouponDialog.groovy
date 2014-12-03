@@ -3,6 +3,7 @@ package mx.lux.pos.ui.view.dialog
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.DescuentoClave
+import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.ICorporateKeyVerifier
 import mx.lux.pos.ui.resources.UI_Standards
@@ -182,15 +183,31 @@ class DiscountCouponDialog extends JDialog {
                     porceLabel.setVisible(true)
                     porceText.setVisible(true)
                 }else if(descuentoClave?.tipo != null && descuentoClave?.tipo.trim().equals('M')){
+                  if( descuentoClave.clave_descuento.startsWith("F") ){
+                    if( orderTotal.doubleValue() > Registry.amountToApplyFFCoupon ){
+                      txtDiscountPercent.setValue(descuentoClave?.porcenaje_descuento)
+                      txtDiscountAmount.setValue(  descuentoClave?.porcenaje_descuento)
+                      porceLabel.setVisible(false)
+                      porceText.setVisible(false)
+
+                      lblStatus.text = TXT_VERIFY_PASS
+                      lblStatus.foreground = UI_Standards.NORMAL_FOREGROUND
+                      btnOk.setEnabled( true )
+                    } else {
+                      lblStatus.setText( "" )
+                      btnOk.setEnabled( false )
+                    }
+                  } else {
                     txtDiscountPercent.setValue(descuentoClave?.porcenaje_descuento)
                     txtDiscountAmount.setValue(  descuentoClave?.porcenaje_descuento)
                     porceLabel.setVisible(false)
                     porceText.setVisible(false)
-                }
-            lblStatus.text = TXT_VERIFY_PASS
-        lblStatus.foreground = UI_Standards.NORMAL_FOREGROUND
-        btnOk.setEnabled( true )
 
+                    lblStatus.text = TXT_VERIFY_PASS
+                    lblStatus.foreground = UI_Standards.NORMAL_FOREGROUND
+                    btnOk.setEnabled( true )
+                  }
+                }
             } else {
                 lblStatus.text = 'Descuento Inactivo'
                 lblStatus.foreground = UI_Standards.WARNING_FOREGROUND

@@ -633,9 +633,9 @@ class MultypaymentDialog extends JDialog implements FocusListener {
 
             if( cuponMv.size() > 0 ){
                 Integer numeroCupon = cuponMv.first().claveDescuento.startsWith("8") ? 2 : 3
-                OrderController.updateCuponMv( cuponMv.first().facturaOrigen, firstOrder.id, cuponMv.first().montoCupon, numeroCupon)
+                OrderController.updateCuponMv( cuponMv.first().facturaOrigen, firstOrder.id, cuponMv.first().montoCupon, numeroCupon, false)
             } else if( validClave ) {
-                  OrderController.updateCuponMv( newOrder1.id, newOrder2.id, amountCuponSecondOrder, 2 )
+                  OrderController.updateCuponMv( newOrder1.id, newOrder2.id, amountCuponSecondOrder, 2, false )
                   if( Registry.tirdthPairValid() ){
                       BigDecimal montoCupon = OrderController.getCuponAmountThirdPair( newOrder1.id )
                       CuponMv cupon = OrderController.obtenerCuponMv( StringUtils.trimToEmpty(newOrder1.bill), "", montoCupon, 3 )

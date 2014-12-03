@@ -106,7 +106,7 @@ interface NotaVentaService {
 
   void guardarCuponMv( CuponMv cuponMv )
 
-  CuponMv actualizarCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon )
+  CuponMv actualizarCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon, Boolean ffCupon )
 
   void actualizarCuponMvPorClave( String idFacturaDestino, String clave )
 
@@ -152,5 +152,7 @@ interface NotaVentaService {
 
   PedidoLc obtienePedidoLc( String idFactura )
 
-    NotaVenta obtenerUltimaNotaVentaPorCliente ( Integer id)
+  NotaVenta obtenerUltimaNotaVentaPorCliente ( Integer id)
+
+  List<NotaVenta> obtenerNotaVentaPorClienteFF( Integer idCliente )
 }

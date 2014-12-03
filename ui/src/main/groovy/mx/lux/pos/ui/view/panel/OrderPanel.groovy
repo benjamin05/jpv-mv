@@ -1166,7 +1166,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
             if( cuponMv != null ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
-                OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon)
+                OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
             } else {
                 if(validClave){
                   Integer var = 1
@@ -1187,7 +1187,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       calendar.setTime(new Date());
                       calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
                       cuponMv.fechaVigencia = calendar.getTime()
-                      cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon )
+                      cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
                       OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
                     }
                   }
