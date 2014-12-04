@@ -272,7 +272,16 @@ class CancelacionServiceImpl implements CancelacionService {
                 log.warn('no se registran devoluciones, notaVenta sin cancelacion')
             }
         } else {
+          NotaVenta notaVenta = notaVentaRepository.findOne( idNotaVenta )
+          if( notaVenta != null && notaVenta.ventaNeta.compareTo(BigDecimal.ZERO) <= 0 ){
+            List<Devolucion> lstDev = new ArrayList<>()
+            Devolucion dev = new Devolucion()
+            dev.id = 0
+            lstDev.add( dev )
+            return lstDev
+          } else {
             log.warn('no se registran devoluciones, parametros invalidos')
+          }
         }
         return []
     }
