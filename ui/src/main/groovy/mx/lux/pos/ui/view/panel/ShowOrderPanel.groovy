@@ -262,7 +262,8 @@ class ShowOrderPanel extends JPanel {
       bean( comments, text: bind( source: order, sourceProperty: 'comments', mutual: true ) )
       //bean( cancelButton, visible: bind {!'T'.equalsIgnoreCase( order.status )} )
         bean( cancelTotalButton, visible: bind {!'T'.equalsIgnoreCase( order.status )} )
-        bean( cancelTransfButton, visible: bind {!'T'.equalsIgnoreCase( order.status )} )
+        bean( cancelTransfButton, visible: bind {!'T'.equalsIgnoreCase( order.status ) &&
+                !StringUtils.trimToEmpty(new Date().format("dd-MM-yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(order.date.format("dd-MM-yyyy")))} )
         bean( printRxButton, visible: bind {(order.rx != null)} )
       sumaPagos = BigDecimal.ZERO
       for ( Payment payment : order.payments ) {
