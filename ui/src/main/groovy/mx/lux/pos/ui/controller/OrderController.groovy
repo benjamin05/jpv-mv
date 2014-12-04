@@ -611,7 +611,7 @@ class OrderController {
         String idFactura = notaVenta.getFactura()
         notaVentaService.saveOrder(notaVenta)
         if( notaVenta.fechaEntrega != null ){
-          if( notaVenta.idCliente != Registry.genericCustomer.id && !alreadyDelivered ){
+          if( Registry.isCouponFFActivated() && !alreadyDelivered ){
             generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
           }
         }

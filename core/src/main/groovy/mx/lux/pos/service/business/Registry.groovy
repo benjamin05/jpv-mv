@@ -415,6 +415,10 @@ class Registry {
     return isTrue( TipoParametro.CAN_MISMO_DIA )
   }
 
+  static Boolean isCouponFFActivated( ) {
+    return isTrue( TipoParametro.CUPON_FF_ACTIVADO )
+  }
+
   static Integer getMaxLengthDescription( ) {
     return asInteger( TipoParametro.MAX_LONG_DESC_FACTURA )
   }
