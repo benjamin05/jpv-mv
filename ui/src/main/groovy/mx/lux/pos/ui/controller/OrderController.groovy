@@ -596,19 +596,22 @@ class OrderController {
 
     static void insertaEntrega(Order order, Boolean entregaInstante) {
         println('Order ID: ' + order?.id)
+        Boolean alreadyDelivered = false
         NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
         User user = Session.get(SessionItem.USER) as User
         notaVenta.setEmpEntrego(user?.username)
         notaVenta.setHoraEntrega(new Date())
         if (notaVenta?.fechaEntrega == null) {
             notaVenta.setFechaEntrega(new Date())
+        } else {
+          alreadyDelivered = true
         }
 
         println('Factura: ' + notaVenta?.getFactura())
         String idFactura = notaVenta.getFactura()
         notaVentaService.saveOrder(notaVenta)
         if( notaVenta.fechaEntrega != null ){
-          if( notaVenta.idCliente != Registry.genericCustomer.id ){
+          if( notaVenta.idCliente != Registry.genericCustomer.id && !alreadyDelivered ){
             generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
           }
         }
@@ -2411,7 +2414,9 @@ class OrderController {
           }
         }
         if( hasNoCouponApply ){
-          if( notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.id) ).size() > 0 ){
+          Integer appliedCoup = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura).length() > 0 ? nota.factura.trim() : nota.id ).size()
+          Integer descuentoAF = descuentoRepository.findByClave("AF200").size()
+          if( appliedCoup > 0 || descuentoAF > 0 ){
             hasNoCouponApply = false
           }
         }

@@ -432,7 +432,14 @@ class ShowOrderPanel extends JPanel {
     OrderController.printPaidOrder( order.id )
     List<CuponMv> lstCuponMv = OrderController.obtenerCuponMvBySourceOrder(StringUtils.trimToEmpty(order.bill) )
     for(CuponMv cuponMv : lstCuponMv){
-      String titulo = cuponMv.claveDescuento.trim().startsWith("8") ? "CUPON SEGUNDO PAR" : "CUPON TERCER PAR"
+      String titulo = ""
+      if( cuponMv.claveDescuento.trim().startsWith("8") ){
+        titulo = "CUPON SEGUNDO PAR"
+      } else if( cuponMv.claveDescuento.trim().startsWith("F") ){
+        titulo = "FRIENDS AND FAMILY"
+      } else {
+        titulo = "CUPON TERCER PAR"
+      }
       OrderController.printCuponTicket( cuponMv, titulo, cuponMv.montoCupon )
     }
   }
