@@ -1591,6 +1591,10 @@ public class ReportServiceImpl implements ReportService {
               desc.getDescuentosClave().setDescripcion_descuento("TIENDA");
             }
           }
+          for(DetalleNotaVenta detalleNotaVenta : desc.getNotaVenta().getDetalles()){
+            detalleNotaVenta.getArticulo().setArticulo( StringUtils.trimToEmpty(detalleNotaVenta.getArticulo().getArticulo()) );
+            detalleNotaVenta.getArticulo().setCodigoColor( StringUtils.trimToEmpty(detalleNotaVenta.getArticulo().getCodigoColor()) );
+          }
         }
 
         Map<String, Object> parametros = new HashMap<String, Object>();

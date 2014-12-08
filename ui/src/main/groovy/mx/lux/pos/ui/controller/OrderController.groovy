@@ -15,6 +15,7 @@ import mx.lux.pos.ui.view.dialog.ManualPriceDialog
 import mx.lux.pos.ui.view.panel.OrderPanel
 import org.apache.commons.lang.NumberUtils
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.time.DateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -2404,6 +2405,9 @@ class OrderController {
       BigDecimal amountSale = BigDecimal.ZERO
       Boolean hasNoCouponApply = true
       Boolean hasLenses = false
+      Date fechaInicio = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH );
+      Date fechaFin = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 );
+      QDescuento qDescuento = QDescuento.descuento
       NotaVenta nota = notaVentaService.obtenerNotaVenta( idOrder )
       if( nota!= null && nota.fechaEntrega != null ){
         List<NotaVenta> lstNotasCliente = notaVentaService.obtenerNotaVentaPorClienteFF( nota.idCliente )
@@ -2414,8 +2418,15 @@ class OrderController {
           }
         }
         if( hasNoCouponApply ){
-          Integer appliedCoup = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura).length() > 0 ? nota.factura.trim() : nota.id ).size()
-          Integer descuentoAF = descuentoRepository.findByClave("AF200").size()
+          Integer appliedCoup = 0
+          List<CuponMv> lstCupones = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura).length() > 0 ? nota.factura.trim() : nota.id )
+          for(CuponMv c : lstCupones){
+            if( StringUtils.trimToEmpty(c.fechaAplicacion.format("dd-MM-yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd-MM-yyyy"))) ){
+              appliedCoup = appliedCoup+1
+            }
+          }
+          List<Descuento> lstDesc = descuentoRepository.findAll(qDescuento.clave.eq("AF200").and(qDescuento.fecha.between(fechaInicio,fechaFin))) as List<Descuento>
+          Integer descuentoAF = lstDesc.size()
           if( appliedCoup > 0 || descuentoAF > 0 ){
             hasNoCouponApply = false
           }
