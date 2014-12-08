@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Descuentos_Detalle" language="groovy" pageWidth="756" pageHeight="792" columnWidth="756" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="00c3149b-0eb7-417b-ba15-b8763a200ea8">
 	<property name="ireport.zoom" value="1.0"/>
-	<property name="ireport.x" value="29"/>
+	<property name="ireport.x" value="85"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["/home/opticalux/proyectos/jpv/reports/src/main/resources/reports/"]]></defaultValueExpression>
@@ -51,28 +51,28 @@
 				<text><![CDATA[Articulos]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="ad76fe54-b9aa-4289-8336-d4c04030318f" x="275" y="0" width="218" height="12"/>
+				<reportElement uuid="ad76fe54-b9aa-4289-8336-d4c04030318f" x="275" y="0" width="199" height="12"/>
 				<textElement>
 					<font fontName="DejaVu Sans" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Descripcion]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="eae82bdb-1b41-4d30-8800-977d2390630d" x="498" y="0" width="65" height="12"/>
+				<reportElement uuid="eae82bdb-1b41-4d30-8800-977d2390630d" x="474" y="0" width="65" height="12"/>
 				<textElement>
 					<font fontName="DejaVu Sans" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Porcentaje]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="44635c2b-9e69-42c5-bb39-fe0a8da4e284" x="565" y="0" width="99" height="12"/>
+				<reportElement uuid="44635c2b-9e69-42c5-bb39-fe0a8da4e284" x="541" y="0" width="99" height="12"/>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Importe sin Desc.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="2081551e-1049-4fea-bdfa-eedaf351d998" x="667" y="0" width="86" height="12"/>
+				<reportElement uuid="2081551e-1049-4fea-bdfa-eedaf351d998" x="643" y="0" width="86" height="12"/>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans" isBold="true"/>
 				</textElement>
@@ -109,28 +109,28 @@
 				<subreportExpression><![CDATA["reports/Descuentos_Articulos.jasper"]]></subreportExpression>
 			</subreport>
 			<textField>
-				<reportElement uuid="54b80565-eedf-4569-b8af-a2e2d3d8d67e" x="275" y="0" width="218" height="12" isPrintWhenDetailOverflows="true"/>
+				<reportElement uuid="54b80565-eedf-4569-b8af-a2e2d3d8d67e" x="275" y="0" width="199" height="12" isPrintWhenDetailOverflows="true"/>
 				<textElement>
 					<font fontName="DejaVu Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{descripcionDescuento}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="ba9c48fa-f499-4cd0-b399-d7bdcff2c8ba" x="498" y="0" width="65" height="12"/>
+				<reportElement uuid="ba9c48fa-f499-4cd0-b399-d7bdcff2c8ba" x="474" y="0" width="65" height="12"/>
 				<textElement textAlignment="Center">
 					<font fontName="DejaVu Sans" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{porcentaje}]]></textFieldExpression>
 			</textField>
 			<textField pattern="$#,##0.00" isBlankWhenNull="true">
-				<reportElement uuid="212a5719-43d3-417e-8e15-6064b15efc0f" x="565" y="0" width="100" height="12"/>
+				<reportElement uuid="212a5719-43d3-417e-8e15-6064b15efc0f" x="541" y="0" width="100" height="12"/>
 				<textElement textAlignment="Right">
 					<font size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{importeSinDesc}]]></textFieldExpression>
 			</textField>
 			<textField pattern="$#,##0.00" isBlankWhenNull="true">
-				<reportElement uuid="d273660c-7617-4e10-8b93-dc68bec75e5d" x="668" y="0" width="85" height="12"/>
+				<reportElement uuid="d273660c-7617-4e10-8b93-dc68bec75e5d" x="644" y="0" width="85" height="12"/>
 				<textElement textAlignment="Right">
 					<font fontName="DejaVu Sans" size="9"/>
 				</textElement>
