@@ -1475,7 +1475,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
   @Override
   @Transactional
-  CuponMv actualizarCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon, Boolean ffCupon ){
+  CuponMv actualizarCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon ){
     QCuponMv qCuponMv = QCuponMv.cuponMv
     CuponMv cuponMv = cuponMvRepository.findOne( qCuponMv.facturaOrigen.eq(idFacturaOrigen).
             and(qCuponMv.facturaDestino.eq(idFacturaDestino)) )
@@ -1530,12 +1530,9 @@ class NotaVentaServiceImpl implements NotaVentaService {
         factura = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(notaOrigen.factura))
       } catch ( ParseException e ){ println e }
       String clave = claveAleatoria( StringUtils.trimToEmpty(factura.toString()), StringUtils.trimToEmpty(numeroCupon.toString()) )
-      if( ffCupon ){
-        clave = clave.replaceFirst(clave.charAt(0).toString(),"F")
-      }
       Calendar calendar = Calendar.getInstance();
       calendar.setTime(new Date());
-      calendar.add(Calendar.DAY_OF_YEAR, ffCupon ? Registry.diasVigenciaCuponFF : Registry.diasVigenciaCupon)
+      calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
       Date fechaVigencia = calendar.getTime()
       cuponMv = new CuponMv()
       cuponMv.claveDescuento = clave

@@ -106,7 +106,7 @@ interface NotaVentaService {
 
   void guardarCuponMv( CuponMv cuponMv )
 
-  CuponMv actualizarCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon, Boolean ffCupon )
+  CuponMv actualizarCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon )
 
   void actualizarCuponMvPorClave( String idFacturaDestino, String clave )
 
