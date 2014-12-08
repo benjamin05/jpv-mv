@@ -2425,7 +2425,7 @@ class OrderController {
               appliedCoup = appliedCoup+1
             }
           }
-          List<Descuento> lstDesc = descuentoRepository.findAll(qDescuento.clave.eq("AF200").and(qDescuento.fecha.between(fechaInicio,fechaFin))) as List<Descuento>
+          List<Descuento> lstDesc = descuentoRepository.findAll(qDescuento.clave.eq("AF200").and(qDescuento.idFactura.eq(nota.id))) as List<Descuento>
           Integer descuentoAF = lstDesc.size()
           if( appliedCoup > 0 || descuentoAF > 0 ){
             hasNoCouponApply = false
