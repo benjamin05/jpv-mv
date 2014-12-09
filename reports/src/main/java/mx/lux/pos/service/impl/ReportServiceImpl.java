@@ -1583,10 +1583,17 @@ public class ReportServiceImpl implements ReportService {
             if( isNumeric(StringUtils.trimToEmpty(desc.getClave())) ){
               desc.getDescuentosClave().setClave_descuento(desc.getClave());
               desc.getDescuentosClave().setDescripcion_descuento("DIRECCION");
-            } else {
+            } else if( StringUtils.trimToEmpty(desc.getClave()).length() > 0 ) {
               desc.getDescuentosClave().setClave_descuento(desc.getClave());
               desc.getDescuentosClave().setDescripcion_descuento(desc.getClave().startsWith("8") ? "CUPON 2P" : "CUPON 3P");
+            } else {
+              desc.getDescuentosClave().setClave_descuento(desc.getClave());
+              desc.getDescuentosClave().setDescripcion_descuento("TIENDA");
             }
+          }
+          for(DetalleNotaVenta detalleNotaVenta : desc.getNotaVenta().getDetalles()){
+            detalleNotaVenta.getArticulo().setArticulo( StringUtils.trimToEmpty(detalleNotaVenta.getArticulo().getArticulo()) );
+            detalleNotaVenta.getArticulo().setCodigoColor( StringUtils.trimToEmpty(detalleNotaVenta.getArticulo().getCodigoColor()) );
           }
         }
 

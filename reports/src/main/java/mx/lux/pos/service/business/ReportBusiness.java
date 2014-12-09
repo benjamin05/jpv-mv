@@ -2214,7 +2214,14 @@ public class ReportBusiness {
       String telCasa = cuponMv.getNotaVenta() != null ? StringUtils.trimToEmpty(cuponMv.getNotaVenta().getCliente().getTelefonoAdicional()) : "";
       String telAdi = cuponMv.getNotaVenta() != null ? StringUtils.trimToEmpty(cuponMv.getNotaVenta().getCliente().getTelefonoAdicional()) : "";
       String cliente = cuponMv.getNotaVenta() != null ? StringUtils.trimToEmpty(cuponMv.getNotaVenta().getCliente().getNombreCompleto()) : "";
-      String tipoCupon = StringUtils.trimToEmpty(cuponMv.getClaveDescuento()).startsWith("8") ? "2" : "3";
+      String tipoCupon = "";
+      if( StringUtils.trimToEmpty(cuponMv.getClaveDescuento()).startsWith("8") ){
+        tipoCupon = "2";
+      } else if( StringUtils.trimToEmpty(cuponMv.getClaveDescuento()).startsWith("7") ){
+        tipoCupon = "3";
+      } else if( StringUtils.trimToEmpty(cuponMv.getClaveDescuento()).startsWith("F") ){
+        tipoCupon = "F";
+      }
       CuponesMvDesc cuponesMvDesc = new CuponesMvDesc();
       cuponesMvDesc.setCliente( cliente );
       cuponesMvDesc.setTelefono( telCasa.length() > 0 ? telCasa+"," : ""+telAdi );
