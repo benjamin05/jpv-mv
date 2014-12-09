@@ -2240,7 +2240,8 @@ class OrderController {
 
     static Boolean hasCuponMv(String idOrder) {
         CuponMv cuponMv1 = notaVentaService.obtenerCuponMv( StringUtils.trimToEmpty(idOrder) )
-        return cuponMv1 != null ? true : false
+      println (cuponMv1 != null && !StringUtils.trimToEmpty(cuponMv1.claveDescuento).startsWith("F"))
+        return (cuponMv1 != null && !StringUtils.trimToEmpty(cuponMv1.claveDescuento).startsWith("F"))
     }
 
     static void printCuponTicket( CuponMv cuponMv, String titulo, BigDecimal monto ){

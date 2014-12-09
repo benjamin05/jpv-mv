@@ -634,15 +634,11 @@ class MultypaymentDialog extends JDialog implements FocusListener {
             if( cuponMv.size() > 0 ){
                 Integer numeroCupon = cuponMv.first().claveDescuento.startsWith("8") ? 2 : 3
                 OrderController.updateCuponMv( cuponMv.first().facturaOrigen, firstOrder.id, cuponMv.first().montoCupon, numeroCupon, false)
+              if( StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith("F") ){
+                generatedCoupon( newOrder1, newOrder2 )
+              }
             } else if( validClave ) {
-                  OrderController.updateCuponMv( newOrder1.id, newOrder2.id, amountCuponSecondOrder, 2, false )
-                  if( Registry.tirdthPairValid() ){
-                      BigDecimal montoCupon = OrderController.getCuponAmountThirdPair( newOrder1.id )
-                      CuponMv cupon = OrderController.obtenerCuponMv( StringUtils.trimToEmpty(newOrder1.bill), "", montoCupon, 3 )
-                      if( montoCupon.compareTo(BigDecimal.ZERO) > 0 ){
-                          OrderController.printCuponTicket(cupon, "CUPON TERCER PAR", montoCupon)
-                      }
-                  }
+              generatedCoupon( newOrder1, newOrder2 )
             }
             OrderController.printOrder(newOrder1.id)
             OrderController.printOrder(newOrder2.id)
@@ -855,6 +851,19 @@ class MultypaymentDialog extends JDialog implements FocusListener {
       } else {
         lblWarning.setText( "El monto debe ser mayor al minimo" )
         txtOther.setText( "" )
+      }
+    }
+  }
+
+
+
+  private void generatedCoupon ( Order newOrder1, Order newOrder2 ){
+    OrderController.updateCuponMv( newOrder1.id, newOrder2.id, amountCuponSecondOrder, 2, false )
+    if( Registry.tirdthPairValid() ){
+      BigDecimal montoCupon = OrderController.getCuponAmountThirdPair( newOrder1.id )
+      CuponMv cupon = OrderController.obtenerCuponMv( StringUtils.trimToEmpty(newOrder1.bill), "", montoCupon, 3 )
+      if( montoCupon.compareTo(BigDecimal.ZERO) > 0 ){
+        OrderController.printCuponTicket(cupon, "CUPON TERCER PAR", montoCupon)
       }
     }
   }
