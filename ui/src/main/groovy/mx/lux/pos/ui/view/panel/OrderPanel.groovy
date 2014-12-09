@@ -1140,11 +1140,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             for(int i=0;i<promotionList.size();i++){
               if(promotionList.get(i) instanceof PromotionDiscount){
                 cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(promotionList.get(i).discountType.description) )
-                if( cuponMv == null && !StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F")){
+                if( cuponMv == null ){
                   String clave = OrderController.descuentoClavePoridFactura( order.id )
                   cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(clave) )
-                } else if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
-                  cuponMv = null
                 }
                 if( cuponMv != null ){
                   break
@@ -1169,32 +1167,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             if( cuponMv != null ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
                 OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
-            } else {
-                if(validClave){
-                  Integer var = 1
-                  if( Registry.tirdthPairValid() ){
-                    var = 2
-                  }
-                  for(int i=0;i<var;i++){
-                    BigDecimal montoCupon = i == 0 ? OrderController.getCuponAmount(newOrder.id) : OrderController.getCuponAmountThirdPair( newOrder.id )
-                    if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
-                      String titulo = i == 0 ? "CUPON SEGUNDO PAR" : "CUPON TERCER PAR"
-                      Integer numCupon = i == 0 ? 2 : 3
-                      cuponMv = new CuponMv()
-                      //cuponMv.claveDescuento = promotionDriver.claveAleatoria(StringUtils.trimToEmpty(newOrder.bill))
-                      cuponMv.facturaDestino = ""
-                      cuponMv.facturaOrigen = order.id
-                      cuponMv.fechaAplicacion = null
-                      Calendar calendar = Calendar.getInstance();
-                      calendar.setTime(new Date());
-                      calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
-                      cuponMv.fechaVigencia = calendar.getTime()
-                      cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
-                      OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
-                    }
-                  }
-                }
+              if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+                generatedCoupons( validClave, newOrder )
               }
+            } else {
+              generatedCoupons( validClave, newOrder )
+            }
             //}
             OrderController.printOrder(newOrder.id)
             OrderController.printReuse( StringUtils.trimToEmpty(newOrder.id) )
@@ -1744,4 +1722,31 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
   }
 
+
+  private void generatedCoupons( Boolean validClave, Order newOrder){
+    if(validClave){
+          Integer var = 1
+          if( Registry.tirdthPairValid() ){
+              var = 2
+          }
+          for(int i=0;i<var;i++){
+              BigDecimal montoCupon = i == 0 ? OrderController.getCuponAmount(newOrder.id) : OrderController.getCuponAmountThirdPair( newOrder.id )
+              if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
+                  String titulo = i == 0 ? "CUPON SEGUNDO PAR" : "CUPON TERCER PAR"
+                  Integer numCupon = i == 0 ? 2 : 3
+                  CuponMv cuponMv = new CuponMv()
+                  //cuponMv.claveDescuento = promotionDriver.claveAleatoria(StringUtils.trimToEmpty(newOrder.bill))
+                  cuponMv.facturaDestino = ""
+                  cuponMv.facturaOrigen = order.id
+                  cuponMv.fechaAplicacion = null
+                  Calendar calendar = Calendar.getInstance();
+                  calendar.setTime(new Date());
+                  calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
+                  cuponMv.fechaVigencia = calendar.getTime()
+                  cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
+                  OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
+              }
+          }
+    }
+  }
 }

@@ -32,7 +32,7 @@ class DiscountCouponDialog extends JDialog {
   private static final String TXT_WARNING_MAX_AMOUNT = "Límite de descuento en tienda: %.1f%% (%,.2f)"
   private static final String TXT_VERIFY_PASS = ""
   private static final String TXT_VERIFY_FAILED = "Clave incorrecta"
-  private static final String TXT_VERIFY_AMOUNT_FAILED = "Monto incorrecta"
+  private static final String TXT_VERIFY_AMOUNT_FAILED = "Monto incorrecto"
   private static final String TAG_GENERICO_J = "J"
   private static  JLabel porceLabel = new JLabel()
   private static  JTextField porceText = new JTextField()
