@@ -3,6 +3,8 @@ package mx.lux.pos.ui.view.dialog
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.DescuentoClave
+import mx.lux.pos.model.DetalleNotaVenta
+import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.ICorporateKeyVerifier
@@ -30,6 +32,8 @@ class DiscountCouponDialog extends JDialog {
   private static final String TXT_WARNING_MAX_AMOUNT = "Límite de descuento en tienda: %.1f%% (%,.2f)"
   private static final String TXT_VERIFY_PASS = ""
   private static final String TXT_VERIFY_FAILED = "Clave incorrecta"
+  private static final String TXT_VERIFY_AMOUNT_FAILED = "Monto incorrecta"
+  private static final String TAG_GENERICO_J = "J"
   private static  JLabel porceLabel = new JLabel()
   private static  JTextField porceText = new JTextField()
 
@@ -184,7 +188,16 @@ class DiscountCouponDialog extends JDialog {
                     porceText.setVisible(true)
                 }else if(descuentoClave?.tipo != null && descuentoClave?.tipo.trim().equals('M')){
                   if( descuentoClave.clave_descuento.startsWith("F") ){
-                    if( orderTotal.doubleValue() > Registry.amountToApplyFFCoupon ){
+                    NotaVenta nv = OrderController.findOrderByidOrder( idOrder )
+                    BigDecimal amount = BigDecimal.ZERO
+                    if( nv != null ){
+                      for(DetalleNotaVenta det : nv.detalles){
+                        if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_J) ){
+                          amount = amount.add(det.precioUnitFinal)
+                        }
+                      }
+                    }
+                    if( amount.doubleValue() > Registry.amountToApplyFFCoupon ){
                       txtDiscountPercent.setValue(descuentoClave?.porcenaje_descuento)
                       txtDiscountAmount.setValue(  descuentoClave?.porcenaje_descuento)
                       porceLabel.setVisible(false)
@@ -194,7 +207,7 @@ class DiscountCouponDialog extends JDialog {
                       lblStatus.foreground = UI_Standards.NORMAL_FOREGROUND
                       btnOk.setEnabled( true )
                     } else {
-                      lblStatus.setText( "" )
+                      lblStatus.setText( TXT_VERIFY_AMOUNT_FAILED )
                       btnOk.setEnabled( false )
                     }
                   } else {

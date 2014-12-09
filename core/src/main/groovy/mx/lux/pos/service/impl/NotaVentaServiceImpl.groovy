@@ -2025,7 +2025,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
         List<NotaVenta> notas = new ArrayList<>()
         QNotaVenta nv = QNotaVenta.notaVenta
         List<NotaVenta> notasTmp = notaVentaRepository.findAll( nv.idCliente.eq(idCliente).
-                and(nv.fechaHoraFactura.between(fechaStart,fechaEnd)).and(nv.sFactura.ne('T')).
+                and(nv.fechaEntrega.between(fechaStart,fechaEnd)).and(nv.sFactura.ne('T')).
                 and(nv.factura.isNotEmpty()).and(nv.factura.isNotNull()), nv.fechaHoraFactura.asc(), nv.ventaTotal.asc() )
         return notasTmp
     }

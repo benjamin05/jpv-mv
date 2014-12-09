@@ -1140,9 +1140,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             for(int i=0;i<promotionList.size();i++){
               if(promotionList.get(i) instanceof PromotionDiscount){
                 cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(promotionList.get(i).discountType.description) )
-                if( cuponMv == null ){
+                if( cuponMv == null && !StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F")){
                   String clave = OrderController.descuentoClavePoridFactura( order.id )
                   cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(clave) )
+                } else if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+                  cuponMv = null
                 }
                 if( cuponMv != null ){
                   break
