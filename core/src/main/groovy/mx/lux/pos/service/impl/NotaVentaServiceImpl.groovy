@@ -2025,9 +2025,15 @@ class NotaVentaServiceImpl implements NotaVentaService {
         List<NotaVenta> notas = new ArrayList<>()
         QNotaVenta nv = QNotaVenta.notaVenta
         List<NotaVenta> notasTmp = notaVentaRepository.findAll( nv.idCliente.eq(idCliente).
-                and(nv.fechaEntrega.between(fechaStart,fechaEnd)).and(nv.sFactura.ne('T')).
-                and(nv.factura.isNotEmpty()).and(nv.factura.isNotNull()), nv.fechaHoraFactura.asc(), nv.ventaTotal.asc() )
+                and(nv.sFactura.ne('T')).and(nv.factura.isNotEmpty()).and(nv.factura.isNotNull()),
+                nv.fechaHoraFactura.asc(), nv.ventaTotal.asc() )
         return notasTmp
+    }
+
+    @Override
+    List<CuponMv> obtenerCuponMvFacturaOriFF( String factura ){
+        QCuponMv qCuponMv = QCuponMv.cuponMv
+        return cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(factura), qCuponMv.fechaVigencia.desc() ) as List<CuponMv>
     }
 
 }
