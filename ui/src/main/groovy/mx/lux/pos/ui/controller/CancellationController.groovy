@@ -404,7 +404,14 @@ class CancellationController {
   static void freeCoupon( String idOrder ){
     CuponMv cuponMv = cancelacionService.liberaCupon( StringUtils.trimToEmpty(idOrder) )
     if(cuponMv != null){
-      String titulo = cuponMv.claveDescuento.trim().startsWith("8") ? "SEGUNDO PAR" : "TERCER PAR"
+      String titulo = ""
+      if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("8") ){
+        titulo = "SEGUNDO PAR"
+      } else if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("7") ){
+          titulo = "TERCER PAR"
+      } else if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+          titulo = "FRIENDS AND FAMILY"
+      }
       ticketService.imprimeCupon(cuponMv, titulo, cuponMv.montoCupon)
     }
   }
