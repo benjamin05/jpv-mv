@@ -2420,7 +2420,10 @@ class OrderController {
         }
         if( hasNoCouponApply ){
           Integer appliedCoup = 0
-          List<CuponMv> lstCupones = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura).length() > 0 ? nota.factura.trim() : nota.id )
+          List<CuponMv> lstCupones = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
+          if( lstCupones.size() <= 0 ){
+            lstCupones = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.id) )
+          }
           for(CuponMv c : lstCupones){
             if( StringUtils.trimToEmpty(c.fechaAplicacion.format("dd-MM-yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd-MM-yyyy"))) ){
               appliedCoup = appliedCoup+1
