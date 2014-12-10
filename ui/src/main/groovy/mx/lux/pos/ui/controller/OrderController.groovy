@@ -2414,8 +2414,7 @@ class OrderController {
         List<NotaVenta> lstNotasCliente = notaVentaService.obtenerNotaVentaPorClienteFF( nota.idCliente )
         for(NotaVenta notaVenta : lstNotasCliente){
           List<CuponMv> cuponMv = notaVentaService.obtenerCuponMvFacturaOriFF( StringUtils.trimToEmpty(notaVenta.factura) )
-          if( cuponMv.size() > 0 && !StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith("F")
-                  && cuponMv.first().fechaVigencia.compareTo(new Date()) < 0 ){
+          if( cuponMv.size() > 0 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith("F") ){
             hasNoCouponApply = false
           }
         }
