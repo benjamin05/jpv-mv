@@ -2237,7 +2237,9 @@ public class ReportBusiness {
       cuponesMvDesc.setFacturaDest( StringUtils.trimToEmpty(cuponMv.getFacturaDestino()));
       cuponesMvDesc.setFechaAplic( cuponMv.getFechaAplicacion() );
       cuponesMvDesc.setMontoCupon( cuponMv.getMontoCupon() );
-      lstCuponesMv.add( cuponesMvDesc );
+      if( !cuponesMvDesc.getTipoCupon().equalsIgnoreCase("F") ){
+        lstCuponesMv.add( cuponesMvDesc );
+      }
     }
     return lstCuponesMv;
   }
