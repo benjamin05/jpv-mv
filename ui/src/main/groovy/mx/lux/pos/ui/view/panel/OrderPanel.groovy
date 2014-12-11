@@ -50,7 +50,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TXT_QUITAR_PAGOS = 'Error al cerrar sesion.'
     private static final String MSJ_CAMBIAR_VENDEDOR = 'Esta seguro que desea salir de esta sesion.'
     private static final String TXT_CAMBIAR_VENDEDOR = 'Cerrar Sesion'
-    private static final String TAG_GENERICO_B = 'B'
+    private static final String TAG_ARTICULO_B = 'B'
+    private static final String TAG_ARTICULO_P = 'P'
+    private static final String TAG_PAQUETE_MULTIFOCAL = 'MULTIFOCAL'
     private static final String TAG_REUSO = 'R'
     private static final String TAG_COTIZACION = 'Cotización'
     private static final String TAG_ARTICULO_NO_VIGENTE = 'C'
@@ -830,6 +832,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             validaLC( it, true )
           }
         }
+      if( validLensesPack() ){
         if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -897,6 +900,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             ticketRx = false
             flujoImprimir(artCount)
         }
+
+      } else {
+        sb.optionPane(message: "Paquete incorrecto para lente seleccionado", optionType: JOptionPane.DEFAULT_OPTION)
+               .createDialog(new JTextField(), "Error")
+               .show()
+      }
     }
 
     private void controlItem(Item item, Boolean itemDelete) {
@@ -1427,6 +1436,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 validaLC( it, true )
             }
         }
+      if( validLensesPack() ){
         if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1485,6 +1495,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             ticketRx = false
             flujoContinuar()
         }
+      } else {
+        sb.optionPane(message: "Paquete incorrecto para lente seleccionado", optionType: JOptionPane.DEFAULT_OPTION)
+             .createDialog(new JTextField(), "Error")
+             .show()
+      }
     }
 
     private void flujoContinuar() {
@@ -1530,6 +1545,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 validaLC( it, true )
             }
         }
+      if( validLensesPack() ){
         if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1588,6 +1604,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             ticketRx = false
             flujoOtraOrden()
         }
+      } else {
+          sb.optionPane(message: "Paquete incorrecto para lente seleccionado", optionType: JOptionPane.DEFAULT_OPTION)
+                  .createDialog(new JTextField(), "Error")
+                  .show()
+      }
     }
 
 
@@ -1749,4 +1770,30 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
     }
   }
+
+  private Boolean validLensesPack( ){
+    Boolean valid = true
+    Boolean hasLenses = false
+    Boolean hasCorrectPack = false
+    updateOrder( order.id )
+    for(OrderItem orderItem : order.items){
+      if( StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_P)
+              || StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_B) ){
+        hasLenses = true
+      }
+    }
+    if( hasLenses ){
+      for(OrderItem orderItem : order.items){
+        if( StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_PAQUETE_MULTIFOCAL) ){
+          hasCorrectPack = true
+        }
+      }
+      if( !hasCorrectPack ){
+        valid = false
+      }
+    }
+    return valid
+  }
+
+
 }
