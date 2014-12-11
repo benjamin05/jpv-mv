@@ -52,7 +52,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TXT_CAMBIAR_VENDEDOR = 'Cerrar Sesion'
     private static final String TAG_ARTICULO_B = 'B'
     private static final String TAG_ARTICULO_P = 'P'
-    private static final String TAG_PAQUETE_MULTIFOCAL = 'MULTIFOCAL'
+    private static final String TAG_PAQUETE = 'Q'
     private static final String TAG_REUSO = 'R'
     private static final String TAG_COTIZACION = 'Cotización'
     private static final String TAG_ARTICULO_NO_VIGENTE = 'C'
@@ -902,7 +902,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
 
       } else {
-        sb.optionPane(message: "Paquete incorrecto para lente seleccionado", optionType: JOptionPane.DEFAULT_OPTION)
+        sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                .createDialog(new JTextField(), "Error")
                .show()
       }
@@ -1496,7 +1496,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             flujoContinuar()
         }
       } else {
-        sb.optionPane(message: "Paquete incorrecto para lente seleccionado", optionType: JOptionPane.DEFAULT_OPTION)
+        sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
              .createDialog(new JTextField(), "Error")
              .show()
       }
@@ -1605,9 +1605,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             flujoOtraOrden()
         }
       } else {
-          sb.optionPane(message: "Paquete incorrecto para lente seleccionado", optionType: JOptionPane.DEFAULT_OPTION)
-                  .createDialog(new JTextField(), "Error")
-                  .show()
+        sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
+            .createDialog(new JTextField(), "Error")
+            .show()
       }
     }
 
@@ -1784,7 +1784,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
     if( hasLenses ){
       for(OrderItem orderItem : order.items){
-        if( StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_PAQUETE_MULTIFOCAL) ){
+        if( StringUtils.trimToEmpty(orderItem.item.type).equalsIgnoreCase(TAG_PAQUETE) ){
           hasCorrectPack = true
         }
       }
