@@ -31,9 +31,18 @@ class ArchiveTask {
   protected String getArchiveFileDropbox( ) {
       String filename = this.archiveFile
       if ( filename == null ) {
-          filename = String.format( FILE_ARCHIVE_DEFAULT, CustomDateUtils.format( new Date(), FMT_DATE_TIME ) )
+        filename = String.format( FILE_ARCHIVE_DEFAULT, CustomDateUtils.format( new Date(), FMT_DATE_TIME ) )
       }
       return Registry.archivePathDropbox + File.separator + filename + EXT_ZIP
+  }
+
+
+  protected String getArchiveFileMessenger( ) {
+    String filename = this.archiveFile
+    if ( filename == null ) {
+      filename = String.format( FILE_ARCHIVE_DEFAULT, CustomDateUtils.format( new Date(), FMT_DATE_TIME ) )
+    }
+    return Registry.archivePathMessenger + File.separator + filename + EXT_ZIP
   }
   // Public methods
   void run( ) {
@@ -42,6 +51,7 @@ class ArchiveTask {
       logger.debug(sSistemaOperativo);
       StringBuffer sb = new StringBuffer()
       StringBuffer sbDrop = new StringBuffer()
+      StringBuffer sbMsgr = new StringBuffer()
       sb.append( String.format( "%s ", Registry.archiveCommand ) );
       if( sSistemaOperativo.trim().startsWith( SO_WINDOWS ) ){
         sb.append( String.format( '"%s" ', this.getArchiveFile() ) );
@@ -54,6 +64,9 @@ class ArchiveTask {
         sbDrop.append( String.format( '%s ', this.getArchiveFileDropbox() ) );
         sbDrop.append( String.format( '%s ', this.baseDir + File.separator + this.filePattern ) )
         sbDrop.append( String.format( '%s ', this.baseDir+File.separator+"*.inv" ) )
+        sbMsgr.append( String.format( '%s ', this.getArchiveFileMessenger() ) );
+        sbMsgr.append( String.format( '%s ', this.baseDir + File.separator + this.filePattern ) )
+        sbMsgr.append( String.format( '%s ', this.baseDir+File.separator+"*.inv" ) )
       }
       StringBuffer sb2 = new StringBuffer()
       for ( char c : sb.toString().toCharArray() ) {
@@ -72,10 +85,22 @@ class ArchiveTask {
               sb3.append( c )
           }
       }
+
+      StringBuffer sb4 = new StringBuffer()
+      for ( char c : sbMsgr.toString().toCharArray() ) {
+        if ( ( c == '\\' ) || ( c == '/' ) ) {
+          sb4.append( File.separator )
+        } else {
+          sb4.append( c )
+        }
+      }
+
       String cmd = sb2.toString()
       String cmd1 = sb3.toString()
+      String cmd2 = sb4.toString()
       logger.debug( String.format( "ZIP Command: <%s>", cmd ) )
       logger.debug( String.format( "ZIP Command: <%s>", cmd1 ) )
+      logger.debug( String.format( "ZIP Command: <%s>", cmd2 ) )
 
       File f = new File( this.getArchiveFile() )
       if ( f.exists() ) {
@@ -94,6 +119,8 @@ class ArchiveTask {
         sb1.append('cd $CIERRE_HOME')
         sb1.append( "\n" )
         sb1.append('tar -cvf '+this.getArchiveFile()+' '+this.filePattern+' '+"*.inv")
+        sb1.append( "\n" )
+        sb1.append('tar -cvf '+this.getArchiveFileMessenger()+' '+this.filePattern+' '+"*.inv")
         sb1.append( "\n" )
         sb1.append('tar -cvf '+this.getArchiveFileDropbox()+' '+this.filePattern+' '+"*.inv")
         strOut.println sb1.toString()

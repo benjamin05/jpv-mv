@@ -348,6 +348,10 @@ class Registry {
       return asString( TipoParametro.RUTA_POR_ENVIAR_DROPBOX )
   }
 
+  static String getArchivePathMessenger( ) {
+    return asString( TipoParametro.RUTA_POR_ENVIAR_MENSAJERO )
+  }
+
     static String getTimeToWait( ) {
         return asString( TipoParametro.ESPERA_CIERRE )
     }
