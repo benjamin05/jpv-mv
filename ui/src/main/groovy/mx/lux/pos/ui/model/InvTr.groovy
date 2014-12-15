@@ -250,6 +250,10 @@ class InvTr {
       postTrType = viewMode.getTrType()
     } else if ( viewMode.equals( InvTrViewMode.OTHER_RECEIPT ) ) {
         postTrType = viewMode.getTrType()
+    } else if ( viewMode.equals( InvTrViewMode.ISSUE_FRAMES ) ) {
+        postTrType = viewMode.getTrType()
+    } else if ( viewMode.equals( InvTrViewMode.ISSUE_ACCESORIES ) ) {
+        postTrType = viewMode.getTrType()
     }
   }
 }

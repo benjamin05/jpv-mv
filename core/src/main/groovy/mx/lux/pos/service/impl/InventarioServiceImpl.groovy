@@ -11,6 +11,7 @@ import mx.lux.pos.service.business.*
 import mx.lux.pos.service.io.InventoryAdjustFile
 import mx.lux.pos.service.io.ShippingNoticeFile
 import mx.lux.pos.service.io.ShippingNoticeFileSunglass
+import mx.lux.pos.util.SunglassUtils
 import org.apache.commons.lang.StringUtils
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
@@ -318,6 +319,58 @@ class InventarioServiceImpl implements InventarioService {
   InvAdjustSheet leerArchivoAjuste( String pFilename ) {
     InvAdjustSheet sheet = new InventoryAdjustFile().read( pFilename )
     return sheet
+  }
+
+
+
+  InvAdjustSheet obtenerArmazones(  ){
+    InvAdjustSheet document = null
+    List<Articulo> lstArmazones = articuloRepository.findFramesWithExistence( )
+    document = new InvAdjustSheet()
+    document.source = FileFormat.DEFAULT
+    document.ref = "9999"
+    document.site = Registry.currentSite
+    document.lineCount = lstArmazones.size()
+    document.trDate = new Date()
+    document.trReason = "Salida total de Armazones"
+    for( Articulo articulo : lstArmazones ){
+      InvAdjustLine parsed = new InvAdjustLine()
+      parsed.sku = articulo.id
+      parsed.partCode = articulo.articulo
+      parsed.colorCode = articulo.codigoColor
+      parsed.colorDesc = articulo.descripcionColor
+      parsed.brand = articulo.marca
+      parsed.type = articulo.tipo
+      parsed.barcode = articulo.idCb
+      parsed.qty = articulo.cantExistencia
+      document.lines.add( parsed )
+    }
+    return document
+  }
+
+  InvAdjustSheet obtenerAccesorios(  ){
+    InvAdjustSheet document = null
+    List<Articulo> lstArmazones = articuloRepository.findAccesoriesWithExistence( )
+    document = new InvAdjustSheet()
+    document.source = FileFormat.DEFAULT
+    document.ref = "9999"
+    document.site = Registry.currentSite
+    document.lineCount = lstArmazones.size()
+    document.trDate = new Date()
+    document.trReason = "Salida total de Accesorios"
+    for( Articulo articulo : lstArmazones ){
+      InvAdjustLine parsed = new InvAdjustLine()
+      parsed.sku = articulo.id
+      parsed.partCode = articulo.articulo
+      parsed.colorCode = articulo.codigoColor
+      parsed.colorDesc = articulo.descripcionColor
+      parsed.brand = articulo.marca
+      parsed.type = articulo.tipo
+      parsed.barcode = articulo.idCb
+      parsed.qty = articulo.cantExistencia
+      document.lines.add( parsed )
+    }
+    return document
   }
 
   Boolean isReceiptDuplicate( ) {

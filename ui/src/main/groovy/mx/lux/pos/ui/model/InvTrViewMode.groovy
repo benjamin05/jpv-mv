@@ -2,10 +2,13 @@ package mx.lux.pos.ui.model
 
 import mx.lux.pos.model.TipoTransInv
 import mx.lux.pos.service.InventarioService
+import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.resources.ServiceManager
 
 class InvTrViewMode {
   def static InvTrViewMode ISSUE
+  def static InvTrViewMode ISSUE_FRAMES
+  def static InvTrViewMode ISSUE_ACCESORIES
   def static InvTrViewMode OTHER_ISSUE
   def static InvTrViewMode QUERY
   def static InvTrViewMode RECEIPT
@@ -52,8 +55,15 @@ class InvTrViewMode {
       OTHER_RECEIPT.text = "[OTRAS_ENTRADAS]LENTES DE CONTACTO"
       OTHER_ISSUE = new InvTrViewMode( inventory.obtenerTipoTransaccionOtraSalida() )
       OTHER_ISSUE.text = "[OTRAS_SALIDAS]LENTES DE CONTACTO"
+      ISSUE_FRAMES = new InvTrViewMode( inventory.obtenerTipoTransaccionSalida() )
+      ISSUE_FRAMES.text = "[SALIDA_ARMAZONES] SALIDA TOTAL ARMAZONES"
+      ISSUE_ACCESORIES = new InvTrViewMode( inventory.obtenerTipoTransaccionSalida() )
+      ISSUE_ACCESORIES.text = "[SALIDA_ACCESORIOS] SALIDA TOTAL ACCESORIOS"
       //list.addAll( [QUERY, ISSUE, RECEIPT, ADJUST, RETURN, OUTBOUND,INBOUND, FILE_ADJUST] )
       list.addAll( [QUERY, RECEIPT, ISSUE, ADJUST, FILE_ADJUST, INBOUND, OUTBOUND, OTHER_RECEIPT, OTHER_ISSUE] )
+      if( Registry.totalOutputEnabled() ){
+        list.addAll( [ISSUE_FRAMES, ISSUE_ACCESORIES] )
+      }
     }
     return list
   }

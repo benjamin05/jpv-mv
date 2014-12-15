@@ -92,4 +92,8 @@ interface InventarioService {
   List<Sucursal> listarSoloAlmacenPorAclarar( Integer id )
 
   Boolean transaccionCargada( String clave )
+
+  InvAdjustSheet obtenerArmazones(  )
+
+  InvAdjustSheet obtenerAccesorios(  )
 }

@@ -504,6 +504,10 @@ class Registry {
     return isTrue( TipoParametro.ACUSE_LOG_DETALLE )
   }
 
+  static Boolean totalOutputEnabled() {
+    return isTrue( TipoParametro.SALIDA_TOTAL_ACTIVA )
+  }
+
   static Boolean validCustomerToApplyCoupon() {
     return isTrue( TipoParametro.VALIDA_APLICAR_CUPON_PUBLICO_GENERAL )
   }

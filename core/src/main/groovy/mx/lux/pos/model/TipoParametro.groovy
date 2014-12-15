@@ -69,6 +69,7 @@ enum TipoParametro {
   RUTA_POR_RECIBIR( 'ruta_por_recibir', 'C:/Documents and Settings/mensajero/por_recibir' ),
   RUTA_RECIBIDOS( 'ruta_recibidos', 'C:/Documents and Settings/mensajero/recibidos' ),
   RUTA_CATALOGOS( 'ruta_catalogos', 'C:/Documents and Settings/mensajero/catalogos' ),
+  SALIDA_TOTAL_ACTIVA( 'salida_total_activa', 'no' ),
   TIPO_PAGO( 'tipo_pago', '' ),
   TIPO_PAGO_DOLARES( 'tipo_pago_dolares', 'EFD,TCD,TDD' ),
   TIPO_PAGO_CRE_EMP( 'tipo_pago_credito_emp', 'CRE'),

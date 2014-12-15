@@ -207,6 +207,26 @@ class InvTrController {
     pView.fireDisplay()
   }
 
+  protected void dispatchViewModeIssueFrames( InvTrView pView ) {
+    pView.data.clear()
+    pView.fireResetUI()
+    pView.notifyViewMode( InvTrViewMode.ISSUE_FRAMES )
+    pView.data.postSiteTo = null
+    pView.fireDisplay()
+    this.requestIssueFrames( pView )
+  }
+
+
+  protected void dispatchViewModeIssueAccesories( InvTrView pView ) {
+    pView.data.clear()
+    pView.fireResetUI()
+    pView.notifyViewMode( InvTrViewMode.ISSUE_ACCESORIES )
+    pView.data.postSiteTo = null
+    pView.fireDisplay()
+    this.requestIssueAccesories( pView )
+  }
+
+
   protected void dispatchViewModeOtherIssue( InvTrView pView ) {
     pView.data.clear()
     pView.fireResetUI()
@@ -313,7 +333,11 @@ class InvTrController {
         } else if ( pNewMode.equals( InvTrViewMode.OTHER_ISSUE ) ) {
           dispatchViewModeOtherIssue( pView )
         } else if ( pNewMode.equals( InvTrViewMode.OTHER_RECEIPT ) ) {
-            dispatchViewModeOtherReceipt( pView )
+          dispatchViewModeOtherReceipt( pView )
+        } else if ( pNewMode.equals( InvTrViewMode.ISSUE_FRAMES ) ) {
+          dispatchViewModeIssueFrames( pView )
+        } else if ( pNewMode.equals( InvTrViewMode.ISSUE_ACCESORIES ) ) {
+          dispatchViewModeIssueAccesories( pView )
         }
       } else {
         pView.notifyViewModeChangeCancelled()
@@ -345,6 +369,42 @@ class InvTrController {
     }
 
   }
+
+
+  void requestIssueFrames( InvTrView pView ) {
+    log.debug( "[Controller] Request Issue Frames" )
+    InvAdjustSheet document = null
+    document = ServiceManager.getInventoryService().obtenerArmazones( )
+    if ( document != null ) {
+      for(InvAdjustLine doc : document.lines){
+        pView.data.postQty = doc.qty
+        pView.controller.requestPartTotasIssue( pView, doc.sku )
+      }
+      pView.driver.refreshUI( pView )
+    } else {
+      dispatchDocumentEmpty( pView, false, '' )
+      log.debug ( 'No frames' )
+    }
+  }
+
+
+  void requestIssueAccesories( InvTrView pView ) {
+    log.debug( "[Controller] Request Issue Accesories" )
+    InvAdjustSheet document = null
+    document = ServiceManager.getInventoryService().obtenerAccesorios()
+    if ( document != null ) {
+      for(InvAdjustLine doc : document.lines){
+        pView.data.postQty = doc.qty
+        pView.controller.requestPartTotasIssue( pView, doc.sku )
+      }
+      pView.driver.refreshUI( pView )
+    } else {
+      dispatchDocumentEmpty( pView, false, '' )
+      log.debug ( 'No frames' )
+    }
+  }
+
+
 
   void requestItem( InvTrView pView, Command pCommand ) {
     log.debug( String.format( "[Controller] Navigate to <%s>", pCommand.toString() ) )
@@ -479,6 +539,18 @@ class InvTrController {
           String.format( pView.panel.TXT_QUERY_TITLE, seed ), JOptionPane.INFORMATION_MESSAGE )
     }
   }
+
+
+  void requestPartTotasIssue( InvTrView pView, Integer idArticle ){
+    List<Articulo> partList = new ArrayList<>()
+    Articulo art = ItemController.findArticle( idArticle )
+    if( art != null ){
+      partList.clear()
+      partList.add( art )
+      dispatchPartsSelected( pView, partList )
+    }
+  }
+
 
   void requestReceipt( InvTrView pView ) {
     log.debug( "[Controller] Request Receipt" )

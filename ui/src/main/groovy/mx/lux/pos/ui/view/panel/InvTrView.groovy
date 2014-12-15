@@ -136,6 +136,10 @@ class InvTrView implements NavigationBarListener {
       driver = otherIssueDriver
     } else if ( InvTrViewMode.OTHER_RECEIPT.equals( pViewMode ) ) {
       driver = otherReceiptDriver
+    } else if ( InvTrViewMode.ISSUE_FRAMES.equals( pViewMode ) ) {
+        driver = issueDriver
+    } else if ( InvTrViewMode.ISSUE_ACCESORIES.equals( pViewMode ) ) {
+        driver = issueDriver
     } else {
       panel.lblStatus.text = panel.TXT_UNDER_CONSTRUCTION_TEXT
       driver = doNothingDriver
