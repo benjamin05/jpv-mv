@@ -94,6 +94,7 @@ enum TipoParametro {
   VIGENCIA_CUPON('vigencia_cupon','15'),
   ALMACENES('almacenes','00000'),
   ALMACEN_POR_ACLARAR('almacen_por_aclarar','4000'),
+  ACTIVE_STORE_DISCOUNT( 'desc_tienda_activo', 'no' ),
   ARCHIVO_CONSULTA_WEB('archivo_consulta_web',''),
   URL_ACUSE_RECIBIDO_LC('url_acuse_recibido_lc',''),
   URL_CANCELACION_PEDIDO_LC('cancelacion_pedido_lc',''),

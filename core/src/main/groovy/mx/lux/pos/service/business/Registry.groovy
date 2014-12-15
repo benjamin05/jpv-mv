@@ -459,6 +459,10 @@ class Registry {
         return  asInteger(TipoParametro.ALMACEN_POR_ACLARAR)
     }
 
+    static Boolean getActiveStoreDiscount( ) {
+        return isTrue( TipoParametro.ACTIVE_STORE_DISCOUNT )
+    }
+
     static Integer getDiasVigenciaCupon() {
         return  asInteger(TipoParametro.VIGENCIA_CUPON)
     }
