@@ -22,7 +22,7 @@ enum TipoParametro {
   COMPANIA_REGION( 'compania_region', '01' ),
   COMPANIA_RFC( 'compania_rfc', 'DIO-830602-8M5' ),
   CUPON_FF_ACTIVADO( 'cupon_ff', 'si' ),
-  CUPON_FF_OTHER_DISCOUNT( 'cupon_ff_otro_descuento', 'si' ),
+  CUPON_FF_OTHER_DISCOUNT( 'cupon_ff_otro_descuento', 'no' ),
   DESCRIPCION_CORTA( 'descripcion_corta', 'si' ),
   DESPLIEGA_USD( 'despliega_dolares', 'no' ),
   DIA_BODEGA('dia_bodega','1'),
