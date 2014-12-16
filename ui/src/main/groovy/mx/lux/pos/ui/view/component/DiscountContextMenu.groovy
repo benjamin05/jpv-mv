@@ -28,8 +28,8 @@ class DiscountContextMenu extends JPopupMenu {
   protected buildUI( ) {
     sb.popupMenu( this ) {
       menuDiscount = menuItem( text: "Descuento Tienda",
-              visible: Registry.activeStoreDiscount,
-        actionPerformed: { onDiscountSelected( ) },
+      visible: Registry.activeStoreDiscount,
+      actionPerformed: { onDiscountSelected( ) },
       )
       menuCorporateDiscount = menuItem( text: "Descuento Corporativo", 
         visible: true,

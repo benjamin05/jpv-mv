@@ -1585,7 +1585,13 @@ public class ReportServiceImpl implements ReportService {
               desc.getDescuentosClave().setDescripcion_descuento("DIRECCION");
             } else if( StringUtils.trimToEmpty(desc.getClave()).length() > 0 ) {
               desc.getDescuentosClave().setClave_descuento(desc.getClave());
-              desc.getDescuentosClave().setDescripcion_descuento(desc.getClave().startsWith("8") ? "CUPON 2P" : "CUPON 3P");
+              if( StringUtils.trimToEmpty(desc.getClave()).startsWith("8") ){
+                desc.getDescuentosClave().setDescripcion_descuento( "CUPON 2P" );
+              } else if( StringUtils.trimToEmpty(desc.getClave()).startsWith("7") ){
+                desc.getDescuentosClave().setDescripcion_descuento( "CUPON 3P" );
+              } else if( StringUtils.trimToEmpty(desc.getClave()).startsWith("F") ){
+                  desc.getDescuentosClave().setDescripcion_descuento( "Amigos y Familiares 200" );
+              }
             } else {
               desc.getDescuentosClave().setClave_descuento(desc.getClave());
               desc.getDescuentosClave().setDescripcion_descuento("TIENDA");

@@ -19,10 +19,10 @@ interface ArticuloRepository extends JpaRepository<Articulo, Integer>, QueryDslP
   @Query( value = "SELECT * FROM articulos WHERE existencia > 0 OR existencia < 0 AND id_gen_tipo != 'NC';", nativeQuery = true )
   List<Articulo> findArticlesWithExistence()
 
-  @Query( value = "SELECT * FROM articulos WHERE existencia > 0 AND id_generico = 'A';", nativeQuery = true )
+  @Query( value = "SELECT * FROM articulos WHERE existencia > 0 AND id_generico = 'A' ORDER BY id_articulo ASC;", nativeQuery = true )
   List<Articulo> findFramesWithExistence()
 
-  @Query( value = "SELECT * FROM articulos WHERE existencia > 0 AND id_generico = 'E';", nativeQuery = true )
+  @Query( value = "SELECT * FROM articulos WHERE existencia > 0 AND id_generico = 'E' ORDER BY id_articulo ASC;", nativeQuery = true )
   List<Articulo> findAccesoriesWithExistence()
   
 }
