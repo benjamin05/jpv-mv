@@ -15,6 +15,7 @@ import mx.lux.pos.ui.view.dialog.ManualPriceDialog
 import mx.lux.pos.ui.view.panel.OrderPanel
 import org.apache.commons.lang.NumberUtils
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.time.DateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -44,6 +45,7 @@ class OrderController {
     private static final String TAG_REUSO = 'R'
     private static final String TAG_MSJ_CUPON = 'DESCUENTO CUPON'
     private static final String TAG_TIPO_DESCUENTO = 'M'
+    private static final String TAG_GENERICO_SEG = 'J'
 
     private static NotaVentaService notaVentaService
     private static DetalleNotaVentaService detalleNotaVentaService
@@ -595,17 +597,31 @@ class OrderController {
 
     static void insertaEntrega(Order order, Boolean entregaInstante) {
         println('Order ID: ' + order?.id)
+        Boolean alreadyDelivered = false
         NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
         User user = Session.get(SessionItem.USER) as User
         notaVenta.setEmpEntrego(user?.username)
         notaVenta.setHoraEntrega(new Date())
         if (notaVenta?.fechaEntrega == null) {
             notaVenta.setFechaEntrega(new Date())
+        } else {
+          alreadyDelivered = true
         }
 
         println('Factura: ' + notaVenta?.getFactura())
         String idFactura = notaVenta.getFactura()
         notaVentaService.saveOrder(notaVenta)
+        if( notaVenta.fechaEntrega != null ){
+          if( Registry.isCouponFFActivated() && !alreadyDelivered ){
+            if( !Registry.couponFFOtherDiscount() ){
+              if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null ){
+                generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
+              }
+            } else {
+              generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
+            }
+          }
+        }
 
         if (entregaInstante == false) {
             Jb trabajo = jbRepository.findOne(idFactura)
@@ -2218,9 +2234,9 @@ class OrderController {
       notaVentaService.guardarCuponMv( cuponMv )
     }
 
-    static CuponMv updateCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon ){
+    static CuponMv updateCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon, Boolean ffCoupon ){
       return notaVentaService.actualizarCuponMv( StringUtils.trimToEmpty(idFacturaOrigen),
-              StringUtils.trimToEmpty(idFacturaDestino), montoCupon, numeroCupon )
+              StringUtils.trimToEmpty(idFacturaDestino), montoCupon, numeroCupon, ffCoupon )
     }
 
     static NotaVenta findOrderByidOrder(String idOrder) {
@@ -2230,7 +2246,8 @@ class OrderController {
 
     static Boolean hasCuponMv(String idOrder) {
         CuponMv cuponMv1 = notaVentaService.obtenerCuponMv( StringUtils.trimToEmpty(idOrder) )
-        return cuponMv1 != null ? true : false
+      println (cuponMv1 != null && !StringUtils.trimToEmpty(cuponMv1.claveDescuento).startsWith("F"))
+        return (cuponMv1 != null && !StringUtils.trimToEmpty(cuponMv1.claveDescuento).startsWith("F"))
     }
 
     static void printCuponTicket( CuponMv cuponMv, String titulo, BigDecimal monto ){
@@ -2251,7 +2268,7 @@ class OrderController {
 
     static CuponMv obtenerCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon ){
         return notaVentaService.actualizarCuponMv( StringUtils.trimToEmpty(idFacturaOrigen),
-                StringUtils.trimToEmpty(idFacturaDestino), montoCupon, numeroCupon )
+                StringUtils.trimToEmpty(idFacturaDestino), montoCupon, numeroCupon, false )
     }
 
     static CuponMv obtenerCuponMvByClave( String clave ){
@@ -2391,5 +2408,66 @@ class OrderController {
     }
 
 
+    static void generateCouponFAndF( String idOrder ){
+      BigDecimal amountSale = BigDecimal.ZERO
+      Boolean hasNoCouponApply = true
+      Boolean hasLenses = false
+      Date fechaInicio = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH );
+      Date fechaFin = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 );
+      QDescuento qDescuento = QDescuento.descuento
+      NotaVenta nota = notaVentaService.obtenerNotaVenta( idOrder )
+      if( nota!= null && nota.fechaEntrega != null ){
+        List<NotaVenta> lstNotasCliente = notaVentaService.obtenerNotaVentaPorClienteFF( nota.idCliente )
+        for(NotaVenta notaVenta : lstNotasCliente){
+          List<CuponMv> cuponMv = notaVentaService.obtenerCuponMvFacturaOriFF( StringUtils.trimToEmpty(notaVenta.factura) )
+          if( cuponMv.size() > 0 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith("F") ){
+            hasNoCouponApply = false
+          }
+        }
+        if( hasNoCouponApply ){
+          Integer appliedCoup = 0
+          List<CuponMv> lstCupones = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
+          if( lstCupones.size() <= 0 ){
+            lstCupones = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.id) )
+          }
+          for(CuponMv c : lstCupones){
+            if( StringUtils.trimToEmpty(c.fechaAplicacion.format("dd-MM-yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd-MM-yyyy"))) ){
+              appliedCoup = appliedCoup+1
+            }
+          }
+          List<Descuento> lstDesc = descuentoRepository.findAll(qDescuento.clave.eq("AF200").and(qDescuento.idFactura.eq(nota.id))) as List<Descuento>
+          Integer descuentoAF = lstDesc.size()
+          if( appliedCoup > 0 || descuentoAF > 0 ){
+            hasNoCouponApply = false
+          }
+        }
+        for(DetalleNotaVenta det : nota.detalles){
+          if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_B) ){
+            hasLenses = true
+          }
+          if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEG) ){
+            amountSale = amountSale.add(det.precioUnitFinal)
+          }
+        }
+        if( amountSale.doubleValue() > Registry.amountToGenerateFFCoupon && hasNoCouponApply && hasLenses ){
+          List<CuponMv> cuponMvTmp = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
+          if( cuponMvTmp.size() <= 0 || !StringUtils.trimToEmpty(cuponMvTmp.first().claveDescuento).startsWith("F") ){
+            String titulo = "FRIENDS AND FAMILY"
+            Integer numCupon = 0
+            CuponMv cuponMv = new CuponMv()
+            cuponMv.facturaDestino = ""
+            cuponMv.facturaOrigen = nota.factura
+            cuponMv.fechaAplicacion = null
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCuponFF)
+            cuponMv.fechaVigencia = calendar.getTime()
+            println cuponMv.fechaVigencia.format("dd-MM-yyyy")
+            cuponMv = updateCuponMv( nota.id, "", Registry.amountFFCoupon, numCupon, true )
+            printCuponTicket( cuponMv, titulo, Registry.amountFFCoupon )
+          }
+        }
+      }
+    }
 
 }

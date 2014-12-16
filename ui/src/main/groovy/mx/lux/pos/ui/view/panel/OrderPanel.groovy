@@ -50,7 +50,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TXT_QUITAR_PAGOS = 'Error al cerrar sesion.'
     private static final String MSJ_CAMBIAR_VENDEDOR = 'Esta seguro que desea salir de esta sesion.'
     private static final String TXT_CAMBIAR_VENDEDOR = 'Cerrar Sesion'
-    private static final String TAG_GENERICO_B = 'B'
+    private static final String TAG_ARTICULO_B = 'B'
+    private static final String TAG_ARTICULO_P = 'P'
+    private static final String TAG_PAQUETE = 'Q'
     private static final String TAG_REUSO = 'R'
     private static final String TAG_COTIZACION = 'Cotización'
     private static final String TAG_ARTICULO_NO_VIGENTE = 'C'
@@ -830,6 +832,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             validaLC( it, true )
           }
         }
+      if( validLensesPack() ){
         if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -897,6 +900,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             ticketRx = false
             flujoImprimir(artCount)
         }
+
+      } else {
+        sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
+               .createDialog(new JTextField(), "Error")
+               .show()
+      }
     }
 
     private void controlItem(Item item, Boolean itemDelete) {
@@ -1166,33 +1175,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
             if( cuponMv != null ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
-                OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon)
-            } else {
-                if(validClave){
-                  Integer var = 1
-                  if( Registry.tirdthPairValid() ){
-                    var = 2
-                  }
-                  for(int i=0;i<var;i++){
-                    BigDecimal montoCupon = i == 0 ? OrderController.getCuponAmount(newOrder.id) : OrderController.getCuponAmountThirdPair( newOrder.id )
-                    if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
-                      String titulo = i == 0 ? "CUPON SEGUNDO PAR" : "CUPON TERCER PAR"
-                      Integer numCupon = i == 0 ? 2 : 3
-                      cuponMv = new CuponMv()
-                      //cuponMv.claveDescuento = promotionDriver.claveAleatoria(StringUtils.trimToEmpty(newOrder.bill))
-                      cuponMv.facturaDestino = ""
-                      cuponMv.facturaOrigen = order.id
-                      cuponMv.fechaAplicacion = null
-                      Calendar calendar = Calendar.getInstance();
-                      calendar.setTime(new Date());
-                      calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
-                      cuponMv.fechaVigencia = calendar.getTime()
-                      cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon )
-                      OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
-                    }
-                  }
-                }
+                OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
+              if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+                generatedCoupons( validClave, newOrder )
               }
+            } else {
+              generatedCoupons( validClave, newOrder )
+            }
             //}
             OrderController.printOrder(newOrder.id)
             OrderController.printReuse( StringUtils.trimToEmpty(newOrder.id) )
@@ -1447,6 +1436,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 validaLC( it, true )
             }
         }
+      if( validLensesPack() ){
         if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1505,6 +1495,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             ticketRx = false
             flujoContinuar()
         }
+      } else {
+        sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
+             .createDialog(new JTextField(), "Error")
+             .show()
+      }
     }
 
     private void flujoContinuar() {
@@ -1550,6 +1545,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 validaLC( it, true )
             }
         }
+      if( validLensesPack() ){
         if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1608,6 +1604,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             ticketRx = false
             flujoOtraOrden()
         }
+      } else {
+        sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
+            .createDialog(new JTextField(), "Error")
+            .show()
+      }
     }
 
 
@@ -1741,5 +1742,58 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
     }
   }
+
+
+  private void generatedCoupons( Boolean validClave, Order newOrder){
+    if(validClave){
+          Integer var = 1
+          if( Registry.tirdthPairValid() ){
+              var = 2
+          }
+          for(int i=0;i<var;i++){
+              BigDecimal montoCupon = i == 0 ? OrderController.getCuponAmount(newOrder.id) : OrderController.getCuponAmountThirdPair( newOrder.id )
+              if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
+                  String titulo = i == 0 ? "CUPON SEGUNDO PAR" : "CUPON TERCER PAR"
+                  Integer numCupon = i == 0 ? 2 : 3
+                  CuponMv cuponMv = new CuponMv()
+                  //cuponMv.claveDescuento = promotionDriver.claveAleatoria(StringUtils.trimToEmpty(newOrder.bill))
+                  cuponMv.facturaDestino = ""
+                  cuponMv.facturaOrigen = order.id
+                  cuponMv.fechaAplicacion = null
+                  Calendar calendar = Calendar.getInstance();
+                  calendar.setTime(new Date());
+                  calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
+                  cuponMv.fechaVigencia = calendar.getTime()
+                  cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
+                  OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
+              }
+          }
+    }
+  }
+
+  private Boolean validLensesPack( ){
+    Boolean valid = true
+    Boolean hasLenses = false
+    Boolean hasCorrectPack = false
+    updateOrder( order.id )
+    for(OrderItem orderItem : order.items){
+      if( StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_P)
+              || StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_B) ){
+        hasLenses = true
+      }
+    }
+    if( hasLenses ){
+      for(OrderItem orderItem : order.items){
+        if( StringUtils.trimToEmpty(orderItem.item.type).equalsIgnoreCase(TAG_PAQUETE) ){
+          hasCorrectPack = true
+        }
+      }
+      if( !hasCorrectPack ){
+        valid = false
+      }
+    }
+    return valid
+  }
+
 
 }

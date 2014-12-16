@@ -52,6 +52,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
   private static final String TAG_GEN_TIPO_C = 'C'
   private static final String TAG_GEN_TIPO_NC = 'NC'
   private static final String TAG_CAUSA_CAN_PAGOS = 'CAMBIO DE FORMA DE PAGO'
+  private static final String TAG_ARTICULO_COLOR = 'COG'
 
   @Resource
   private NotaVentaRepository notaVentaRepository
@@ -449,7 +450,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
     if ( StringUtils.isNotBlank( notaVenta?.id ) ) {
       String idNotaVenta = notaVenta.id
       if ( notaVentaRepository.exists( idNotaVenta ) ) {
-        Boolean subtypeS = false
+        /Boolean subtypeS = false
         Boolean typeG = false
         for(DetalleNotaVenta det : notaVenta.detalles){
           if(det.articulo.subtipo.startsWith('S')){
@@ -459,7 +460,14 @@ class NotaVentaServiceImpl implements NotaVentaService {
             typeG = true
           }
         }
-        if( (subtypeS || typeG) && notaVenta.codigo_lente != null && notaVenta.codigo_lente.trim().length() > 0 ){
+        if( (subtypeS || typeG) && notaVenta.codigo_lente != null && notaVenta.codigo_lente.trim().length() > 0 ){*/
+        Boolean agregarColor = false
+        for(DetalleNotaVenta det : notaVenta.detalles){
+          if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase(TAG_ARTICULO_COLOR) ){
+            agregarColor = true
+          }
+        }
+        if( agregarColor && notaVenta.codigo_lente != null && notaVenta.codigo_lente.trim().length() > 0 ){
           String dioptra = notaVenta.codigo_lente
           String dioptraTmp = dioptra.substring( 0, dioptra.length()-1 )
           dioptra = dioptraTmp+'T'
@@ -1475,7 +1483,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
   @Override
   @Transactional
-  CuponMv actualizarCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon ){
+  CuponMv actualizarCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon, Boolean ffCupon ){
     QCuponMv qCuponMv = QCuponMv.cuponMv
     CuponMv cuponMv = cuponMvRepository.findOne( qCuponMv.facturaOrigen.eq(idFacturaOrigen).
             and(qCuponMv.facturaDestino.eq(idFacturaDestino)) )
@@ -1530,9 +1538,12 @@ class NotaVentaServiceImpl implements NotaVentaService {
         factura = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(notaOrigen.factura))
       } catch ( ParseException e ){ println e }
       String clave = claveAleatoria( StringUtils.trimToEmpty(factura.toString()), StringUtils.trimToEmpty(numeroCupon.toString()) )
+      if( ffCupon ){
+        clave = clave.replaceFirst(clave.charAt(0).toString(),"F")
+      }
       Calendar calendar = Calendar.getInstance();
       calendar.setTime(new Date());
-      calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
+      calendar.add(Calendar.DAY_OF_YEAR, ffCupon ? Registry.diasVigenciaCuponFF : Registry.diasVigenciaCupon)
       Date fechaVigencia = calendar.getTime()
       cuponMv = new CuponMv()
       cuponMv.claveDescuento = clave
@@ -2010,6 +2021,27 @@ class NotaVentaServiceImpl implements NotaVentaService {
         }
 
         return nota
+    }
+
+
+    @Override
+    List<NotaVenta> obtenerNotaVentaPorClienteFF( Integer idCliente ){
+        log.debug( "obtenerNotaVentaPorCliente(  )" )
+        Date fechaStart = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH )
+        Date fechaEnd = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 )
+        List<NotaVenta> lstNotas = new ArrayList<>()
+        List<NotaVenta> notas = new ArrayList<>()
+        QNotaVenta nv = QNotaVenta.notaVenta
+        List<NotaVenta> notasTmp = notaVentaRepository.findAll( nv.idCliente.eq(idCliente).
+                and(nv.fechaEntrega.between(fechaStart,fechaEnd)).and(nv.sFactura.ne('T')).
+                and(nv.factura.isNotEmpty()).and(nv.factura.isNotNull()), nv.fechaHoraFactura.asc(), nv.ventaTotal.asc() )
+        return notasTmp
+    }
+
+    @Override
+    List<CuponMv> obtenerCuponMvFacturaOriFF( String factura ){
+        QCuponMv qCuponMv = QCuponMv.cuponMv
+        return cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(factura), qCuponMv.fechaVigencia.desc() ) as List<CuponMv>
     }
 
 }

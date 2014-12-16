@@ -37,7 +37,11 @@ class OrderDiscount implements IPromotion {
       } else if(notaVenta != null && notaVenta.desc != null ) {
         CuponMv cuponMv = OrderController.obtenerCuponMvByClave(StringUtils.trimToEmpty(notaVenta.desc.clave) )
         if( cuponMv != null ){
-          desc = String.format( "Cupon %s" , StringUtils.trimToEmpty(cuponMv.montoCupon.toString()).replace(".00","") )
+          if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+            desc = String.format( "Amigos y Familiares %s" , StringUtils.trimToEmpty(cuponMv.montoCupon.toString()).replace(".00","") )
+          } else {
+            desc = String.format( "Cupon %s" , StringUtils.trimToEmpty(cuponMv.montoCupon.toString()).replace(".00","") )
+          }
         } else {
           desc = String.format( DESCRIPCION, notaVenta.por100Descuento.toString() )
         }

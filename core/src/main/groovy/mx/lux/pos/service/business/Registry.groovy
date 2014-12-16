@@ -419,6 +419,14 @@ class Registry {
     return isTrue( TipoParametro.CAN_MISMO_DIA )
   }
 
+  static Boolean isCouponFFActivated( ) {
+    return isTrue( TipoParametro.CUPON_FF_ACTIVADO )
+  }
+
+  static Boolean couponFFOtherDiscount( ) {
+    return isTrue( TipoParametro.CUPON_FF_OTHER_DISCOUNT )
+  }
+
   static Integer getMaxLengthDescription( ) {
     return asInteger( TipoParametro.MAX_LONG_DESC_FACTURA )
   }
@@ -459,8 +467,16 @@ class Registry {
         return  asInteger(TipoParametro.ALMACEN_POR_ACLARAR)
     }
 
+    static Boolean getActiveStoreDiscount( ) {
+        return isTrue( TipoParametro.ACTIVE_STORE_DISCOUNT )
+    }
+
     static Integer getDiasVigenciaCupon() {
         return  asInteger(TipoParametro.VIGENCIA_CUPON)
+    }
+
+    static Integer getDiasVigenciaCuponFF() {
+      return  asInteger(TipoParametro.VIGENCIA_CUPON_FF)
     }
 
     static String getPackages() {
@@ -498,6 +514,18 @@ class Registry {
     }
   static Double getAckDelay( ) {
     return asDouble( TipoParametro.ACUSE_RETRASO )
+  }
+
+  static Double getAmountToGenerateFFCoupon( ) {
+    return asDouble( TipoParametro.MONTO_GENERA_FF_CUPON )
+  }
+
+  static Double getAmountToApplyFFCoupon( ) {
+    return asDouble( TipoParametro.MONTO_APLICA_FF_CUPON )
+  }
+
+  static Double getAmountFFCoupon( ) {
+    return asDouble( TipoParametro.MONTO_FF_CUPON )
   }
 
   static Boolean isAckDebugEnabled() {
