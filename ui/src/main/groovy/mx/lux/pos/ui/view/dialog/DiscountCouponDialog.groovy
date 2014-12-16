@@ -186,6 +186,9 @@ class DiscountCouponDialog extends JDialog {
             txtDiscountAmount.setValue( txtDiscountPercent.getValue( ) * orderTotal / 100.0 )
                     porceLabel.setVisible(true)
                     porceText.setVisible(true)
+                    lblStatus.text = TXT_VERIFY_PASS
+                    lblStatus.foreground = UI_Standards.NORMAL_FOREGROUND
+                    btnOk.setEnabled( true )
                 }else if(descuentoClave?.tipo != null && descuentoClave?.tipo.trim().equals('M')){
                   if( descuentoClave.clave_descuento.startsWith("F") ){
                     NotaVenta nv = OrderController.findOrderByidOrder( idOrder )
