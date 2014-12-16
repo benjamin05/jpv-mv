@@ -52,6 +52,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
   private static final String TAG_GEN_TIPO_C = 'C'
   private static final String TAG_GEN_TIPO_NC = 'NC'
   private static final String TAG_CAUSA_CAN_PAGOS = 'CAMBIO DE FORMA DE PAGO'
+  private static final String TAG_ARTICULO_COLOR = 'COG'
 
   @Resource
   private NotaVentaRepository notaVentaRepository
@@ -449,7 +450,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
     if ( StringUtils.isNotBlank( notaVenta?.id ) ) {
       String idNotaVenta = notaVenta.id
       if ( notaVentaRepository.exists( idNotaVenta ) ) {
-        Boolean subtypeS = false
+        /Boolean subtypeS = false
         Boolean typeG = false
         for(DetalleNotaVenta det : notaVenta.detalles){
           if(det.articulo.subtipo.startsWith('S')){
@@ -459,7 +460,14 @@ class NotaVentaServiceImpl implements NotaVentaService {
             typeG = true
           }
         }
-        if( (subtypeS || typeG) && notaVenta.codigo_lente != null && notaVenta.codigo_lente.trim().length() > 0 ){
+        if( (subtypeS || typeG) && notaVenta.codigo_lente != null && notaVenta.codigo_lente.trim().length() > 0 ){*/
+        Boolean agregarColor = false
+        for(DetalleNotaVenta det : notaVenta.detalles){
+          if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase(TAG_ARTICULO_COLOR) ){
+            agregarColor = true
+          }
+        }
+        if( agregarColor && notaVenta.codigo_lente != null && notaVenta.codigo_lente.trim().length() > 0 ){
           String dioptra = notaVenta.codigo_lente
           String dioptraTmp = dioptra.substring( 0, dioptra.length()-1 )
           dioptra = dioptraTmp+'T'
