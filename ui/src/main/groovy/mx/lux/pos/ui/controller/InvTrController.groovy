@@ -683,7 +683,8 @@ class InvTrController {
             || InvTrViewMode.RETURN.equals( viewMode ) || InvTrViewMode.FILE_ADJUST.equals( viewMode )
             || InvTrViewMode.RECEIPT.equals( viewMode ) || InvTrViewMode.OUTBOUND.equals( viewMode )
             || InvTrViewMode.INBOUND.equals( viewMode ) || InvTrViewMode.OTHER_ISSUE.equals( viewMode )
-            || InvTrViewMode.OTHER_RECEIPT.equals( viewMode ) ) {
+            || InvTrViewMode.OTHER_RECEIPT.equals( viewMode ) || InvTrViewMode.ISSUE_ACCESORIES.equals( viewMode )
+            || InvTrViewMode.ISSUE_FRAMES.equals( viewMode )) {
           dispatchPrintTransaction( viewMode.trType.idTipoTrans, trNbr )
           if (InvTrViewMode.RECEIPT.equals( viewMode ) || InvTrViewMode.INBOUND.equals( viewMode )) {
             String resultado = confirmaEntrada(viewMode, pView)
