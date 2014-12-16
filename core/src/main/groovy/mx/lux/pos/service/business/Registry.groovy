@@ -419,6 +419,10 @@ class Registry {
     return isTrue( TipoParametro.CUPON_FF_ACTIVADO )
   }
 
+  static Boolean couponFFOtherDiscount( ) {
+    return isTrue( TipoParametro.CUPON_FF_OTHER_DISCOUNT )
+  }
+
   static Integer getMaxLengthDescription( ) {
     return asInteger( TipoParametro.MAX_LONG_DESC_FACTURA )
   }
@@ -457,6 +461,10 @@ class Registry {
 
     static Integer getAlmacenPorAclarar() {
         return  asInteger(TipoParametro.ALMACEN_POR_ACLARAR)
+    }
+
+    static Boolean getActiveStoreDiscount( ) {
+        return isTrue( TipoParametro.ACTIVE_STORE_DISCOUNT )
     }
 
     static Integer getDiasVigenciaCupon() {

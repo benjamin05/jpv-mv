@@ -613,7 +613,13 @@ class OrderController {
         notaVentaService.saveOrder(notaVenta)
         if( notaVenta.fechaEntrega != null ){
           if( Registry.isCouponFFActivated() && !alreadyDelivered ){
-            generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
+            if( !Registry.couponFFOtherDiscount() ){
+              if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null ){
+                generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
+              }
+            } else {
+              generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
+            }
           }
         }
 
