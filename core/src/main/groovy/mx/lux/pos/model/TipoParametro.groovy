@@ -56,7 +56,7 @@ enum TipoParametro {
   METODO_BUSQUEDA_ARTICULOS( 'metodo_busqueda_articulos', 'RB*,Letras especificadas|RB*+A,Letras especificadas+generico|D+BIOMED,D+Descripcion|+Q,Generico' ),
   MOSTRAR_NO_STOCK_TICKET_LC( 'mostrar_no_stock_ticket_lc', 'no' ),
   MONTO_GENERA_FF_CUPON( 'monto_genera_ff_cupon', '1000' ),
-  MONTO_APLICA_FF_CUPON( 'monto_aplica_ff_cupon', '2000' ),
+  MONTO_APLICA_FF_CUPON( 'monto_aplica_ff_cupon', '1000' ),
   MONTO_FF_CUPON( 'monto_ff_cupon', '200' ),
   PAQUETES('paquetes','BRONCE,PLATA,ORO,PLATINO,DIAMANTE'),
   PEDIDO_LC( 'pedido_lc', '' ),
