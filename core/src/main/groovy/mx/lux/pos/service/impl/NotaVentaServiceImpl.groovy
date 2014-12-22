@@ -450,7 +450,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
     if ( StringUtils.isNotBlank( notaVenta?.id ) ) {
       String idNotaVenta = notaVenta.id
       if ( notaVentaRepository.exists( idNotaVenta ) ) {
-        /Boolean subtypeS = false
+        /*Boolean subtypeS = false
         Boolean typeG = false
         for(DetalleNotaVenta det : notaVenta.detalles){
           if(det.articulo.subtipo.startsWith('S')){
