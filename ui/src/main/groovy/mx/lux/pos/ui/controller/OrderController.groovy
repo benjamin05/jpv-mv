@@ -2470,4 +2470,16 @@ class OrderController {
       }
     }
 
+
+    static List<Order> findOrdersByDate( Date date ){
+      List<Order> lstOrders = new ArrayList<>()
+      List<NotaVenta> lstNotas = notaVentaService.obtenerNotaVentaPorFecha( date )
+      for( NotaVenta nv : lstNotas ){
+        if( nv.codigo_lente != null && nv.codigo_lente.contains("@") ){
+          lstOrders.add( Order.toOrder(nv) )
+        }
+      }
+      return  lstOrders
+    }
+
 }
