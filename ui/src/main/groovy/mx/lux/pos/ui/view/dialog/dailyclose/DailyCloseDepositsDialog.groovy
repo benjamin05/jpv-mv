@@ -263,6 +263,9 @@ class DailyCloseDepositsDialog extends JDialog {
           }
         }
       }
+      if( order?.dioptra != null && StringUtils.trimToEmpty(order?.dioptra).contains("null") ){
+        order?.dioptra = ""
+      }
       OrderController.saveOrder( order )
     }
   }
