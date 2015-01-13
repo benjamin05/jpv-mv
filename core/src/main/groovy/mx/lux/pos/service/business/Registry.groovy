@@ -220,6 +220,10 @@ class Registry {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
   }
 
+  static Integer getPercentageWarranty( ) {
+    return asInteger( TipoParametro.PORCENTAJE_GARANTIA )
+  }
+
   static String getSearchMethod( ) {
     return asString( TipoParametro.METODO_BUSQUEDA_ARTICULOS )
   }

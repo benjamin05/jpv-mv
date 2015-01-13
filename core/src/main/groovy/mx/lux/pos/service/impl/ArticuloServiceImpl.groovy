@@ -7,6 +7,7 @@ import mx.lux.pos.model.*
 import mx.lux.pos.repository.ArticuloRepository
 import mx.lux.pos.repository.DetalleNotaVentaRepository
 import mx.lux.pos.repository.GenericoRepository
+import mx.lux.pos.repository.MontoGarantiaRepository
 import mx.lux.pos.repository.NotaVentaRepository
 import mx.lux.pos.repository.PedidoLcDetRepository
 import mx.lux.pos.repository.PedidoLcRepository
@@ -50,6 +51,9 @@ class ArticuloServiceImpl implements ArticuloService {
 
   @Resource
   private ModeloLcRepository modeloLcRepository
+
+  @Resource
+  private MontoGarantiaRepository montoGarantiaRepository
 
   @Resource
   private GenericoRepository genericoRepository
@@ -557,6 +561,13 @@ class ArticuloServiceImpl implements ArticuloService {
   @Override
   List<Generico> genericos( ){
     return genericoRepository.findAll()
+  }
+
+
+  @Override
+  MontoGarantia obtenerMontoGarantia( BigDecimal precioArt ){
+    QMontoGarantia qMontoGarantia = QMontoGarantia.montoGarantia1
+    return montoGarantiaRepository.findOne( qMontoGarantia.montoGarantia.eq(precioArt) )
   }
 
 

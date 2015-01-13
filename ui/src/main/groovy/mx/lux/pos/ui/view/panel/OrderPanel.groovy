@@ -57,6 +57,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TAG_COTIZACION = 'Cotización'
     private static final String TAG_ARTICULO_NO_VIGENTE = 'C'
     private static final String TAG_PAYMENT_TYPE_TRANSF = 'TR'
+    private static final String TAG_GENERICO_SEGUROS = 'J'
+    private static final String TAG_GENERICO_ARMAZON = 'A'
+    private static final String TAG_GENERICO_LENTE = 'B'
+    private static final String TAG_SEGUROS_ARMAZON = 'SS'
+    private static final String TAG_SEGUROS_OFTALMICO = 'SEG'
 
     private Logger logger = LoggerFactory.getLogger(this.getClass())
     private SwingBuilder sb
@@ -75,6 +80,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private List<IPromotionAvailable> promotionListTmp
     private List<OperationType> lstCustomers = OperationType.values()
     private Collection<OperationType> customerTypes = new ArrayList<OperationType>()
+    private List<Warranty> lstWarranty = new ArrayList<>()
     private DefaultTableModel itemsModel
     private DefaultTableModel paymentsModel
     private DefaultTableModel promotionModel
@@ -101,8 +107,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private Boolean activeDialogProccesCustomer = true
     private Boolean activeDialogBusquedaCliente = true
     private Boolean advanceOnlyInventariable
+    private Boolean canceledWarranty
     private String sComments = ''
     private HelpItemSearchDialog helpItemSearchDialog
+
+    private String MSJ_ERROR_WARRANTY = ""
+    private String TXT_ERROR_WARRANTY = ""
 
     public Integer numQuote = 0
 
@@ -832,80 +842,95 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             validaLC( it, true )
           }
         }
-      if( validLensesPack() ){
-        if (!dioptra.getLente().equals(null)) {
-            Item i = OrderController.findArt(dio.trim())
-            if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
-                String tipoArt = null
-                for (int row = 0; row <= itemsModel.rowCount; row++) {
-                    String artString = itemsModel.getValueAt(row, 0).toString()
-                    if (artString.trim().equals('SV')) {
-                        artCount = artCount + 1
-                        tipoArt = 'MONOFOCAL'
-                    } else if (artString.trim().equals('B')) {
-                        artCount = artCount + 1
-                        tipoArt = 'BIFOCAL'
-                    } else if (artString.trim().equals('P')) {
-                        artCount = artCount + 1
-                        tipoArt = 'PROGRESIVO'
-                    }
-                }
-                armazonString = OrderController.armazonString(order?.id)
+        if( OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true ) ){
+          if( validLensesPack() ){
+                if (!dioptra.getLente().equals(null)) {
+                    Item i = OrderController.findArt(dio.trim())
+                    if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
+                        String tipoArt = null
+                        for (int row = 0; row <= itemsModel.rowCount; row++) {
+                            String artString = itemsModel.getValueAt(row, 0).toString()
+                            if (artString.trim().equals('SV')) {
+                                artCount = artCount + 1
+                                tipoArt = 'MONOFOCAL'
+                            } else if (artString.trim().equals('B')) {
+                                artCount = artCount + 1
+                                tipoArt = 'BIFOCAL'
+                            } else if (artString.trim().equals('P')) {
+                                artCount = artCount + 1
+                                tipoArt = 'PROGRESIVO'
+                            }
+                        }
+                        armazonString = OrderController.armazonString(order?.id)
 
-                if (artCount == 0) {
-                    JButton source = ev.source as JButton
-                    source.enabled = false
-                    ticketRx = false
-                    flujoImprimir(artCount)
-                    source.enabled = true
-                } else {
-                    rec = OrderController.findRx(order, customer)
-                    Order armOrder = OrderController.getOrder(order?.id)
-                    if (rec.id == null) {   //Receta Nueva
-                        Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                        EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, true)
-                        editRx.show()
-                        try {
-                            OrderController.saveRxOrder(order?.id, rec.id)
+                        if (artCount == 0) {
                             JButton source = ev.source as JButton
                             source.enabled = false
-                            ticketRx = true
-                            if (armOrder?.udf2.equals('')) {
-                                ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
-                                armazon.show()
-                                order = armazon.order
-                            }
+                            ticketRx = false
                             flujoImprimir(artCount)
                             source.enabled = true
-                        } catch ( Exception e) { println e }
-                    } else {
-                        JButton source = ev.source as JButton
-                        source.enabled = false
-                        ticketRx = true
-                        if (armOrder?.udf2.equals('')) {
-                            ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
-                            armazon.show()
-                            order = armazon.order
+                        } else {
+                            rec = OrderController.findRx(order, customer)
+                            Order armOrder = OrderController.getOrder(order?.id)
+                            if (rec.id == null) {   //Receta Nueva
+                                Branch branch = Session.get(SessionItem.BRANCH) as Branch
+                                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, true)
+                                editRx.show()
+                                try {
+                                    OrderController.saveRxOrder(order?.id, rec.id)
+                                    JButton source = ev.source as JButton
+                                    source.enabled = false
+                                    ticketRx = true
+                                    if (armOrder?.udf2.equals('')) {
+                                        ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
+                                        armazon.show()
+                                        order = armazon.order
+                                    }
+                                    flujoImprimir(artCount)
+                                    source.enabled = true
+                                } catch ( Exception e) { println e }
+                            } else {
+                                JButton source = ev.source as JButton
+                                source.enabled = false
+                                ticketRx = true
+                                if (armOrder?.udf2.equals('')) {
+                                    ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
+                                    armazon.show()
+                                    order = armazon.order
+                                }
+                                flujoImprimir(artCount)
+                                source.enabled = true
+                            }
                         }
-                        flujoImprimir(artCount)
-                        source.enabled = true
+                    } else {
+                        sb.optionPane(message: "Codigo Dioptra Incorrecto", optionType: JOptionPane.DEFAULT_OPTION)
+                                .createDialog(new JTextField(), "Error")
+                                .show()
                     }
+                } else {
+                    ticketRx = false
+                    flujoImprimir(artCount)
                 }
-            } else {
-                sb.optionPane(message: "Codigo Dioptra Incorrecto", optionType: JOptionPane.DEFAULT_OPTION)
+
+          } else {
+                sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                         .createDialog(new JTextField(), "Error")
                         .show()
-            }
+          }
         } else {
-            ticketRx = false
-            flujoImprimir(artCount)
+          lstWarranty.clear()
+          if( !canceledWarranty ){
+            TXT_ERROR_WARRANTY = "No se puede registrar la venta"
+            if( MSJ_ERROR_WARRANTY.length() <= 0 ){
+              MSJ_ERROR_WARRANTY = "Error al asignar los seguros, Verifiquelos e intente nuevamente."
+            }
+            sb.optionPane(
+               message: MSJ_ERROR_WARRANTY,
+               messageType: JOptionPane.ERROR_MESSAGE
+            ).createDialog( this, TXT_ERROR_WARRANTY )
+              .show()
+          }
         }
-
-      } else {
-        sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
-               .createDialog(new JTextField(), "Error")
-               .show()
-      }
     }
 
     private void controlItem(Item item, Boolean itemDelete) {
@@ -1794,6 +1819,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
     return valid
   }
+
 
 
 }

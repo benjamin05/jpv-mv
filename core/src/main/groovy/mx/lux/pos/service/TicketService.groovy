@@ -61,4 +61,6 @@ interface TicketService {
   void imprimeCupon( CuponMv cuponMv, String titulo, BigDecimal monto )
 
   void imprimeResumenCuponCan( String idFactura, String porDev )
+
+  void imprimeGarantia( BigDecimal montoGarantia, Integer idArticulo )
 }

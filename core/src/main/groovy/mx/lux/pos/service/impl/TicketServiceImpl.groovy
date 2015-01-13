@@ -2490,4 +2490,33 @@ class TicketServiceImpl implements TicketService {
     }
 
 
+    void imprimeGarantia( BigDecimal montoGarantia, Integer idArticulo ){
+        log.debug( "imprimeGarantia( )" )
+        DateFormat df = new SimpleDateFormat( "dd-MM-yy" )
+        Articulo articulo = articuloRepository.findOne( idArticulo )
+        Sucursal site = ServiceFactory.sites.obtenSucursalActual()
+        AddressAdapter companyAddress = Registry.companyAddress
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.YEAR, 2);
+        String date = df.format(calendar.getTime())
+        Integer fecha = 0
+        try{
+            fecha = NumberFormat.getInstance().parse(date.replace("-",""))
+        } catch ( NumberFormatException e ){ println e }
+        Integer porcGar = Registry.percentageWarranty
+        BigDecimal porcentaje = montoGarantia.multiply(porcGar/100)
+        Integer monto = porcentaje.intValue()
+        String clave = claveAleatoria( fecha, monto )
+        def data = [
+                date: df.format( calendar.getTime() ),
+                thisSite: site,
+                compania: companyAddress,
+                codaleatorio: clave,
+                articulo: articulo != null ? StringUtils.trimToEmpty(articulo.articulo) : ""
+        ]
+        imprimeTicket( "template/ticket-garantia.vm", data )
+    }
+
+
 }

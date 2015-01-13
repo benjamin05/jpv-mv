@@ -62,6 +62,7 @@ enum TipoParametro {
   PEDIDO_LC( 'pedido_lc', '' ),
   PIDE_FACTURA( 'pide_factura', '' ),
   PORCENTAJE_ANTICIPO( 'porcentaje_anticipo', '100.0' ),
+  PORCENTAJE_GARANTIA( 'porcentaje_garantia', '75' ),
   RUTA_CIERRE( 'ruta_cierre', 'C:/Documents and Settings/mensajero/cierre' ),
   RUTA_COMPROBANTES( 'ruta_comprobantes', 'C:/Documents and Settings/mensajero/facturas' ),
   COMANDO_BKP_NOTA( 'comando_bkp_venta', 'datadb' ),

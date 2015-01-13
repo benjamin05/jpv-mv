@@ -4,12 +4,14 @@ import groovy.util.logging.Slf4j
 import mx.lux.pos.model.Articulo
 import mx.lux.pos.model.Generico
 import mx.lux.pos.model.ModeloLc
+import mx.lux.pos.model.MontoGarantia
 import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.model.PedidoLc
 import mx.lux.pos.model.PedidoLcDet
 import mx.lux.pos.model.Precio
 import mx.lux.pos.model.QArticulo
 import mx.lux.pos.service.ArticuloService
+import mx.lux.pos.service.TicketService
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.Order
@@ -31,10 +33,12 @@ class ItemController {
   private static final String TAG_GENERICO_H = 'H'
   private static final String TAG_GEN_TIPO_C = 'C'
   private static ArticuloService articuloService
+  private static TicketService ticketService
 
   @Autowired
-  public ItemController( ArticuloService articuloService ) {
+  public ItemController( ArticuloService articuloService, TicketService ticketService ) {
     this.articuloService = articuloService
+    this.ticketService = ticketService
   }
 
   static Item findItem( Integer id ) {
@@ -344,5 +348,33 @@ class ItemController {
       return articuloService.genericos()
   }
 
+
+
+  static BigDecimal warrantyValid( BigDecimal priceItem, Integer idWarranty ){
+    BigDecimal warrantyAmount = BigDecimal.ZERO
+    Articulo warranty = articuloService.obtenerArticulo( idWarranty, true )
+    if( warranty != null ){
+      MontoGarantia montoGarantia = articuloService.obtenerMontoGarantia( warranty.precio )
+      if( montoGarantia != null ){
+        if( montoGarantia.montoGarantia.compareTo(BigDecimal.ZERO) == 0 ){
+          warrantyAmount = new BigDecimal(100)
+        } else if(montoGarantia.montoMinimo.compareTo(priceItem) <= 0
+                && montoGarantia.montoMaximo.compareTo(priceItem) >= 0 ){
+          warrantyAmount = montoGarantia.montoGarantia
+        }
+      }
+    }
+    return warrantyAmount
+  }
+
+
+  static void printWarranty( BigDecimal amount, Integer idItem ){
+    ticketService.imprimeGarantia( amount, idItem )
+  }
+
+
+  static MontoGarantia findWarranty( BigDecimal warrantyAmount ){
+    return articuloService.obtenerMontoGarantia( warrantyAmount )
+  }
 
 }
