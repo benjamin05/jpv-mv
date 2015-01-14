@@ -2,6 +2,7 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.CuponMv
+import mx.lux.pos.ui.model.Item
 import mx.lux.pos.model.DescuentoClave
 import mx.lux.pos.model.DetalleNotaVenta
 import mx.lux.pos.model.NotaVenta
@@ -19,6 +20,9 @@ import java.awt.*
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.text.NumberFormat
+import java.text.ParseException
+import java.text.SimpleDateFormat
 
 class DiscountCouponDialog extends JDialog {
 
@@ -63,9 +67,11 @@ class DiscountCouponDialog extends JDialog {
   Double discountPct = 0
   Boolean discountSelected
   String idOrder
+  Item item
 
-    DiscountCouponDialog( Boolean pCorporate, String idOrder ) {
+    DiscountCouponDialog( Boolean pCorporate, String idOrder, Item item ) {
     corporateEnabled = pCorporate
+    this.item = item
     this.idOrder = idOrder
     init( )
     buildUI( )
@@ -177,6 +183,9 @@ class DiscountCouponDialog extends JDialog {
         descuentoClave = OrderController.descuentoClavexId(txtCorporateKey.text)
         if( descuentoClave == null ){
           descuentoClave = OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
+        }
+        if( descuentoClave == null ){
+          descuentoClave = requestVerify()//OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
         }
 
         if (  descuentoClave != null ) {
@@ -312,4 +321,61 @@ class DiscountCouponDialog extends JDialog {
     txtCorporateKey.setText( txtCorporateKey.getText( ).toUpperCase( ) )
     verifyCorporateKey( )
   }
+
+
+  DescuentoClave requestVerify( ){
+    Boolean valid = false
+    SimpleDateFormat formatter = new SimpleDateFormat("ddMMyy");
+    String clave = ""
+    BigDecimal amount = BigDecimal.ZERO
+    if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 10 ){
+      for(int i=0;i<StringUtils.trimToEmpty(txtCorporateKey.text).length();i++){
+        if(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()).isNumber()){
+          Integer number = 0
+          try{
+            number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()))
+          } catch ( NumberFormatException e ) { println e }
+          clave = clave+StringUtils.trimToEmpty((10-number).toString())
+        } else {
+          clave = clave+0
+        }
+      }
+      String dateStr = StringUtils.trimToEmpty(clave).substring(0,6)
+      String amountStr = StringUtils.trimToEmpty(clave).substring(6,10)
+      Date date = null
+      try{
+        date = formatter.parse(dateStr)
+        amount = NumberFormat.getInstance().parse(amountStr)
+      } catch ( ParseException e) {
+        e.printStackTrace()
+      } catch ( NumberFormatException e) {
+        e.printStackTrace()
+      }
+      if( item.price.compareTo(amount) <= 0 ){
+        amount = (item.price.multiply(new BigDecimal(Registry.percentageWarranty).divide(new BigDecimal(100)))).doubleValue()
+      }
+      if( date.compareTo(new Date()) >= 0 && amount.compareTo(BigDecimal.ZERO) > 0 &&
+            OrderController.keyFree(StringUtils.trimToEmpty(txtCorporateKey.text).toUpperCase()) ){
+        if( item != null && item.price.compareTo(amount) < 0 ){
+          txtDiscountAmount.setText( StringUtils.trimToEmpty((item.price.multiply(new BigDecimal(Registry.percentageWarranty/100))).toString()) )
+        } else {
+          txtDiscountAmount.setText( StringUtils.trimToEmpty(amount.doubleValue().toString()) )
+        }
+        valid = true
+      }
+    }
+    DescuentoClave descuentoClave = null
+    if( valid ){
+      descuentoClave = new DescuentoClave()
+      descuentoClave.clave_descuento = StringUtils.trimToEmpty(txtCorporateKey.text)
+      descuentoClave.porcenaje_descuento = amount.doubleValue()
+      descuentoClave.descripcion_descuento = "Seguro"
+      descuentoClave.tipo = "M"
+      descuentoClave.vigente = true
+      descuentoClave.cupon = false
+    }
+    return descuentoClave
+  }
+
+
 }

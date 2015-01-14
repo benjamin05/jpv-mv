@@ -9,6 +9,7 @@ import mx.lux.pos.model.PromotionModel
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.OrderController
+import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.model.Descuento
 import mx.lux.pos.ui.model.IPromotion
@@ -16,6 +17,7 @@ import mx.lux.pos.service.PromotionService
 import mx.lux.pos.service.business.PromotionCommit
 import mx.lux.pos.ui.model.ICorporateKeyVerifier
 import mx.lux.pos.ui.model.IPromotionDrivenPanel
+import mx.lux.pos.ui.model.OrderItem
 import mx.lux.pos.ui.resources.ServiceManager
 import mx.lux.pos.ui.view.dialog.DiscountCouponDialog
 import mx.lux.pos.ui.view.dialog.DiscountDialog
@@ -200,7 +202,13 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
 
   void requestCouponDiscount(){
     if( CustomerController.validCustomerApplyCoupon( view.order.customer.id ) ){
-      DiscountCouponDialog couponDiscount = new DiscountCouponDialog(true,view.order.id)
+      Item item = null
+      for(OrderItem tmp : view.order.items){
+        if( StringUtils.trimToEmpty(tmp.item.type).equalsIgnoreCase("A") ){
+          item = tmp.item
+        }
+      }
+      DiscountCouponDialog couponDiscount = new DiscountCouponDialog(true,view.order.id, item)
       couponDiscount.setOrderTotal( view.order.total )
       couponDiscount.setVerifier( this )
       couponDiscount.activate()

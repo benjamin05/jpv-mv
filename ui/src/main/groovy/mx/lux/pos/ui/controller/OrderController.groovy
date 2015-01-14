@@ -3,6 +3,7 @@ package mx.lux.pos.ui.controller
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
+import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.*
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.impl.FormaContactoService
@@ -2809,4 +2810,7 @@ class OrderController {
     }
 
 
+  static Boolean keyFree( String key ){
+    return RepositoryFactory.discounts.findByClave( key ).size() <= 0
+  }
 }
