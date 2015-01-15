@@ -9,7 +9,7 @@ import groovy.transform.ToString
 @EqualsAndHashCode
 class Warranty {
   BigDecimal amount
-  Integer idItem
+  String idItem
 
 
 }

@@ -68,10 +68,12 @@ class DiscountCouponDialog extends JDialog {
   Boolean discountSelected
   String idOrder
   Item item
+  String title
 
-    DiscountCouponDialog( Boolean pCorporate, String idOrder, Item item ) {
+    DiscountCouponDialog( Boolean pCorporate, String idOrder, Item item, String title ) {
     corporateEnabled = pCorporate
     this.item = item
+    this.title = title
     this.idOrder = idOrder
     init( )
     buildUI( )
@@ -88,7 +90,7 @@ class DiscountCouponDialog extends JDialog {
   
   protected void buildUI( JComponent pParent) {
     sb.dialog( this,
-        title: "Descuento por Cupon" ,
+        title: title,
         location: [ 300, 300 ] ,
         resizable: false,
         modal: true,

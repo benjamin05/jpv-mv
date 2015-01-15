@@ -368,7 +368,7 @@ class ItemController {
   }
 
 
-  static void printWarranty( BigDecimal amount, Integer idItem ){
+  static void printWarranty( BigDecimal amount, String idItem ){
     ticketService.imprimeGarantia( amount, idItem )
   }
 

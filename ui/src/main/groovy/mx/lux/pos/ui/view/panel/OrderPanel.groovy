@@ -842,7 +842,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             validaLC( it, true )
           }
         }
-        if( OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true ) ){
+        if( OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, this ) ){
           if( validLensesPack() ){
                 if (!dioptra.getLente().equals(null)) {
                     Item i = OrderController.findArt(dio.trim())
@@ -1461,69 +1461,71 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 validaLC( it, true )
             }
         }
-      if( validLensesPack() ){
-        if (!dioptra.getLente().equals(null)) {
+      if( OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, this ) ){
+        if( validLensesPack() ){
+          if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
-                String tipoArt = null
-                for (int row = 0; row <= itemsModel.rowCount; row++) {
-                    String artString = itemsModel.getValueAt(row, 0).toString()
-                    if (artString.trim().equals('SV')) {
-                        artCount = artCount + 1
-                        tipoArt = 'MONOFOCAL'
-                    } else if (artString.trim().equals('B')) {
-                        artCount = artCount + 1
-                        tipoArt = 'BIFOCAL'
-                    } else if (artString.trim().equals('P')) {
-                        artCount = artCount + 1
-                        tipoArt = 'PROGRESIVO'
-                    }
-                }
-                armazonString = OrderController.armazonString(order?.id)
+              String tipoArt = null
+              for (int row = 0; row <= itemsModel.rowCount; row++) {
+                          String artString = itemsModel.getValueAt(row, 0).toString()
+                          if (artString.trim().equals('SV')) {
+                              artCount = artCount + 1
+                              tipoArt = 'MONOFOCAL'
+                          } else if (artString.trim().equals('B')) {
+                              artCount = artCount + 1
+                              tipoArt = 'BIFOCAL'
+                          } else if (artString.trim().equals('P')) {
+                              artCount = artCount + 1
+                              tipoArt = 'PROGRESIVO'
+                          }
+                      }
+                      armazonString = OrderController.armazonString(order?.id)
 
-                if (artCount == 0) {
-                    ticketRx = false
-                    flujoContinuar()
-                } else {
-                    rec = OrderController.findRx(order, customer)
-                    Order armOrder = OrderController.getOrder(order?.id)
-                    if (rec.id == null) {   //Receta Nueva
-                        Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                        EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false)
-                        editRx.show()
-                        try {
-                            OrderController.saveRxOrder(order?.id, rec.id)
-                            ticketRx = true
-                            if (armOrder?.udf2.equals('')) {
-                                ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
-                                armazon.show()
-                                order = armazon.order
-                            }
-                            flujoContinuar()
-                        } catch ( Exception e) { println e }
-                    } else {
-                        ticketRx = true
-                        if (armOrder?.udf2.equals('')) {
-                            ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
-                            armazon.show()
-                            order = armazon.order
-                        }
-                        flujoContinuar()
-                    }
-                }
-            } else {
-                sb.optionPane(message: "Codigo Dioptra Incorrecto", optionType: JOptionPane.DEFAULT_OPTION)
-                        .createDialog(new JTextField(), "Error")
-                        .show()
-            }
+                      if (artCount == 0) {
+                          ticketRx = false
+                          flujoContinuar()
+                      } else {
+                          rec = OrderController.findRx(order, customer)
+                          Order armOrder = OrderController.getOrder(order?.id)
+                          if (rec.id == null) {   //Receta Nueva
+                              Branch branch = Session.get(SessionItem.BRANCH) as Branch
+                              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false)
+                              editRx.show()
+                              try {
+                                  OrderController.saveRxOrder(order?.id, rec.id)
+                                  ticketRx = true
+                                  if (armOrder?.udf2.equals('')) {
+                                      ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
+                                      armazon.show()
+                                      order = armazon.order
+                                  }
+                                  flujoContinuar()
+                              } catch ( Exception e) { println e }
+                          } else {
+                              ticketRx = true
+                              if (armOrder?.udf2.equals('')) {
+                                  ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
+                                  armazon.show()
+                                  order = armazon.order
+                              }
+                              flujoContinuar()
+                          }
+                      }
+                  } else {
+                      sb.optionPane(message: "Codigo Dioptra Incorrecto", optionType: JOptionPane.DEFAULT_OPTION)
+                              .createDialog(new JTextField(), "Error")
+                              .show()
+                  }
+              } else {
+                  ticketRx = false
+                  flujoContinuar()
+              }
         } else {
-            ticketRx = false
-            flujoContinuar()
-        }
-      } else {
-        sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
+          sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
              .createDialog(new JTextField(), "Error")
              .show()
+        }
       }
     }
 
@@ -1570,69 +1572,71 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 validaLC( it, true )
             }
         }
-      if( validLensesPack() ){
-        if (!dioptra.getLente().equals(null)) {
-            Item i = OrderController.findArt(dio.trim())
-            if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
-                String tipoArt = null
-                for (int row = 0; row <= itemsModel.rowCount; row++) {
-                    String artString = itemsModel.getValueAt(row, 0).toString()
-                    if (artString.trim().equals('SV')) {
-                        artCount = artCount + 1
-                        tipoArt = 'MONOFOCAL'
-                    } else if (artString.trim().equals('B')) {
-                        artCount = artCount + 1
-                        tipoArt = 'BIFOCAL'
-                    } else if (artString.trim().equals('P')) {
-                        artCount = artCount + 1
-                        tipoArt = 'PROGRESIVO'
-                    }
-                }
-                armazonString = OrderController.armazonString(order?.id)
+      if( OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, this ) ){
+        if( validLensesPack() ){
+              if (!dioptra.getLente().equals(null)) {
+                  Item i = OrderController.findArt(dio.trim())
+                  if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
+                      String tipoArt = null
+                      for (int row = 0; row <= itemsModel.rowCount; row++) {
+                          String artString = itemsModel.getValueAt(row, 0).toString()
+                          if (artString.trim().equals('SV')) {
+                              artCount = artCount + 1
+                              tipoArt = 'MONOFOCAL'
+                          } else if (artString.trim().equals('B')) {
+                              artCount = artCount + 1
+                              tipoArt = 'BIFOCAL'
+                          } else if (artString.trim().equals('P')) {
+                              artCount = artCount + 1
+                              tipoArt = 'PROGRESIVO'
+                          }
+                      }
+                      armazonString = OrderController.armazonString(order?.id)
 
-                if (artCount == 0) {
-                    ticketRx = false
-                    flujoOtraOrden()
-                } else {
-                    rec = OrderController.findRx(order, customer)
-                    Order armOrder = OrderController.getOrder(order?.id)
-                    if (rec.id == null) {   //Receta Nueva
-                        Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                        EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false)
-                        editRx.show()
-                        try {
-                            OrderController.saveRxOrder(order?.id, rec.id)
-                            ticketRx = true
-                            if (armOrder?.udf2.equals('')) {
-                                ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
-                                armazon.show()
-                                order = armazon.order
-                            }
-                            flujoOtraOrden()
-                        } catch ( Exception e) { println e }
-                    } else {
-                        ticketRx = true
-                        if (armOrder?.udf2.equals('')) {
-                            ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
-                            armazon.show()
-                            order = armazon.order
-                        }
-                        flujoOtraOrden()
-                    }
-                }
-            } else {
-                sb.optionPane(message: "Codigo Dioptra Incorrecto", optionType: JOptionPane.DEFAULT_OPTION)
-                        .createDialog(new JTextField(), "Error")
-                        .show()
-            }
+                      if (artCount == 0) {
+                          ticketRx = false
+                          flujoOtraOrden()
+                      } else {
+                          rec = OrderController.findRx(order, customer)
+                          Order armOrder = OrderController.getOrder(order?.id)
+                          if (rec.id == null) {   //Receta Nueva
+                              Branch branch = Session.get(SessionItem.BRANCH) as Branch
+                              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false)
+                              editRx.show()
+                              try {
+                                  OrderController.saveRxOrder(order?.id, rec.id)
+                                  ticketRx = true
+                                  if (armOrder?.udf2.equals('')) {
+                                      ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
+                                      armazon.show()
+                                      order = armazon.order
+                                  }
+                                  flujoOtraOrden()
+                              } catch ( Exception e) { println e }
+                          } else {
+                              ticketRx = true
+                              if (armOrder?.udf2.equals('')) {
+                                  ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
+                                  armazon.show()
+                                  order = armazon.order
+                              }
+                              flujoOtraOrden()
+                          }
+                      }
+                  } else {
+                      sb.optionPane(message: "Codigo Dioptra Incorrecto", optionType: JOptionPane.DEFAULT_OPTION)
+                              .createDialog(new JTextField(), "Error")
+                              .show()
+                  }
+              } else {
+                  ticketRx = false
+                  flujoOtraOrden()
+              }
         } else {
-            ticketRx = false
-            flujoOtraOrden()
+              sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
+                      .createDialog(new JTextField(), "Error")
+                      .show()
         }
-      } else {
-        sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
-            .createDialog(new JTextField(), "Error")
-            .show()
       }
     }
 

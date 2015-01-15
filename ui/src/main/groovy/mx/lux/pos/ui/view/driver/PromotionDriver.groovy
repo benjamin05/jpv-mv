@@ -200,7 +200,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     }
   }
 
-  void requestCouponDiscount(){
+  void requestCouponDiscount( String title ){
     if( CustomerController.validCustomerApplyCoupon( view.order.customer.id ) ){
       Item item = null
       for(OrderItem tmp : view.order.items){
@@ -208,7 +208,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
           item = tmp.item
         }
       }
-      DiscountCouponDialog couponDiscount = new DiscountCouponDialog(true,view.order.id, item)
+      DiscountCouponDialog couponDiscount = new DiscountCouponDialog(true,view.order.id, item, title )
       couponDiscount.setOrderTotal( view.order.total )
       couponDiscount.setVerifier( this )
       couponDiscount.activate()

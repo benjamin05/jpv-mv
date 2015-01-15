@@ -2490,10 +2490,10 @@ class TicketServiceImpl implements TicketService {
     }
 
 
-    void imprimeGarantia( BigDecimal montoGarantia, Integer idArticulo ){
+    void imprimeGarantia( BigDecimal montoGarantia, String idArticulo ){
         log.debug( "imprimeGarantia( )" )
         DateFormat df = new SimpleDateFormat( "dd-MM-yy" )
-        Articulo articulo = articuloRepository.findOne( idArticulo )
+        //Articulo articulo = articuloRepository.findOne( idArticulo )
         Sucursal site = ServiceFactory.sites.obtenSucursalActual()
         AddressAdapter companyAddress = Registry.companyAddress
         Calendar calendar = Calendar.getInstance();
@@ -2513,7 +2513,7 @@ class TicketServiceImpl implements TicketService {
                 thisSite: site,
                 compania: companyAddress,
                 codaleatorio: clave,
-                articulo: articulo != null ? StringUtils.trimToEmpty(articulo.articulo) : ""
+                articulo: idArticulo
         ]
         imprimeTicket( "template/ticket-garantia.vm", data )
     }

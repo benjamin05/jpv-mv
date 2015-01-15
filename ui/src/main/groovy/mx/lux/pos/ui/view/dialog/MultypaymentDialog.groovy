@@ -794,6 +794,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
             validOrder = true
         }
         if (validOrder) {
+          //if( OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, this as OrderPanel) ){
             Boolean noDelivered = OrderController.validGenericNoDelivered( order.id )
             Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
             BigDecimal totalOrder = order?.total * pAnticipo
@@ -815,7 +816,8 @@ class MultypaymentDialog extends JDialog implements FocusListener {
             } else {
                 save = true
             }
-        }
+          }
+        //}
       return save
     }
 
