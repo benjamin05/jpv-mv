@@ -1198,7 +1198,7 @@ class OrderController {
         //Iterator its = st.iterator()
         String[] its = StringUtils.trimToEmpty(s).trim().split(',')
         for(int i=0;i<its.length;i++){
-          if( !surte.equalsIgnoreCase(its[i]) ){
+          if( !surte.equalsIgnoreCase(its[i]) && !its[i].equalsIgnoreCase("P") ){
             surteOption.add(its[i])
           }
         }
