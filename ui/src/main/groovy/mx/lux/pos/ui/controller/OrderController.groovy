@@ -2579,11 +2579,13 @@ class OrderController {
             if( warrantyAmount.compareTo(BigDecimal.ZERO) > 0 && segValid(lstIdGar.first(), lstIdArm) ){
               String items = ""
               for(DetalleNotaVenta orderItem : nota.detalles){
-                items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                  items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                }
               }
               Warranty warranty = new Warranty()
               warranty.amount = amount
-              warranty.idItem = items
+              warranty.idItem = items.replaceFirst(",","")
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2852,6 +2854,9 @@ class OrderController {
         panel.itemSearch.text = "SEG"
         panel.doItemSearch()
       }
+      if( cleanWaranties ){
+        lstWarranty.clear()
+      }
       return valid
     }
 
@@ -2865,7 +2870,7 @@ class OrderController {
     Boolean lensKid = false
     Articulo itemWarranty = ItemController.findArticle( itemWarr )
     for(Integer id : items){
-      Articulo item = ItemController.findArticle( itemWarr )
+      Articulo item = ItemController.findArticle( id )
       if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
               StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){
         sunglass = true
