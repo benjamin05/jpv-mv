@@ -25,6 +25,7 @@ class PaymentDialog extends JDialog {
   private static Double ZERO_TOLERANCE = 0.005
   private static final String TAG_FORMA_PAGO_EFECTIVO = 'EFECTIVO'
   private static final String TAG_FORMA_PAGO_CUPON = 'CUPON'
+  private static final String TAG_FORMA_PAGO_CUPON_C1 = 'C1'
 
   private SwingBuilder sb
   private Payment tmpPayment
@@ -70,6 +71,18 @@ class PaymentDialog extends JDialog {
       sb = new SwingBuilder()
       defaultPaymentType = PaymentController.findDefaultPaymentType()
       paymentTypes = PaymentController.findActivePaymentTypes( BigDecimal.ZERO, order.id, 0 )
+      String dateOrder = order.date.format("dd/MM/yyyy")
+      String today = new Date().format("dd/MM/yyyy")
+      if( !dateOrder.equalsIgnoreCase(today) ){
+        List<PaymentType> paymentTypesTmp = new ArrayList<>()
+        paymentTypesTmp.addAll( paymentTypes)
+        paymentTypes.clear()
+        for(PaymentType payType : paymentTypesTmp){
+          if( !StringUtils.trimToEmpty(payType.id).equalsIgnoreCase(TAG_FORMA_PAGO_CUPON_C1) ){
+            paymentTypes.add( payType )
+          }
+        }
+      }
       issuingBanks = PaymentController.findIssuingBanks()
       terminals = PaymentController.findTerminals()
       plans = [ ]

@@ -1526,6 +1526,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
              .createDialog(new JTextField(), "Error")
              .show()
         }
+      } else {
+          lstWarranty.clear()
+          if( !canceledWarranty ){
+              TXT_ERROR_WARRANTY = "No se puede registrar la venta"
+              if( MSJ_ERROR_WARRANTY.length() <= 0 ){
+                  MSJ_ERROR_WARRANTY = "Error al asignar los seguros, Verifiquelos e intente nuevamente."
+              }
+              JOptionPane.showMessageDialog( null, MSJ_ERROR_WARRANTY,
+                      TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
+          }
       }
     }
 
@@ -1637,6 +1647,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       .createDialog(new JTextField(), "Error")
                       .show()
         }
+      } else {
+          lstWarranty.clear()
+          if( !canceledWarranty ){
+              TXT_ERROR_WARRANTY = "No se puede registrar la venta"
+              if( MSJ_ERROR_WARRANTY.length() <= 0 ){
+                  MSJ_ERROR_WARRANTY = "Error al asignar los seguros, Verifiquelos e intente nuevamente."
+              }
+              JOptionPane.showMessageDialog( null, MSJ_ERROR_WARRANTY,
+                      TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
+          }
       }
     }
 
