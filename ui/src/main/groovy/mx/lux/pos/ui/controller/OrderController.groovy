@@ -2506,7 +2506,7 @@ class OrderController {
     }
 
 
-    static Boolean validWarranty( Descuento promotionApplied, Item item ){
+static Boolean validWarranty( Descuento promotionApplied, Item item ){
       Boolean valid = true
       Boolean hasWarrantyApplied = false
       if( promotionApplied != null ){
@@ -2672,6 +2672,8 @@ class OrderController {
       } else if( cleanWaranties && lensKid ){
         panel.itemSearch.text = "SEG"
         panel.doItemSearch()
+      } else {
+        valid = true
       }
       if( cleanWaranties ){
         lstWarranty.clear()
@@ -2718,4 +2720,18 @@ class OrderController {
   static Boolean keyFree( String key ){
     return RepositoryFactory.discounts.findByClave( key ).size() <= 0
   }
+
+
+  static List<Order> findOrdersByDate( Date date ){
+      List<Order> lstOrders = new ArrayList<>()
+      List<NotaVenta> lstNotas = notaVentaService.obtenerNotaVentaPorFecha( date )
+      for( NotaVenta nv : lstNotas ){
+        if( nv.codigo_lente != null && nv.codigo_lente.contains("@") ){
+          lstOrders.add( Order.toOrder(nv) )
+        }
+      }
+      return  lstOrders
+  }
+
+
 }

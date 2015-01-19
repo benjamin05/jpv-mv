@@ -157,4 +157,6 @@ interface NotaVentaService {
   List<NotaVenta> obtenerNotaVentaPorClienteFF( Integer idCliente )
 
   List<CuponMv> obtenerCuponMvFacturaOriFF( String factura )
+
+  List<NotaVenta> obtenerNotaVentaPorFecha( Date fecha )
 }

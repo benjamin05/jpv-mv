@@ -4,13 +4,21 @@ import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.controller.DailyCloseController
+import mx.lux.pos.ui.controller.ItemController
+import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.DailyClose
 import mx.lux.pos.ui.model.Deposit
+import mx.lux.pos.ui.model.Dioptra
+import mx.lux.pos.ui.model.Item
+import mx.lux.pos.ui.model.Order
+import mx.lux.pos.ui.model.OrderItem
 import mx.lux.pos.ui.model.UpperCaseDocument
 import mx.lux.pos.ui.view.dialog.WaitDialog
+import mx.lux.pos.ui.view.panel.OrderPanel
 import mx.lux.pos.ui.view.renderer.DateCellRenderer
 import mx.lux.pos.ui.view.renderer.MoneyCellRenderer
 import net.miginfocom.swing.MigLayout
+import org.apache.commons.lang3.StringUtils
 
 import javax.swing.*
 import java.awt.*
@@ -192,6 +200,7 @@ class DailyCloseDepositsDialog extends JDialog {
     JButton source = ev.source as JButton
     source.enabled = false
     Boolean succesClose = false
+    validDioptraByDate( closeDate )
     if( DailyCloseController.dayHasDeposit(closeDate) ){
       WaitDialog dialog = new WaitDialog( "Cierre", "Cerrando dia. Espere un momento." )
       sb.doOutside {
@@ -234,4 +243,32 @@ class DailyCloseDepositsDialog extends JDialog {
   private def closeTerminalsAction = {
     new TerminalCloseDialog( closeDate ).show()
   }
+
+  private static void validDioptraByDate (Date date ){
+    List<Order> lstOrders = OrderController.findOrdersByDate( date )
+    Dioptra dioptra = new Dioptra()
+    Dioptra antDioptra = new Dioptra()
+    for( Order order : lstOrders ){
+      for(OrderItem it : order.items){
+        Item item = ItemController.findItemsById(it.item.id)
+        if( item != null ){
+          String indexDioptra = item?.indexDiotra
+          if (!StringUtils.trimToNull(indexDioptra).equals(null) && !StringUtils.trimToNull(item?.indexDiotra).equals(null)) {
+            Dioptra nuevoDioptra = OrderController.generaDioptra(item?.indexDiotra)
+            dioptra = OrderController.validaDioptra(dioptra, nuevoDioptra)
+            antDioptra = OrderController.addDioptra(order, OrderController.codigoDioptra(dioptra))
+            order?.dioptra = OrderController.codigoDioptra(antDioptra)
+          } else {
+            order?.dioptra = OrderController.codigoDioptra(antDioptra)
+          }
+        }
+      }
+      if( order?.dioptra != null && StringUtils.trimToEmpty(order?.dioptra).contains("null") ){
+        order?.dioptra = ""
+      }
+      OrderController.saveOrder( order )
+    }
+  }
+
+
 }

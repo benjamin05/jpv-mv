@@ -2044,4 +2044,15 @@ class NotaVentaServiceImpl implements NotaVentaService {
         return cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(factura), qCuponMv.fechaVigencia.desc() ) as List<CuponMv>
     }
 
+
+  @Override
+  List<NotaVenta> obtenerNotaVentaPorFecha( Date fecha ){
+    Date fechaInicio = DateUtils.truncate( fecha, Calendar.DAY_OF_MONTH );
+    Date fechaFin = new Date( DateUtils.ceiling( fecha, Calendar.DAY_OF_MONTH ).getTime() - 1 );
+    QNotaVenta qNotaVenta = QNotaVenta.notaVenta
+    return notaVentaRepository.findAll( qNotaVenta.factura.isNotNull().and(qNotaVenta.factura.isNotEmpty()).
+            and(qNotaVenta.fechaHoraFactura.between(fechaInicio, fechaFin)) )
+  }
+
+
 }
