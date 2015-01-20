@@ -970,7 +970,7 @@ class OrderController {
                       savePromisedDate(notaVenta?.id, diaPrometido)
                     }
                 }
-                if (StringUtils.trimToEmpty(detalle?.surte).equals('P')) {
+                if (StringUtils.trimToEmpty(detalle?.surte).equals('P') && !detalle?.articulo?.generico?.inventariable) {
                     surte = true
                 }
             }
