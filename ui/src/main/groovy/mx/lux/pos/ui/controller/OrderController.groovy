@@ -10,6 +10,7 @@ import mx.lux.pos.service.impl.FormaContactoService
 import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.resources.ServiceManager
+import mx.lux.pos.ui.view.dialog.AseguraNotaDialog
 import mx.lux.pos.ui.view.dialog.ContactClientDialog
 import mx.lux.pos.ui.view.dialog.ContactDialog
 import mx.lux.pos.ui.view.dialog.ManualPriceDialog
@@ -163,6 +164,7 @@ class OrderController {
     }
 
     private static Boolean canceledWarranty
+    private static String postEnsure
 
     static Order getOrder(String orderId) {
         log.info("obteniendo orden id: ${orderId}")
@@ -639,7 +641,7 @@ class OrderController {
             }
           }
           if( !alreadyDelivered ){
-            if( validWarranty( notaVenta, false, null ) ){
+            if( validWarranty( notaVenta, false, null, "" ) ){
               for(Warranty warranty : lstWarranty){
                 ItemController.printWarranty( warranty.amount, warranty.idItem)
               }
@@ -651,10 +653,11 @@ class OrderController {
                 if( MSJ_ERROR_WARRANTY.length() <= 0 ){
                           MSJ_ERROR_WARRANTY = "Error al asignar los seguros, Verifiquelos e intente nuevamente."
                 }
-                JOptionPane.showMessageDialog( null, "MSJ_ERROR_WARRANTY",
+                JOptionPane.showMessageDialog( null, MSJ_ERROR_WARRANTY,
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
               }
             }
+            postEnsure = ""
           }
         }
 
@@ -2522,8 +2525,17 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
 
-    static Boolean validWarranty( NotaVenta nota, Boolean cleanWaranties, OrderPanel panel ){
+    static Boolean validWarranty( NotaVenta nota, Boolean cleanWaranties, OrderPanel panel, String idOrderPostEnsure ){
       canceledWarranty = false
+      if( StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ){
+        postEnsure = StringUtils.trimToEmpty(idOrderPostEnsure)
+      }
+      if( StringUtils.trimToEmpty(postEnsure).length() > 0 ){
+        NotaVenta oldNota = notaVentaService.obtenerNotaVenta( postEnsure )
+        if( oldNota != null ){
+          nota.detalles.addAll( oldNota.detalles )
+        }
+      }
       Boolean valid = true
       Boolean applyValid = false
       List<Integer> lstIdGar = new ArrayList<>()
@@ -2731,6 +2743,57 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         }
       }
       return  lstOrders
+  }
+
+
+
+  static NotaVenta ensureOrder( String idOrder ){
+    NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+    if( notaVenta != null ){
+      Boolean warranty = false
+      for( DetalleNotaVenta det : notaVenta.detalles ){
+        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+          warranty = true
+        }
+      }
+      if( notaVenta.detalles.size() == 1 && warranty ){
+        AseguraNotaDialog dialog = new AseguraNotaDialog()
+        dialog.show()
+        if( dialog.notaVenta != null ){
+          notaVenta = dialog.notaVenta
+        }
+      }
+    }
+    return  notaVenta
+  }
+
+
+
+  static Boolean validaAplicaGarantia(String idFactura) {
+    Boolean valid = true
+    NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idFactura )
+    Boolean noDelivered = true
+    Boolean noCancelled = true
+    Boolean noEnsured = true
+    if( notaVenta != null ){
+      if( notaVenta.fechaEntrega != null ){
+        if( !notaVenta.fechaEntrega.format("dd/MM/yyyy").equalsIgnoreCase(new Date().format("dd/MM/yyyy")) ){
+          noDelivered = false
+        }
+        if( StringUtils.trimToEmpty(notaVenta.sFactura).equalsIgnoreCase("T") ){
+          noCancelled = false
+        }
+        for(DetalleNotaVenta det : notaVenta.detalles){
+          if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("J") ){
+            noEnsured = false
+          }
+        }
+      }
+    }
+    if( !noDelivered || !noCancelled || !noEnsured ){
+      valid = false
+    }
+    return valid
   }
 
 
