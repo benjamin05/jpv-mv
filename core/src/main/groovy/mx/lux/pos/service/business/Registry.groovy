@@ -472,7 +472,7 @@ class Registry {
     }
 
     static Boolean getValidSPToStore( ) {
-        return isTrue( TipoParametro.VALIDA_SP_VENTA )
+        return isTrue( TipoParametro.SALIDA_VENTA_SP )
     }
 
     static Integer getDiasVigenciaCupon() {
