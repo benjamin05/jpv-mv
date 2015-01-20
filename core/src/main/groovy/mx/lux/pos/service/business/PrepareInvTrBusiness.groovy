@@ -289,8 +289,13 @@ class PrepareInvTrBusiness {
     request.idUser = pNotaVenta.idEmpleado
     request.reference = pNotaVenta.id
 
+    Boolean validaSPVenta = Registry.validSPToStore
     for ( DetalleNotaVenta det in pNotaVenta.detalles ) {
-      if ( parts.validarArticulo( det.idArticulo ) && det?.surte?.trim().equals(TAG_SURTE_SUCURSAL) ) {
+      Boolean validaSurte = true
+      if( validaSPVenta ){
+        validaSurte = det?.surte?.trim().equals(TAG_SURTE_SUCURSAL)
+      }
+      if ( parts.validarArticulo( det.idArticulo ) && validaSurte ) {
         request.skuList.add( new InvTrDetRequest( det.idArticulo, det.cantidadFac.intValue() ) )
       }
     }

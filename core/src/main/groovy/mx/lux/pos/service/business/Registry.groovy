@@ -471,6 +471,10 @@ class Registry {
         return isTrue( TipoParametro.ACTIVE_STORE_DISCOUNT )
     }
 
+    static Boolean getValidSPToStore( ) {
+        return isTrue( TipoParametro.VALIDA_SP_VENTA )
+    }
+
     static Integer getDiasVigenciaCupon() {
         return  asInteger(TipoParametro.VIGENCIA_CUPON)
     }

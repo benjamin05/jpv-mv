@@ -92,6 +92,7 @@ enum TipoParametro {
   URL_CARGA_LISTA_PRECIOS( 'url_carga_lista_precios', '' ),
   URL_RECIBE_LISTA_PRECIOS( 'url_recibe_lista_precios', '' ),
   VALIDA_SP( 'valida_sp', '' ),
+  VALIDA_SP_VENTA( 'valida_sp_venta', 'si' ),
   VALIDA_EMPLEADO( 'valida_empleado', '' ),
   VALIDA_DIA_CERRADO_VENTA( 'valida_dia_cerrado_venta', 'no' ),
   VALIDA_APLICAR_CUPON_PUBLICO_GENERAL( 'valida_aplicar_cupon_publico_general', 'no' ),
