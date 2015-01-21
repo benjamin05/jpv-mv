@@ -2482,4 +2482,13 @@ class OrderController {
       return  lstOrders
     }
 
+
+  static void genreatedEntranceSP ( String idOrder ){
+    NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+    if( notaVenta != null ){
+
+    }
+  }
+
+
 }

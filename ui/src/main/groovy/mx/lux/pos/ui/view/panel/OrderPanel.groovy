@@ -1087,6 +1087,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
         Order newOrder = OrderController.placeOrder(order, vendedor, false)
+        OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
         if( newOrder.rx != null ){
           OrderController.updateExam( newOrder )
         }
