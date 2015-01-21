@@ -2769,6 +2769,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         if( dialog.notaVenta != null ){
           notaVenta = dialog.notaVenta
         }
+      } else {
+        notaVenta = new NotaVenta()
       }
     }
     return  notaVenta
