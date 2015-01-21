@@ -2715,7 +2715,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
         frame = true
       }
-      if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
+      if( StringUtils.trimToEmpty(item.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
+            lensKid = true
+      } else if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
         if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){
           sunglass = true
         } else if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO) ){
@@ -2723,8 +2725,6 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         }
       } else if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
         lens = true
-      } else if( StringUtils.trimToEmpty(item.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
-        lensKid = true
       }
     }
     if( StringUtils.trimToEmpty(itemWarranty.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) && !lensKid ){
