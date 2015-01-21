@@ -652,7 +652,7 @@ class OrderController {
               if( !canceledWarranty ){
                 TXT_ERROR_WARRANTY = "No se puede registrar la venta"
                 if( MSJ_ERROR_WARRANTY.length() <= 0 ){
-                          MSJ_ERROR_WARRANTY = "Error al asignar los seguros, Verifiquelos e intente nuevamente."
+                          MSJ_ERROR_WARRANTY = "Error al asignar el seguro, Verifiquelo e intente nuevamente."
                 }
                 JOptionPane.showMessageDialog( null, MSJ_ERROR_WARRANTY,
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
@@ -2579,9 +2579,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         }
       }
 
-      if( ophtglass && !lens ){
+      /*if( ophtglass && !lens ){
         valid = false
-      } else /*if( lens && !ophtglass && !sunglass){
+      } else if( lens && !ophtglass && !sunglass){
         valid = false
       }*/
 
@@ -2706,6 +2706,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     Boolean valid = true
     Boolean frame = false
     Boolean sunglass = false
+    Boolean ophtalmic = false
     Boolean lens = false
     Boolean lensKid = false
     Articulo itemWarranty = ItemController.findArticle( itemWarr )
@@ -2714,9 +2715,12 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
         frame = true
       }
-      if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
-              StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){
-        sunglass = true
+      if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
+        if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){
+          sunglass = true
+        } else if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO) ){
+          ophtalmic = true
+        }
       } else if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
         lens = true
       } else if( StringUtils.trimToEmpty(item.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
@@ -2728,7 +2732,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_ARMAZON) && !sunglass ){
       valid = false
     } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
-      if( !lens ){
+      if( sunglass ){
         valid = false
       }
     }

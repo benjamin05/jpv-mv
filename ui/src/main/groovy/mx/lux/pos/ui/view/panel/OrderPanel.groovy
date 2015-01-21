@@ -923,7 +923,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           if( !canceledWarranty ){
             TXT_ERROR_WARRANTY = "No se puede registrar la venta"
             if( MSJ_ERROR_WARRANTY.length() <= 0 ){
-              MSJ_ERROR_WARRANTY = "Error al asignar los seguros, Verifiquelos e intente nuevamente."
+              MSJ_ERROR_WARRANTY = "Error al asignar el seguro, Verifiquelo e intente nuevamente."
             }
             sb.optionPane(
                message: MSJ_ERROR_WARRANTY,
@@ -1533,7 +1533,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           if( !canceledWarranty ){
               TXT_ERROR_WARRANTY = "No se puede registrar la venta"
               if( MSJ_ERROR_WARRANTY.length() <= 0 ){
-                  MSJ_ERROR_WARRANTY = "Error al asignar los seguros, Verifiquelos e intente nuevamente."
+                  MSJ_ERROR_WARRANTY = "Error al asignar el seguro, Verifiquelo e intente nuevamente."
               }
               JOptionPane.showMessageDialog( null, MSJ_ERROR_WARRANTY,
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
@@ -1655,7 +1655,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           if( !canceledWarranty ){
               TXT_ERROR_WARRANTY = "No se puede registrar la venta"
               if( MSJ_ERROR_WARRANTY.length() <= 0 ){
-                  MSJ_ERROR_WARRANTY = "Error al asignar los seguros, Verifiquelos e intente nuevamente."
+                  MSJ_ERROR_WARRANTY = "Error al asignar el seguro, Verifiquelo e intente nuevamente."
               }
               JOptionPane.showMessageDialog( null, MSJ_ERROR_WARRANTY,
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
