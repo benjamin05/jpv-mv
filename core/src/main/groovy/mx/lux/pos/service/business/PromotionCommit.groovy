@@ -6,6 +6,7 @@ import mx.lux.pos.repository.GrupoArticuloRepository
 import mx.lux.pos.repository.PromocionRepository
 import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.io.PromotionsAdapter
+import org.apache.commons.lang.StringUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -101,20 +102,23 @@ class PromotionCommit {
     NotaVenta dbOrder = RepositoryFactory.orders.findOne( pModel.order.orderNbr )
     Double netAmount = 0
     for ( DetalleNotaVenta dbOrderLine : dbOrder.detalles ) {
-      PromotionOrderDetail orderDetail = pModel.order.orderDetailSet.get( dbOrderLine.idArticulo )
-      if ( orderDetail != null ) {
-        dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
-      } else {
-        dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+      if( !StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase("J")  ){
+        PromotionOrderDetail orderDetail = pModel.order.orderDetailSet.get( dbOrderLine.idArticulo )
+        if ( orderDetail != null ) {
+          dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+        } else {
+          dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+        }
+        dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+        netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+        RepositoryFactory.orderLines.save( dbOrderLine )
       }
-      dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
-      netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
-      RepositoryFactory.orderLines.save( dbOrderLine )
     }
     RepositoryFactory.orderLines.flush()
     dbOrder.ventaNeta = asAmount( netAmount.round() )
     dbOrder.ventaTotal = asAmount( netAmount.round() )
     if ( pModel.hasOrderDiscountApplied() ) {
+      println pModel.orderDiscount.discountAmount.round()
       dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount.round() )
       dbOrder.por100Descuento = Math.round( pModel.orderDiscount.discountPercent * 100.0 ) as Integer
     } else {

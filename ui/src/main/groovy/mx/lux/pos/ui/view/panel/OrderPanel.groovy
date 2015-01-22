@@ -1122,6 +1122,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           numQuote = 0
         }
         this.promotionDriver.requestPromotionSave(newOrder?.id, true)
+        if( OrderController.insertSegKig ){
+          itemSearch.text = "SEG"
+          doItemSearch()
+          newOrder = OrderController.placeOrder(order, vendedor, false)
+          OrderController.insertSegKig = false
+        }
         Boolean cSaldo = false
         OrderController.validaEntrega(StringUtils.trimToEmpty(newOrder?.bill),newOrder?.branch?.id?.toString(), true)
         Boolean needJb = OrderController.creaJb(StringUtils.trimToEmpty(newOrder?.ticket), cSaldo)

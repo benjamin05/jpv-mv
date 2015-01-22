@@ -62,6 +62,8 @@ class OrderController {
     private static String MSJ_ERROR_WARRANTY = ""
     private static String TXT_ERROR_WARRANTY = ""
 
+    private static Boolean insertSegKig
+
     private static List<Warranty> lstWarranty = new ArrayList<>()
 
     private static NotaVentaService notaVentaService
@@ -2689,8 +2691,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           }
         }
       } else if( cleanWaranties && lensKid ){
-        panel.itemSearch.text = "SEG"
-        panel.doItemSearch()
+        insertSegKig = true
+        /*panel.itemSearch.text = "SEG"
+        panel.doItemSearch()*/
       } else {
         valid = true
       }

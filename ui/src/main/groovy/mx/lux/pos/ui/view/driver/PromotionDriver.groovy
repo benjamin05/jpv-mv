@@ -203,23 +203,27 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   void requestCouponDiscount( String title ){
     if( CustomerController.validCustomerApplyCoupon( view.order.customer.id ) ){
       Item item = null
+      BigDecimal total = BigDecimal.ZERO
       for(OrderItem tmp : view.order.items){
         if( StringUtils.trimToEmpty(tmp.item.type).equalsIgnoreCase("A") ){
           item = tmp.item
         }
+        if( !StringUtils.trimToEmpty(tmp.item.type).equalsIgnoreCase("J") ){
+          total = total.add(tmp.item.price)
+        }
       }
       DiscountCouponDialog couponDiscount = new DiscountCouponDialog(true,view.order.id, item, title )
-      couponDiscount.setOrderTotal( view.order.total )
+      couponDiscount.setOrderTotal( total )
       couponDiscount.setVerifier( this )
       couponDiscount.activate()
       if ( couponDiscount.getDiscountSelected() ) {
           Double discountAmount = 0.00
-          if(couponDiscount.getDiscountAmt() > new Double(view.order.total)){
-            discountAmount = new Double(view.order.total)
+          if(couponDiscount.getDiscountAmt() > new Double(total)){
+            discountAmount = new Double(total)
           } else {
             discountAmount = couponDiscount.getDiscountAmt()
           }
-          Double discount = discountAmount / view.order.total
+          Double discount = discountAmount / total
           Boolean apl = false
           apl = model.setupOrderCouponDiscount(couponDiscount?.descuentoClave,discount )
           PromotionCommit.writeOrder( model )
