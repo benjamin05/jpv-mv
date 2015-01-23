@@ -281,6 +281,10 @@ class Registry {
     return asString( TipoParametro.RUTA_POR_RECIBIR )
   }
 
+  static String getGenericsWithoutDiscount( ) {
+      return asString( TipoParametro.GENERICOS_NO_APLICA_DESCUENTO )
+  }
+
   static String getDepositBank( ) {
     return asString( TipoParametro.BANCO_DEPOSITO )
   }

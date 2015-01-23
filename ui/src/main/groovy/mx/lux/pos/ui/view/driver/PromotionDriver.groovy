@@ -208,7 +208,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
         if( StringUtils.trimToEmpty(tmp.item.type).equalsIgnoreCase("A") ){
           item = tmp.item
         }
-        if( !StringUtils.trimToEmpty(tmp.item.type).equalsIgnoreCase("J") ){
+        if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(tmp.item.type)) ){
           total = total.add(tmp.item.price)
         }
       }

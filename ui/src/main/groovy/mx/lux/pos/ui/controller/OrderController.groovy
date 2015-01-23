@@ -2591,10 +2591,19 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         if( valid ){
           if( lstIdGar.size() == 1 ){
             BigDecimal amount = BigDecimal.ZERO
+            Articulo warnt = articuloService.obtenerArticulo( lstIdGar.first() )
             for(DetalleNotaVenta orderItem : nota.detalles){
               if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS)
                       && !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
-                amount = amount.add(orderItem.precioUnitFinal)
+                if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
+                  if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                    amount = amount.add(orderItem.precioUnitFinal)
+                  }
+                } else {
+                  if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                    amount = amount.add(orderItem.precioUnitFinal)
+                  }
+                }
               }
             }
             BigDecimal warrantyAmount = ItemController.warrantyValid( amount, lstIdGar.first() )
@@ -2603,7 +2612,15 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               for(DetalleNotaVenta orderItem : nota.detalles){
                 if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS)
                        && !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE)){
-                  items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                  if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
+                    if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                      items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                    }
+                  } else {
+                    if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                      items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                    }
+                  }
                 }
               }
               Warranty warranty = new Warranty()
@@ -2734,10 +2751,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       valid = false
     } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_ARMAZON) && !sunglass ){
       valid = false
-    } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
-      if( sunglass ){
-        valid = false
-      }
+    } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_OFTALMICO) && !lens ){
+      valid = false
     }
     return valid
   }
@@ -2764,13 +2779,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   static NotaVenta ensureOrder( String idOrder ){
     NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
     if( notaVenta != null ){
-      Boolean warranty = false
+      Boolean warranty = true
       for( DetalleNotaVenta det : notaVenta.detalles ){
-        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
-          warranty = true
+        if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+          warranty = false
         }
       }
-      if( notaVenta.detalles.size() == 1 && warranty ){
+      if( warranty ){
         AseguraNotaDialog dialog = new AseguraNotaDialog()
         dialog.show()
         if( dialog.notaVenta != null ){
@@ -2787,7 +2802,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
   static Boolean validaAplicaGarantia(String idFactura) {
     Boolean valid = true
-    NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idFactura )
+    NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket( StringUtils.trimToEmpty(Registry.currentSite.toString())+"-"+idFactura )
     Boolean noDelivered = true
     Boolean noCancelled = true
     Boolean noEnsured = true

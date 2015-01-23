@@ -176,7 +176,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
 
             button( text: "?", actionPerformed: doHelp )
-            itemSearch = textField(font: new Font('', Font.BOLD, 16), document: new UpperCaseDocument(), actionPerformed: { doItemSearch() })
+            itemSearch = textField(font: new Font('', Font.BOLD, 16), document: new UpperCaseDocument(), actionPerformed: { doItemSearch( false ) })
             itemSearch.addFocusListener(this)
 
             scrollPane(border: titledBorder(title: 'Art\u00edculos'), constraints: 'span') {
@@ -478,7 +478,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
 
-    private def doItemSearch() {
+    private def doItemSearch( Boolean holdPromo ) {
         Receta rec = new Receta()
         String input = itemSearch.text
         String article = input
@@ -508,14 +508,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
                             if( OrderController.validArticleGenericNoDelivered(item.id) ){
                                 if( customer.id != CustomerController.findDefaultCustomer().id ){
-                                    validarVentaNegativa(item, customer)
+                                    validarVentaNegativa(item, customer, holdPromo)
                                 } else {
                                     optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
                                             .createDialog(new JTextField(), "Articulo Invalido")
                                             .show()
                                 }
                             } else {
-                                validarVentaNegativa(item, customer)
+                                validarVentaNegativa(item, customer, holdPromo)
                             }
                         } else {
                             optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
@@ -531,14 +531,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
                               if( OrderController.validArticleGenericNoDelivered(item.id) ){
                                   if(customer.id != CustomerController.findDefaultCustomer().id){
-                                      validarVentaNegativa(item, customer)
+                                      validarVentaNegativa(item, customer, holdPromo)
                                   } else {
                                       optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
                                               .createDialog(new JTextField(), "Articulo Invalido")
                                               .show()
                                   }
                               } else {
-                                  validarVentaNegativa(item, customer)
+                                  validarVentaNegativa(item, customer, holdPromo)
                               }
                           }else {
                               optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
@@ -698,7 +698,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         return surteSwitch
     }
 
-    private void validarVentaNegativa(Item item, Customer customer) {
+    private void validarVentaNegativa(Item item, Customer customer, Boolean holdPromo) {
         User u = Session.get(SessionItem.USER) as User
         order.setEmployee(u.username)
         Branch branch = Session.get(SessionItem.BRANCH) as Branch
@@ -717,9 +717,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       controlItem(item, false)
                       List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
                       promotionsListTmp.addAll(promotionList)
-                      for(IPromotionAvailable promo : promotionsListTmp){
+                      if( !holdPromo ){
+                        for(IPromotionAvailable promo : promotionsListTmp){
                           this.promotionDriver.requestCancelPromotion(promo)
                           OrderController.deleteCuponMv( order.id )
+                        }
                       }
                       if (customer != null) {
                           order.customer = customer
@@ -734,9 +736,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                               controlItem(item, false)
                               List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
                               promotionsListTmp.addAll(promotionList)
-                              for(IPromotionAvailable promo : promotionsListTmp){
+                              if( !holdPromo ){
+                                for(IPromotionAvailable promo : promotionsListTmp){
                                   this.promotionDriver.requestCancelPromotion(promo)
                                   OrderController.deleteCuponMv( order.id )
+                                }
                               }
                           } else if (SalesWithNoInventory.REQUIRE_AUTHORIZATION.equals(onSalesWithNoInventory)) {
                               boolean authorized
@@ -753,9 +757,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                                   controlItem(item, false)
                                   List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
                                   promotionsListTmp.addAll(promotionList)
-                                  for(IPromotionAvailable promo : promotionsListTmp){
+                                  if( !holdPromo ){
+                                    for(IPromotionAvailable promo : promotionsListTmp){
                                       this.promotionDriver.requestCancelPromotion(promo)
                                       OrderController.deleteCuponMv( order.id )
+                                    }
                                   }
                               }
                           } else {
@@ -769,9 +775,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           controlItem(item, false)
                           List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
                           promotionsListTmp.addAll(promotionList)
-                          for(IPromotionAvailable promo : promotionsListTmp){
+                          if( !holdPromo ){
+                            for(IPromotionAvailable promo : promotionsListTmp){
                               this.promotionDriver.requestCancelPromotion(promo)
                               OrderController.deleteCuponMv( order.id )
+                            }
                           }
                       }
                   }
@@ -1122,12 +1130,6 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           numQuote = 0
         }
         this.promotionDriver.requestPromotionSave(newOrder?.id, true)
-        if( OrderController.insertSegKig ){
-          itemSearch.text = "SEG"
-          doItemSearch()
-          newOrder = OrderController.placeOrder(order, vendedor, false)
-          OrderController.insertSegKig = false
-        }
         Boolean cSaldo = false
         OrderController.validaEntrega(StringUtils.trimToEmpty(newOrder?.bill),newOrder?.branch?.id?.toString(), true)
         Boolean needJb = OrderController.creaJb(StringUtils.trimToEmpty(newOrder?.ticket), cSaldo)
@@ -1138,6 +1140,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         if( OrderController.hasOrderLc(newOrder.bill) ){
           OrderController.printTicketEnvioLc( StringUtils.trimToEmpty(newOrder.bill) )
+        }
+
+        if( OrderController.insertSegKig ){
+          itemSearch.text = "SEG"
+          doItemSearch( true )
+          newOrder = OrderController.placeOrder(order, vendedor, false)
+          OrderController.insertSegKig = false
         }
         /*String idFacturaTransLc = StringUtils.trimToEmpty(OrderController.isReuseOrderLc( StringUtils.trimToEmpty(newOrder.id) ))
         if( idFacturaTransLc.length() > 0 ){
@@ -1343,7 +1352,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     public void focusLost(FocusEvent e) {
         if (itemSearch.text.length() > 0) {
-            doItemSearch()
+            doItemSearch( false )
             itemSearch.requestFocus()
         }
     }

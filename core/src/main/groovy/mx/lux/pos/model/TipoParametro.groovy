@@ -37,6 +37,7 @@ enum TipoParametro {
   GRUPO_COMPANIA( 'grupo_compania', 'lux' ),
   GENERICOS_NO_ETREGABLES( 'genericos_no_entregables', 'B' ),
   GENERICO_PRECIO_VARIABLE( 'generico_precio_variable', '' ),
+  GENERICOS_NO_APLICA_DESCUENTO( 'genericos_no_aplica_descuento', 'J' ),
   ID_CLIENTE_GENERICO( 'cli_gen', '1' ),
   ID_ESTADO( 'id_estado', '' ),
   ID_GERENTE( 'id_gerente', '' ),

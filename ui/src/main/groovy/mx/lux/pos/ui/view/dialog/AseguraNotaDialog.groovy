@@ -62,9 +62,9 @@ class AseguraNotaDialog extends JDialog {
      Boolean registro =  OrderController.validaAplicaGarantia(factura.text)
      if(registro == false){
        sb.optionPane(
-          message: 'No existe ticket',
+          message: 'Ticket no valido',
           messageType: JOptionPane.ERROR_MESSAGE
-       ).createDialog(this, 'No se puede registrar la venta')
+       ).createDialog(this, 'No se puede registrar el seguro')
          .show()
      } else {
        Order order = OrderController.findOrderByTicket(StringUtils.trimToEmpty(sucursal.text)+"-"+StringUtils.trimToEmpty(factura.text))
