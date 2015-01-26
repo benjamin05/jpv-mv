@@ -2600,7 +2600,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                     amount = amount.add(orderItem.precioUnitFinal)
                   }
                 } else {
-                  if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                  if( (StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
+                          StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO)) ||
+                          !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
                     amount = amount.add(orderItem.precioUnitFinal)
                   }
                 }
@@ -2643,8 +2645,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
                 if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
                   if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
-                    amountSegF = amountSegF.add(orderItem.precioUnitFinal)
-                    lstFrames.add( orderItem )
+                    if( StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO) ){
+                      amountSegL = amountSegL.add(orderItem.precioUnitFinal)
+                      lstLens.add( orderItem )
+                    } else {
+                      amountSegF = amountSegF.add(orderItem.precioUnitFinal)
+                      lstFrames.add( orderItem )
+                    }
                   } else {
                     amountSegL = amountSegL.add(orderItem.precioUnitFinal)
                     lstLens.add( orderItem )
@@ -2729,29 +2736,33 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     Boolean ophtalmic = false
     Boolean lens = false
     Boolean lensKid = false
-    Articulo itemWarranty = ItemController.findArticle( itemWarr )
-    for(Integer id : items){
-      Articulo item = ItemController.findArticle( id )
-      if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
-        frame = true
-      }
-      if( StringUtils.trimToEmpty(item.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
-            lensKid = true
-      } else if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
-        if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){
-          sunglass = true
-        } else if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO) ){
-          ophtalmic = true
+    if( itemWarr != null ){
+      Articulo itemWarranty = ItemController.findArticle( itemWarr )
+      for(Integer id : items){
+        Articulo item = ItemController.findArticle( id )
+        if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+          frame = true
         }
-      } else if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
-        lens = true
+        if( StringUtils.trimToEmpty(item.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
+          lensKid = true
+        } else if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
+          if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){
+            sunglass = true
+          } else if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO) ){
+            ophtalmic = true
+          }
+        } else if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
+          lens = true
+        }
       }
-    }
-    if( StringUtils.trimToEmpty(itemWarranty.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) && !lensKid ){
-      valid = false
-    } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_ARMAZON) && !sunglass ){
-      valid = false
-    } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_OFTALMICO) && !lens ){
+      if( StringUtils.trimToEmpty(itemWarranty.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) && !lensKid ){
+        valid = false
+      } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_ARMAZON) && !sunglass ){
+        valid = false
+      } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_OFTALMICO) && !lens ){
+        valid = false
+      }
+    } else {
       valid = false
     }
     return valid
