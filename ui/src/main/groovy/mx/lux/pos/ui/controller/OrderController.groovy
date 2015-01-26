@@ -2865,4 +2865,14 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static void reprintEnsure( NotaVenta notaVenta ){
+    if( validWarranty( notaVenta, false, null, "" ) ){
+      for(Warranty warranty : lstWarranty){
+        ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure )
+      }
+      lstWarranty.clear()
+    }
+  }
+
+
 }
