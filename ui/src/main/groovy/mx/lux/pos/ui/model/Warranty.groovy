@@ -10,6 +10,7 @@ import groovy.transform.ToString
 class Warranty {
   BigDecimal amount
   String idItem
+  String typeEnsure
 
 
 }

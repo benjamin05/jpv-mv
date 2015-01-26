@@ -2490,15 +2490,23 @@ class TicketServiceImpl implements TicketService {
     }
 
 
-    void imprimeGarantia( BigDecimal montoGarantia, String idArticulo ){
+    void imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro ){
         log.debug( "imprimeGarantia( )" )
         DateFormat df = new SimpleDateFormat( "dd-MM-yy" )
         //Articulo articulo = articuloRepository.findOne( idArticulo )
         Sucursal site = ServiceFactory.sites.obtenSucursalActual()
         AddressAdapter companyAddress = Registry.companyAddress
+        Integer validity = 0
+        if( tipoSeguro.equalsIgnoreCase("N") ){
+          validity = Registry.validityEnsureKid
+        } else if( tipoSeguro.equalsIgnoreCase("O") ){
+          validity = Registry.validityEnsureOpht
+        } else if( tipoSeguro.equalsIgnoreCase("S") ){
+          validity = Registry.validityEnsureFrame
+        }
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        calendar.add(Calendar.YEAR, 2);
+        calendar.add(Calendar.YEAR, validity);
         String date = df.format(calendar.getTime())
         Integer fecha = 0
         try{
@@ -2508,6 +2516,7 @@ class TicketServiceImpl implements TicketService {
         BigDecimal porcentaje = montoGarantia.multiply(porcGar/100)
         Integer monto = porcentaje.intValue()
         String clave = claveAleatoria( fecha, monto )
+        clave = tipoSeguro+clave
         def data = [
                 date: df.format( calendar.getTime() ),
                 thisSite: site,

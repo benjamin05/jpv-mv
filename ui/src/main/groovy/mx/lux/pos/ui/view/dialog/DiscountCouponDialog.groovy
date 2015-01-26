@@ -2,6 +2,7 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.CuponMv
+import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.model.DescuentoClave
 import mx.lux.pos.model.DetalleNotaVenta
@@ -38,6 +39,12 @@ class DiscountCouponDialog extends JDialog {
   private static final String TXT_VERIFY_FAILED = "Clave incorrecta"
   private static final String TXT_VERIFY_AMOUNT_FAILED = "Monto incorrecto"
   private static final String TAG_GENERICO_J = "J"
+  private static final String TAG_GENERICO_B = "B"
+  private static final String TAG_GENERICO_A = "A"
+  private static final String TAG_TIPO_G = "G"
+  private static final String TAG_SEGURO_INFANTIL = "N"
+  private static final String TAG_SEGURO_OFTALMICO = "O"
+  private static final String TAG_SEGURO_SOLAR = "S"
   private static  JLabel porceLabel = new JLabel()
   private static  JTextField porceText = new JTextField()
 
@@ -330,7 +337,7 @@ class DiscountCouponDialog extends JDialog {
     SimpleDateFormat formatter = new SimpleDateFormat("ddMMyy");
     String clave = ""
     BigDecimal amount = BigDecimal.ZERO
-    if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 10 ){
+    if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 11 ){
       for(int i=0;i<StringUtils.trimToEmpty(txtCorporateKey.text).length();i++){
         if(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()).isNumber()){
           Integer number = 0
@@ -342,8 +349,8 @@ class DiscountCouponDialog extends JDialog {
           clave = clave+0
         }
       }
-      String dateStr = StringUtils.trimToEmpty(clave).substring(0,6)
-      String amountStr = StringUtils.trimToEmpty(clave).substring(6,10)
+      String dateStr = StringUtils.trimToEmpty(clave).substring(1,7)
+      String amountStr = StringUtils.trimToEmpty(clave).substring(7,11)
       Date date = null
       try{
         date = formatter.parse(dateStr)
@@ -356,8 +363,33 @@ class DiscountCouponDialog extends JDialog {
       if( item.price.compareTo(amount) <= 0 ){
         amount = (item.price.multiply(new BigDecimal(Registry.percentageWarranty).divide(new BigDecimal(100)))).doubleValue()
       }
+      Boolean itemsValid = false
+      NotaVenta notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(idOrder) )
+      if( notaVenta != null ){
+        String ensureType = StringUtils.trimToEmpty(txtCorporateKey.text).substring(0,1)
+        if( TAG_SEGURO_INFANTIL.equalsIgnoreCase(ensureType) ){
+          for(DetalleNotaVenta det : notaVenta.detalles){
+            if( StringUtils.trimToEmpty(det.articulo.subtipo).startsWith(TAG_SEGURO_INFANTIL) ){
+              itemsValid = true
+            }
+          }
+        } else if( TAG_SEGURO_OFTALMICO.equalsIgnoreCase(ensureType) ){
+          for(DetalleNotaVenta det : notaVenta.detalles){
+            if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_B) ){
+              itemsValid = true
+            }
+          }
+        } else if( TAG_SEGURO_SOLAR.equalsIgnoreCase(ensureType) ){
+          for(DetalleNotaVenta det : notaVenta.detalles){
+            if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_A) &&
+                    StringUtils.trimToEmpty(det.articulo.tipo).equalsIgnoreCase(TAG_TIPO_G)){
+              itemsValid = true
+            }
+          }
+        }
+      }
       if( date.compareTo(new Date()) >= 0 && amount.compareTo(BigDecimal.ZERO) > 0 &&
-            OrderController.keyFree(StringUtils.trimToEmpty(txtCorporateKey.text).toUpperCase()) ){
+            OrderController.keyFree(StringUtils.trimToEmpty(txtCorporateKey.text).toUpperCase()) && itemsValid ){
         if( item != null && item.price.compareTo(amount) < 0 ){
           txtDiscountAmount.setText( StringUtils.trimToEmpty((item.price.multiply(new BigDecimal(Registry.percentageWarranty/100))).toString()) )
         } else {
@@ -367,7 +399,7 @@ class DiscountCouponDialog extends JDialog {
       }
     }
     DescuentoClave descuentoClave = null
-    if( valid ){
+        if( valid ){
       descuentoClave = new DescuentoClave()
       descuentoClave.clave_descuento = StringUtils.trimToEmpty(txtCorporateKey.text)
       descuentoClave.porcenaje_descuento = amount.doubleValue()

@@ -646,7 +646,7 @@ class OrderController {
           if( !alreadyDelivered ){
             if( validWarranty( notaVenta, false, null, "" ) ){
               for(Warranty warranty : lstWarranty){
-                ItemController.printWarranty( warranty.amount, warranty.idItem)
+                ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure )
               }
               lstWarranty.clear()
             } else {
@@ -2562,6 +2562,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       Boolean ophtglass = false
       Boolean lensKid = false
       Boolean frame = false
+      String typeEnsure = ""
       for(Integer idArt : lstIdArm ){
         Articulo articulo = articuloService.obtenerArticulo( idArt )
         if( articulo != null ){
@@ -2599,11 +2600,23 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                   if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
                     amount = amount.add(orderItem.precioUnitFinal)
                   }
+                  typeEnsure = "S"
                 } else {
-                  if( (StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
+                  if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                    if( StringUtils.trimToEmpty(orderItem.articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
+                      amount = amount.add(orderItem.precioUnitFinal)
+                    }
+                  } else {
+                    if( (StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
                           StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO)) ||
-                          !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
-                    amount = amount.add(orderItem.precioUnitFinal)
+                            !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                      amount = amount.add(orderItem.precioUnitFinal)
+                    }
+                  }
+                  if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                    typeEnsure = "N"
+                  } else if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
+                    typeEnsure = "O"
                   }
                 }
               }
@@ -2628,6 +2641,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               Warranty warranty = new Warranty()
               warranty.amount = amount
               warranty.idItem = items.replaceFirst(",","")
+              warranty.typeEnsure = typeEnsure
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2641,6 +2655,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             List<DetalleNotaVenta> lstFrames = new ArrayList<>()
             Articulo segFrame = new Articulo()
             Articulo segLens = new Articulo()
+            String typeEnsureO = ""
+            String typeEnsureF = ""
             for(DetalleNotaVenta orderItem : nota.detalles){
               if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
                 if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
@@ -2659,8 +2675,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                 } else {
                   if( StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
                     segFrame = orderItem.articulo
+                    typeEnsureF = "S"
                   } else if( StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
                     segLens = orderItem.articulo
+                    typeEnsureO = "O"
+                    if( StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                      typeEnsureO = "N"
+                    }
                   }
                 }
               }
@@ -2686,6 +2707,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               Warranty warranty = new Warranty()
               warranty.amount = amountSegL
               warranty.idItem = items.replaceFirst(",","")
+              warranty.typeEnsure = typeEnsureO
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2703,6 +2725,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               Warranty warranty = new Warranty()
               warranty.amount = amountSegF
               warranty.idItem = items.replaceFirst(",","")
+              warranty.typeEnsure = typeEnsureF
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2755,12 +2778,15 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           lens = true
         }
       }
-      if( StringUtils.trimToEmpty(itemWarranty.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) && !lensKid ){
-        valid = false
-      } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_ARMAZON) && !sunglass ){
+      if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_ARMAZON) && !sunglass ){
         valid = false
       } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_OFTALMICO) && !lens ){
         valid = false
+      }
+      if( StringUtils.trimToEmpty(itemWarranty.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) && lensKid ){
+        valid = true
+      } else if(StringUtils.trimToEmpty(itemWarranty.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) && !lensKid) {
+        valid = true
       }
     } else {
       valid = false

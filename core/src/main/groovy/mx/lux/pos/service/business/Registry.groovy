@@ -475,6 +475,18 @@ class Registry {
         return  asInteger(TipoParametro.ALMACEN_POR_ACLARAR)
     }
 
+    static Integer getValidityEnsureKid() {
+        return  asInteger(TipoParametro.VIGENCIA_SEGURO_INFANTIL)
+    }
+
+    static Integer getValidityEnsureOpht() {
+        return  asInteger(TipoParametro.VIGENCIA_SEGURO_OFTALMICO)
+    }
+
+    static Integer getValidityEnsureFrame() {
+        return  asInteger(TipoParametro.VIGENCIA_SEGURO_SOLAR)
+    }
+
     static Boolean getActiveStoreDiscount( ) {
         return isTrue( TipoParametro.ACTIVE_STORE_DISCOUNT )
     }
