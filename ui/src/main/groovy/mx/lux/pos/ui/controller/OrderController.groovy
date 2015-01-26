@@ -2619,9 +2619,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                       items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
                     }
                   } else {
-                    if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                    //if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
                       items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
-                    }
+                    //}
                   }
                 }
               }

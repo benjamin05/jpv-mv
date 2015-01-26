@@ -88,7 +88,7 @@ class DiscountContextMenu extends JPopupMenu {
 
 
   protected void onWarrantyDiscountSelected(){
-    driver.requestCouponDiscount( "Garantia" )
+    driver.requestCouponDiscount( "Seguro" )
     for(Payment payment : driver.view.order.payments){
             OrderController.removePaymentFromOrder( driver.view.order.id, payment )
     }

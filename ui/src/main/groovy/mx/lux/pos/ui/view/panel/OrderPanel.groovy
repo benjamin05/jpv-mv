@@ -62,6 +62,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TAG_GENERICO_LENTE = 'B'
     private static final String TAG_SEGUROS_ARMAZON = 'SS'
     private static final String TAG_SEGUROS_OFTALMICO = 'SEG'
+    private static final String TAG_SUBTIPO_NINO = 'N'
 
     private Logger logger = LoggerFactory.getLogger(this.getClass())
     private SwingBuilder sb
@@ -1143,10 +1144,23 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
 
         if( OrderController.insertSegKig ){
-          itemSearch.text = "SEG"
-          doItemSearch( true )
-          newOrder = OrderController.placeOrder(order, vendedor, false)
-          OrderController.insertSegKig = false
+          Boolean hasLensKid = false
+          Boolean hasEnsureKid = false
+          for(OrderItem oi : newOrder.items){
+            Articulo articulo = ItemController.findArticle( oi.item.id )
+            if( StringUtils.trimToEmpty(articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
+              hasLensKid = true
+            }
+            if( StringUtils.trimToEmpty(articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+              hasEnsureKid = true
+            }
+          }
+          if( hasLensKid && !hasEnsureKid ){
+            itemSearch.text = "SEG"
+            doItemSearch( true )
+            newOrder = OrderController.placeOrder(order, vendedor, false)
+            OrderController.insertSegKig = false
+          }
         }
         /*String idFacturaTransLc = StringUtils.trimToEmpty(OrderController.isReuseOrderLc( StringUtils.trimToEmpty(newOrder.id) ))
         if( idFacturaTransLc.length() > 0 ){

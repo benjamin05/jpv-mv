@@ -212,6 +212,12 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
           total = total.add(tmp.item.price)
         }
       }
+      if( StringUtils.trimToEmpty(title).equalsIgnoreCase("seguro") ){
+        if( item == null ){
+          item = new Item()
+        }
+        item.price = total
+      }
       DiscountCouponDialog couponDiscount = new DiscountCouponDialog(true,view.order.id, item, title )
       couponDiscount.setOrderTotal( total )
       couponDiscount.setVerifier( this )

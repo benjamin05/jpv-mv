@@ -1,5 +1,7 @@
 package mx.lux.pos.model
 
+import org.apache.commons.lang.StringUtils
+
 
 class PromotionDiscount implements IPromotionAvailable {
 
@@ -30,7 +32,11 @@ class PromotionDiscount implements IPromotionAvailable {
         if( descuentoClave != null && descuentoClave.descripcion_descuento.equalsIgnoreCase("NA")){
             descTmp = descuentoClave.porcenaje_descuento+"% "+"descuento sobre venta"
         } else if( descuentoClave != null ){
+          if( StringUtils.trimToEmpty(descuentoClave.descripcion_descuento).equalsIgnoreCase("Seguro") ){
+            descTmp = "Redencion de Seguro"
+          } else {
             descTmp = descuentoClave.descripcion_descuento
+          }
         }
          String idType   =  'P'
          String description  = descuentoClave != null ? descuentoClave?.clave_descuento : ""

@@ -3,6 +3,7 @@ package mx.lux.pos.ui.view.dialog
 import com.sun.java.util.jar.pack.Attribute.FormatException
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
+import mx.lux.pos.model.Articulo
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.IPromotionAvailable
 import mx.lux.pos.model.NotaVenta
@@ -800,7 +801,8 @@ class MultypaymentDialog extends JDialog implements FocusListener {
           Boolean hasKidFrame = false
           Boolean hasEnsureKid = false
           for(OrderItem det : order.items){
-            if( StringUtils.trimToEmpty(det.item.subtype).startsWith(TAG_SUBTYPE_N) ){
+            Articulo art = ItemController.findArticle( det.item.id )
+            if( StringUtils.trimToEmpty(art?.subtipo).startsWith(TAG_SUBTYPE_N) ){
               hasKidFrame = true
             }
             if( StringUtils.trimToEmpty(det.item.name).equalsIgnoreCase("SEG") ){
