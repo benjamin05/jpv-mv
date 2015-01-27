@@ -220,6 +220,10 @@ class Registry {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
   }
 
+  static String getValidEnsureDate( ) {
+    return asString( TipoParametro.FECHA_VALIDA_SEGURO )
+  }
+
   static Integer getPercentageWarranty( ) {
     return asInteger( TipoParametro.PORCENTAJE_GARANTIA )
   }

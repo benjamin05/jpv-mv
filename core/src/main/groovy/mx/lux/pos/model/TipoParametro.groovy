@@ -13,6 +13,7 @@ enum TipoParametro {
   BANCO_DEPOSITO( 'banco_deposito', '' ),
   CLIENTES_ACTIVOS( 'clientes_activos', 'Público General,Cliente Nuevo,Cliente en Proceso,Cliente en Caja,Cotización' ),
   CUPON_TERCER_PAR( 'cupon_tercer_par', 'si' ),
+  FECHA_VALIDA_SEGURO( 'fecha_valida_seguro', '02/02/2015' ),
   PAGOS_NO_TRANSFERENCIA( 'pagos_no_transf', 'C2,C3,C4,BD' ),
   GENERICOS_VALIDOS_OTRAS_TRANS( 'genericos_validos_otras_trans', 'H' ),
   CAN_MISMO_DIA( 'can_mismo_dia', '' ),

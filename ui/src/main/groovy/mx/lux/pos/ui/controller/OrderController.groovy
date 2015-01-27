@@ -643,7 +643,7 @@ class OrderController {
               generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
             }
           }
-          if( !alreadyDelivered ){
+          if( !alreadyDelivered && validEnsureDateAplication(notaVenta) ){
             if( validWarranty( notaVenta, false, null, "" ) ){
               for(Warranty warranty : lstWarranty){
                 ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure )
@@ -2866,13 +2866,27 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
   static void reprintEnsure( NotaVenta notaVenta ){
-    if( validWarranty( notaVenta, false, null, "" ) ){
-      for(Warranty warranty : lstWarranty){
-        ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure )
+    if(validEnsureDateAplication(notaVenta)){
+      if( validWarranty( notaVenta, false, null, "" ) ){
+        for(Warranty warranty : lstWarranty){
+          ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure )
+        }
+        lstWarranty.clear()
       }
-      lstWarranty.clear()
     }
   }
 
 
+  static Boolean validEnsureDateAplication( NotaVenta notaVenta ){
+    Boolean valid = false
+    SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
+    Date limitDate = new Date()
+    try{
+      limitDate = df.parse( Registry.validEnsureDate )
+    } catch ( Exception e ){ println e }
+    if(new Date().compareTo(limitDate) >= 0){
+      valid = true
+    }
+    return valid
+  }
 }

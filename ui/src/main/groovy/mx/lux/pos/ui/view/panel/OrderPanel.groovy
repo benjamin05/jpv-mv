@@ -851,8 +851,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             validaLC( it, true )
           }
         }
-        NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-        if( OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, this, notaWarranty.id ) ){
+        Boolean warranty = false
+        if( OrderController.validEnsureDateAplication(OrderController.findOrderByidOrder( order.id )) ){
+            NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
+        } else {
+          warranty = true
+        }
+        if( warranty ){
           if( validLensesPack() ){
                 if (!dioptra.getLente().equals(null)) {
                     Item i = OrderController.findArt(dio.trim())
@@ -1491,8 +1497,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 validaLC( it, true )
             }
         }
-      NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-      if( OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, this, notaWarranty.id ) ){
+      Boolean warranty = false
+      if( OrderController.validEnsureDateAplication(OrderController.findOrderByidOrder( order.id )) ){
+        NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+        warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
+      } else {
+        warranty = true
+      }
+      if( warranty ){
         if( validLensesPack() ){
           if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
@@ -1613,8 +1625,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 validaLC( it, true )
             }
         }
-      NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-      if( OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, this, notaWarranty.id ) ){
+      Boolean warranty = false
+      if( OrderController.validEnsureDateAplication(OrderController.findOrderByidOrder( order.id )) ){
+        NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+        warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
+      } else {
+        warranty = true
+      }
+      if( warranty ){
         if( validLensesPack() ){
               if (!dioptra.getLente().equals(null)) {
                   Item i = OrderController.findArt(dio.trim())

@@ -654,7 +654,13 @@ class MainWindow extends JFrame implements KeyListener {
                                 actionPerformed: {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
-                                    reprintEnsure()
+                                    AuthorizationDialog authDialog = new AuthorizationDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+                                    authDialog.show()
+                                    if (authDialog.authorized) {
+                                      reprintEnsure()
+                                    } else {
+                                      OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
+                                    }
                                 }
                         )
                         newSalesDayMenuItem = menuItem( text: 'Registrar Efectivo Caja',
