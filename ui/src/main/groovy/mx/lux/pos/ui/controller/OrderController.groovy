@@ -661,6 +661,36 @@ class OrderController {
               }
             }
             postEnsure = ""
+          } else {
+            lstWarranty.clear()
+            Boolean validWarranty = false
+            Warranty warranty = new Warranty()
+            warranty.idItem = ""
+            for(DetalleNotaVenta det : notaVenta.detalles){
+              if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                validWarranty = true
+                if( StringUtils.trimToEmpty(det.articulo.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
+                  warranty.typeEnsure = "O"
+                } else if( StringUtils.trimToEmpty(det.articulo.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
+                  warranty.typeEnsure = "S"
+                } else if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                  warranty.typeEnsure = "N"
+                }
+                warranty.amount = det.precioUnitFinal
+              } else {
+                warranty.idItem = warranty.idItem+","+StringUtils.trimToEmpty(det.articulo.articulo)
+              }
+            }
+            warranty.idItem = warranty.idItem.replaceFirst(",","")
+            if( warranty.amount.compareTo(BigDecimal.ZERO) > 0 && StringUtils.trimToEmpty(warranty.typeEnsure).length() > 0 ){
+              lstWarranty.add( warranty )
+            }
+            if( lstWarranty.size() > 0 ){
+              for(Warranty warranty1 : lstWarranty){
+                ItemController.printWarranty( warranty1.amount, warranty1.idItem, warranty1.typeEnsure )
+              }
+              lstWarranty.clear()
+            }
           }
         }
 
