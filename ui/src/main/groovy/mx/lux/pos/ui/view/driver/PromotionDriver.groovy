@@ -258,12 +258,18 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     descuentoClave.tipo = TAG_TIPO_DESCUENTO_CUPON
     descuentoClave.descripcion_descuento = "Descuento Cupon"
     descuentoClave.vigente = true
-    if(discountAmt > new Double(order.total)){
-          discountAmount = new Double(order.total)
+    BigDecimal total = BigDecimal.ZERO
+    for(OrderItem det : order.items){
+      if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(det.item.type)) ){
+        total = total.add(det.item.price)
+      }
+    }
+    if(discountAmt > new Double(total)){
+          discountAmount = new Double(total)
       } else {
           discountAmount = discountAmt
       }
-      Double discount = discountAmount / order.total
+      Double discount = discountAmount / total
       Boolean apl = false
       model.loadOrder( OrderController.findOrderByidOrder( StringUtils.trimToEmpty(order.id) ) )
       apl = model.setupOrderCouponDiscount(descuentoClave,discount )

@@ -101,6 +101,7 @@ class PromotionCommit {
   static final void writeOrder( PromotionModel pModel ) {
     NotaVenta dbOrder = RepositoryFactory.orders.findOne( pModel.order.orderNbr )
     Double netAmount = 0
+    Double amountEnsure = 0
     for ( DetalleNotaVenta dbOrderLine : dbOrder.detalles ) {
       if( pModel.orderDiscount != null ){
         if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico))  ){
@@ -113,6 +114,8 @@ class PromotionCommit {
           dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
           netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
           RepositoryFactory.orderLines.save( dbOrderLine )
+        } else {
+          amountEnsure = amountEnsure+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
         }
       } else {
         PromotionOrderDetail orderDetail = pModel.order.orderDetailSet.get( dbOrderLine.idArticulo )
@@ -127,6 +130,7 @@ class PromotionCommit {
       }
     }
     RepositoryFactory.orderLines.flush()
+    netAmount = netAmount+amountEnsure
     dbOrder.ventaNeta = asAmount( netAmount.round() )
     dbOrder.ventaTotal = asAmount( netAmount.round() )
     if ( pModel.hasOrderDiscountApplied() ) {

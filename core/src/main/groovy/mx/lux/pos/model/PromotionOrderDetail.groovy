@@ -103,7 +103,7 @@ class PromotionOrderDetail implements Comparable<PromotionOrderDetail> {
   Double getOrderDiscountPrice( ) {
     Double price = 0.0
     if ( this.hasOrderDiscountApplied( ) ) {
-      price = ( this.hasPromotionApplied( ) ? this.promotionPrice : this.regularPrice ) * 
+      price = ( this.hasPromotionApplied( ) ? this.promotionPrice : this.regularPrice ) *
           ( 1 - this.orderDiscountPercent )
     }
     return price
