@@ -643,7 +643,9 @@ class OrderController {
               generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
             }
           }
-          if( !alreadyDelivered && validEnsureDateAplication(notaVenta) ){
+          Boolean orderToday = StringUtils.trimToEmpty(notaVenta.fechaHoraFactura.format("dd/MM/yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd/MM/yyyy")))
+          Boolean validDateEnsure = orderToday ? true : validEnsureDateAplication(notaVenta)
+          if( !alreadyDelivered && validDateEnsure ){
             if( validWarranty( notaVenta, false, null, "" ) ){
               for(Warranty warranty : lstWarranty){
                 ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure )
@@ -666,6 +668,7 @@ class OrderController {
             Boolean validWarranty = false
             Warranty warranty = new Warranty()
             warranty.idItem = ""
+            warranty.amount = BigDecimal.ZERO
             for(DetalleNotaVenta det : notaVenta.detalles){
               if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
                 validWarranty = true
@@ -676,8 +679,8 @@ class OrderController {
                 } else if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
                   warranty.typeEnsure = "N"
                 }
-                warranty.amount = det.precioUnitFinal
               } else {
+                warranty.amount = warranty.amount.add(det.precioUnitFinal)
                 warranty.idItem = warranty.idItem+","+StringUtils.trimToEmpty(det.articulo.articulo)
               }
             }

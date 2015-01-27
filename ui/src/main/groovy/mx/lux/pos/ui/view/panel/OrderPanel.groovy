@@ -852,7 +852,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
         }
         Boolean warranty = false
-        if( OrderController.validEnsureDateAplication(OrderController.findOrderByidOrder( order.id )) ){
+        if( true ){
             NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
             warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
         } else {
@@ -1498,7 +1498,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
         }
       Boolean warranty = false
-      if( OrderController.validEnsureDateAplication(OrderController.findOrderByidOrder( order.id )) ){
+      if( true ){
         NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
         warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
       } else {
@@ -1626,7 +1626,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
         }
       Boolean warranty = false
-      if( OrderController.validEnsureDateAplication(OrderController.findOrderByidOrder( order.id )) ){
+      if( true ){
         NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
         warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
       } else {
