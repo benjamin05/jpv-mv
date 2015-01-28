@@ -673,7 +673,7 @@ class OrderController {
               if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
                 validWarranty = true
                 if( StringUtils.trimToEmpty(det.articulo.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
-                  warranty.typeEnsure = "O"
+                  warranty.typeEnsure = "L"
                 } else if( StringUtils.trimToEmpty(det.articulo.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
                   warranty.typeEnsure = "S"
                 } else if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
@@ -2648,8 +2648,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                   }
                   if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
                     typeEnsure = "N"
-                  } else if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
-                    typeEnsure = "O"
+                  } else if( !StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) &&
+                          StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
+                    typeEnsure = "L"
                   }
                 }
               }
@@ -2709,9 +2710,10 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                   if( StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
                     segFrame = orderItem.articulo
                     typeEnsureF = "S"
-                  } else if( StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
+                  } else if( !StringUtils.trimToEmpty(orderItem.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) &&
+                          StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
                     segLens = orderItem.articulo
-                    typeEnsureO = "O"
+                    typeEnsureO = "L"
                     if( StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
                       typeEnsureO = "N"
                     }

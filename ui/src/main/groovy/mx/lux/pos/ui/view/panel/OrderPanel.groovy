@@ -1207,12 +1207,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }*/
             CuponMv cuponMv = null
             Boolean validClave = true
+            Boolean ensureApply = false
             for(int i=0;i<promotionList.size();i++){
               if(promotionList.get(i) instanceof PromotionDiscount){
                 cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(promotionList.get(i).discountType.description) )
                 if( cuponMv == null ){
                   String clave = OrderController.descuentoClavePoridFactura( order.id )
                   cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(clave) )
+                }
+                if(StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("Redencion de Seguro")){
+                  ensureApply = true
                 }
                 if( cuponMv != null ){
                   break
@@ -1234,14 +1238,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               }
             }
 
-            if( cuponMv != null ){
+            if( !ensureApply ){
+              if( cuponMv != null ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
                 OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
-              if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+                if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+                  generatedCoupons( validClave, newOrder )
+                }
+              } else {
                 generatedCoupons( validClave, newOrder )
               }
-            } else {
-              generatedCoupons( validClave, newOrder )
             }
             //}
             OrderController.printOrder(newOrder.id)

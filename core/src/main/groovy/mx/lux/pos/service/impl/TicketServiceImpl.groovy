@@ -2499,7 +2499,7 @@ class TicketServiceImpl implements TicketService {
         Integer validity = 0
         if( tipoSeguro.equalsIgnoreCase("N") ){
           validity = Registry.validityEnsureKid
-        } else if( tipoSeguro.equalsIgnoreCase("O") ){
+        } else if( tipoSeguro.equalsIgnoreCase("L") ){
           validity = Registry.validityEnsureOpht
         } else if( tipoSeguro.equalsIgnoreCase("S") ){
           validity = Registry.validityEnsureFrame

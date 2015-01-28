@@ -43,7 +43,7 @@ class DiscountCouponDialog extends JDialog {
   private static final String TAG_GENERICO_A = "A"
   private static final String TAG_TIPO_G = "G"
   private static final String TAG_SEGURO_INFANTIL = "N"
-  private static final String TAG_SEGURO_OFTALMICO = "O"
+  private static final String TAG_SEGURO_OFTALMICO = "L"
   private static final String TAG_SEGURO_SOLAR = "S"
   private static  JLabel porceLabel = new JLabel()
   private static  JTextField porceText = new JTextField()
@@ -61,6 +61,7 @@ class DiscountCouponDialog extends JDialog {
   private JButton btnOk
   private JLabel lblStatus
 
+  private String warning
   private FocusListener trgDiscAmountLeave
   private FocusListener trgDiscPercentLeave
   private FocusListener trgCorporateKeyLeave
@@ -248,7 +249,11 @@ class DiscountCouponDialog extends JDialog {
                 btnOk.setEnabled( false )
             }
       } else {
-        lblStatus.text = TXT_VERIFY_FAILED
+        if( StringUtils.trimToEmpty(warning).length() > 0 ){
+          lblStatus.text = warning
+        } else {
+          lblStatus.text = TXT_VERIFY_FAILED
+        }
         lblStatus.foreground = UI_Standards.WARNING_FOREGROUND
         btnOk.setEnabled( false )
       }
@@ -364,6 +369,7 @@ class DiscountCouponDialog extends JDialog {
         amount = (item.price.multiply(new BigDecimal(Registry.percentageWarranty).divide(new BigDecimal(100)))).doubleValue()
       }
       Boolean itemsValid = false
+      warning = ""
       NotaVenta notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(idOrder) )
       if( notaVenta != null ){
         String ensureType = StringUtils.trimToEmpty(txtCorporateKey.text).substring(0,1)
@@ -371,12 +377,18 @@ class DiscountCouponDialog extends JDialog {
           for(DetalleNotaVenta det : notaVenta.detalles){
             if( StringUtils.trimToEmpty(det.articulo.subtipo).startsWith(TAG_SEGURO_INFANTIL) ){
               itemsValid = true
+              warning = ""
+            } else {
+                warning = 'El producto no corresponde al seguro'
             }
           }
         } else if( TAG_SEGURO_OFTALMICO.equalsIgnoreCase(ensureType) ){
           for(DetalleNotaVenta det : notaVenta.detalles){
             if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_B) ){
               itemsValid = true
+              warning = ""
+            } else {
+                warning = 'El producto no corresponde al seguro'
             }
           }
         } else if( TAG_SEGURO_SOLAR.equalsIgnoreCase(ensureType) ){
@@ -384,9 +396,15 @@ class DiscountCouponDialog extends JDialog {
             if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_A) &&
                     StringUtils.trimToEmpty(det.articulo.tipo).equalsIgnoreCase(TAG_TIPO_G)){
               itemsValid = true
+              warning = ""
+            } else {
+                warning = 'El producto no corresponde al seguro'
             }
           }
         }
+      }
+      if( StringUtils.trimToEmpty(warning).length() > 0 ){
+        lblStatus.text = warning
       }
       if( date.compareTo(new Date()) >= 0 && amount.compareTo(BigDecimal.ZERO) > 0 &&
             OrderController.keyFree(StringUtils.trimToEmpty(txtCorporateKey.text).toUpperCase()) && itemsValid ){
