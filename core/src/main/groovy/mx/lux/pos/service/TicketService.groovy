@@ -62,5 +62,5 @@ interface TicketService {
 
   void imprimeResumenCuponCan( String idFactura, String porDev )
 
-  void imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro )
+  void imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura )
 }

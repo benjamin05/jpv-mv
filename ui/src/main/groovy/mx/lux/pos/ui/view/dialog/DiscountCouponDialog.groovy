@@ -373,13 +373,21 @@ class DiscountCouponDialog extends JDialog {
       NotaVenta notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(idOrder) )
       if( notaVenta != null ){
         String ensureType = StringUtils.trimToEmpty(txtCorporateKey.text).substring(0,1)
+        Boolean hasEnsure = false
+        for(DetalleNotaVenta det : notaVenta.detalles){
+          if( StringUtils.trimToEmpty(det.articulo.idGenerico).startsWith(TAG_GENERICO_J) ){
+            hasEnsure = true
+          }
+        }
+        if( !hasEnsure ){
         if( TAG_SEGURO_INFANTIL.equalsIgnoreCase(ensureType) ){
           for(DetalleNotaVenta det : notaVenta.detalles){
             if( StringUtils.trimToEmpty(det.articulo.subtipo).startsWith(TAG_SEGURO_INFANTIL) ){
               itemsValid = true
               warning = ""
+              break
             } else {
-                warning = 'El producto no corresponde al seguro'
+              warning = 'El producto no corresponde al seguro'
             }
           }
         } else if( TAG_SEGURO_OFTALMICO.equalsIgnoreCase(ensureType) ){
@@ -387,6 +395,7 @@ class DiscountCouponDialog extends JDialog {
             if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_B) ){
               itemsValid = true
               warning = ""
+              break
             } else {
                 warning = 'El producto no corresponde al seguro'
             }
@@ -397,11 +406,15 @@ class DiscountCouponDialog extends JDialog {
                     StringUtils.trimToEmpty(det.articulo.tipo).equalsIgnoreCase(TAG_TIPO_G)){
               itemsValid = true
               warning = ""
+              break
             } else {
                 warning = 'El producto no corresponde al seguro'
             }
           }
         }
+      } else {
+        warning = 'Combinacion de productos invalida'
+      }
       }
       if( StringUtils.trimToEmpty(warning).length() > 0 ){
         lblStatus.text = warning

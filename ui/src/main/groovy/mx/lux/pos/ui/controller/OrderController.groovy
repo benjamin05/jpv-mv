@@ -645,10 +645,11 @@ class OrderController {
           }
           Boolean orderToday = StringUtils.trimToEmpty(notaVenta.fechaHoraFactura.format("dd/MM/yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd/MM/yyyy")))
           Boolean validDateEnsure = orderToday ? true : validEnsureDateAplication(notaVenta)
-          if( !alreadyDelivered && validDateEnsure ){
+        if( !alreadyDelivered ){
+          if( validDateEnsure ){
             if( validWarranty( notaVenta, false, null, "" ) ){
               for(Warranty warranty : lstWarranty){
-                ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure )
+                ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.id) )
               }
               lstWarranty.clear()
             } else {
@@ -690,11 +691,12 @@ class OrderController {
             }
             if( lstWarranty.size() > 0 ){
               for(Warranty warranty1 : lstWarranty){
-                ItemController.printWarranty( warranty1.amount, warranty1.idItem, warranty1.typeEnsure )
+                ItemController.printWarranty( warranty1.amount, warranty1.idItem, warranty1.typeEnsure, StringUtils.trimToEmpty(notaVenta.id) )
               }
               lstWarranty.clear()
             }
           }
+        }
         }
 
         if (entregaInstante == false) {
@@ -2710,7 +2712,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                   if( StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
                     segFrame = orderItem.articulo
                     typeEnsureF = "S"
-                  } else if( !StringUtils.trimToEmpty(orderItem.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) &&
+                  } else if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) &&
                           StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
                     segLens = orderItem.articulo
                     typeEnsureO = "L"
@@ -2904,7 +2906,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     if(validEnsureDateAplication(notaVenta)){
       if( validWarranty( notaVenta, false, null, "" ) ){
         for(Warranty warranty : lstWarranty){
-          ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure )
+          ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.id) )
         }
         lstWarranty.clear()
       }

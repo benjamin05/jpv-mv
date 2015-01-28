@@ -40,6 +40,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String MSJ_VENTA_NEGATIVA = 'No se pueden agregar artículos sin existencia.'
     private static final String MSJ_PAQUETE_INVALIDO = 'No se pueden agregar el paquete, ya existe uno.'
     private static final String MSJ_LENTE_INVALIDO = 'No se pueden agregar el lente, ya existe uno.'
+    private static final String MSJ_SEGURO_APLICADO = 'No se pueden agregar el seguro, existe uno aplicado.'
     private static final String TXT_VENTA_NEGATIVA_TITULO = 'Error al agregar artículo'
     private static final String TXT_PAQUETE_INVALIDO = 'Error al agregar paquete'
     private static final String TXT_LENTE_INVALIDO = 'Error al agregar lente'
@@ -480,6 +481,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
     private def doItemSearch( Boolean holdPromo ) {
+      println "holdPromo: "+holdPromo
         Receta rec = new Receta()
         String input = itemSearch.text
         String article = input
@@ -509,14 +511,26 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
                             if( OrderController.validArticleGenericNoDelivered(item.id) ){
                                 if( customer.id != CustomerController.findDefaultCustomer().id ){
+                                  if( !appliedEnsure( art ) ){
                                     validarVentaNegativa(item, customer, holdPromo)
+                                  } else {
+                                    optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                                              .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
+                                              .show()
+                                  }
                                 } else {
                                     optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
                                             .createDialog(new JTextField(), "Articulo Invalido")
                                             .show()
                                 }
                             } else {
+                              if( !appliedEnsure( art ) ){
                                 validarVentaNegativa(item, customer, holdPromo)
+                              } else {
+                                optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                                    .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
+                                    .show()
+                              }
                             }
                         } else {
                             optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
@@ -532,14 +546,26 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
                               if( OrderController.validArticleGenericNoDelivered(item.id) ){
                                   if(customer.id != CustomerController.findDefaultCustomer().id){
+                                    if( !appliedEnsure( art ) ){
                                       validarVentaNegativa(item, customer, holdPromo)
+                                    } else {
+                                      optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                                          .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
+                                          .show()
+                                    }
                                   } else {
                                       optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
                                               .createDialog(new JTextField(), "Articulo Invalido")
                                               .show()
                                   }
                               } else {
+                                if( !appliedEnsure( art ) ){
                                   validarVentaNegativa(item, customer, holdPromo)
+                                } else {
+                                  optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                                      .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
+                                      .show()
+                                }
                               }
                           }else {
                               optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
@@ -1900,6 +1926,19 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     return valid
   }
 
+
+  private Boolean appliedEnsure( Articulo articulo ){
+    Boolean valid = false
+    for(int i=0;i<promotionList.size();i++){
+      if(promotionList.get(i) instanceof PromotionDiscount){
+        if(StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("Redencion de Seguro") &&
+                StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+          valid = true
+        }
+      }
+    }
+    return valid
+  }
 
 
 }

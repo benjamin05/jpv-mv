@@ -2490,13 +2490,15 @@ class TicketServiceImpl implements TicketService {
     }
 
 
-    void imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro ){
-        log.debug( "imprimeGarantia( )" )
-        DateFormat df = new SimpleDateFormat( "dd-MM-yy" )
-        //Articulo articulo = articuloRepository.findOne( idArticulo )
-        Sucursal site = ServiceFactory.sites.obtenSucursalActual()
-        AddressAdapter companyAddress = Registry.companyAddress
-        Integer validity = 0
+    void imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura ){
+      log.debug( "imprimeGarantia( )" )
+      DateFormat df = new SimpleDateFormat( "dd-MM-yy" )
+      NotaVenta notaVenta = notaVentaRepository.findOne( idFactura )
+      Sucursal site = ServiceFactory.sites.obtenSucursalActual()
+      AddressAdapter companyAddress = Registry.companyAddress
+      Integer validity = 0
+      Calendar calendar = Calendar.getInstance();
+      if( notaVenta != null ){
         if( tipoSeguro.equalsIgnoreCase("N") ){
           validity = Registry.validityEnsureKid
         } else if( tipoSeguro.equalsIgnoreCase("L") ){
@@ -2504,27 +2506,40 @@ class TicketServiceImpl implements TicketService {
         } else if( tipoSeguro.equalsIgnoreCase("S") ){
           validity = Registry.validityEnsureFrame
         }
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        calendar.add(Calendar.YEAR, validity);
-        String date = df.format(calendar.getTime())
-        Integer fecha = 0
-        try{
-            fecha = NumberFormat.getInstance().parse(date.replace("-",""))
-        } catch ( NumberFormatException e ){ println e }
         Integer porcGar = Registry.percentageWarranty
         BigDecimal porcentaje = montoGarantia.multiply(porcGar/100)
         Integer monto = porcentaje.intValue()
-        String clave = claveAleatoria( fecha, monto )
-        clave = tipoSeguro+clave
-        def data = [
-                date: df.format( calendar.getTime() ),
-                thisSite: site,
-                compania: companyAddress,
-                codaleatorio: clave,
-                articulo: idArticulo
-        ]
-        imprimeTicket( "template/ticket-garantia.vm", data )
+        String clave = ""
+        if( StringUtils.trimToEmpty(notaVenta.udf5).length() > 0 ){
+          clave = StringUtils.trimToEmpty(notaVenta.udf5)
+          calendar.setTime(notaVenta.fechaEntrega);
+          calendar.add(Calendar.YEAR, validity);
+        } else {
+          calendar.add(Calendar.YEAR, validity);
+          String date = df.format(calendar.getTime())
+          Integer fecha = 0
+          try{
+                fecha = NumberFormat.getInstance().parse(date.replace("-",""))
+          } catch ( NumberFormatException e ){ println e }
+          calendar.setTime(new Date());
+          clave = claveAleatoria( fecha, monto )
+          clave = tipoSeguro+clave
+        }
+
+        if( StringUtils.trimToEmpty(notaVenta.udf5).length() <= 0 ){
+          notaVenta.udf5 = clave
+          notaVentaService.saveOrder( notaVenta )
+        }
+
+          def data = [
+              date: df.format( calendar.getTime() ),
+              thisSite: site,
+              compania: companyAddress,
+              codaleatorio: clave,
+              articulo: idArticulo
+          ]
+          imprimeTicket( "template/ticket-garantia.vm", data )
+        }
     }
 
 
