@@ -2813,13 +2813,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       }
       if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_ARMAZON) && !sunglass ){
         valid = false
-      } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_OFTALMICO) && !lens ){
+      } else if( StringUtils.trimToEmpty(itemWarranty.articulo).startsWith(TAG_SEGUROS_OFTALMICO) && (!lens && !ophtalmic) ){
         valid = false
       }
       if( StringUtils.trimToEmpty(itemWarranty.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) && lensKid ){
         valid = true
       } else if(StringUtils.trimToEmpty(itemWarranty.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) && !lensKid) {
-        valid = true
+        valid = false
       }
     } else {
       valid = false
