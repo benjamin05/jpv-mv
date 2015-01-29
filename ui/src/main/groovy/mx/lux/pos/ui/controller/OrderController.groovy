@@ -545,6 +545,10 @@ class OrderController {
                 notaVenta = notaVentaService.cerrarNotaVenta(notaVenta)
                 if (inventarioService.solicitarTransaccionVenta(notaVenta)) {
                     log.debug("transaccion de inventario correcta")
+                    if( inventarioService.solicitarTransaccionEntradaSP(notaVenta) ){
+                      log.debug("transaccion entrada SP correcta")
+                      inventarioService.insertarRegistroRemesa( notaVenta )
+                    }
                 } else {
                     log.warn("no se pudo procesar la transaccion de inventario")
                 }

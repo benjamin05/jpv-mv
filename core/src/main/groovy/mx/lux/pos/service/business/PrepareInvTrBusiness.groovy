@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component
 @Component
 class PrepareInvTrBusiness {
   private static final String TR_TYPE_ISSUE_SALES = 'VENTA'
+  private static final String TR_TYPE_ENTER_SP = 'ENTRADA_SP'
   private static final String TR_TYPE_RECEIPT_RETURN = 'DEVOLUCION'
 
   private static ArticuloService parts
@@ -298,6 +299,28 @@ class PrepareInvTrBusiness {
         validaSurte = StringUtils.trimToEmpty(det?.surte).equals(TAG_SURTE_SUCURSAL)
       }
       if ( parts.validarArticulo( det.idArticulo ) && validaSurte ) {
+        request.skuList.add( new InvTrDetRequest( det.idArticulo, det.cantidadFac.intValue() ) )
+      }
+    }
+    return request
+  }
+
+  InvTrRequest requestEnterSP( NotaVenta pNotaVenta ) {
+    InvTrRequest request = new InvTrRequest()
+
+    request.trType = TR_TYPE_ENTER_SP
+    String trType = parameters.findOne( TipoParametro.TRANS_INV_TIPO_ENTRADA_SP.value )?.valor
+    println('Trans: ' + trType)
+    if ( StringUtils.trimToNull( trType ) != null ) {
+      request.trType = trType
+    }
+
+    request.effDate = pNotaVenta.fechaMod
+    request.idUser = pNotaVenta.idEmpleado
+    request.reference = pNotaVenta.id
+
+    for ( DetalleNotaVenta det in pNotaVenta.detalles ) {
+      if ( parts.validarArticulo( det.idArticulo ) && StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ) {
         request.skuList.add( new InvTrDetRequest( det.idArticulo, det.cantidadFac.intValue() ) )
       }
     }

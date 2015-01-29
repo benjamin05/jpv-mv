@@ -22,6 +22,8 @@ interface InventarioService {
 
   Boolean solicitarTransaccionVenta( NotaVenta pNotaVenta )
 
+  Boolean solicitarTransaccionEntradaSP( NotaVenta pNotaVenta )
+
   Boolean solicitarTransaccionDevolucion( NotaVenta pNotaVenta )
 
   TransInv obtenerTransaccion( String pIdTipoTrans, Integer pFolio )
@@ -96,4 +98,6 @@ interface InventarioService {
   InvAdjustSheet obtenerArmazones(  )
 
   InvAdjustSheet obtenerAccesorios(  )
+
+  void insertarRegistroRemesa( NotaVenta pNotaVenta )
 }

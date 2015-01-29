@@ -87,6 +87,7 @@ enum TipoParametro {
   TRANS_INV_TIPO_OTRA_SALIDA( 'trans_inv_tipo_otra_salida', 'OTRA_SALIDA' ),
   TRANS_INV_TIPO_OTRA_ENTRADA( 'trans_inv_tipo_otra_entrada', 'OTRA_ENTRADA' ),
   TRANS_INV_TIPO_VENTA( 'trans_inv_tipo_venta', 'VENTA' ),
+  TRANS_INV_TIPO_ENTRADA_SP( 'trans_inv_tipo_recibe_remision_sp', 'ENTRADA_SP' ),
   URL_ACUSE_AJUSTE_VENTA( 'url_acuse_ajuste_venta', '' ),
   URL_ACUSE_VENTA_DIA( 'url_acuse_venta_dia', '' ),
   URL_CARGA_LISTA_PRECIOS( 'url_carga_lista_precios', '' ),
