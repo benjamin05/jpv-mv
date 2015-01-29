@@ -1174,26 +1174,6 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if( OrderController.hasOrderLc(newOrder.bill) ){
           OrderController.printTicketEnvioLc( StringUtils.trimToEmpty(newOrder.bill) )
         }
-
-        if( OrderController.insertSegKig ){
-          Boolean hasLensKid = false
-          Boolean hasEnsureKid = false
-          for(OrderItem oi : newOrder.items){
-            Articulo articulo = ItemController.findArticle( oi.item.id )
-            if( StringUtils.trimToEmpty(articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
-              hasLensKid = true
-            }
-            if( StringUtils.trimToEmpty(articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
-              hasEnsureKid = true
-            }
-          }
-          if( hasLensKid && !hasEnsureKid ){
-            itemSearch.text = "SEG"
-            doItemSearch( true )
-            newOrder = OrderController.placeOrder(order, vendedor, false)
-            OrderController.insertSegKig = false
-          }
-        }
         /*String idFacturaTransLc = StringUtils.trimToEmpty(OrderController.isReuseOrderLc( StringUtils.trimToEmpty(newOrder.id) ))
         if( idFacturaTransLc.length() > 0 ){
             CancellationController.sendTransferOrderLc( idFacturaTransLc, newOrder.id )
@@ -1241,7 +1221,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   String clave = OrderController.descuentoClavePoridFactura( order.id )
                   cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(clave) )
                 }
-                if(StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("Redencion de Seguro")){
+                if( StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("Redencion de Seguro") ||
+                        (StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("DESCUENTO CUPON") &&
+                                StringUtils.trimToEmpty(promotionList.get(i).discountType.description).length() >= 11) ){
                   ensureApply = true
                 }
                 if( cuponMv != null ){
@@ -1273,6 +1255,26 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 }
               } else {
                 generatedCoupons( validClave, newOrder )
+              }
+
+              if( OrderController.insertSegKig ){
+                Boolean hasLensKid = false
+                Boolean hasEnsureKid = false
+                for(OrderItem oi : newOrder.items){
+                  Articulo articulo = ItemController.findArticle( oi.item.id )
+                  if( StringUtils.trimToEmpty(articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
+                    hasLensKid = true
+                  }
+                  if( StringUtils.trimToEmpty(articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                    hasEnsureKid = true
+                  }
+                }
+                if( hasLensKid && !hasEnsureKid ){
+                  itemSearch.text = "SEG"
+                  doItemSearch( true )
+                  newOrder = OrderController.placeOrder(order, vendedor, false)
+                  OrderController.insertSegKig = false
+                }
               }
             }
             //}

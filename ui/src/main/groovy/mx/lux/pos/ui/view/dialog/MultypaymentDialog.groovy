@@ -809,6 +809,9 @@ class MultypaymentDialog extends JDialog implements FocusListener {
               hasEnsureKid = true
             }
           }
+          if( order.deals.size() > 0 ){
+            println order.deals.first().descripcion
+          }
           if( hasKidFrame && !hasEnsureKid ){
             List<Item> results = ItemController.findItemsByQuery("SEG")
             if (results?.any()) {
