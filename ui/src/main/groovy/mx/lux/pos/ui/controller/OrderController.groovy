@@ -648,8 +648,9 @@ class OrderController {
         if( !alreadyDelivered ){
           if( validDateEnsure ){
             if( validWarranty( notaVenta, false, null, "" ) ){
+              Boolean doubleEnsure = lstWarranty.size() > 1 ? true : false
               for(Warranty warranty : lstWarranty){
-                ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.id) )
+                ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.id), doubleEnsure )
               }
               lstWarranty.clear()
             } else {
@@ -690,8 +691,9 @@ class OrderController {
               lstWarranty.add( warranty )
             }
             if( lstWarranty.size() > 0 ){
+              Boolean doubleEnsure = lstWarranty.size() > 1 ? true : false
               for(Warranty warranty1 : lstWarranty){
-                ItemController.printWarranty( warranty1.amount, warranty1.idItem, warranty1.typeEnsure, StringUtils.trimToEmpty(notaVenta.id) )
+                ItemController.printWarranty( warranty1.amount, warranty1.idItem, warranty1.typeEnsure, StringUtils.trimToEmpty(notaVenta.id), doubleEnsure )
               }
               lstWarranty.clear()
             }
@@ -2903,13 +2905,18 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
   static void reprintEnsure( NotaVenta notaVenta ){
-    if(validEnsureDateAplication(notaVenta)){
-      if( validWarranty( notaVenta, false, null, "" ) ){
-        for(Warranty warranty : lstWarranty){
-          ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.id) )
+    if( notaVenta.fechaEntrega != null ) {
+      if(validEnsureDateAplication(notaVenta)){
+        if( validWarranty( notaVenta, false, null, "" ) ){
+          Boolean doubleEnsure = lstWarranty.size() > 1
+          for(Warranty warranty : lstWarranty){
+            ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.id), doubleEnsure )
+          }
+          lstWarranty.clear()
         }
-        lstWarranty.clear()
       }
+    } else {
+      JOptionPane.showMessageDialog(null, "La nota no ha sido entregada. No se puede reimprimir el seguro.")
     }
   }
 

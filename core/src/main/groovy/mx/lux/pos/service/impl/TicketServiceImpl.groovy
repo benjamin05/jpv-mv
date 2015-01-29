@@ -2490,7 +2490,7 @@ class TicketServiceImpl implements TicketService {
     }
 
 
-    void imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura ){
+    void imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure ){
       log.debug( "imprimeGarantia( )" )
       DateFormat df = new SimpleDateFormat( "dd-MM-yy" )
       NotaVenta notaVenta = notaVentaRepository.findOne( idFactura )
@@ -2511,9 +2511,29 @@ class TicketServiceImpl implements TicketService {
         Integer monto = porcentaje.intValue()
         String clave = ""
         if( StringUtils.trimToEmpty(notaVenta.udf5).length() > 0 ){
-          clave = StringUtils.trimToEmpty(notaVenta.udf5)
-          calendar.setTime(notaVenta.fechaEntrega);
-          calendar.add(Calendar.YEAR, validity);
+          if( doubleEnsure && !notaVenta.udf5.contains(",") ){
+            calendar.add(Calendar.YEAR, validity);
+            String date = df.format(calendar.getTime())
+            Integer fecha = 0
+            try{
+              fecha = NumberFormat.getInstance().parse(date.replace("-",""))
+            } catch ( NumberFormatException e ){ println e }
+            clave = claveAleatoria( fecha, monto )
+            clave = tipoSeguro+clave
+          } else {
+            if( notaVenta.udf5.contains(",") ){
+              String[] claves = notaVenta.udf5.split(",")
+              for(String cl : claves){
+                if( cl.charAt(0).equals(tipoSeguro.charAt(0)) ){
+                  clave = cl
+                }
+              }
+            } else {
+              clave = StringUtils.trimToEmpty(notaVenta.udf5)
+            }
+            calendar.setTime(notaVenta.fechaEntrega);
+            calendar.add(Calendar.YEAR, validity);
+          }
         } else {
           calendar.add(Calendar.YEAR, validity);
           String date = df.format(calendar.getTime())
@@ -2521,13 +2541,15 @@ class TicketServiceImpl implements TicketService {
           try{
                 fecha = NumberFormat.getInstance().parse(date.replace("-",""))
           } catch ( NumberFormatException e ){ println e }
-          calendar.setTime(new Date());
           clave = claveAleatoria( fecha, monto )
           clave = tipoSeguro+clave
         }
 
         if( StringUtils.trimToEmpty(notaVenta.udf5).length() <= 0 ){
           notaVenta.udf5 = clave
+          notaVentaService.saveOrder( notaVenta )
+        } else if( doubleEnsure && !notaVenta.udf5.contains(",") ) {
+          notaVenta.udf5 = notaVenta.udf5+","+clave
           notaVentaService.saveOrder( notaVenta )
         }
 
