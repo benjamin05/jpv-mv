@@ -2640,13 +2640,14 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                   typeEnsure = "S"
                 } else {
                   if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
-                    if( StringUtils.trimToEmpty(orderItem.articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
+                    if( StringUtils.trimToEmpty(orderItem.articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ||
+                            !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
                       amount = amount.add(orderItem.precioUnitFinal)
                     }
                   } else {
-                    if( (StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
-                          StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO)) ||
-                            !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                    if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ||
+                            (StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
+                          StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO)) ){
                       amount = amount.add(orderItem.precioUnitFinal)
                     }
                   }
