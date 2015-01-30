@@ -32,7 +32,7 @@ class PrepareInvTrBusiness {
   private static final String TR_TYPE_ISSUE_SALES = 'VENTA'
   private static final String TR_TYPE_ENTER_SP = 'ENTRADA_SP'
   private static final String TR_TYPE_RECEIPT_RETURN = 'DEVOLUCION'
-  private static final String TR_TYPE_RECEIPT_RETURN_SP = 'DEVOLUCION_SP'
+  private static final String TR_TYPE_RECEIPT_RETURN_SP = 'SALIDA'
 
   private static ArticuloService parts
   private static InventarioService inventory
@@ -42,6 +42,7 @@ class PrepareInvTrBusiness {
   private static RetornoRepository retornoRepository
   private static RetornoDetRepository retornoDetRepository
   private static final String TAG_SURTE_SUCURSAL = 'S'
+  private static final String TAG_GENERICO_ARMAZON = 'A'
 
   static PrepareInvTrBusiness instance
 
@@ -355,7 +356,7 @@ class PrepareInvTrBusiness {
       InvTrRequest request = new InvTrRequest()
 
       request.trType = TR_TYPE_RECEIPT_RETURN_SP
-      String trType = parameters.findOne( TipoParametro.TRANS_INV_TIPO_CANCELACION_SP.value )?.valor
+      String trType = parameters.findOne( TipoParametro.TRANS_INV_TIPO_SALIDA.value )?.valor
       if ( StringUtils.trimToNull( trType ) != null ) {
         request.trType = trType
       }
@@ -363,9 +364,11 @@ class PrepareInvTrBusiness {
       request.effDate = pNotaVenta.fechaMod
       request.idUser = pNotaVenta.idEmpleado
       request.reference = pNotaVenta.id
+      request.remarks = "Salida Surte Pino"
 
       for ( DetalleNotaVenta det in pNotaVenta.detalles ) {
-        if ( parts.validarArticulo( det.idArticulo ) && StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ) {
+        if ( parts.validarArticulo( det.idArticulo ) && StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
+                StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ) {
           request.skuList.add( new InvTrDetRequest( det.idArticulo, det.cantidadFac.intValue() ) )
         }
       }

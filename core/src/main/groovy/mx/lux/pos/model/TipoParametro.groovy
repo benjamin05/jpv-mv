@@ -81,7 +81,6 @@ enum TipoParametro {
   TRANS_CAN_MISMO_DIA( 'trans_can_mismo_dia', 'si' ),
   TRANS_INV_TIPO_AJUSTE( 'trans_inv_tipo_ajuste', 'AJUSTE' ),
   TRANS_INV_TIPO_CANCELACION( 'trans_inv_tipo_cancelacion', 'DEVOLUCION' ),
-  TRANS_INV_TIPO_CANCELACION_SP( 'trans_inv_tipo_cancelacion_sp', 'DEVOLUCION_SP' ),
   TRANS_INV_TIPO_CANCELACION_EXTRA( 'trans_inv_tipo_canc_extraordinaria', 'RETORNO' ),
   TRANS_INV_TIPO_RECIBE_REMISION( 'trans_inv_tipo_recibe_remision', 'ENTRADA' ),
   TRANS_INV_TIPO_SALIDA( 'trans_inv_tipo_salida', 'SALIDA' ),
