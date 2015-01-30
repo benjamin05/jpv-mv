@@ -218,10 +218,11 @@ class RefundDialog extends JDialog {
         Order order = OrderController.findOrderByIdOrder( orderId.trim() )
         if( order.deliveryDate == null ){
           if(CancellationController.verificaPino(orderId) ){
-              //CancellationController.updateJb(orderId)
+            //CancellationController.updateJb(orderId)
             //CancellationController.printMaterialReturn( orderId )
             //CancellationController.printMaterialReception( orderId )
           } else {
+
             //CancellationController.printPinoNotStocked(orderId)
               //CancellationController.updateJb(orderId)
           }

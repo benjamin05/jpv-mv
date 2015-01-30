@@ -100,4 +100,6 @@ interface InventarioService {
   InvAdjustSheet obtenerAccesorios(  )
 
   void insertarRegistroRemesa( NotaVenta pNotaVenta )
+
+  void solicitarTransaccionDevolucionSP( NotaVenta pNotaVenta )
 }

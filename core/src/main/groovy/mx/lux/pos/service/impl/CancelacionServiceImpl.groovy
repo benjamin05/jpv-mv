@@ -175,21 +175,54 @@ class CancelacionServiceImpl implements CancelacionService {
                     log.warn("no se registra el movimiento, error al registrar devolucion")
                   }
                 } else if( transCupones ){
-                  if (!ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
-                    log.warn("no se registra el movimiento, error al registrar devolucion")
+                  if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
+                    log.warn("Se registro el movimiento de devolucion correctamente")
+                    Boolean hasSP = false
+                    for( DetalleNotaVenta det : notaVenta.detalles ){
+                      if( StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ){
+                        hasSP = true
+                      }
+                    }
+                    if( hasSP && notaVenta.fechaEntrega == null ){
+                      if( !validandoEnvioPino( notaVenta.id ) ){
+                        ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
+                      }
+                    }
                   }
                 } else {
                   Boolean transCanSameDay = Registry.transCanSameDay()
                   if( transCanSameDay ){
-                    if (!ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
-                      log.warn("no se registra el movimiento, error al registrar devolucion")
+                    if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
+                      log.warn("Se registro el movimiento de devolucion correctamente")
+                      Boolean hasSP = false
+                      for( DetalleNotaVenta det : notaVenta.detalles ){
+                        if( StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ){
+                          hasSP = true
+                        }
+                      }
+                      if( hasSP && notaVenta.fechaEntrega == null ){
+                        if( !validandoEnvioPino( notaVenta.id ) ){
+                          ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
+                        }
+                      }
                     }
                   } else {
                     String orderDate = notaVenta.fechaHoraFactura.format('dd-MM-yyyy')
                     String currentDate = new Date().format('dd-MM-yyyy')
                     if(currentDate.trim().equalsIgnoreCase(orderDate.trim())){
-                      if (!ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
-                        log.warn("no se registra el movimiento, error al registrar devolucion")
+                      if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
+                        log.warn("Se registro el movimiento de devolucion correctamente")
+                        Boolean hasSP = false
+                        for( DetalleNotaVenta det : notaVenta.detalles ){
+                          if( StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ){
+                            hasSP = true
+                          }
+                        }
+                        if( hasSP && notaVenta.fechaEntrega == null ){
+                          if( !validandoEnvioPino( notaVenta.id ) ){
+                            ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
+                          }
+                        }
                       }
                     }
                   }

@@ -170,6 +170,15 @@ class InventarioServiceImpl implements InventarioService {
     return registrado
   }
 
+    void solicitarTransaccionDevolucionSP( NotaVenta pNotaVenta ) {
+      Boolean registrado = false
+      PrepareInvTrBusiness task = PrepareInvTrBusiness.instance
+      InvTrRequest request = task.requestReturnReceiptSP( pNotaVenta )
+      if ( request != null ) {
+        registrado = ( solicitarTransaccion( request ) != null )
+      }
+  }
+
   TransInv obtenerTransaccion( String pIdTipoTrans, Integer pFolio ) {
     InventorySearch.obtenerTransaccion( pIdTipoTrans, pFolio )
   }
