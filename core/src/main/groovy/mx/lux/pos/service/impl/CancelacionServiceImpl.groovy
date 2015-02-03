@@ -545,6 +545,7 @@ class CancelacionServiceImpl implements CancelacionService {
                   sleep(1000)
                   url = "${urlValida}?${contenido}".toURL()
                   respuesta = url.text?.find( /<XX>\s*(.*)\s*<\/XX>/ ) {m, r -> return r}
+                  println "Respuesta: "+respuesta
                   String[] valores = respuesta.split(/\|/)
                   if(valores.length >=2){
                       if(!valores[1].toString().trim().contains('0')){
