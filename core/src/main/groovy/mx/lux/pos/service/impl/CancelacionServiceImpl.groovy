@@ -563,6 +563,9 @@ class CancelacionServiceImpl implements CancelacionService {
             respuesta = ''
             log.warn("encountered problem while doing some work", e)
         }
+      if( StringUtils.trimToEmpty(respuesta).length() <= 0 ){
+        surtioPino = true
+      }
       println "Respuesta surtio pino: ${respuesta}"
       return surtioPino
     }
