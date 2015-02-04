@@ -537,15 +537,14 @@ class CancelacionServiceImpl implements CancelacionService {
 
       ExecutorService executor = Executors.newFixedThreadPool(1)
       String respuesta = ""
-      int timeoutSecs = 15
+      int timeoutSecs = 20
       final Future<?> future = executor.submit(new Runnable() {
           public void run() {
               try{
                   URL url = "${urlValida}?${contenido}".toURL()
-                  sleep(1000)
-                  url = "${urlValida}?${contenido}".toURL()
+                  println url.text
                   respuesta = url.text?.find( /<XX>\s*(.*)\s*<\/XX>/ ) {m, r -> return r}
-                  println "Respuesta: "+respuesta
+                  println "Respuesta pino surtido: "+respuesta
                   String[] valores = respuesta.split(/\|/)
                   if(valores.length >=2){
                       if(!valores[1].toString().trim().contains('0')){
@@ -567,7 +566,6 @@ class CancelacionServiceImpl implements CancelacionService {
       if( StringUtils.trimToEmpty(respuesta).length() <= 0 ){
         surtioPino = true
       }
-      println "Respuesta surtio pino: ${respuesta}"
       return surtioPino
     }
 
