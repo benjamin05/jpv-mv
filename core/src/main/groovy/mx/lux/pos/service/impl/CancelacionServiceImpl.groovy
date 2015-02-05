@@ -109,6 +109,7 @@ class CancelacionServiceImpl implements CancelacionService {
     private static final TAG_JB_CANCELADA = 'CN'
     private static final TAG_NOTA_FACTURA_CANCELACION = 'cancelacion'
     private static final TAG_DETALLES_CANCELACION = 'CAN_APART'
+    private static final TAG_VER_SP = 'ver_sp'
     private static final TAG_GENERICO_ARMAZON = 'A'
     private static final TAG_SURTE_PINO = 'P'
     private static final TAG_EFECTIVO = 'EF'
@@ -177,16 +178,12 @@ class CancelacionServiceImpl implements CancelacionService {
                 } else if( transCupones ){
                   if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
                     log.warn("Se registro el movimiento de devolucion correctamente")
-                    Boolean hasSP = false
-                    for( DetalleNotaVenta det : notaVenta.detalles ){
-                      if( StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ){
-                        hasSP = true
-                      }
-                    }
-                    if( hasSP && notaVenta.fechaEntrega == null ){
-                      if( !validandoEnvioPino( notaVenta.id ) ){
+
+                    if( seValidaSurtePino( notaVenta ) ){
+                      acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
+                      /*if( !validandoEnvioPino( notaVenta.id ) ){
                         ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
-                      }
+                      }*/
                     }
                   }
                 } else {
@@ -194,16 +191,11 @@ class CancelacionServiceImpl implements CancelacionService {
                   if( transCanSameDay ){
                     if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
                       log.warn("Se registro el movimiento de devolucion correctamente")
-                      Boolean hasSP = false
-                      for( DetalleNotaVenta det : notaVenta.detalles ){
-                        if( StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ){
-                          hasSP = true
-                        }
-                      }
-                      if( hasSP && notaVenta.fechaEntrega == null ){
-                        if( !validandoEnvioPino( notaVenta.id ) ){
+                      if( seValidaSurtePino( notaVenta ) ){
+                        acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
+                        /*if( !validandoEnvioPino( notaVenta.id ) ){
                           ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
-                        }
+                        }*/
                       }
                     }
                   } else {
@@ -212,16 +204,11 @@ class CancelacionServiceImpl implements CancelacionService {
                     if(currentDate.trim().equalsIgnoreCase(orderDate.trim())){
                       if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
                         log.warn("Se registro el movimiento de devolucion correctamente")
-                        Boolean hasSP = false
-                        for( DetalleNotaVenta det : notaVenta.detalles ){
-                          if( StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ){
-                            hasSP = true
-                          }
-                        }
-                        if( hasSP && notaVenta.fechaEntrega == null ){
-                          if( !validandoEnvioPino( notaVenta.id ) ){
+                        if( seValidaSurtePino( notaVenta ) ){
+                          acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
+                          /*if( !validandoEnvioPino( notaVenta.id ) ){
                             ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
-                          }
+                          }*/
                         }
                       }
                     }
@@ -661,7 +648,7 @@ class CancelacionServiceImpl implements CancelacionService {
         }
 
     Boolean acuseCanApart = false
-    for(DetalleNotaVenta det : notaVenta.detalles){
+    /*for(DetalleNotaVenta det : notaVenta.detalles){
       if( TAG_GENERICO_ARMAZON.equalsIgnoreCase(det.articulo.idGenerico.trim()) ){
         if( TAG_SURTE_PINO.equalsIgnoreCase(det.surte.trim()) ){
           if( det.notaVenta.fechaEntrega == null ){
@@ -686,7 +673,7 @@ class CancelacionServiceImpl implements CancelacionService {
           }
         }
       }
-    }
+    }*/
 
   }
 
@@ -1196,6 +1183,52 @@ class CancelacionServiceImpl implements CancelacionService {
     autorizaMovRepository.flush()
   }
 
+
+
+  Boolean seValidaSurtePino( NotaVenta notaVenta ){
+    Boolean valid = false
+    Boolean hasSP = false
+    Boolean noEnSucursal = false
+    Jb jb = jbRepository.findOne( StringUtils.trimToEmpty(notaVenta.factura) )
+    if( jb != null ){
+      if( !StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("RS") ){
+        noEnSucursal = true
+      }
+    } else {
+      noEnSucursal = true
+    }
+    for( DetalleNotaVenta det : notaVenta.detalles ){
+      if( StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ){
+              hasSP = true
+      }
+    }
+    if( hasSP && notaVenta.fechaEntrega == null && noEnSucursal ){
+      valid = true
+    }
+    return valid
+  }
+
+  @Override
+  void acuseVerSPAcuseVerSPAcuseVerSP( NotaVenta notaVenta ){
+    Acuse acuse = new Acuse()
+    acuse.idTipo = TAG_VER_SP
+    try {
+      acuse = acuseRepository.saveAndFlush( acuse )
+      log.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )
+    } catch ( Exception e ) {
+      log.error( e.getMessage() )
+    }
+    acuse.contenido = String.format( 'id_sucVal=%s|', String.format( '%d', notaVenta.idSucursal ) )
+    acuse.contenido += String.format( 'facturaVal=%s|', notaVenta.factura.trim() )
+    acuse.contenido += String.format( 'id_acuseVal=%s|', String.format( '%d', acuse.id ) )
+    acuse.fechaCarga = new Date()
+    try {
+      acuse = acuseRepository.saveAndFlush( acuse )
+      log.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )
+    } catch ( Exception e ) {
+      log.error( e.getMessage() )
+    }
+  }
 
 
 }
