@@ -1682,7 +1682,7 @@ public class ReportServiceImpl implements ReportService {
           @Override
           public int compare(CuponesMvDesc o1, CuponesMvDesc o2) {
               return o1.getFacturaOri().compareTo(o2.getFacturaOri());
-          }
+         }
       });
       Integer total2Par = 0;
       Integer total3Par = 0;
