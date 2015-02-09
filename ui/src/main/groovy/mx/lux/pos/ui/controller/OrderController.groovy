@@ -1297,8 +1297,8 @@ class OrderController {
         surteSwitch?.surte = surte
         Precio precio = precioRepository.findbyArt(item?.name.trim())
 
-        if( item.subtype.startsWith('S') || item.typ.equalsIgnoreCase('O') ){
-        if (item?.type?.trim().equals('A') && precio?.surte?.trim().equals('P')) {
+        if( (item.subtype.startsWith('S') || item.typ.equalsIgnoreCase('O')) ||
+                (item?.type?.trim().equals('A') && precio?.surte?.trim().equals('P')) ){
             AcusesTipo acusesTipo = acusesTipoRepository.findOne('AUT')
             String url = acusesTipo?.pagina + '?id_suc=' + branch?.id.toString().trim() + '&id_col=' + item?.color?.trim() + '&id_art=' + item?.name.toString().trim()
             String resultado = ''
@@ -1337,7 +1337,6 @@ class OrderController {
                 //notifyAlert('Almacen Central no Responde', 'Contacte a Soporte Tecnico')
                 surteSucursal = false
             }
-        }
         }
 
         surteSwitch.setAgregaArticulo(agregaArticulo)
