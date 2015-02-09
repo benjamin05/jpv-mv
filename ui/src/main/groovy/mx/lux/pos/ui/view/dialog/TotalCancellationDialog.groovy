@@ -17,6 +17,8 @@ import mx.lux.pos.model.CuponMv
 
 import javax.swing.*
 import java.awt.*
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import java.awt.event.MouseEvent
 import java.text.DateFormat
 import java.text.NumberFormat
@@ -32,6 +34,15 @@ class TotalCancellationDialog extends JDialog {
   private JTextField txtBill
   private JLabel lblVerifTarjeta
   private JLabel lblVerifMaterial
+
+  private JRadioButton rbCheck
+  private JRadioButton rbBankTransf
+  private static ButtonGroup bgDev
+  private JTextField txtName
+  private JTextField txtEmail
+  private JTextField txtBank
+  private JTextField txtClaveAccount
+
   private Boolean hasTC = false
   private Order order
   private JScrollPane scrollPane
@@ -42,6 +53,7 @@ class TotalCancellationDialog extends JDialog {
   private List<Coupons> coupons
   private List<Coupons> couponsDet
   private String devAmount
+  private String devAmountTd
   private BigDecimal paymentsAmount = BigDecimal.ZERO
   private BigDecimal couponsAmount = BigDecimal.ZERO
   private String couponsAmountTmp = ""
@@ -50,10 +62,12 @@ class TotalCancellationDialog extends JDialog {
   NumberFormat formatter = NumberFormat.getCurrencyInstance( Locale.US )
 
   private String TAG_FORMA_PAGO_TC = "TC"
+  private String TAG_FORMA_PAGO_TD = "TD"
   private String TAG_FORMA_PAGO_C1 = "C1"
 
   private String TAG_DESC_FORMA_PAGO_EF = "EFECTIVO"
   private String TAG_DESC_FORMA_PAGO_TC = "TARJETA CREDITO"
+  private String TAG_DESC_FORMA_PAGO_TD = "TARJETA DEBITO"
   private String TAG_DESC_FORMA_PAGO_C1 = "REDENCION SEGUROS"
 
   public boolean button = false
@@ -140,6 +154,36 @@ class TotalCancellationDialog extends JDialog {
             label( text: "DEVOLUCION:", font: displayFont )
             label( text: devAmount, font: displayFont )
           }
+          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 2', '[]', '[]' ), visible: StringUtils.trimToEmpty(devAmountTd).length() > 0 ) {
+            panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[]', '[]' ) ) {
+              label( text: "DEVOLUCION:", font: displayFont )
+              label( text: devAmountTd, font: displayFont )
+            }
+            panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[]', '[]' ) ) {
+              bgDev = buttonGroup()
+              rbCheck = radioButton( text: "Cheque", buttonGroup: bgDev, selected: true )
+              rbBankTransf = radioButton( text: "Transferencia Bancaria", buttonGroup: bgDev )
+              rbCheck.addActionListener( new ActionListener() {
+                  @Override
+                  void actionPerformed(ActionEvent e) {
+                    if( rbCheck.selected ){
+
+                    }
+                  }
+              })
+            }
+          }
+          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 2', '[]', '[]' ),
+                  visible: StringUtils.trimToEmpty(devAmountTd).length() > 0, constraints: 'hidemode 3' ) {
+            label( text: "Nombre:" )
+            txtName = textField( )
+            label( text: "Banco:", constraints: 'hidemode 3' )
+            txtBank = textField( constraints: 'hidemode 3' )
+            label( text: "Cta./CLABE:", constraints: 'hidemode 3' )
+            txtClaveAccount = textField( constraints: 'hidemode 3' )
+            label( text: "Correo:" )
+            txtEmail = textField( )
+          }
           panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ) ) {
             lblVerifTarjeta = label( text: "    Verificar que el cliente traiga la Tarjeta de Credito.", constraints: 'hidemode 3', font: displayFont )
             lblVerifMaterial = label( text: "        Verificar que el cliente traiga el material.", constraints: 'hidemode 3', font: displayFont )
@@ -192,6 +236,7 @@ class TotalCancellationDialog extends JDialog {
     String amount = ""
     BigDecimal amountNbrEf = BigDecimal.ZERO
     BigDecimal amountNbrTc = BigDecimal.ZERO
+    BigDecimal amountNbrTd = BigDecimal.ZERO
     BigDecimal amountNbrC1 = BigDecimal.ZERO
     Collections.sort(order.payments, new Comparator<Payment>() {
         @Override
@@ -210,6 +255,8 @@ class TotalCancellationDialog extends JDialog {
           amountNbrTc = (amountNbrTc.add(payment.amount)).subtract(couponsAmount)
         } else if( StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_C1) ) {
           amountNbrC1 = (amountNbrC1.add(payment.amount)).subtract(couponsAmount)
+        } else if( StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_TD) ) {
+          amountNbrTd = (amountNbrTd.add(payment.amount)).subtract(couponsAmount)
         } else {
           amountNbrEf = (amountNbrEf.add(payment.amount)).subtract(couponsAmount)
         }
@@ -217,8 +264,10 @@ class TotalCancellationDialog extends JDialog {
       couponsAmount = couponsAmount.doubleValue()-payment.amount.doubleValue() < 0.00 ? BigDecimal.ZERO : couponsAmount.doubleValue()-payment.amount.doubleValue()
     }
     amount = (amountNbrEf.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrEf,TAG_DESC_FORMA_PAGO_EF) : "")+" "+
-            (amountNbrTc.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTc,TAG_DESC_FORMA_PAGO_TC) : "")+" "
+            (amountNbrTc.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTc,TAG_DESC_FORMA_PAGO_TC) : "")+" "+
+            //(amountNbrTd.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTd,TAG_DESC_FORMA_PAGO_TD) : "")+" "+
             (amountNbrC1.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrC1,TAG_DESC_FORMA_PAGO_C1) : "")
+    devAmountTd = amountNbrTd.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTd,TAG_DESC_FORMA_PAGO_TD) : ""
 
     if( StringUtils.trimToEmpty(amount).length() <= 0 || StringUtils.trimToEmpty(amount).equalsIgnoreCase(",,,") ){
       amount = '$0.00'
