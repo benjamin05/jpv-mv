@@ -2490,7 +2490,7 @@ class TicketServiceImpl implements TicketService {
     }
 
 
-    void imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure ){
+    NotaVenta imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure ){
       log.debug( "imprimeGarantia( )" )
       DateFormat df = new SimpleDateFormat( "dd-MM-yy" )
       NotaVenta notaVenta = notaVentaRepository.findOne( idFactura )
@@ -2547,10 +2547,10 @@ class TicketServiceImpl implements TicketService {
 
         if( StringUtils.trimToEmpty(notaVenta.udf5).length() <= 0 ){
           notaVenta.udf5 = clave
-          notaVentaService.saveOrder( notaVenta )
+          //notaVentaService.saveOrder( notaVenta )
         } else if( doubleEnsure && !notaVenta.udf5.contains(",") ) {
           notaVenta.udf5 = notaVenta.udf5+","+clave
-          notaVentaService.saveOrder( notaVenta )
+          //notaVentaService.saveOrder( notaVenta )
         }
 
           def data = [
@@ -2562,6 +2562,7 @@ class TicketServiceImpl implements TicketService {
           ]
           imprimeTicket( "template/ticket-garantia.vm", data )
         }
+      return notaVenta
     }
 
 

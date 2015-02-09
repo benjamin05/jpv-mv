@@ -11,6 +11,7 @@ import mx.lux.pos.model.PedidoLcDet
 import mx.lux.pos.model.Precio
 import mx.lux.pos.model.QArticulo
 import mx.lux.pos.service.ArticuloService
+import mx.lux.pos.service.NotaVentaService
 import mx.lux.pos.service.TicketService
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.model.Item
@@ -34,11 +35,13 @@ class ItemController {
   private static final String TAG_GEN_TIPO_C = 'C'
   private static ArticuloService articuloService
   private static TicketService ticketService
+  private static NotaVentaService notaVentaService
 
   @Autowired
-  public ItemController( ArticuloService articuloService, TicketService ticketService ) {
+  public ItemController( ArticuloService articuloService, TicketService ticketService, NotaVentaService notaVentaService ) {
     this.articuloService = articuloService
     this.ticketService = ticketService
+    this.notaVentaService = notaVentaService
   }
 
   static Item findItem( Integer id ) {
@@ -369,7 +372,10 @@ class ItemController {
 
 
   static void printWarranty( BigDecimal amount, String idItem, String typeWarranty, String idFactura, Boolean doubleEnsure ){
-    ticketService.imprimeGarantia( amount, idItem, typeWarranty, idFactura, doubleEnsure )
+    NotaVenta nota = ticketService.imprimeGarantia( amount, idItem, typeWarranty, idFactura, doubleEnsure )
+    if( nota != null ){
+      notaVentaService.saveOrder( nota )
+    }
   }
 
 

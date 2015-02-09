@@ -2928,7 +2928,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     try{
       limitDate = df.parse( Registry.validEnsureDate )
     } catch ( Exception e ){ println e }
-    if(new Date().compareTo(limitDate) >= 0){
+    if( notaVenta.fechaHoraFactura.compareTo(limitDate) >= 0 ){//&& new Date().compareTo(limitDate) >= 0){
       valid = true
     }
     return valid
