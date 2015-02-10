@@ -78,6 +78,7 @@ class OrderController {
     private static DescuentoRepository descuentoRepository
     private static CuponMvRepository cuponMvRepository
     private static NotaVentaRepository notaVentaRepository
+    private static BancoDevRepository bancoDevRepository
     private static final String TAG_USD = "USD"
     private static Integer numberQuote = 0
 
@@ -112,7 +113,8 @@ class OrderController {
             CotizacionService cotizacionService,
             FormaContactoService formaContactoService,
             CuponMvRepository cuponMvRepository,
-            NotaVentaRepository notaVentaRepository
+            NotaVentaRepository notaVentaRepository,
+            BancoDevRepository bancoDevRepository
 
     ) {
         this.notaVentaService = notaVentaService
@@ -145,6 +147,7 @@ class OrderController {
         this.formaContactoService = formaContactoService
         this.cuponMvRepository = cuponMvRepository
         this.notaVentaRepository = notaVentaRepository
+        this.bancoDevRepository = bancoDevRepository
     }
 
     static Order getOrder(String orderId) {
@@ -2480,5 +2483,20 @@ class OrderController {
       }
       return  lstOrders
     }
+
+
+  static List<DevBank> findDevBanks( ){
+    List<DevBank> lstBanks = new ArrayList<>()
+    List<BancoDev> lstBancos = bancoDevRepository.findAll( )
+    Collections.sort(lstBancos, new Comparator<BancoDev>() {
+        @Override
+        int compare(BancoDev o1, BancoDev o2) {
+            return o1.nombre.compareTo(o2.nombre)
+        }
+    })
+      lstBancos.each { BancoDev tmp -> lstBanks.addAll( DevBank.toDevBank(tmp) ) }
+    return lstBanks
+  }
+
 
 }

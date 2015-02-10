@@ -739,4 +739,13 @@ class CustomerController {
   }
 
 
+
+  static String findCustomerEmail(Integer idCliente) {
+    String email = ""
+    Cliente cliente = clienteService.obtenerCliente( idCliente )
+    if( cliente != null ){
+      email = StringUtils.trimToEmpty(cliente.email)
+    }
+    return email
+  }
 }

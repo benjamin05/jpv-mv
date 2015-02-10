@@ -2,9 +2,11 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
+import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.controller.PaymentController
 import mx.lux.pos.ui.model.Coupons
+import mx.lux.pos.ui.model.DevBank
 import mx.lux.pos.ui.model.Payment
 import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.renderer.DateCellRenderer
@@ -13,7 +15,7 @@ import mx.lux.pos.ui.view.verifier.DateVerifier
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang.StringUtils
 import mx.lux.pos.ui.model.Order
-import mx.lux.pos.model.CuponMv
+import mx.lux.pos.ui.model.Contact
 
 import javax.swing.*
 import java.awt.*
@@ -40,8 +42,11 @@ class TotalCancellationDialog extends JDialog {
   private static ButtonGroup bgDev
   private JTextField txtName
   private JTextField txtEmail
-  private JTextField txtBank
+  private JComboBox cbBank
   private JTextField txtClaveAccount
+  private JTextField txtClaveAccount1
+  private JLabel lblBank
+  private JLabel lblClaveAccount
 
   private Boolean hasTC = false
   private Order order
@@ -59,6 +64,9 @@ class TotalCancellationDialog extends JDialog {
   private String couponsAmountTmp = ""
   private String totalPayments = ""
   private String strPayments = ""
+  private List<DevBank> devBank
+
+  private String email
   NumberFormat formatter = NumberFormat.getCurrencyInstance( Locale.US )
 
   private String TAG_FORMA_PAGO_TC = "TC"
@@ -74,7 +82,9 @@ class TotalCancellationDialog extends JDialog {
 
     TotalCancellationDialog( Component parent, String orderId ) {
     order = OrderController.getOrder( orderId )
+    email = CustomerController.findCustomerEmail( order.customer.id )
     payments = PaymentController.findPaymentsByOrderId( orderId ) as List<Payment>
+    devBank = OrderController.findDevBanks( )
     for(Payment payment : payments){
       paymentsAmount = paymentsAmount.add(payment.amount)
       if(StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_TC) ){
@@ -140,7 +150,7 @@ class TotalCancellationDialog extends JDialog {
               label( text: "Total Cupones: ${couponsAmountTmp}", visible: coupons.size() > 0, constraints: 'hidemode 3' )
             }
 
-            label( text: "Detalles:", visible: coupons.size() > 0 )
+            label( text: "Detalles:", visible: coupons.size() > 0, constraints: 'hidemode 3' )
             scrollPaneCoupons = scrollPane( constraints: 'h 60!,hidemode 3', visible: coupons.size() > 0 ) {
                 tblDetCoupons = table( selectionMode: ListSelectionModel.SINGLE_SELECTION ) {
                   couponsDetModel = tableModel( list: couponsDet ) {
@@ -167,22 +177,37 @@ class TotalCancellationDialog extends JDialog {
                   @Override
                   void actionPerformed(ActionEvent e) {
                     if( rbCheck.selected ){
-
+                      cbBank.visible = false
+                      txtClaveAccount.visible = false
+                      txtClaveAccount1.visible = false
+                      lblBank.visible = false
+                      lblClaveAccount.visible = false
                     }
+                  }
+              })
+              rbBankTransf.addActionListener( new ActionListener() {
+                  @Override
+                  void actionPerformed(ActionEvent e) {
+                    cbBank.visible = true
+                    txtClaveAccount.visible = true
+                    txtClaveAccount1.visible = true
+                    lblBank.visible = true
+                    lblClaveAccount.visible = true
                   }
               })
             }
           }
-          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 2', '[]', '[]' ),
+          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 3', '[fill][fill,grow]', '[]' ),
                   visible: StringUtils.trimToEmpty(devAmountTd).length() > 0, constraints: 'hidemode 3' ) {
             label( text: "Nombre:" )
-            txtName = textField( )
-            label( text: "Banco:", constraints: 'hidemode 3' )
-            txtBank = textField( constraints: 'hidemode 3' )
-            label( text: "Cta./CLABE:", constraints: 'hidemode 3' )
-            txtClaveAccount = textField( constraints: 'hidemode 3' )
+            txtName = textField( text: order.customer.onlyFullName, constraints: 'span 2' )
+            lblBank = label( text: "Banco:", constraints: 'hidemode 3', visible: false )
+            cbBank = comboBox( items: devBank*.name, constraints: 'hidemode 3,span 2', visible: false )
+            lblClaveAccount = label( text: "Cta./CLABE:", constraints: 'hidemode 3', visible: false )
+            txtClaveAccount = textField( constraints: 'hidemode 3', visible: false )
+            txtClaveAccount1 = textField( constraints: 'hidemode 3', visible: false )
             label( text: "Correo:" )
-            txtEmail = textField( )
+            txtEmail = textField( text: email, constraints: 'span 2' )
           }
           panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ) ) {
             lblVerifTarjeta = label( text: "    Verificar que el cliente traiga la Tarjeta de Credito.", constraints: 'hidemode 3', font: displayFont )
@@ -283,12 +308,66 @@ class TotalCancellationDialog extends JDialog {
   }
 
   protected void onButtonOk( ) {
-    AuthorizationCanDialog authDialog = new AuthorizationCanDialog( this, "Cancelaci\u00f3n requiere autorizaci\u00f3n", order )
-    authDialog.show()
-    dispose()
+    if( validDevTd() ){
+      DevBank selection = cbBank.selectedItem as DevBank
+      Integer selectedBank = selection.id
+      String dataDev = "${StringUtils.trimToEmpty(txtName.text)},${StringUtils.trimToEmpty(selectedBank.text)}"
+      AuthorizationCanDialog authDialog = new AuthorizationCanDialog( this, "Cancelaci\u00f3n requiere autorizaci\u00f3n", order )
+      authDialog.show()
+      dispose()
+    }
   }
 
   protected void onButtonPrint( ) {
     OrderController.printResumeCancCoupon( StringUtils.trimToEmpty(order.id), devAmount )
   }
+
+  Boolean validDevTd( ){
+    Boolean valid = true
+    String pattern= '[A-Za-z0-9]+';
+    if( StringUtils.trimToEmpty(txtName.text).length() <= 0 ||
+          !StringUtils.trimToEmpty(txtName.text).replace(" ","").matches(pattern) ){
+      valid = false
+      txtName.foreground = UI_Standards.WARNING_FOREGROUND
+    }
+
+
+    if( StringUtils.trimToEmpty(txtEmail.text).length() <= 0 ){
+      valid = false
+      txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
+    } else {
+      String[] emailData = StringUtils.trimToEmpty(txtEmail.text).split("@")
+      if( emailData.length != 2 ){
+        /*if( !StringUtils.trimToEmpty(emailData[0]).matches(pattern) ||
+                !StringUtils.trimToEmpty(emailData[1]).matches(pattern) ){*/
+          valid = false
+          txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
+        //}
+      } /*else {
+        valid = false
+      }*/
+    }
+    if( txtClaveAccount.visible ){
+      if( StringUtils.trimToEmpty(txtClaveAccount.text).length() <= 0 ||
+            (StringUtils.trimToEmpty(txtClaveAccount1.text).length() < 18 ||
+              StringUtils.trimToEmpty(txtClaveAccount1.text).length() < 18)){
+        valid = false
+        txtClaveAccount.foreground = UI_Standards.WARNING_FOREGROUND
+        txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
+        txtClaveAccount.text = "VERIFIQUE"
+        txtClaveAccount1.text = "LOS DATOS"
+      } else {
+        if( !StringUtils.trimToEmpty(txtClaveAccount.text).isNumber() ||
+                !StringUtils.trimToEmpty(txtClaveAccount1.text).isNumber() ){
+          valid = false
+          txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
+          txtClaveAccount.text = "VERIFIQUE"
+          txtClaveAccount1.text = "LOS DATOS"
+        }
+      }
+    }
+    return valid
+  }
+
+
 }
