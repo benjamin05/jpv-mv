@@ -554,7 +554,7 @@ class ShowOrderPanel extends JPanel {
         order.payments.each { Payment pmt ->
             creditRefunds.put( pmt?.id, 'ORIGINAL' )
         }
-        if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds ) ) {
+        if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, "" ) ) {
           CancellationController.freeCoupon( order.id )
           //CancellationController.printMaterialReturn( order.id )
           //CancellationController.printMaterialReception( order.id )

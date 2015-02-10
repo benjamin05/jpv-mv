@@ -237,7 +237,7 @@ class CancellationDialog extends JDialog {
                 String orderDate = orderCom != null ? orderCom.date.format(DATE_FORMAT) : order.date.format(DATE_FORMAT)
                 String currentDate = new Date().format(DATE_FORMAT)
                 if(currentDate.trim().equalsIgnoreCase(orderDate.trim())){
-                    if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds ) ) {
+                    if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, "" ) ) {
                         CancellationController.printOrderCancellation( order.id )
                         dispose()
                     } else {
@@ -307,7 +307,7 @@ class CancellationDialog extends JDialog {
       String orderDate = orderCom.date.format(DATE_FORMAT)
       String currentDate = new Date().format(DATE_FORMAT)
       if(currentDate.trim().equalsIgnoreCase(orderDate.trim())){
-        if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds ) ) {
+        if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, "" ) ) {
           CancellationController.printOrderCancellation( order.id )
         } else {
           sb.optionPane(
@@ -339,7 +339,7 @@ class CancellationDialog extends JDialog {
             }
         }
         if(item.id != null && !surte.equalsIgnoreCase(TAG_SURTE_PINO)){
-            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds )){
+            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, "" )){
                 //CancellationController.updateJb( orderId )
                 //CancellationController.printMaterialReturn( order.id )
                 //CancellationController.printMaterialReception( order.id )
@@ -368,7 +368,7 @@ class CancellationDialog extends JDialog {
                 //CancellationController.printMaterialReturn( order.id )
                 //CancellationController.printMaterialReception( order.id )
             }
-            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds )){
+            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, "" )){
                 CancellationController.printOrderCancellation( order.id )
                 dispose()
             } else {
@@ -379,7 +379,7 @@ class CancellationDialog extends JDialog {
                         .show()
             }
         } else if( item.id == null ){
-            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds )){
+            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, "" )){
                 CancellationController.printOrderCancellation( order.id )
                 dispose()
             } else {

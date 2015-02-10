@@ -201,11 +201,11 @@ class TotalCancellationDialog extends JDialog {
                   visible: StringUtils.trimToEmpty(devAmountTd).length() > 0, constraints: 'hidemode 3' ) {
             label( text: "Nombre:" )
             txtName = textField( text: order.customer.onlyFullName, constraints: 'span 2' )
-            lblBank = label( text: "Banco:", constraints: 'hidemode 3', visible: false )
+            lblBank = label( text: "Banco:", visible: false )
             cbBank = comboBox( items: devBank*.name, constraints: 'hidemode 3,span 2', visible: false )
             lblClaveAccount = label( text: "Cta./CLABE:", constraints: 'hidemode 3', visible: false )
-            txtClaveAccount = textField( constraints: 'hidemode 3', visible: false )
-            txtClaveAccount1 = textField( constraints: 'hidemode 3', visible: false )
+            txtClaveAccount = textField( visible: false )
+            txtClaveAccount1 = textField( visible: false )
             label( text: "Correo:" )
             txtEmail = textField( text: email, constraints: 'span 2' )
           }
@@ -309,10 +309,16 @@ class TotalCancellationDialog extends JDialog {
 
   protected void onButtonOk( ) {
     if( validDevTd() ){
-      DevBank selection = cbBank.selectedObjects as DevBank
-      Integer selectedBank = selection.id
-      String dataDev = "${StringUtils.trimToEmpty(txtName.text)},${StringUtils.trimToEmpty(selectedBank.text)}"
-      AuthorizationCanDialog authDialog = new AuthorizationCanDialog( this, "Cancelaci\u00f3n requiere autorizaci\u00f3n", order )
+      DevBank selection = null
+      for( DevBank devBank1 : devBank ){
+        if( StringUtils.trimToEmpty(cbBank.selectedItem.toString()).equalsIgnoreCase(devBank1.name) ){
+          selection = devBank1
+        }
+      }
+      String selectedBank = (selection != null && cbBank.visible) ? selection.id.toString() : ""
+      String dataDev = "${StringUtils.trimToEmpty(txtName.text)},${StringUtils.trimToEmpty(selectedBank)}," +
+                "${StringUtils.trimToEmpty(txtClaveAccount.text)},${StringUtils.trimToEmpty(txtClaveAccount1.text)},${StringUtils.trimToEmpty(txtEmail.text)}"
+      AuthorizationCanDialog authDialog = new AuthorizationCanDialog( this, "Cancelaci\u00f3n requiere autorizaci\u00f3n", order, dataDev )
       authDialog.show()
       dispose()
     }
@@ -365,6 +371,11 @@ class TotalCancellationDialog extends JDialog {
           txtClaveAccount1.text = "LOS DATOS"
         }
       }
+    }
+
+    if( cbBank.visible && cbBank.selectedItem == null ){
+      valid = false
+      cbBank.foreground = UI_Standards.WARNING_FOREGROUND
     }
     return valid
   }

@@ -225,7 +225,7 @@ class CancelacionServiceImpl implements CancelacionService {
 
     @Override
     @Transactional
-    List<Devolucion> registrarDevolucionesDeNotaVenta(String idNotaVenta, Map<Integer, String> devolucionesPagos) {
+    List<Devolucion> registrarDevolucionesDeNotaVenta(String idNotaVenta, Map<Integer, String> devolucionesPagos, String dataDev) {
         log.info("registrando devoluciones: ${devolucionesPagos} de notaVenta id: ${idNotaVenta}")
         boolean tieneElementos = devolucionesPagos?.any() && devolucionesPagos?.keySet()?.any()
         if (StringUtils.isNotBlank(idNotaVenta) && tieneElementos) {
@@ -241,9 +241,16 @@ class CancelacionServiceImpl implements CancelacionService {
                         Pago pago = pagoRepository.findOne(pagoId)
                         log.debug("obtiene pago: ${pago?.id}")
                         if (pago?.id) {
+                            Boolean putDataDev = false
                             String formaPago = TAG_EFECTIVO
                             if ('ORIGINAL'.equalsIgnoreCase(valor)) {
                                 formaPago = 'TR'.equalsIgnoreCase(pago.idFPago) ? pago.clave : pago.idFPago
+                            } else if ('CHEQUE'.equalsIgnoreCase(valor)){
+                              formaPago = "CH"
+                              putDataDev = true
+                            } else if ('TRANSFERENCIA BANCARIA'.equalsIgnoreCase(valor)){
+                                formaPago = "TB"
+                                putDataDev = true
                             }
                             Devolucion devolucion = new Devolucion(
                                     idMod: modificacion.id,
@@ -251,7 +258,8 @@ class CancelacionServiceImpl implements CancelacionService {
                                     idFormaPago: formaPago,
                                     idBanco: pago.idBancoEmisor?.isInteger() ? pago.idBancoEmisor.toInteger() : null,
                                     monto: pago.porDevolver,
-                                    tipo: 'd'
+                                    tipo: 'd',
+                                    devEfectivo: putDataDev ? dataDev : ""
                             )
                             log.debug("genera devolucion: ${devolucion.dump()}")
                             pago.porDevolver = 0

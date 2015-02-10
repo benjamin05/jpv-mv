@@ -166,7 +166,7 @@ class RefundDialog extends JDialog {
       String orderDate = orderCom.date.format(DATE_FORMAT)
       String currentDate = new Date().format(DATE_FORMAT)
       if(currentDate.trim().equalsIgnoreCase(orderDate.trim())){
-        if ( CancellationController.refundPaymentsCreditFromOrder( orderId, creditRefunds ) ) {
+        if ( CancellationController.refundPaymentsCreditFromOrder( orderId, creditRefunds, "" ) ) {
             CancellationController.printOrderCancellation( orderId )
             dispose()
         } else {
@@ -201,7 +201,7 @@ class RefundDialog extends JDialog {
           }
       }
       if(item.id != null && !surte.equalsIgnoreCase(TAG_SURTE_PINO)){
-          if(CancellationController.refundPaymentsCreditFromOrder( orderId, creditRefunds )){
+          if(CancellationController.refundPaymentsCreditFromOrder( orderId, creditRefunds, "" )){
               //CancellationController.updateJb( orderId )
               //CancellationController.printMaterialReturn( orderId )
               //CancellationController.printMaterialReception( orderId )
@@ -230,7 +230,7 @@ class RefundDialog extends JDialog {
           //CancellationController.printMaterialReturn( orderId )
           //CancellationController.printMaterialReception( orderId )
         }
-          if(CancellationController.refundPaymentsCreditFromOrder( orderId, creditRefunds )){
+          if(CancellationController.refundPaymentsCreditFromOrder( orderId, creditRefunds, "" )){
               CancellationController.printOrderCancellation( orderId )
               dispose()
           } else {
@@ -241,7 +241,7 @@ class RefundDialog extends JDialog {
                       .show()
           }
       } else if( item.id == null ){
-          if(CancellationController.refundPaymentsCreditFromOrder( orderId, creditRefunds )){
+          if(CancellationController.refundPaymentsCreditFromOrder( orderId, creditRefunds, "" )){
               CancellationController.printOrderCancellation( orderId )
               dispose()
           } else {

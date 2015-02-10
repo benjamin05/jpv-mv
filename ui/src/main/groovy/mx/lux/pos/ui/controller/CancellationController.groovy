@@ -113,7 +113,7 @@ class CancellationController {
     return [ ]
   }
 
-  static boolean refundPaymentsCreditFromOrder( String orderId, Map<Integer, String> creditRefunds ) {
+  static boolean refundPaymentsCreditFromOrder( String orderId, Map<Integer, String> creditRefunds, String dataDev ) {
     log.info( "solicitando registrar devoluciones: ${creditRefunds} de orden id: ${orderId}" )
     if ( StringUtils.isNotBlank( orderId ) ) {
       creditRefunds?.each { Integer pagoId, String valor ->
@@ -121,7 +121,7 @@ class CancellationController {
           creditRefunds.remove( pagoId )
         }
       }
-      List<Devolucion> results = cancelacionService.registrarDevolucionesDeNotaVenta( orderId, creditRefunds )
+      List<Devolucion> results = cancelacionService.registrarDevolucionesDeNotaVenta( orderId, creditRefunds, dataDev )
       if ( results?.any() ) {
         log.debug( "devoluciones registradas obtenidas: ${results*.id}" )
         return true
@@ -376,7 +376,7 @@ class CancellationController {
          creditRefunds.put( pmt?.id, 'ORIGINAL' )
        }
 
-       if( refundPaymentsCreditFromOrder( nota.id, creditRefunds ) &&
+       if( refundPaymentsCreditFromOrder( nota.id, creditRefunds, "" ) &&
                (montoPago.compareTo(montoPagoCup) <= 0) ){
            printOrderCancellation( nota.id )
            NotaVenta notasReuso = notaVentaService.buscarNotasReuso( nota.id )

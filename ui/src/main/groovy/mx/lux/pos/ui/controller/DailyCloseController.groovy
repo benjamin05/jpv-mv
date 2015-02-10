@@ -147,7 +147,7 @@ class DailyCloseController {
           payments.each { Pago pmt ->
               creditRefunds.put( pmt?.id, 'ORIGINAL' )
           }
-          if( CancellationController.refundPaymentsCreditFromOrder( nota.id, creditRefunds ) ){
+          if( CancellationController.refundPaymentsCreditFromOrder( nota.id, creditRefunds, "" ) ){
             CancellationController.printOrderCancellation( nota.id )
             NotaVenta notasReuso = notaVentaService.buscarNotasReuso( nota.id )
             if(notasReuso != null){

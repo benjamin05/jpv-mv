@@ -2494,7 +2494,8 @@ class OrderController {
             return o1.nombre.compareTo(o2.nombre)
         }
     })
-      lstBancos.each { BancoDev tmp -> lstBanks.addAll( DevBank.toDevBank(tmp) ) }
+    lstBanks.add( new DevBank() )
+    lstBancos.each { BancoDev tmp -> lstBanks.add( DevBank.toDevBank(tmp) ) }
     return lstBanks
   }
 
