@@ -309,7 +309,7 @@ class TotalCancellationDialog extends JDialog {
 
   protected void onButtonOk( ) {
     if( validDevTd() ){
-      DevBank selection = cbBank.selectedItem as DevBank
+      DevBank selection = cbBank.selectedObjects as DevBank
       Integer selectedBank = selection.id
       String dataDev = "${StringUtils.trimToEmpty(txtName.text)},${StringUtils.trimToEmpty(selectedBank.text)}"
       AuthorizationCanDialog authDialog = new AuthorizationCanDialog( this, "Cancelaci\u00f3n requiere autorizaci\u00f3n", order )
