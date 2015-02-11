@@ -3,8 +3,10 @@ package mx.lux.pos.ui.view.dialog
 import com.sun.java.util.jar.pack.Attribute.FormatException
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
+import mx.lux.pos.model.Articulo
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.IPromotionAvailable
+import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.model.Parametro
 import mx.lux.pos.model.PromotionAvailable
 import mx.lux.pos.model.PromotionDiscount
@@ -95,6 +97,8 @@ class MultypaymentDialog extends JDialog implements FocusListener {
   private Boolean validClave = true
 
   private static final TAG_GENERICO_B = 'B'
+  private static final TAG_GENERICO_A = 'A'
+  private static final TAG_SUBTYPE_N = 'N'
 
   public boolean button = false
 
@@ -794,6 +798,38 @@ class MultypaymentDialog extends JDialog implements FocusListener {
             validOrder = true
         }
         if (validOrder) {
+          Boolean hasKidFrame = false
+          Boolean hasEnsureKid = false
+          for(OrderItem det : order.items){
+            Articulo art = ItemController.findArticle( det.item.id )
+            if( StringUtils.trimToEmpty(art?.subtipo).startsWith(TAG_SUBTYPE_N) ){
+              hasKidFrame = true
+            }
+            if( StringUtils.trimToEmpty(det.item.name).equalsIgnoreCase("SEG") ){
+              hasEnsureKid = true
+            }
+          }
+          if( order.deals.size() > 0 ){
+            println order.deals.first().descripcion
+          }
+          if( hasKidFrame && !hasEnsureKid ){
+            List<Item> results = ItemController.findItemsByQuery("SEG")
+            if (results?.any()) {
+              User user = Session.get(SessionItem.USER) as User
+              String vendedor = user.username
+              order = OrderController.addItemToOrder(order, results.first(), "")
+              order = OrderController.placeOrder(order, vendedor, false)
+              OrderController.insertSegKig = false
+            }
+          }
+          Boolean warranty = false
+          if( true ){
+            NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
+          } else {
+            warranty = true
+          }
+          if( warranty ){
             Boolean noDelivered = OrderController.validGenericNoDelivered( order.id )
             Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
             BigDecimal totalOrder = order?.total * pAnticipo
@@ -815,6 +851,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
             } else {
                 save = true
             }
+          }
         }
       return save
     }

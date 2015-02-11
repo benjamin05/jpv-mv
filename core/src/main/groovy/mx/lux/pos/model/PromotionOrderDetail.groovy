@@ -1,5 +1,8 @@
 package mx.lux.pos.model
 
+import mx.lux.pos.repository.ArticuloRepository
+import mx.lux.pos.repository.impl.RepositoryFactory
+import mx.lux.pos.service.business.Registry
 import org.apache.commons.lang3.StringUtils
 
 class PromotionOrderDetail implements Comparable<PromotionOrderDetail> {
@@ -83,11 +86,16 @@ class PromotionOrderDetail implements Comparable<PromotionOrderDetail> {
   
   Double getFinalPrice() {
     Double price = regularPrice
-    if ( this.hasPromotionApplied( ) ) {
-      price = this.promotionPrice
-    }
-    if ( this.hasOrderDiscountApplied( ) ) {
-      price = this.getOrderDiscountPrice( )
+    String genNoDiscount = Registry.genericsWithoutDiscount
+    ArticuloRepository rep = RepositoryFactory.partMaster
+    Articulo articulo = rep.findOne( this.sku )
+    if( !genNoDiscount.contains(StringUtils.trimToEmpty(articulo.idGenerico)) ){
+      if ( this.hasPromotionApplied( ) ) {
+        price = this.promotionPrice
+      }
+      if ( this.hasOrderDiscountApplied( ) ) {
+        price = this.getOrderDiscountPrice( )
+      }
     }
     return price
   }
@@ -95,7 +103,7 @@ class PromotionOrderDetail implements Comparable<PromotionOrderDetail> {
   Double getOrderDiscountPrice( ) {
     Double price = 0.0
     if ( this.hasOrderDiscountApplied( ) ) {
-      price = ( this.hasPromotionApplied( ) ? this.promotionPrice : this.regularPrice ) * 
+      price = ( this.hasPromotionApplied( ) ? this.promotionPrice : this.regularPrice ) *
           ( 1 - this.orderDiscountPercent )
     }
     return price

@@ -1,6 +1,7 @@
 package mx.lux.pos.service
 
 import mx.lux.pos.model.Articulo
+import mx.lux.pos.model.MontoGarantia
 import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.model.ArticuloSombra
 import mx.lux.pos.model.DetalleNotaVenta
@@ -85,4 +86,6 @@ interface ArticuloService {
   Boolean validaCodigoDioptra( String codigo )
 
   List<Generico> genericos()
+
+  MontoGarantia obtenerMontoGarantia( BigDecimal precioArt )
 }

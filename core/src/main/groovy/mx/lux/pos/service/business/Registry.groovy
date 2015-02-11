@@ -220,6 +220,14 @@ class Registry {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
   }
 
+  static String getValidEnsureDate( ) {
+    return asString( TipoParametro.FECHA_VALIDA_SEGURO )
+  }
+
+  static Integer getPercentageWarranty( ) {
+    return asInteger( TipoParametro.PORCENTAJE_GARANTIA )
+  }
+
   static String getSearchMethod( ) {
     return asString( TipoParametro.METODO_BUSQUEDA_ARTICULOS )
   }
@@ -275,6 +283,10 @@ class Registry {
 
   static String getInputFilePath( ) {
     return asString( TipoParametro.RUTA_POR_RECIBIR )
+  }
+
+  static String getGenericsWithoutDiscount( ) {
+      return asString( TipoParametro.GENERICOS_NO_APLICA_DESCUENTO )
   }
 
   static String getDepositBank( ) {
@@ -465,6 +477,18 @@ class Registry {
 
     static Integer getAlmacenPorAclarar() {
         return  asInteger(TipoParametro.ALMACEN_POR_ACLARAR)
+    }
+
+    static Integer getValidityEnsureKid() {
+        return  asInteger(TipoParametro.VIGENCIA_SEGURO_INFANTIL)
+    }
+
+    static Integer getValidityEnsureOpht() {
+        return  asInteger(TipoParametro.VIGENCIA_SEGURO_OFTALMICO)
+    }
+
+    static Integer getValidityEnsureFrame() {
+        return  asInteger(TipoParametro.VIGENCIA_SEGURO_SOLAR)
     }
 
     static Boolean getActiveStoreDiscount( ) {
