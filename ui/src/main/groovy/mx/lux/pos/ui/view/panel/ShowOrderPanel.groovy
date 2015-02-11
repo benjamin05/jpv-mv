@@ -430,7 +430,7 @@ class ShowOrderPanel extends JPanel {
   private doPrint(){
     OrderController.printOrder( order.id, false )
     OrderController.printPaidOrder( order.id )
-    List<CuponMv> lstCuponMv = OrderController.obtenerCuponMvBySourceOrder(StringUtils.trimToEmpty(order.bill) )
+    /*List<CuponMv> lstCuponMv = OrderController.obtenerCuponMvBySourceOrder(StringUtils.trimToEmpty(order.bill) )
     for(CuponMv cuponMv : lstCuponMv){
       String titulo = ""
       if( cuponMv.claveDescuento.trim().startsWith("8") ){
@@ -441,7 +441,7 @@ class ShowOrderPanel extends JPanel {
         titulo = "CUPON TERCER PAR"
       }
       OrderController.printCuponTicket( cuponMv, titulo, cuponMv.montoCupon )
-    }
+    }*/
   }
 
     private  doShowPayment(){

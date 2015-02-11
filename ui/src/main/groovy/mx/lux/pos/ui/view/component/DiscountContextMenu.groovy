@@ -35,10 +35,14 @@ class DiscountContextMenu extends JPopupMenu {
         visible: true,
         actionPerformed: { onCorporateDiscountSelected( ) },
       )
-        menuCouponDiscount = menuItem( text: "Descuento por Cupon",
-                visible: true,
-                actionPerformed: { onCouponDiscountSelected( ) },
-        )
+      menuCouponDiscount = menuItem( text: "Descuento por Cupon",
+        visible: true,
+        actionPerformed: { onCouponDiscountSelected( ) },
+      )
+      menuCouponDiscount = menuItem( text: "Seguro",
+        visible: true,
+        actionPerformed: { onWarrantyDiscountSelected( ) },
+      )
     }
   }
   
@@ -73,7 +77,7 @@ class DiscountContextMenu extends JPopupMenu {
   }
 
   protected void onCouponDiscountSelected(){
-      driver.requestCouponDiscount()
+      driver.requestCouponDiscount( "Descuento por Cupon" )
       for(Payment payment : driver.view.order.payments){
           OrderController.removePaymentFromOrder( driver.view.order.id, payment )
       }
@@ -82,5 +86,15 @@ class DiscountContextMenu extends JPopupMenu {
   }
 
 
-  
+
+  protected void onWarrantyDiscountSelected(){
+    driver.requestCouponDiscount( "Seguro" )
+    for(Payment payment : driver.view.order.payments){
+            OrderController.removePaymentFromOrder( driver.view.order.id, payment )
+    }
+    OrderController.saveOrder( driver.view.order )
+    orderPanel.updateOrder( driver.view.order.id )
+  }
+
+
 }

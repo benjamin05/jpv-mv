@@ -11,6 +11,7 @@ import mx.lux.pos.ui.view.dialog.ChangePasswordDialog
 import mx.lux.pos.ui.view.dialog.CustomerSearchDialog
 import mx.lux.pos.ui.view.dialog.EntregaTrabajoDialog
 import mx.lux.pos.ui.view.dialog.ImportEmployeeDialog
+import mx.lux.pos.ui.view.dialog.ReprintEnsureDialog
 import mx.lux.pos.ui.view.panel.*
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang.StringUtils
@@ -93,6 +94,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem loadPartClassMenuItem
     private JMenuItem generateInventoryFile
     private JMenuItem newSalesDayMenuItem
+    private JMenuItem reprintEnsureMenuItem
     private JMenuItem cotizacionMenuItem
     private JMenuItem kardexMenuItem
     private JMenuItem salesTodayMenuItem
@@ -612,6 +614,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 changePasswordMenuItem.visible = userLoggedIn
                                 disactivateSPItem.visible = userLoggedIn
                                 importEmployeeMenuItem.visible = userLoggedIn
+                                reprintEnsureMenuItem.visible = userLoggedIn
                             }
                     ) {
                         entregaMenuItem = menuItem(text: 'Entrega',
@@ -643,6 +646,20 @@ class MainWindow extends JFrame implements KeyListener {
                                       dialog.show()
                                     } else {
                                         OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
+                                    }
+                                }
+                        )
+                        reprintEnsureMenuItem = menuItem( text: 'Reimprimir Seguro',
+                                visible: true,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    AuthorizationDialog authDialog = new AuthorizationDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+                                    authDialog.show()
+                                    if (authDialog.authorized) {
+                                      reprintEnsure()
+                                    } else {
+                                      OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
                                     }
                                 }
                         )
@@ -771,6 +788,11 @@ class MainWindow extends JFrame implements KeyListener {
 
     void requestNewSalesDay( ) {
         OpenSalesController.instance.requestNewDay()
+    }
+
+    void reprintEnsure( ) {
+      ReprintEnsureDialog dialog = new ReprintEnsureDialog()
+      dialog.show()
     }
 
     void disactivateSP( ) {

@@ -1591,6 +1591,8 @@ public class ReportServiceImpl implements ReportService {
                 desc.getDescuentosClave().setDescripcion_descuento( "CUPON 3P" );
               } else if( StringUtils.trimToEmpty(desc.getClave()).startsWith("F") ){
                   desc.getDescuentosClave().setDescripcion_descuento( "Amigos y Familiares 200" );
+              } else if( StringUtils.trimToEmpty(desc.getClave()).length() >= 11 ){
+                  desc.getDescuentosClave().setDescripcion_descuento( "Redencion de Seguro" );
               }
             } else {
               desc.getDescuentosClave().setClave_descuento(desc.getClave());

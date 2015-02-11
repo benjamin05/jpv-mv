@@ -9,6 +9,7 @@ import mx.lux.pos.model.PromotionModel
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.OrderController
+import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.model.Descuento
 import mx.lux.pos.ui.model.IPromotion
@@ -16,6 +17,7 @@ import mx.lux.pos.service.PromotionService
 import mx.lux.pos.service.business.PromotionCommit
 import mx.lux.pos.ui.model.ICorporateKeyVerifier
 import mx.lux.pos.ui.model.IPromotionDrivenPanel
+import mx.lux.pos.ui.model.OrderItem
 import mx.lux.pos.ui.resources.ServiceManager
 import mx.lux.pos.ui.view.dialog.DiscountCouponDialog
 import mx.lux.pos.ui.view.dialog.DiscountDialog
@@ -198,20 +200,36 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     }
   }
 
-  void requestCouponDiscount(){
+  void requestCouponDiscount( String title ){
     if( CustomerController.validCustomerApplyCoupon( view.order.customer.id ) ){
-      DiscountCouponDialog couponDiscount = new DiscountCouponDialog(true,view.order.id)
-      couponDiscount.setOrderTotal( view.order.total )
+      Item item = null
+      BigDecimal total = BigDecimal.ZERO
+      for(OrderItem tmp : view.order.items){
+        if( StringUtils.trimToEmpty(tmp.item.type).equalsIgnoreCase("A") ){
+          item = tmp.item
+        }
+        if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(tmp.item.type)) ){
+          total = total.add(tmp.item.price)
+        }
+      }
+      if( StringUtils.trimToEmpty(title).equalsIgnoreCase("seguro") ){
+        if( item == null ){
+          item = new Item()
+        }
+        item.price = total
+      }
+      DiscountCouponDialog couponDiscount = new DiscountCouponDialog(true,view.order.id, item, title )
+      couponDiscount.setOrderTotal( total )
       couponDiscount.setVerifier( this )
       couponDiscount.activate()
       if ( couponDiscount.getDiscountSelected() ) {
           Double discountAmount = 0.00
-          if(couponDiscount.getDiscountAmt() > new Double(view.order.total)){
-            discountAmount = new Double(view.order.total)
+          if(couponDiscount.getDiscountAmt() > new Double(total)){
+            discountAmount = new Double(total)
           } else {
             discountAmount = couponDiscount.getDiscountAmt()
           }
-          Double discount = discountAmount / view.order.total
+          Double discount = discountAmount / total
           Boolean apl = false
           apl = model.setupOrderCouponDiscount(couponDiscount?.descuentoClave,discount )
           PromotionCommit.writeOrder( model )
@@ -240,12 +258,18 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     descuentoClave.tipo = TAG_TIPO_DESCUENTO_CUPON
     descuentoClave.descripcion_descuento = "Descuento Cupon"
     descuentoClave.vigente = true
-    if(discountAmt > new Double(order.total)){
-          discountAmount = new Double(order.total)
+    BigDecimal total = BigDecimal.ZERO
+    for(OrderItem det : order.items){
+      if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(det.item.type)) ){
+        total = total.add(det.item.price)
+      }
+    }
+    if(discountAmt > new Double(total)){
+          discountAmount = new Double(total)
       } else {
           discountAmount = discountAmt
       }
-      Double discount = discountAmount / order.total
+      Double discount = discountAmount / total
       Boolean apl = false
       model.loadOrder( OrderController.findOrderByidOrder( StringUtils.trimToEmpty(order.id) ) )
       apl = model.setupOrderCouponDiscount(descuentoClave,discount )

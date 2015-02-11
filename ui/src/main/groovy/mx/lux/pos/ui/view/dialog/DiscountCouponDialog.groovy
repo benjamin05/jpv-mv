@@ -2,6 +2,8 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.CuponMv
+import mx.lux.pos.ui.model.Order
+import mx.lux.pos.ui.model.Item
 import mx.lux.pos.model.DescuentoClave
 import mx.lux.pos.model.DetalleNotaVenta
 import mx.lux.pos.model.NotaVenta
@@ -19,6 +21,9 @@ import java.awt.*
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.text.NumberFormat
+import java.text.ParseException
+import java.text.SimpleDateFormat
 
 class DiscountCouponDialog extends JDialog {
 
@@ -34,6 +39,12 @@ class DiscountCouponDialog extends JDialog {
   private static final String TXT_VERIFY_FAILED = "Clave incorrecta"
   private static final String TXT_VERIFY_AMOUNT_FAILED = "Monto incorrecto"
   private static final String TAG_GENERICO_J = "J"
+  private static final String TAG_GENERICO_B = "B"
+  private static final String TAG_GENERICO_A = "A"
+  private static final String TAG_TIPO_G = "G"
+  private static final String TAG_SEGURO_INFANTIL = "N"
+  private static final String TAG_SEGURO_OFTALMICO = "L"
+  private static final String TAG_SEGURO_SOLAR = "S"
   private static  JLabel porceLabel = new JLabel()
   private static  JTextField porceText = new JTextField()
 
@@ -50,6 +61,7 @@ class DiscountCouponDialog extends JDialog {
   private JButton btnOk
   private JLabel lblStatus
 
+  private String warning
   private FocusListener trgDiscAmountLeave
   private FocusListener trgDiscPercentLeave
   private FocusListener trgCorporateKeyLeave
@@ -63,9 +75,13 @@ class DiscountCouponDialog extends JDialog {
   Double discountPct = 0
   Boolean discountSelected
   String idOrder
+  Item item
+  String title
 
-    DiscountCouponDialog( Boolean pCorporate, String idOrder ) {
+    DiscountCouponDialog( Boolean pCorporate, String idOrder, Item item, String title ) {
     corporateEnabled = pCorporate
+    this.item = item
+    this.title = title
     this.idOrder = idOrder
     init( )
     buildUI( )
@@ -82,7 +98,7 @@ class DiscountCouponDialog extends JDialog {
   
   protected void buildUI( JComponent pParent) {
     sb.dialog( this,
-        title: "Descuento por Cupon" ,
+        title: title,
         location: [ 300, 300 ] ,
         resizable: false,
         modal: true,
@@ -178,6 +194,9 @@ class DiscountCouponDialog extends JDialog {
         if( descuentoClave == null ){
           descuentoClave = OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
         }
+        if( descuentoClave == null ){
+          descuentoClave = requestVerify()//OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
+        }
 
         if (  descuentoClave != null ) {
             if(descuentoClave?.vigente == true){
@@ -230,7 +249,11 @@ class DiscountCouponDialog extends JDialog {
                 btnOk.setEnabled( false )
             }
       } else {
-        lblStatus.text = TXT_VERIFY_FAILED
+        if( StringUtils.trimToEmpty(warning).length() > 0 ){
+          lblStatus.text = warning
+        } else {
+          lblStatus.text = TXT_VERIFY_FAILED
+        }
         lblStatus.foreground = UI_Standards.WARNING_FOREGROUND
         btnOk.setEnabled( false )
       }
@@ -312,4 +335,112 @@ class DiscountCouponDialog extends JDialog {
     txtCorporateKey.setText( txtCorporateKey.getText( ).toUpperCase( ) )
     verifyCorporateKey( )
   }
+
+
+  DescuentoClave requestVerify( ){
+    Boolean valid = false
+    SimpleDateFormat formatter = new SimpleDateFormat("ddMMyy");
+    String clave = ""
+    BigDecimal amount = BigDecimal.ZERO
+    if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 11 ){
+      for(int i=0;i<StringUtils.trimToEmpty(txtCorporateKey.text).length();i++){
+        if(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()).isNumber()){
+          Integer number = 0
+          try{
+            number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()))
+          } catch ( NumberFormatException e ) { println e }
+          clave = clave+StringUtils.trimToEmpty((10-number).toString())
+        } else {
+          clave = clave+0
+        }
+      }
+      String dateStr = StringUtils.trimToEmpty(clave).substring(1,7)
+      String amountStr = StringUtils.trimToEmpty(clave).substring(7,11)
+      Date date = null
+      try{
+        date = formatter.parse(dateStr)
+        amount = NumberFormat.getInstance().parse(amountStr)
+      } catch ( ParseException e) {
+        e.printStackTrace()
+      } catch ( NumberFormatException e) {
+        e.printStackTrace()
+      }
+      if( item.price.compareTo(amount) <= 0 ){
+        amount = (item.price.multiply(new BigDecimal(Registry.percentageWarranty).divide(new BigDecimal(100)))).doubleValue()
+      }
+      Boolean itemsValid = false
+      warning = ""
+      NotaVenta notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(idOrder) )
+      if( notaVenta != null ){
+        String ensureType = StringUtils.trimToEmpty(txtCorporateKey.text).substring(0,1)
+        Boolean hasEnsure = false
+        for(DetalleNotaVenta det : notaVenta.detalles){
+          if( StringUtils.trimToEmpty(det.articulo.idGenerico).startsWith(TAG_GENERICO_J) ){
+            hasEnsure = true
+          }
+        }
+        if( !hasEnsure ){
+        if( TAG_SEGURO_INFANTIL.equalsIgnoreCase(ensureType) ){
+          for(DetalleNotaVenta det : notaVenta.detalles){
+            if( StringUtils.trimToEmpty(det.articulo.subtipo).startsWith(TAG_SEGURO_INFANTIL) ){
+              itemsValid = true
+              warning = ""
+              break
+            } else {
+              warning = 'El producto no corresponde al seguro'
+            }
+          }
+        } else if( TAG_SEGURO_OFTALMICO.equalsIgnoreCase(ensureType) ){
+          for(DetalleNotaVenta det : notaVenta.detalles){
+            if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_B) ){
+              itemsValid = true
+              warning = ""
+              break
+            } else {
+                warning = 'El producto no corresponde al seguro'
+            }
+          }
+        } else if( TAG_SEGURO_SOLAR.equalsIgnoreCase(ensureType) ){
+          for(DetalleNotaVenta det : notaVenta.detalles){
+            if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_A) &&
+                    StringUtils.trimToEmpty(det.articulo.tipo).equalsIgnoreCase(TAG_TIPO_G)){
+              itemsValid = true
+              warning = ""
+              break
+            } else {
+                warning = 'El producto no corresponde al seguro'
+            }
+          }
+        }
+      } else {
+        warning = 'Combinacion de productos invalida'
+      }
+      }
+      if( StringUtils.trimToEmpty(warning).length() > 0 ){
+        lblStatus.text = warning
+      }
+      if( date.compareTo(new Date()) >= 0 && amount.compareTo(BigDecimal.ZERO) > 0 &&
+            OrderController.keyFree(StringUtils.trimToEmpty(txtCorporateKey.text).toUpperCase()) && itemsValid ){
+        if( item != null && item.price.compareTo(amount) < 0 ){
+          txtDiscountAmount.setText( StringUtils.trimToEmpty((item.price.multiply(new BigDecimal(Registry.percentageWarranty/100))).toString()) )
+        } else {
+          txtDiscountAmount.setText( StringUtils.trimToEmpty(amount.doubleValue().toString()) )
+        }
+        valid = true
+      }
+    }
+    DescuentoClave descuentoClave = null
+        if( valid ){
+      descuentoClave = new DescuentoClave()
+      descuentoClave.clave_descuento = StringUtils.trimToEmpty(txtCorporateKey.text)
+      descuentoClave.porcenaje_descuento = amount.doubleValue()
+      descuentoClave.descripcion_descuento = "Seguro"
+      descuentoClave.tipo = "M"
+      descuentoClave.vigente = true
+      descuentoClave.cupon = false
+    }
+    return descuentoClave
+  }
+
+
 }
