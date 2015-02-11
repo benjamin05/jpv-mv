@@ -367,7 +367,14 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   void updatePromotionClient( Order order ){
     Descuento desc = OrderController.findDiscount( order )
     if( desc != null && desc.id != null ){
-      Double discount = desc.getNotaVenta().getMontoDescuento() / (desc.getNotaVenta().getVentaTotal()+desc.getNotaVenta().getMontoDescuento())
+      BigDecimal ventaTotal = BigDecimal.ZERO
+      String genericoNoApplica = StringUtils.trimToEmpty(Registry.genericsWithoutDiscount)
+      for(OrderItem oi : order.items){
+        if( !genericoNoApplica.equalsIgnoreCase(StringUtils.trimToEmpty(oi.item.type)) ){
+          ventaTotal = ventaTotal.add(oi.item.price)
+        }
+      }
+      Double discount = desc.getNotaVenta().getMontoDescuento() / (ventaTotal+desc.getNotaVenta().getMontoDescuento())
       Boolean apl = false
       DescuentoClave descuentoClave = null
       if( desc?.descuentosClave != null ){
