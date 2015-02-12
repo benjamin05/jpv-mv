@@ -71,6 +71,7 @@ class TotalCancellationDialog extends JDialog {
 
   private String TAG_FORMA_PAGO_TC = "TC"
   private String TAG_FORMA_PAGO_TD = "TD"
+  private String TAG_FORMA_PAGO_EF = "EF"
   private String TAG_FORMA_PAGO_C1 = "C1"
 
   private String TAG_DESC_FORMA_PAGO_EF = "EFECTIVO"
@@ -160,11 +161,11 @@ class TotalCancellationDialog extends JDialog {
                     } as DefaultTableModel
                 }
             }
-          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ) ) {
+          /*panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ) ) {
             label( text: "DEVOLUCION:", font: displayFont )
             label( text: devAmount, font: displayFont )
-          }
-          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 2', '[]', '[]' ), visible: StringUtils.trimToEmpty(devAmountTd).length() > 0 ) {
+          }*/
+          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 2', '[fill,grow][fill,grow]', '[]' ), visible: StringUtils.trimToEmpty(devAmountTd).length() > 0 ) {
             panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[]', '[]' ) ) {
               label( text: "DEVOLUCION:", font: displayFont )
               label( text: devAmountTd, font: displayFont )
@@ -280,7 +281,8 @@ class TotalCancellationDialog extends JDialog {
           amountNbrTc = (amountNbrTc.add(payment.amount)).subtract(couponsAmount)
         } else if( StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_C1) ) {
           amountNbrC1 = (amountNbrC1.add(payment.amount)).subtract(couponsAmount)
-        } else if( StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_TD) ) {
+        } else if( StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_TD) ||
+              StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_EF)) {
           amountNbrTd = (amountNbrTd.add(payment.amount)).subtract(couponsAmount)
         } else {
           amountNbrEf = (amountNbrEf.add(payment.amount)).subtract(couponsAmount)
@@ -288,11 +290,12 @@ class TotalCancellationDialog extends JDialog {
       }
       couponsAmount = couponsAmount.doubleValue()-payment.amount.doubleValue() < 0.00 ? BigDecimal.ZERO : couponsAmount.doubleValue()-payment.amount.doubleValue()
     }
-    amount = (amountNbrEf.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrEf,TAG_DESC_FORMA_PAGO_EF) : "")+" "+
+    amount = /*(amountNbrEf.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrEf,TAG_DESC_FORMA_PAGO_EF) : "")+*/""+
             (amountNbrTc.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTc,TAG_DESC_FORMA_PAGO_TC) : "")+" "+
             //(amountNbrTd.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTd,TAG_DESC_FORMA_PAGO_TD) : "")+" "+
             (amountNbrC1.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrC1,TAG_DESC_FORMA_PAGO_C1) : "")
-    devAmountTd = amountNbrTd.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTd,TAG_DESC_FORMA_PAGO_TD) : ""
+    //devAmountTd = amountNbrTd.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTd,TAG_DESC_FORMA_PAGO_TD) : ""
+    devAmountTd = amountNbrTd.doubleValue() > 0 ? String.format('$%.2f',amountNbrTd) : ""
 
     if( StringUtils.trimToEmpty(amount).length() <= 0 || StringUtils.trimToEmpty(amount).equalsIgnoreCase(",,,") ){
       amount = '$0.00'
@@ -341,6 +344,7 @@ class TotalCancellationDialog extends JDialog {
     if( StringUtils.trimToEmpty(txtEmail.text).length() <= 0 ){
       valid = false
       txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
+      txtEmail.text = "DATO OBLIGATORIO"
     } else {
       String[] emailData = StringUtils.trimToEmpty(txtEmail.text).split("@")
       if( emailData.length != 2 ){
@@ -348,9 +352,11 @@ class TotalCancellationDialog extends JDialog {
                 !StringUtils.trimToEmpty(emailData[1]).matches(pattern) ){*/
           valid = false
           txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
+          txtEmail.text = "FORMATO INCORRECTO"
         //}
       } /*else {
-        valid = false
+        txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
+        txtEmail.text = "FORMATO INCORRECTO"
       }*/
     }
     if( txtClaveAccount.visible ){

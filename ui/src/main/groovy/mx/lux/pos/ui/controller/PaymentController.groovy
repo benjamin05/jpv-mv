@@ -29,6 +29,7 @@ class PaymentController {
   private static String TAG_CUPON = "CUPON"
   private static String TAG_FORMA_PAGO_TRANSF = "TR"
   private static String TAG_FORMA_PAGO_TD = "TD"
+  private static String TAG_FORMA_PAGO_EF = "EF"
 
   @Autowired
   PaymentController(
@@ -151,7 +152,8 @@ class PaymentController {
         }
       } else if(typePaymentDevOri.contains(pago.idFPago)){
         type = 'ORIGINAL'
-      } else if(TAG_FORMA_PAGO_TD.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago))){
+      } else if(TAG_FORMA_PAGO_TD.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago)) ||
+              TAG_FORMA_PAGO_EF.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago))){
         if( isTB ){
           type = 'TRANSFERENCIA BANCARIA'
         } else {
