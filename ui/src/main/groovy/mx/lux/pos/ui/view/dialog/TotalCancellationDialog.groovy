@@ -44,7 +44,10 @@ class TotalCancellationDialog extends JDialog {
   private JTextField txtEmail
   private JComboBox cbBank
   private JTextField txtClaveAccount
+  private JLabel lblSlash
   private JTextField txtClaveAccount1
+  private JPanel pnlDevCash
+  private JPanel pnlDevOriginal
   private JLabel lblBank
   private JLabel lblClaveAccount
 
@@ -161,11 +164,11 @@ class TotalCancellationDialog extends JDialog {
                     } as DefaultTableModel
                 }
             }
-          /*panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ) ) {
+          pnlDevOriginal = panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ), visible: StringUtils.trimToEmpty(devAmountTd).length() <= 0 ) {
             label( text: "DEVOLUCION:", font: displayFont )
             label( text: devAmount, font: displayFont )
-          }*/
-          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 2', '[fill,grow][fill,grow]', '[]' ), visible: StringUtils.trimToEmpty(devAmountTd).length() > 0 ) {
+          }
+          pnlDevCash = panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 2', '[fill,grow][fill,grow]', '[]' ), visible: StringUtils.trimToEmpty(devAmountTd).length() > 0 ) {
             panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[]', '[]' ) ) {
               label( text: "DEVOLUCION:", font: displayFont )
               label( text: devAmountTd, font: displayFont )
@@ -181,6 +184,7 @@ class TotalCancellationDialog extends JDialog {
                       cbBank.visible = false
                       txtClaveAccount.visible = false
                       txtClaveAccount1.visible = false
+                      lblSlash.visible = false
                       lblBank.visible = false
                       lblClaveAccount.visible = false
                     }
@@ -192,23 +196,25 @@ class TotalCancellationDialog extends JDialog {
                     cbBank.visible = true
                     txtClaveAccount.visible = true
                     txtClaveAccount1.visible = true
+                    lblSlash.visible = true
                     lblBank.visible = true
                     lblClaveAccount.visible = true
                   }
               })
             }
           }
-          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 3', '[fill][fill,grow]', '[]' ),
+          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 4', '[fill][fill,grow][][fill,grow]', '[]' ),
                   visible: StringUtils.trimToEmpty(devAmountTd).length() > 0, constraints: 'hidemode 3' ) {
             label( text: "Nombre:" )
-            txtName = textField( text: order.customer.onlyFullName, constraints: 'span 2' )
+            txtName = textField( text: order.customer.onlyFullName, constraints: 'span 3' )
             lblBank = label( text: "Banco:", visible: false )
-            cbBank = comboBox( items: devBank*.name, constraints: 'hidemode 3,span 2', visible: false )
+            cbBank = comboBox( items: devBank*.name, constraints: 'hidemode 3,span 3', visible: false )
             lblClaveAccount = label( text: "Cta./CLABE:", constraints: 'hidemode 3', visible: false )
             txtClaveAccount = textField( visible: false )
+            lblSlash = label( text: "/", visible: false )
             txtClaveAccount1 = textField( visible: false )
             label( text: "Correo:" )
-            txtEmail = textField( text: email, constraints: 'span 2' )
+            txtEmail = textField( text: email, constraints: 'span 3' )
           }
           panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ) ) {
             lblVerifTarjeta = label( text: "    Verificar que el cliente traiga la Tarjeta de Credito.", constraints: 'hidemode 3', font: displayFont )
@@ -259,6 +265,7 @@ class TotalCancellationDialog extends JDialog {
   }
 
   protected String devAmount( ){
+    NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.US)
     String amount = ""
     BigDecimal amountNbrEf = BigDecimal.ZERO
     BigDecimal amountNbrTc = BigDecimal.ZERO
@@ -295,7 +302,7 @@ class TotalCancellationDialog extends JDialog {
             //(amountNbrTd.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTd,TAG_DESC_FORMA_PAGO_TD) : "")+" "+
             (amountNbrC1.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrC1,TAG_DESC_FORMA_PAGO_C1) : "")
     //devAmountTd = amountNbrTd.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTd,TAG_DESC_FORMA_PAGO_TD) : ""
-    devAmountTd = amountNbrTd.doubleValue() > 0 ? String.format('$%.2f',amountNbrTd) : ""
+    devAmountTd = amountNbrTd.doubleValue() > 0 ? nf.format(amountNbrTd) : ""
 
     if( StringUtils.trimToEmpty(amount).length() <= 0 || StringUtils.trimToEmpty(amount).equalsIgnoreCase(",,,") ){
       amount = '$0.00'
@@ -333,55 +340,67 @@ class TotalCancellationDialog extends JDialog {
 
   Boolean validDevTd( ){
     Boolean valid = true
-    String pattern= '[A-Za-z0-9]+';
-    if( StringUtils.trimToEmpty(txtName.text).length() <= 0 ||
-          !StringUtils.trimToEmpty(txtName.text).replace(" ","").matches(pattern) ){
-      valid = false
-      txtName.foreground = UI_Standards.WARNING_FOREGROUND
-    }
+    if( pnlDevCash.visible ){
+      String pattern= '[A-Za-z0-9]+';
+      if( StringUtils.trimToEmpty(txtName.text).length() <= 0 ||
+            !StringUtils.trimToEmpty(txtName.text).replace(" ","").matches(pattern) ){
+            valid = false
+            txtName.foreground = UI_Standards.WARNING_FOREGROUND
+      }
 
-
-    if( StringUtils.trimToEmpty(txtEmail.text).length() <= 0 ){
-      valid = false
-      txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
-      txtEmail.text = "DATO OBLIGATORIO"
-    } else {
-      String[] emailData = StringUtils.trimToEmpty(txtEmail.text).split("@")
-      if( emailData.length != 2 ){
-        /*if( !StringUtils.trimToEmpty(emailData[0]).matches(pattern) ||
-                !StringUtils.trimToEmpty(emailData[1]).matches(pattern) ){*/
-          valid = false
-          txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
-          txtEmail.text = "FORMATO INCORRECTO"
-        //}
-      } /*else {
+      if( StringUtils.trimToEmpty(txtEmail.text).length() <= 0 ){
+            valid = false
+            txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
+            txtEmail.text = "DATO OBLIGATORIO"
+      } else {
+            String[] emailData = StringUtils.trimToEmpty(txtEmail.text).split("@")
+            if( emailData.length != 2 ){
+                /*if( !StringUtils.trimToEmpty(emailData[0]).matches(pattern) ||
+                        !StringUtils.trimToEmpty(emailData[1]).matches(pattern) ){*/
+                valid = false
+                txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
+                txtEmail.text = "FORMATO INCORRECTO"
+                //}
+            } /*else {
         txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
         txtEmail.text = "FORMATO INCORRECTO"
       }*/
-    }
-    if( txtClaveAccount.visible ){
-      if( StringUtils.trimToEmpty(txtClaveAccount.text).length() <= 0 ||
-            (StringUtils.trimToEmpty(txtClaveAccount1.text).length() < 18 ||
-              StringUtils.trimToEmpty(txtClaveAccount1.text).length() < 18)){
-        valid = false
-        txtClaveAccount.foreground = UI_Standards.WARNING_FOREGROUND
-        txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
-        txtClaveAccount.text = "VERIFIQUE"
-        txtClaveAccount1.text = "LOS DATOS"
-      } else {
-        if( !StringUtils.trimToEmpty(txtClaveAccount.text).isNumber() ||
-                !StringUtils.trimToEmpty(txtClaveAccount1.text).isNumber() ){
-          valid = false
-          txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
-          txtClaveAccount.text = "VERIFIQUE"
-          txtClaveAccount1.text = "LOS DATOS"
-        }
       }
-    }
+      if( txtClaveAccount.visible ){
+            if( StringUtils.trimToEmpty(txtClaveAccount.text).length() <= 0 ){
+                valid = false
+                txtClaveAccount.foreground = UI_Standards.WARNING_FOREGROUND
+                txtClaveAccount.text = "DATO OBLIGATORIO"
+            } else {
+                if( !StringUtils.trimToEmpty(txtClaveAccount.text).isNumber() ){
+                    valid = false
+                    txtClaveAccount.foreground = UI_Standards.WARNING_FOREGROUND
+                    txtClaveAccount.text = "VERIFIQUE LOS DATOS"
+                }
+            }
 
-    if( cbBank.visible && cbBank.selectedItem == null ){
-      valid = false
-      cbBank.foreground = UI_Standards.WARNING_FOREGROUND
+            if(StringUtils.trimToEmpty(txtClaveAccount1.text).length() <= 0){
+                valid = false
+                txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
+                txtClaveAccount1.text = "DATO OBLIGATORIO"
+            } else if( (StringUtils.trimToEmpty(txtClaveAccount1.text).length() < 18 ||
+                    StringUtils.trimToEmpty(txtClaveAccount1.text).length() < 18) ){
+                valid = false
+                txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
+                txtClaveAccount1.text = "FORMATO INCORRECTO"
+            } else {
+                if( !StringUtils.trimToEmpty(txtClaveAccount1.text).isNumber() ){
+                    valid = false
+                    txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
+                    txtClaveAccount1.text = "VERIFIQUE LOS DATOS"
+                }
+            }
+      }
+
+      if( cbBank.visible && cbBank.selectedItem == null ){
+            valid = false
+            cbBank.foreground = UI_Standards.WARNING_FOREGROUND
+      }
     }
     return valid
   }

@@ -1496,6 +1496,7 @@ class TicketServiceImpl implements TicketService {
         BigDecimal totalTransferencias = 0
         BigDecimal totalDevoluciones = 0
         List<Devolucion> devolucionesLst = devolucionRepository.findByIdModOrderByFechaAsc( modificacion.id )
+        String devEfectivo = ""
         devolucionesLst.each { Devolucion dev ->
           BigDecimal monto = dev?.monto ?: 0
           if ( 'd'.equalsIgnoreCase( dev?.tipo ) ) {
@@ -1505,6 +1506,11 @@ class TicketServiceImpl implements TicketService {
                 devolucion: "${dev?.formaPago?.descripcion ?: ''}",
                 importe: formatter.format( monto )
             ]
+            if( StringUtils.trimToEmpty(dev?.formaPago?.id).equalsIgnoreCase("TB") ){
+              devEfectivo = "EL PLAZO DE LA DEVOLUCION ES DE 1 DIA HABIL."
+            } else if( StringUtils.trimToEmpty(dev?.formaPago?.id).equalsIgnoreCase("CH") ){
+              devEfectivo = "EL PLAZO DE LA DEVOLUCION ES DE 3 A 4 DIAS HABILES."
+            }
             log.debug( "genera devolucion: ${item}" )
             devoluciones.add( item )
           } else {
@@ -1545,7 +1551,8 @@ class TicketServiceImpl implements TicketService {
             total_devoluciones: formatter.format( totalDevoluciones ),
             transferencias: transferencias,
             total_transferencias: formatter.format( totalTransferencias ),
-            total_movimientos: formatter.format( totalDevoluciones.add( totalTransferencias ) )
+            total_movimientos: formatter.format( totalDevoluciones.add( totalTransferencias ) ),
+            message: devEfectivo
         ]
         imprimeTicket( 'template/ticket-cancelacion.vm', items )
       } else {
