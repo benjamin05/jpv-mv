@@ -1262,7 +1262,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 Boolean hasEnsureKid = false
                 for(OrderItem oi : newOrder.items){
                   Articulo articulo = ItemController.findArticle( oi.item.id )
-                  if( StringUtils.trimToEmpty(articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
+                  if( StringUtils.trimToEmpty(articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ||
+                          StringUtils.trimToEmpty(articulo.idGenSubtipo).startsWith(TAG_SUBTIPO_NINO)){
                     hasLensKid = true
                   }
                   if( StringUtils.trimToEmpty(articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
@@ -1272,7 +1273,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 if( hasLensKid && !hasEnsureKid ){
                   itemSearch.text = "SEG"
                   doItemSearch( true )
-                  newOrder = OrderController.placeOrder(order, vendedor, false)
+                  newOrder = OrderController.placeOrder(newOrder, vendedor, false)
                   OrderController.insertSegKig = false
                 }
               }

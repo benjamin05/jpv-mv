@@ -476,7 +476,10 @@ class NotaVentaServiceImpl implements NotaVentaService {
           }
         }
         Date fecha = new Date()
-        String factura = String.format( "%06d", notaVentaRepository.getFacturaSequence() )
+        String factura = StringUtils.trimToEmpty( notaVenta.factura )
+        if( factura.length() <= 0 ){
+          factura = String.format( "%06d", notaVentaRepository.getFacturaSequence() )
+        }
         notaVenta.factura = factura
         notaVenta.tipoNotaVenta = 'F'
         notaVenta.tipoDescuento = 'N'

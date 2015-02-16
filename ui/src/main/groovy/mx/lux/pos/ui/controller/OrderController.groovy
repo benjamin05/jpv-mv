@@ -2634,20 +2634,20 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                       && !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
                 if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
                   if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
-                    amount = amount.add(orderItem.precioUnitFinal)
+                    amount = amount.add(orderItem.precioUnitLista)
                   }
                   typeEnsure = "S"
                 } else {
                   if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
                     if( StringUtils.trimToEmpty(orderItem.articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ||
                             !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
-                      amount = amount.add(orderItem.precioUnitFinal)
+                      amount = amount.add(orderItem.precioUnitLista)
                     }
                   } else {
                     if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ||
                             (StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
                           StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO)) ){
-                      amount = amount.add(orderItem.precioUnitFinal)
+                      amount = amount.add(orderItem.precioUnitLista)
                     }
                   }
                   if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
@@ -2700,14 +2700,14 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                 if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
                   if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
                     if( StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO) ){
-                      amountSegL = amountSegL.add(orderItem.precioUnitFinal)
+                      amountSegL = amountSegL.add(orderItem.precioUnitLista)
                       lstLens.add( orderItem )
                     } else {
-                      amountSegF = amountSegF.add(orderItem.precioUnitFinal)
+                      amountSegF = amountSegF.add(orderItem.precioUnitLista)
                       lstFrames.add( orderItem )
                     }
                   } else {
-                    amountSegL = amountSegL.add(orderItem.precioUnitFinal)
+                    amountSegL = amountSegL.add(orderItem.precioUnitLista)
                     lstLens.add( orderItem )
                   }
                 } else {
