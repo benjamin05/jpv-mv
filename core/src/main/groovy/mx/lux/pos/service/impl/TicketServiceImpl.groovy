@@ -2346,12 +2346,20 @@ class TicketServiceImpl implements TicketService {
   void imprimeCupon( CuponMv cuponMv, String titulo, BigDecimal monto ){
     log.debug( "imprimeCupon( )" )
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
+    String restrictions = ""
+    String restrictions1 = ""
+    if( cuponMv != null && StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+      restrictions = 'APLICA EN LA COMPRA MINIMA DE $1000.00'
+      restrictions1 = 'CONSULTA CONDICIONES EN TIENDA.'
+    }
     if( cuponMv != null ){
       def datos = [
         titulo: titulo,
         monto: String.format('$%s', monto),
         clave: cuponMv.claveDescuento,
-        fecha_vigencia: df.format(cuponMv.fechaVigencia)
+        fecha_vigencia: df.format(cuponMv.fechaVigencia),
+        restrictions: restrictions,
+        restrictions1: restrictions1
       ]
       this.imprimeTicket( 'template/ticket-cupon.vm', datos )
     } else {

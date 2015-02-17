@@ -109,7 +109,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
     Boolean hasPaymentCupon = false
     hasPaymentCupon = OrderController.hasCuponMv( secondOrder.id )
     List<CuponMv> cuponMv = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(firstOrder.id) )
-    if( cuponMv.size() > 0 && !StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith("F") ){
+    if( cuponMv.size() > 0 ){
       validClave = false
     }
 
