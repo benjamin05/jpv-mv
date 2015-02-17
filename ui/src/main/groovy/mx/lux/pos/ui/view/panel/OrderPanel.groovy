@@ -1552,13 +1552,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 validaLC( it, true )
             }
         }
-      Boolean warranty = false
-      if( true ){
+      Boolean warranty = true
+      /*if( true ){
         NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
         warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
       } else {
         warranty = true
-      }
+      }*/
       if( warranty ){
         if( validLensesPack() ){
           if (!dioptra.getLente().equals(null)) {
@@ -1680,13 +1680,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 validaLC( it, true )
             }
         }
-      Boolean warranty = false
-      if( true ){
+      Boolean warranty = true
+      /*if( true ){
         NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
         warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
       } else {
         warranty = true
-      }
+      }*/
       if( warranty ){
         if( validLensesPack() ){
               if (!dioptra.getLente().equals(null)) {
