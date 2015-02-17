@@ -825,7 +825,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
           Boolean warranty = false
           if( true ){
             NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
+            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
           } else {
             warranty = true
           }

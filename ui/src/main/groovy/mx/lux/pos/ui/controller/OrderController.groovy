@@ -65,6 +65,7 @@ class OrderController {
     private static Boolean insertSegKig
 
     private static List<Warranty> lstWarranty = new ArrayList<>()
+    private static String idOrderEnsured
 
     private static NotaVentaService notaVentaService
     private static DetalleNotaVentaService detalleNotaVentaService
@@ -647,11 +648,13 @@ class OrderController {
           Boolean validDateEnsure = orderToday ? true : validEnsureDateAplication(notaVenta)
         if( !alreadyDelivered ){
           if( validDateEnsure ){
-            if( validWarranty( notaVenta, false, null, "" ) ){
+            if( validWarranty( notaVenta, false, null, "", false ) ){
               Boolean doubleEnsure = lstWarranty.size() > 1 ? true : false
               for(Warranty warranty : lstWarranty){
-                ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.id), doubleEnsure )
+                String idFac = StringUtils.trimToEmpty(idOrderEnsured).length() > 0 ? StringUtils.trimToEmpty(idOrderEnsured) : notaVenta.id
+                ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, idFac, doubleEnsure )
               }
+              idOrderEnsured = ""
               lstWarranty.clear()
             } else {
               lstWarranty.clear()
@@ -684,6 +687,7 @@ class OrderController {
               } else {
                 warranty.amount = warranty.amount.add(det.precioUnitFinal)
                 warranty.idItem = warranty.idItem+","+StringUtils.trimToEmpty(det.articulo.articulo)
+                warranty.idOrder = ""
               }
             }
             warranty.idItem = warranty.idItem.replaceFirst(",","")
@@ -2564,13 +2568,14 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
 
-    static Boolean validWarranty( NotaVenta nota, Boolean cleanWaranties, OrderPanel panel, String idOrderPostEnsure ){
+    static Boolean validWarranty( NotaVenta nota, Boolean cleanWaranties, OrderPanel panel, String idOrderPostEnsure, Boolean addIdOrder ){
       canceledWarranty = false
       if( StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ){
         postEnsure = StringUtils.trimToEmpty(idOrderPostEnsure)
       }
+      NotaVenta oldNota = null
       if( StringUtils.trimToEmpty(postEnsure).length() > 0 ){
-        NotaVenta oldNota = notaVentaService.obtenerNotaVenta( postEnsure )
+        oldNota = notaVentaService.obtenerNotaVenta( postEnsure )
         if( oldNota != null ){
           nota.detalles.addAll( oldNota.detalles )
         }
@@ -2592,7 +2597,15 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           }
         }
       }
-
+      Boolean hasC1 = false
+      for(Pago pago : nota.pagos){
+        if(TAG_CUPON_SEGURO.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago))){
+          valid = false
+        }
+      }
+      if( oldNota != null && StringUtils.trimToEmpty(oldNota.udf5).length() > 0 ){
+        valid = false
+      }
       Boolean sunglass = false
       Boolean lens = false
       Boolean ophtglass = false
@@ -2680,6 +2693,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               warranty.amount = amount
               warranty.idItem = items.replaceFirst(",","")
               warranty.typeEnsure = typeEnsure
+              warranty.idOrder = addIdOrder ? nota.id : ""
+              idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
+              println idOrderEnsured
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2747,6 +2763,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               warranty.amount = amountSegL
               warranty.idItem = items.replaceFirst(",","")
               warranty.typeEnsure = typeEnsureO
+              warranty.idOrder = addIdOrder ? nota.id : ""
+              idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
+              println idOrderEnsured
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2765,6 +2784,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               warranty.amount = amountSegF
               warranty.idItem = items.replaceFirst(",","")
               warranty.typeEnsure = typeEnsureF
+              warranty.idOrder = addIdOrder ? nota.id : ""
+              idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
+              println idOrderEnsured
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2907,7 +2929,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   static void reprintEnsure( NotaVenta notaVenta ){
     if( notaVenta.fechaEntrega != null ) {
       if(validEnsureDateAplication(notaVenta)){
-        if( validWarranty( notaVenta, false, null, "" ) ){
+        if( validWarranty( notaVenta, false, null, "", false ) ){
           Boolean doubleEnsure = lstWarranty.size() > 1
           for(Warranty warranty : lstWarranty){
             ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.id), doubleEnsure )

@@ -892,7 +892,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         Boolean warranty = false
         if( true ){
             NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
+            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, true )
         } else {
           warranty = true
         }
@@ -1226,6 +1226,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             CuponMv cuponMv = null
             Boolean validClave = true
             Boolean ensureApply = false
+            Boolean ffApply = false
             Boolean hasC1 = false
             for(int i=0;i<promotionList.size();i++){
               if(promotionList.get(i) instanceof PromotionDiscount){
@@ -1240,6 +1241,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   ensureApply = true
                 }
                 if( cuponMv != null ){
+                  if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+                    ffApply = true
+                  }
                   break
                 } else if(!OrderController.generatesCoupon(promotionList.get(i).discountType.description)) {
                   validClave = false
@@ -1262,7 +1266,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               }
             }
 
-            if( !ensureApply ){
+            if( !ensureApply && !ffApply ){
               if( cuponMv != null ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
                 OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
@@ -1551,7 +1555,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       Boolean warranty = false
       if( true ){
         NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-        warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
+        warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
       } else {
         warranty = true
       }
@@ -1679,7 +1683,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       Boolean warranty = false
       if( true ){
         NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-        warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
+        warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
       } else {
         warranty = true
       }
