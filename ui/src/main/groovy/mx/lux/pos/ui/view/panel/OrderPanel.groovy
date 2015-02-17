@@ -54,6 +54,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TAG_ARTICULO_B = 'B'
     private static final String TAG_ARTICULO_P = 'P'
     private static final String TAG_PAQUETE = 'Q'
+    private static final String TAG_FORMA_PAGO_C1 = 'C1'
     private static final String TAG_REUSO = 'R'
     private static final String TAG_COTIZACION = 'Cotización'
     private static final String TAG_ARTICULO_NO_VIGENTE = 'C'
@@ -619,8 +620,19 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if (SwingUtilities.isLeftMouseButton(ev)) {
             if (ev.clickCount == 1) {
                 if (order.due) {
+                  Boolean hasDiscount = false
+                  for(int i=0;i<promotionList.size();i++){
+                    if(promotionList.get(i) instanceof PromotionAvailable){
+                      if( promotionList.get(i).applied ){
+                        hasDiscount = true
+                      }
+                    } else if(promotionList.get(i) instanceof PromotionDiscount){
+                      println "Tiene descuento"
+                      hasDiscount = true
+                    }
+                  }
                     CuponMvView cuponMvView = OrderController.cuponValid( order.customer.id )
-                    new PaymentDialog(ev.component, order, null, cuponMvView, this).show()
+                    new PaymentDialog(ev.component, order, null, cuponMvView, this, hasDiscount).show()
                     updateOrder(order?.id)
                     //validTransferCuponMv()
                     doBindings()
@@ -638,7 +650,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private def doShowPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
             if (ev.clickCount == 2) {
-                new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this).show()
+                new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false).show()
                 updateOrder(order?.id)
             }
         }
@@ -713,9 +725,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   authDialog.show()
                   logger.debug('Autorizado: ' + authDialog.authorized)
                   if (authDialog.authorized) {
-                      surteSwitch?.surteSucursal = true
+                    surteSwitch?.surteSucursal = true
                   } else {
-                      OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
+                    OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
                   }
                 } else if (SalesWithNoInventory.RESTRICTED.equals(onSalesWithNoInventory)){
                   surteSwitch?.surteSucursal = true
@@ -1214,6 +1226,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             CuponMv cuponMv = null
             Boolean validClave = true
             Boolean ensureApply = false
+            Boolean hasC1 = false
             for(int i=0;i<promotionList.size();i++){
               if(promotionList.get(i) instanceof PromotionDiscount){
                 cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(promotionList.get(i).discountType.description) )
@@ -1243,6 +1256,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 if( Registry.paymentsTypeNoCupon.contains( payment.paymentTypeId ) ){
                   validClave = false
                 }
+                if( TAG_FORMA_PAGO_C1.equalsIgnoreCase( payment.paymentTypeId ) ){
+                  hasC1 = true
+                }
               }
             }
 
@@ -1257,7 +1273,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 generatedCoupons( validClave, newOrder )
               }
 
-              if( OrderController.insertSegKig ){
+              if( OrderController.insertSegKig && !hasC1 ){
                 Boolean hasLensKid = false
                 Boolean hasEnsureKid = false
                 for(OrderItem oi : newOrder.items){
