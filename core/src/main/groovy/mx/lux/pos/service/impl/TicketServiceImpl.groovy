@@ -1497,6 +1497,11 @@ class TicketServiceImpl implements TicketService {
         BigDecimal totalDevoluciones = 0
         List<Devolucion> devolucionesLst = devolucionRepository.findByIdModOrderByFechaAsc( modificacion.id )
         String devEfectivo = ""
+        String devEfectivo1 = ""
+        String nombre = ""
+        String cuenta = ""
+        String clabe = ""
+        String correo = ""
         devolucionesLst.each { Devolucion dev ->
           BigDecimal monto = dev?.monto ?: 0
           if ( 'd'.equalsIgnoreCase( dev?.tipo ) ) {
@@ -1507,9 +1512,18 @@ class TicketServiceImpl implements TicketService {
                 importe: formatter.format( monto )
             ]
             if( StringUtils.trimToEmpty(dev?.formaPago?.id).equalsIgnoreCase("TB") ){
-              devEfectivo = "EL PLAZO DE LA DEVOLUCION ES DE 1 DIA HABIL."
+              devEfectivo = "EL PLAZO DE LA DEVOLUCION"
+              devEfectivo1 = "ES DE 1 DIA HABIL."
             } else if( StringUtils.trimToEmpty(dev?.formaPago?.id).equalsIgnoreCase("CH") ){
-              devEfectivo = "EL PLAZO DE LA DEVOLUCION ES DE 3 A 4 DIAS HABILES."
+              devEfectivo = "EL PLAZO DE LA DEVOLUCION"
+              devEfectivo1 = "ES DE 3 A 4 DIAS HABILES."
+            }
+            String[] data = dev.devEfectivo.split(",")
+            if( data.length >= 5 ){
+              nombre = data[0]
+              cuenta = data[2]
+              clabe = "/ "+data[3]
+              correo = data[4]
             }
             log.debug( "genera devolucion: ${item}" )
             devoluciones.add( item )
@@ -1552,7 +1566,12 @@ class TicketServiceImpl implements TicketService {
             transferencias: transferencias,
             total_transferencias: formatter.format( totalTransferencias ),
             total_movimientos: formatter.format( totalDevoluciones.add( totalTransferencias ) ),
-            message: devEfectivo
+            message: devEfectivo,
+            message1: devEfectivo1,
+            nombre: nombre,
+            cuenta: cuenta,
+            clabe: clabe,
+            correo: correo
         ]
         imprimeTicket( 'template/ticket-cancelacion.vm', items )
       } else {

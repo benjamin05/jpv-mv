@@ -164,7 +164,7 @@ class TotalCancellationDialog extends JDialog {
                     } as DefaultTableModel
                 }
             }
-          pnlDevOriginal = panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ), visible: StringUtils.trimToEmpty(devAmountTd).length() <= 0 ) {
+          pnlDevOriginal = panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ), visible: StringUtils.trimToEmpty(devAmount).length() > 0 ) {
             label( text: "DEVOLUCION:", font: displayFont )
             label( text: devAmount, font: displayFont )
           }
