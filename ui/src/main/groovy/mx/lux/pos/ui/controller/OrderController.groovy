@@ -2600,7 +2600,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       Boolean hasC1 = false
       for(Pago pago : nota.pagos){
         if(TAG_CUPON_SEGURO.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago))){
-          valid = false
+          hasC1 = true
         }
       }
       if( oldNota != null && StringUtils.trimToEmpty(oldNota.udf5).length() > 0 ){
@@ -2813,6 +2813,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             MSJ_ERROR_WARRANTY = "Seleccione solo un seguro."
             valid = false
           }
+        } else if( hasC1 ) {
+          valid = false
         }
       } else if( cleanWaranties && lensKid ){
         insertSegKig = true

@@ -1266,17 +1266,17 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               }
             }
 
-            if( !ensureApply && !ffApply ){
+            //if( !ensureApply && !ffApply ){
               if( cuponMv != null ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
                 OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
                 if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
                   generatedCoupons( validClave, newOrder )
                 }
-              } else {
+              } else if( !ensureApply && !ffApply ){
                 generatedCoupons( validClave, newOrder )
               }
-
+            if( !ensureApply && !ffApply ){
               if( OrderController.insertSegKig && !hasC1 ){
                 Boolean hasLensKid = false
                 Boolean hasEnsureKid = false
@@ -1298,7 +1298,6 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 }
               }
             }
-            //}
             OrderController.printOrder(newOrder.id)
             OrderController.printReuse( StringUtils.trimToEmpty(newOrder.id) )
             if (ticketRx == true) {
