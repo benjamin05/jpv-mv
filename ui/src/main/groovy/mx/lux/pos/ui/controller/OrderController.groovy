@@ -2640,14 +2640,18 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       if( lstIdGar.size() > 0 ){
         if( valid ){
           if( lstIdGar.size() == 1 ){
+            List<DetalleNotaVenta> lstDets = new ArrayList<>()
             BigDecimal amount = BigDecimal.ZERO
             Articulo warnt = articuloService.obtenerArticulo( lstIdGar.first() )
+            String items = ""
             for(DetalleNotaVenta orderItem : nota.detalles){
               if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS)
                       && !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
                 if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
                   if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
                     amount = amount.add(orderItem.precioUnitLista)
+                    items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                    lstDets.add( orderItem )
                   }
                   typeEnsure = "S"
                 } else {
@@ -2655,12 +2659,16 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                     if( StringUtils.trimToEmpty(orderItem.articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ||
                             !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
                       amount = amount.add(orderItem.precioUnitLista)
+                      items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                      lstDets.add( orderItem )
                     }
                   } else {
                     if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ||
                             (StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
                           StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO)) ){
                       amount = amount.add(orderItem.precioUnitLista)
+                      items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                      lstDets.add( orderItem )
                     }
                   }
                   if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
@@ -2674,18 +2682,20 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             }
             BigDecimal warrantyAmount = ItemController.warrantyValid( amount, lstIdGar.first() )
             if( warrantyAmount.compareTo(BigDecimal.ZERO) > 0 && segValid(lstIdGar.first(), lstIdArm) ){
-              String items = ""
-              for(DetalleNotaVenta orderItem : nota.detalles){
+              amount = BigDecimal.ZERO
+              for(DetalleNotaVenta orderItem : lstDets){
                 if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS)
                        && !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE)){
                   if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
                     if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
-                      items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                      //items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                      amount = amount.add( orderItem.precioUnitFinal )
                     }
                   } else {
                     //if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
-                      items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                      //items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
                     //}
+                    amount = amount.add( orderItem.precioUnitFinal )
                   }
                 }
               }
@@ -2703,6 +2713,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               valid = false
             }
           } else if( lstIdGar.size() == 2 && frame && lens ) {
+            List<DetalleNotaVenta> lstDetsL = new ArrayList<>()
+            List<DetalleNotaVenta> lstDetsF = new ArrayList<>()
             BigDecimal amountSegL = BigDecimal.ZERO
             BigDecimal amountSegF = BigDecimal.ZERO
             List<DetalleNotaVenta> lstLens = new ArrayList<>()
@@ -2754,9 +2766,11 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             }
             if( warrantyAmountLens.compareTo(BigDecimal.ZERO) > 0 && segValid(segLens.id, lstIdLens) ){
               String items = ""
+              amountSegL = BigDecimal.ZERO
               for(DetalleNotaVenta orderItem : lstLens){
                 if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
                   items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                  amountSegL = amountSegL.add( orderItem.precioUnitFinal )
                 }
               }
               Warranty warranty = new Warranty()
@@ -2775,9 +2789,11 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
             if( warrantyAmountFrame.compareTo(BigDecimal.ZERO) > 0 && segValid(segFrame.id, lstIdFrames) ){
               String items = ""
+              amountSegF = BigDecimal.ZERO
               for(DetalleNotaVenta orderItem : lstFrames){
                 if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
                   items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                  amountSegF = amountSegF.add( orderItem.precioUnitFinal )
                 }
               }
               Warranty warranty = new Warranty()
