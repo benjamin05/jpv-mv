@@ -1532,6 +1532,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         int artCount = 0
         dioptra = new Dioptra()
         Boolean hasDioptra = false
+        Boolean hasOnlyEnsure = false
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
@@ -1540,6 +1541,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     hasDioptra = true
                 }
             }
+          if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+            hasOnlyEnsure = true
+          }
         }
         if( !hasDioptra ){
             order.dioptra = null
@@ -1553,12 +1557,19 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
         }
       Boolean warranty = true
-      /*if( true ){
-        NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-        warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
-      } else {
-        warranty = true
-      }*/
+      if( hasOnlyEnsure ){
+        if( order.items.size() > 1 ){
+          hasOnlyEnsure = false
+        }
+      }
+      if( !hasOnlyEnsure ){
+        if( true ){
+          NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+          warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
+        } else {
+          warranty = true
+        }
+      }
       if( warranty ){
         if( validLensesPack() ){
           if (!dioptra.getLente().equals(null)) {
@@ -1660,6 +1671,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         int artCount = 0
         dioptra = new Dioptra()
         Boolean hasDioptra = false
+        Boolean hasOnlyEnsure = false
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
@@ -1668,6 +1680,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     hasDioptra = true
                 }
             }
+          if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+            hasOnlyEnsure = true
+          }
         }
         if( !hasDioptra ){
             order.dioptra = null
@@ -1681,12 +1696,19 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
         }
       Boolean warranty = true
-      /*if( true ){
-        NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-        warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
-      } else {
-        warranty = true
-      }*/
+      if( hasOnlyEnsure ){
+        if( order.items.size() > 1 ){
+          hasOnlyEnsure = false
+        }
+      }
+      if( !hasOnlyEnsure ){
+        if( true ){
+          NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+          warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
+        } else {
+          warranty = true
+        }
+      }
       if( warranty ){
         if( validLensesPack() ){
               if (!dioptra.getLente().equals(null)) {
