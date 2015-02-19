@@ -261,7 +261,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     BigDecimal total = BigDecimal.ZERO
     for(OrderItem det : order.items){
       if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(det.item.type)) ){
-        total = total.add(det.item.price)
+        total = total.add(det.item.price.multiply(det.quantity))
       }
     }
     if(discountAmt > new Double(total)){

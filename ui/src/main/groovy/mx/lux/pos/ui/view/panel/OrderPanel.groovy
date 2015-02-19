@@ -975,8 +975,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           lstWarranty.clear()
           if( !canceledWarranty ){
             TXT_ERROR_WARRANTY = "No se puede registrar la venta"
-            if( MSJ_ERROR_WARRANTY.length() <= 0 ){
+            if( OrderController.MSJ_ERROR_WARRANTY.length() <= 0 ){
               MSJ_ERROR_WARRANTY = "Error al asignar el seguro, Verifiquelo e intente nuevamente."
+            } else {
+              MSJ_ERROR_WARRANTY = OrderController.MSJ_ERROR_WARRANTY
             }
             sb.optionPane(
                message: MSJ_ERROR_WARRANTY,
@@ -1270,9 +1272,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               if( cuponMv != null ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
                 OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
-                if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+                /*if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
                   generatedCoupons( validClave, newOrder )
-                }
+                }*/
               } else if( !ensureApply && !ffApply ){
                 generatedCoupons( validClave, newOrder )
               }
@@ -1282,8 +1284,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 Boolean hasEnsureKid = false
                 for(OrderItem oi : newOrder.items){
                   Articulo articulo = ItemController.findArticle( oi.item.id )
-                  if( StringUtils.trimToEmpty(articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ||
-                          StringUtils.trimToEmpty(articulo.idGenSubtipo).startsWith(TAG_SUBTIPO_NINO)){
+                  String type = StringUtils.trimToEmpty(articulo.subtipo).length() > 0 ? StringUtils.trimToEmpty(articulo.subtipo) : StringUtils.trimToEmpty(articulo.idGenSubtipo)
+                  if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) ){
                     hasLensKid = true
                   }
                   if( StringUtils.trimToEmpty(articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){

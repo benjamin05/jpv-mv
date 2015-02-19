@@ -49,6 +49,7 @@ class TicketServiceImpl implements TicketService {
   private static final String TAG_DEPOSITO_US = 'DOLARES'
   private static final String TAG_GENERICO_ARMAZON = 'A'
   private static final String TAG_GENERICO_INV = 'A,H'
+  private static final String TAG_DF = '09'
 
   private static final BigDecimal CERO_BIGDECIMAL = 0.005
 
@@ -63,6 +64,12 @@ class TicketServiceImpl implements TicketService {
 
   @Resource
   private CuponMvRepository cuponMvRepository
+
+  @Resource
+  private RepRepository repRepository
+
+  @Resource
+  private CiudadesRepository ciudadesRepository
 
   @Resource
   private PrecioRepository precioRepository
@@ -668,6 +675,17 @@ class TicketServiceImpl implements TicketService {
           }
         }
       }
+      String estado = ""
+      if( notaVenta.sucursal != null ){
+        Rep rep = repRepository.findOne( StringUtils.trimToEmpty(notaVenta.sucursal.idEstado) )
+        QCiudades qCiudades = QCiudades.ciudades
+        Ciudades ciudades = ciudadesRepository.findOne(qCiudades.estado.eq(notaVenta.sucursal.idEstado).
+                and(qCiudades.rango1.loe(notaVenta.sucursal.cp).and(qCiudades.rango2.goe(notaVenta.sucursal.cp))))
+        if( TAG_DF.equalsIgnoreCase(notaVenta.sucursal.idEstado) ){
+          ciudades.ciudad = ciudades.ciudad.replace("CIUDAD DE ","")
+        }
+        estado = StringUtils.trimToEmpty(ciudades.nombre)+", "+StringUtils.trimToEmpty( rep.nombre )
+      }
       def items = [
           nombre_ticket: 'ticket-venta',
           nota_venta: notaVenta,
@@ -694,7 +712,9 @@ class TicketServiceImpl implements TicketService {
           cupon3: cupon3Par,
           montoCupon2: formatter.format(monto2Par),
           montoCupon3: formatter.format(monto3Par),
-          leyendaCupon: leyendaCupon
+          leyendaCupon: leyendaCupon,
+          municipio: StringUtils.trimToEmpty(notaVenta?.sucursal?.municipio?.nombre),
+          estado: estado
       ] as Map<String, Object>
 
       imprimeTicket( 'template/ticket-venta-si.vm', items )

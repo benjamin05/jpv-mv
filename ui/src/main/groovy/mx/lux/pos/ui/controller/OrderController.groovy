@@ -2615,7 +2615,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       for(Integer idArt : lstIdArm ){
         Articulo articulo = articuloService.obtenerArticulo( idArt )
         if( articulo != null ){
-          if( StringUtils.trimToEmpty(articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
+          String type = StringUtils.trimToEmpty(articulo.subtipo).length() > 0 ? StringUtils.trimToEmpty(articulo.subtipo) : StringUtils.trimToEmpty(articulo.idGenSubtipo)
+          if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) ){
             lensKid = true
           }
           if( StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
@@ -2638,7 +2639,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       }*/
 
       if( lstIdGar.size() > 0 ){
-        if( valid ){
+        if( valid && !hasC1 ){
           if( lstIdGar.size() == 1 ){
             List<DetalleNotaVenta> lstDets = new ArrayList<>()
             BigDecimal amount = BigDecimal.ZERO
@@ -2656,7 +2657,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                   typeEnsure = "S"
                 } else {
                   if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
-                    if( StringUtils.trimToEmpty(orderItem.articulo.subtipo).startsWith(TAG_SUBTIPO_NINO) ||
+                    String type = StringUtils.trimToEmpty(orderItem.articulo.subtipo).length() > 0 ? StringUtils.trimToEmpty(orderItem.articulo.subtipo) : StringUtils.trimToEmpty(orderItem.articulo.idGenSubtipo)
+                    if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) ||
                             !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
                       amount = amount.add(orderItem.precioUnitLista)
                       items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
@@ -2814,6 +2816,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             valid = false
           }
         } else if( hasC1 ) {
+          MSJ_ERROR_WARRANTY = "No se puede asignar seguro a una redención."
           valid = false
         }
       } else if( cleanWaranties && lensKid ){
@@ -2845,7 +2848,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
           frame = true
         }
-        if( StringUtils.trimToEmpty(item.subtipo).startsWith(TAG_SUBTIPO_NINO) ){
+        String type = StringUtils.trimToEmpty(item.subtipo).length() > 0 ? StringUtils.trimToEmpty(item.subtipo) : StringUtils.trimToEmpty(item.idGenSubtipo)
+        if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) ){
           lensKid = true
         } else if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
           if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){

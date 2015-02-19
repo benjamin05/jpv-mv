@@ -215,7 +215,7 @@ class DiscountCouponDialog extends JDialog {
                     if( nv != null ){
                       for(DetalleNotaVenta det : nv.detalles){
                         if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_J) ){
-                          amount = amount.add(det.precioUnitFinal)
+                          amount = amount.add(det.precioUnitFinal.multiply(det.cantidadFac))
                         }
                       }
                     }
