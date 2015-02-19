@@ -285,7 +285,10 @@ class ClienteServiceImpl implements ClienteService {
   }
 
   void llenarNotaVentas( ClienteProceso pCliente ) {
-    List<NotaVenta> orders = RepositoryFactory.orders.findByIdCliente( pCliente.idCliente )
+    QNotaVenta qNotaVenta = QNotaVenta.notaVenta
+    //List<NotaVenta> orders = RepositoryFactory.orders.findByIdCliente( pCliente.idCliente )
+    List<NotaVenta> orders = RepositoryFactory.orders.findAll( qNotaVenta.idCliente.eq(pCliente.idCliente).
+            and(qNotaVenta.factura.isEmpty().or(qNotaVenta.factura.isNull())) )
     List<NotaVenta> openOrders = new ArrayList<NotaVenta>()
     for ( NotaVenta order : orders ) {
       if ( StringUtils.isBlank( order.factura ) ) {

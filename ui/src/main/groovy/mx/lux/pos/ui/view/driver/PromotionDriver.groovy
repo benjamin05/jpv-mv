@@ -371,7 +371,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       String genericoNoApplica = StringUtils.trimToEmpty(Registry.genericsWithoutDiscount)
       for(OrderItem oi : order.items){
         if( !genericoNoApplica.equalsIgnoreCase(StringUtils.trimToEmpty(oi.item.type)) ){
-          ventaTotal = ventaTotal.add(oi.item.price)
+          ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
         }
       }
       Double discount = desc.getNotaVenta().getMontoDescuento() / (ventaTotal+desc.getNotaVenta().getMontoDescuento())
