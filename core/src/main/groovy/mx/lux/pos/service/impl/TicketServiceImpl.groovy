@@ -681,10 +681,14 @@ class TicketServiceImpl implements TicketService {
         QCiudades qCiudades = QCiudades.ciudades
         Ciudades ciudades = ciudadesRepository.findOne(qCiudades.estado.eq(notaVenta.sucursal.idEstado).
                 and(qCiudades.rango1.loe(notaVenta.sucursal.cp).and(qCiudades.rango2.goe(notaVenta.sucursal.cp))))
-        if( TAG_DF.equalsIgnoreCase(notaVenta.sucursal.idEstado) ){
-          ciudades.ciudad = ciudades.ciudad.replace("CIUDAD DE ","")
+        String ciudad = ciudades.nombre
+        if( ciudades.nombre.contains( "(" ) ){
+          String[] data = ciudades.nombre.split("\\(")
+          if( data.length > 1 ){
+            ciudad = data[0]
+          }
         }
-        estado = StringUtils.trimToEmpty(ciudades.nombre)+", "+StringUtils.trimToEmpty( rep.nombre )
+        estado = StringUtils.trimToEmpty(ciudad)+", "+StringUtils.trimToEmpty( rep.nombre )
       }
       def items = [
           nombre_ticket: 'ticket-venta',

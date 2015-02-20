@@ -2530,7 +2530,7 @@ class OrderController {
             amountSale = amountSale.add(det.precioUnitFinal)
           }
         }
-        if( amountSale.doubleValue() > Registry.amountToGenerateFFCoupon && hasNoCouponApply && hasLenses ){
+        if( amountSale.doubleValue() >= Registry.amountToGenerateFFCoupon && hasNoCouponApply && hasLenses ){
           List<CuponMv> cuponMvTmp = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
           if( cuponMvTmp.size() <= 0 || !StringUtils.trimToEmpty(cuponMvTmp.first().claveDescuento).startsWith("F") ){
             String titulo = "FRIENDS AND FAMILY"

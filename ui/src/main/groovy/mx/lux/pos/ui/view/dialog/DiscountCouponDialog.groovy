@@ -219,7 +219,7 @@ class DiscountCouponDialog extends JDialog {
                         }
                       }
                     }
-                    if( amount.doubleValue() > Registry.amountToApplyFFCoupon ){
+                    if( amount.doubleValue() >= Registry.amountToApplyFFCoupon ){
                       txtDiscountPercent.setValue(descuentoClave?.porcenaje_descuento)
                       txtDiscountAmount.setValue(  descuentoClave?.porcenaje_descuento)
                       porceLabel.setVisible(false)

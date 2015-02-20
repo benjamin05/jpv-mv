@@ -752,6 +752,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   String surte = surteSwitch?.surte
                   if (item.stock > 0) {
                       order = OrderController.addItemToOrder(order, item, surte)
+                      updateOrder( order.id )
                       validaLC(item, false)
                       controlItem(item, false)
                       List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
@@ -771,6 +772,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           order.customer = customer
                           if (SalesWithNoInventory.ALLOWED.equals(onSalesWithNoInventory)) {
                               order = OrderController.addItemToOrder(order, item, surte)
+                              updateOrder( order.id )
                               validaLC(item, false)
                               controlItem(item, false)
                               List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
@@ -792,6 +794,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                               }
                               if (authorized) {
                                   order = OrderController.addItemToOrder(order, item, surte)
+                                  updateOrder( order.id )
                                   validaLC(item, false)
                                   controlItem(item, false)
                                   List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
@@ -810,6 +813,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           }
                       } else {
                           order = OrderController.addItemToOrder(order, item, surte)
+                          updateOrder( order.id )
                           validaLC(item, false)
                           controlItem(item, false)
                           List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
@@ -1874,7 +1878,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           LentesContactoDialog dialog = new LentesContactoDialog( order.id, modeloLc.model, item.id, modeloLc.curve,
               modeloLc.diameter, modeloLc.sphere, modeloLc.cylinder, modeloLc.axis, modeloLc.color, customer.id, fillOblig, null )
           dialog.show()
+          if( dialog.cancelled ){
+            OrderItem oi = null
+            for(OrderItem det : order.items){
+              if( det.item.id.equals(item.id) ){
+                oi = det
+              }
+            }
+            OrderController.removeOrderItemFromOrder( order.id, oi )
+            OrderController.removePedidoLc( order.id, item.id )
+          }
           updateOrder( order.id )
+          //doBindings()
         } else if( ItemController.findLenteContactoStock( item.id ) ){
           BatchDialog dialog = new BatchDialog( order, item, fillOblig )
           dialog.show()
