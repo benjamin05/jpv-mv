@@ -83,12 +83,14 @@ class TotalCancellationDialog extends JDialog {
   private String TAG_DESC_FORMA_PAGO_C1 = "REDENCION SEGUROS"
 
   public boolean button = false
+  public Boolean alreadyCanc
 
-    TotalCancellationDialog( Component parent, String orderId ) {
+    TotalCancellationDialog( Component parent, String orderId, Boolean transf ) {
     order = OrderController.getOrder( orderId )
     email = CustomerController.findCustomerEmail( order.customer.id )
     payments = PaymentController.findPaymentsByOrderId( orderId ) as List<Payment>
     devBank = OrderController.findDevBanks( )
+    alreadyCanc = transf
     for(Payment payment : payments){
       paymentsAmount = paymentsAmount.add(payment.amount)
       if(StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_TC) ){
@@ -278,24 +280,25 @@ class TotalCancellationDialog extends JDialog {
         }
     })
     for(Payment payment : order.payments){
-      if( payment.amount.doubleValue() >= couponsAmount ){
+      BigDecimal paymentForDev = payment.refundable.compareTo(BigDecimal.ZERO) <= 0 ? payment.amount : payment.refundable
+      if( paymentForDev.doubleValue() >= couponsAmount ){
         String tipoPago = "EF"
-        if( StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_TC) ){
+        if( StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_TC) ){
           tipoPago = 'TC'
         }
         //amount = amount+", "+String.format( '$%.2f-%s',payment.amount.subtract(couponsAmount),tipoPago)
-      if( StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_TC) ){
-          amountNbrTc = (amountNbrTc.add(payment.amount)).subtract(couponsAmount)
-        } else if( StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_C1) ) {
-          amountNbrC1 = (amountNbrC1.add(payment.amount)).subtract(couponsAmount)
-        } else if( StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_TD) ||
-              StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_EF)) {
-          amountNbrTd = (amountNbrTd.add(payment.amount)).subtract(couponsAmount)
+      if( StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_TC) ){
+          amountNbrTc = (amountNbrTc.add(paymentForDev)).subtract(couponsAmount)
+        } else if( StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_C1) ) {
+          amountNbrC1 = (amountNbrC1.add(paymentForDev)).subtract(couponsAmount)
+        } else if( StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_TD) ||
+              StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_EF)) {
+          amountNbrTd = (amountNbrTd.add(paymentForDev)).subtract(couponsAmount)
         } else {
-          amountNbrEf = (amountNbrEf.add(payment.amount)).subtract(couponsAmount)
+          amountNbrEf = (amountNbrEf.add(paymentForDev)).subtract(couponsAmount)
         }
       }
-      couponsAmount = couponsAmount.doubleValue()-payment.amount.doubleValue() < 0.00 ? BigDecimal.ZERO : couponsAmount.doubleValue()-payment.amount.doubleValue()
+      couponsAmount = couponsAmount.doubleValue()-paymentForDev.doubleValue() < 0.00 ? BigDecimal.ZERO : couponsAmount.doubleValue()-paymentForDev.doubleValue()
     }
     amount = /*(amountNbrEf.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrEf,TAG_DESC_FORMA_PAGO_EF) : "")+*/""+
             (amountNbrTc.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTc,TAG_DESC_FORMA_PAGO_TC) : "")+" "+
@@ -328,7 +331,7 @@ class TotalCancellationDialog extends JDialog {
       String selectedBank = (selection != null && cbBank.visible) ? selection.id.toString() : ""
       String dataDev = "${StringUtils.trimToEmpty(txtName.text)},${StringUtils.trimToEmpty(selectedBank)}," +
                 "${StringUtils.trimToEmpty(txtClaveAccount.text)},${StringUtils.trimToEmpty(txtClaveAccount1.text)},${StringUtils.trimToEmpty(txtEmail.text)}"
-      AuthorizationCanDialog authDialog = new AuthorizationCanDialog( this, "Cancelaci\u00f3n requiere autorizaci\u00f3n", order, dataDev )
+      AuthorizationCanDialog authDialog = new AuthorizationCanDialog( this, "Cancelaci\u00f3n requiere autorizaci\u00f3n", order, dataDev, alreadyCanc )
       authDialog.show()
       dispose()
     }

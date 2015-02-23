@@ -42,15 +42,16 @@ class AuthorizationCanDialog extends JDialog {
   private static final Integer TAG_TIPO_TRANS_DEV = 2
 
   private static final String DATE_FORMAT = 'dd-MM-yyyy'
+  private Boolean alreadyCan
 
-
-    AuthorizationCanDialog( Component parent, String message, Order order, String devData ) {
+    AuthorizationCanDialog( Component parent, String message, Order order, String devData, Boolean alreadyCan ) {
     sb = new SwingBuilder()
     this.order = order
     dataDev = devData
     reasons = CancellationController.findAllCancellationReasons()
     definedMessage = message ?: ''
     authorized = false
+    this.alreadyCan = alreadyCan
     buildUI( parent )
   }
 
@@ -194,6 +195,7 @@ class AuthorizationCanDialog extends JDialog {
     }
 
     private boolean cancelOrder( ) {
+      if( !alreadyCan ){
         if ( CancellationController.cancelOrder( order.id, reasonField.selectedItem as String, "", false ) ) {
             if( !StringUtils.trimToEmpty(reasonField.selectedItem.toString()).equalsIgnoreCase(TAG_RAZON_CAMBIO_FORMA_PAGO) ){
               CancellationController.outputContactLens( order.id )
@@ -213,6 +215,9 @@ class AuthorizationCanDialog extends JDialog {
                     .show()
             return false
         }
+      } else {
+        return true
+      }
     }
 
 
