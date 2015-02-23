@@ -112,7 +112,7 @@ class TotalCancellationDialog extends JDialog {
   // UI Layout Definition
   void buildUI( Component parent ) {
     sb.dialog( this,
-        title: "Cancelaci\u00f3n",
+        title: "Datos de la factura ${order.bill}",
         location: parent.locationOnScreen,
         resizable: true,
         pack: true,
@@ -121,27 +121,23 @@ class TotalCancellationDialog extends JDialog {
     ) {
       panel() {
         borderLayout()
-        panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap", "[fill,grow]", "[]10[]" ) ) {
+        panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap", "[fill,grow]", "[]5[]" ) ) {
           def displayFont = new Font( '', Font.BOLD, 14 )
-          label( text: "Datos de la factura ${order.bill}", font: displayFont )
-          //label( text: " ", constraints: "span 2" )
-          //label( text: "Factura:" )
-          //txtBill = textField( editable: false )
           label( text: "Pagos:" )
-            scrollPane = scrollPane( constraints: 'h 80!,hidemode 3' ) {
-                table( selectionMode: ListSelectionModel.SINGLE_SELECTION ) {
-                  tableModel( list: payments ) {
-                    closureColumn( header: 'Forma Pago', read: {Payment pmt -> pmt?.paymentType} )
-                    closureColumn( header: 'Monto', read: {Payment pmt -> pmt?.amount}, cellRenderer: new MoneyCellRenderer() )
-                  }
-                }
+          scrollPane = scrollPane( constraints: 'h 80!,hidemode 3' ) {
+            table( selectionMode: ListSelectionModel.SINGLE_SELECTION ) {
+              tableModel( list: payments ) {
+                closureColumn( header: 'Forma Pago', read: {Payment pmt -> pmt?.paymentType} )
+                closureColumn( header: 'Monto', read: {Payment pmt -> pmt?.amount}, cellRenderer: new MoneyCellRenderer() )
+              }
             }
+          }
             panel( layout: new MigLayout( 'wrap', '[grow,right]', '[]' ) ) {
               label( text: "Total: ${totalPayments}" )
             }
 
             label( text: "Cupones Aplicados:", visible: coupons.size() > 0 )
-            scrollPane( constraints: 'h 70!,hidemode 3', visible: coupons.size() > 0 ) {
+            scrollPane( constraints: 'h 60!,hidemode 3', visible: coupons.size() > 0 ) {
                 table( selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doSelect ) {
                     tableModel( list: coupons ) {
                         closureColumn( header: 'Factura', read: {Coupons cmv -> cmv?.billApplied}, maxWidth: 70 )
@@ -156,8 +152,8 @@ class TotalCancellationDialog extends JDialog {
               label( text: "Total Cupones: ${couponsAmountTmp}", visible: coupons.size() > 0, constraints: 'hidemode 3' )
             }
 
-            label( text: "Detalles:", visible: coupons.size() > 0, constraints: 'hidemode 3' )
-            scrollPaneCoupons = scrollPane( constraints: 'h 60!,hidemode 3', visible: coupons.size() > 0 ) {
+            label( text: "Detalles:", visible: couponsDet.size() > 0, constraints: 'hidemode 3' )
+            scrollPaneCoupons = scrollPane( constraints: 'h 50!,hidemode 3', visible: couponsDet.size() > 0 ) {
                 tblDetCoupons = table( selectionMode: ListSelectionModel.SINGLE_SELECTION ) {
                   couponsDetModel = tableModel( list: couponsDet ) {
                         closureColumn( header: 'Cliente', read: {Coupons cmv -> cmv?.client}, maxWidth: 150 )
@@ -166,16 +162,18 @@ class TotalCancellationDialog extends JDialog {
                     } as DefaultTableModel
                 }
             }
-          pnlDevOriginal = panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ), visible: StringUtils.trimToEmpty(devAmount).length() > 0 ) {
+          pnlDevOriginal = panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ),
+                  constraints: 'hidemode 3', visible: StringUtils.trimToEmpty(devAmount).length() > 0 ) {
             label( text: "DEVOLUCION:", font: displayFont )
             label( text: devAmount, font: displayFont )
           }
-          pnlDevCash = panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 2', '[fill,grow][fill,grow]', '[]' ), visible: StringUtils.trimToEmpty(devAmountTd).length() > 0 ) {
+          pnlDevCash = panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 2', '[fill,grow][fill,grow]', '[]' ),
+                  constraints: 'hidemode 3', visible: StringUtils.trimToEmpty(devAmountTd).length() > 0 ) {
             panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[]', '[]' ) ) {
               label( text: "DEVOLUCION:", font: displayFont )
               label( text: devAmountTd, font: displayFont )
             }
-            panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[]', '[]' ) ) {
+            panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[]', '[]' ), constraints: 'hidemode 3' ) {
               bgDev = buttonGroup()
               rbCheck = radioButton( text: "Cheque", buttonGroup: bgDev, selected: true )
               rbBankTransf = radioButton( text: "Transferencia Bancaria", buttonGroup: bgDev )
