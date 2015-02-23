@@ -341,6 +341,11 @@ class TotalCancellationDialog extends JDialog {
 
   Boolean validDevTd( ){
     Boolean valid = true
+    txtName.foreground = UI_Standards.NORMAL_FOREGROUND
+    txtEmail.foreground = UI_Standards.NORMAL_FOREGROUND
+    //txtBill.foreground = UI_Standards.NORMAL_FOREGROUND
+    txtClaveAccount.foreground = UI_Standards.NORMAL_FOREGROUND
+    txtClaveAccount1.foreground = UI_Standards.NORMAL_FOREGROUND
     if( pnlDevCash.visible ){
       String pattern= '[A-Za-z0-9]+';
       if( StringUtils.trimToEmpty(txtName.text).length() <= 0 ||
@@ -352,7 +357,7 @@ class TotalCancellationDialog extends JDialog {
       if( StringUtils.trimToEmpty(txtEmail.text).length() <= 0 ){
             valid = false
             txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
-            txtEmail.text = "DATO OBLIGATORIO"
+            //txtEmail.text = "DATO OBLIGATORIO"
       } else {
             String[] emailData = StringUtils.trimToEmpty(txtEmail.text).split("@")
             if( emailData.length != 2 ){
@@ -360,7 +365,7 @@ class TotalCancellationDialog extends JDialog {
                         !StringUtils.trimToEmpty(emailData[1]).matches(pattern) ){*/
                 valid = false
                 txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
-                txtEmail.text = "FORMATO INCORRECTO"
+                //txtEmail.text = "FORMATO INCORRECTO"
                 //}
             } /*else {
         txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
@@ -371,29 +376,29 @@ class TotalCancellationDialog extends JDialog {
             if( StringUtils.trimToEmpty(txtClaveAccount.text).length() <= 0 ){
                 valid = false
                 txtClaveAccount.foreground = UI_Standards.WARNING_FOREGROUND
-                txtClaveAccount.text = "DATO OBLIGATORIO"
+                //txtClaveAccount.text = "DATO OBLIGATORIO"
             } else {
                 if( !StringUtils.trimToEmpty(txtClaveAccount.text).isNumber() ){
                     valid = false
                     txtClaveAccount.foreground = UI_Standards.WARNING_FOREGROUND
-                    txtClaveAccount.text = "VERIFIQUE LOS DATOS"
+                    //txtClaveAccount.text = "VERIFIQUE LOS DATOS"
                 }
             }
 
             if(StringUtils.trimToEmpty(txtClaveAccount1.text).length() <= 0){
                 valid = false
                 txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
-                txtClaveAccount1.text = "DATO OBLIGATORIO"
+                //txtClaveAccount1.text = "DATO OBLIGATORIO"
             } else if( (StringUtils.trimToEmpty(txtClaveAccount1.text).length() < 18 ||
                     StringUtils.trimToEmpty(txtClaveAccount1.text).length() < 18) ){
                 valid = false
                 txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
-                txtClaveAccount1.text = "FORMATO INCORRECTO"
+                //txtClaveAccount1.text = "FORMATO INCORRECTO"
             } else {
                 if( !StringUtils.trimToEmpty(txtClaveAccount1.text).isNumber() ){
                     valid = false
                     txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
-                    txtClaveAccount1.text = "VERIFIQUE LOS DATOS"
+                    //txtClaveAccount1.text = "VERIFIQUE LOS DATOS"
                 }
             }
       }
