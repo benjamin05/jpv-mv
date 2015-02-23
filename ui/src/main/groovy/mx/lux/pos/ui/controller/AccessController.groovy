@@ -199,4 +199,38 @@ class AccessController {
   }
 
 
+
+  static boolean canAuthorizeManager( String username, String password ) {
+    log.info( "solicitando autorizacion por usuario: $username" )
+    if ( checkCredentials( username, password ) ) {
+      Empleado empleado = empleadoService.obtenerEmpleado( username )
+      if ( isManager( empleado ) ) {
+        log.info( "autorizacion realizada: $username" )
+        return true
+      } else {
+        log.info( "autorizacion rechazada, no es usuario autorizador" )
+      }
+    } else {
+      log.warn( "credenciales erroneas" )
+    }
+    return false
+  }
+
+
+  private static boolean isManager( Empleado empleado ) {
+    log.info( "verificando si empleado es autorizador: ${empleado?.id}" )
+    if ( empleado?.id ) {
+      if ( StringUtils.trimToEmpty( Registry.idManager ).contains( StringUtils.trimToEmpty(empleado.id) ) ) {
+        log.info( "usuario es autorizador" )
+        return true
+      } else {
+        log.info( "no es usuario autorizador" )
+      }
+    } else {
+      log.warn( "no se verifica usuario, parametros invalidos" )
+    }
+    return false
+  }
+
+
 }

@@ -476,7 +476,10 @@ class NotaVentaServiceImpl implements NotaVentaService {
           }
         }
         Date fecha = new Date()
-        String factura = String.format( "%06d", notaVentaRepository.getFacturaSequence() )
+        String factura = StringUtils.trimToEmpty( notaVenta.factura )
+        if( factura.length() <= 0 ){
+          factura = String.format( "%06d", notaVentaRepository.getFacturaSequence() )
+        }
         notaVenta.factura = factura
         notaVenta.tipoNotaVenta = 'F'
         notaVenta.tipoDescuento = 'N'
@@ -945,9 +948,9 @@ class NotaVentaServiceImpl implements NotaVentaService {
     if( nota != null){
       for( DetalleNotaVenta det : nota.detalles ){
         List<Precio> lstPrecios = precioRepository.findByArticulo( det.articulo.articulo )
-        BigDecimal precio = det.articulo.precio.multiply(det.cantidadFac)
+        BigDecimal precio = det.articulo.precio//.multiply(det.cantidadFac)
         if( lstPrecios.size() > 0 ){
-          precio = lstPrecios.get(0).precio.multiply(det.cantidadFac)
+          precio = lstPrecios.get(0).precio//.multiply(det.cantidadFac)
         }
         QMontoCupon mc = QMontoCupon.montoCupon
         MontoCupon montosCup = montoCuponRepository.findOne( mc.generico.eq(det.articulo.idGenerico).

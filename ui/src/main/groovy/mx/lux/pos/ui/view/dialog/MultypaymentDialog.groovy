@@ -99,6 +99,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
   private static final TAG_GENERICO_B = 'B'
   private static final TAG_GENERICO_A = 'A'
   private static final TAG_SUBTYPE_N = 'N'
+  private static final TAG_C1 = 'C1'
 
   public boolean button = false
 
@@ -109,7 +110,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
     Boolean hasPaymentCupon = false
     hasPaymentCupon = OrderController.hasCuponMv( secondOrder.id )
     List<CuponMv> cuponMv = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(firstOrder.id) )
-    if( cuponMv.size() > 0 && !StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith("F") ){
+    if( cuponMv.size() > 0 ){
       validClave = false
     }
 
@@ -800,9 +801,16 @@ class MultypaymentDialog extends JDialog implements FocusListener {
         if (validOrder) {
           Boolean hasKidFrame = false
           Boolean hasEnsureKid = false
+          Boolean hasC1 = false
+          for(Payment payment : order.payments){
+            if( StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_C1)){
+              hasC1 = true
+            }
+          }
           for(OrderItem det : order.items){
             Articulo art = ItemController.findArticle( det.item.id )
-            if( StringUtils.trimToEmpty(art?.subtipo).startsWith(TAG_SUBTYPE_N) ){
+            String type = StringUtils.trimToEmpty(art?.subtipo).length() > 0 ? StringUtils.trimToEmpty(art?.subtipo) : StringUtils.trimToEmpty(art?.idGenSubtipo)
+            if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTYPE_N) ){
               hasKidFrame = true
             }
             if( StringUtils.trimToEmpty(det.item.name).equalsIgnoreCase("SEG") ){
@@ -812,7 +820,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
           if( order.deals.size() > 0 ){
             println order.deals.first().descripcion
           }
-          if( hasKidFrame && !hasEnsureKid ){
+          if( hasKidFrame && !hasEnsureKid && !hasC1 ){
             List<Item> results = ItemController.findItemsByQuery("SEG")
             if (results?.any()) {
               User user = Session.get(SessionItem.USER) as User
@@ -825,7 +833,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
           Boolean warranty = false
           if( true ){
             NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id )
+            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
           } else {
             warranty = true
           }
@@ -850,6 +858,14 @@ class MultypaymentDialog extends JDialog implements FocusListener {
                 }
             } else {
                 save = true
+            }
+          } else {
+            if( OrderController.MSJ_ERROR_WARRANTY.length() > 0 ){
+              sb.optionPane(
+                 message: 'Error al asignar seguro',
+                 messageType: JOptionPane.ERROR_MESSAGE
+              ).createDialog(this, OrderController.MSJ_ERROR_WARRANTY)
+                .show()
             }
           }
         }

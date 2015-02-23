@@ -305,7 +305,7 @@ class TotalCancellationDialog extends JDialog {
     devAmountTd = amountNbrTd.doubleValue() > 0 ? nf.format(amountNbrTd) : ""
 
     if( StringUtils.trimToEmpty(amount).length() <= 0 || StringUtils.trimToEmpty(amount).equalsIgnoreCase(",,,") ){
-      amount = '$0.00'
+      amount = ''
     }
 
     return amount
