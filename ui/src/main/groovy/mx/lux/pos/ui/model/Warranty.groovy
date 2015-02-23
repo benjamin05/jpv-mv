@@ -11,6 +11,6 @@ class Warranty {
   BigDecimal amount
   String idItem
   String typeEnsure
-
+  String idOrder
 
 }

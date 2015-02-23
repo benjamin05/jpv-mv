@@ -16,9 +16,10 @@
 #SET_STYLE(${FUENTE_B} 0 0 0 0)#altnull(${sucursal.colonia})${CR}
 #SET_STYLE(${FUENTE_B} 0 0 0 0)C.P. #altnull(${sucursal.cp}) #altnull(${sucursal.ciudad})${CR}
 #SET_STYLE(${FUENTE_B} 0 0 0 0)Tel: #altnull(${sucursal.telefonos})${CR}
+#SET_STYLE(${FUENTE_B} 0 0 0 0)Delegacion: #altnull(${municipio})${CR}
 #ALINEAR_DERECHA()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 0)Ticket: #altnull(${sucursal.centroCostos})-#altnull(${nota_venta.factura})${LF}
 #SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 0)SOI: #altnull(${nota_venta.id})${LF}
-#SET_STYLE(${FUENTE_B} 0 0 0 0)Fecha: #altnull(${fecha})${CR}
+#SET_STYLE(${FUENTE_B} 0 0 0 0)${estado} Fecha: #altnull(${fecha})${CR}
 #SET_STYLE(${FUENTE_B} 0 0 0 0)#altnull(${hora}) hrs.
 #LINEA_SEPARACION_SIMPLE()
 #ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)VENTA${LF}

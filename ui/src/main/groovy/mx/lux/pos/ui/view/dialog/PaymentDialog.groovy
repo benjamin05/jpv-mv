@@ -58,6 +58,8 @@ class PaymentDialog extends JDialog {
   private OrderPanel orderPanel
   private CuponMvView cuponMvView
 
+  private Boolean hasDiscount
+
     Pago getPagoN() {
         return pagoN
     }
@@ -93,11 +95,12 @@ class PaymentDialog extends JDialog {
       doBindings()
   }
 
-  PaymentDialog( Component parent, Order order, final Payment payment, CuponMvView cuponMvView, OrderPanel orderPanel ) {
+  PaymentDialog( Component parent, Order order, final Payment payment, CuponMvView cuponMvView, OrderPanel orderPanel, Boolean hasDiscount ) {
     this.order = order
     this.payment = payment
     this.orderPanel = orderPanel
     this.cuponMvView = cuponMvView
+    this.hasDiscount = hasDiscount
     sb = new SwingBuilder()
     defaultPaymentType = PaymentController.findDefaultPaymentType()
     paymentTypes = PaymentController.findActivePaymentTypes( cuponMvView.amount, order.id, order.customer.id )
@@ -353,8 +356,25 @@ class PaymentDialog extends JDialog {
     JButton source = ev.source as JButton
     source.enabled = false
     if ( isValid( order ) ) {
+      if( TAG_FORMA_PAGO_CUPON_C1.equalsIgnoreCase(StringUtils.trimToEmpty(tmpPayment.paymentTypeId)) ){
+        if( hasDiscount ){
+          OrderController.notifyAlert('Error en forma de pago', 'Verifique que la nota no tenga descuento aplicado')
+          source.enabled = true
+        } else {
+          AuthorizationByManagerDialog authDialog = new AuthorizationByManagerDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+          authDialog.show()
+          if (authDialog.authorized) {
+            pagoN = OrderController.addPaymentToOrder( order.id, tmpPayment )
+            dispose()
+          } else {
+            OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
+            source.enabled = true
+          }
+        }
+      } else {
         pagoN = OrderController.addPaymentToOrder( order.id, tmpPayment )
-      dispose()
+        dispose()
+      }
     } else {
       source.enabled = true
     }

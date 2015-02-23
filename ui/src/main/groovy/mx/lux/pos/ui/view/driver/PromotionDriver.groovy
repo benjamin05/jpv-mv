@@ -209,7 +209,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
           item = tmp.item
         }
         if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(tmp.item.type)) ){
-          total = total.add(tmp.item.price)
+          total = total.add(tmp.item.price.multiply(tmp.quantity))
         }
       }
       if( StringUtils.trimToEmpty(title).equalsIgnoreCase("seguro") ){
@@ -261,7 +261,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     BigDecimal total = BigDecimal.ZERO
     for(OrderItem det : order.items){
       if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(det.item.type)) ){
-        total = total.add(det.item.price)
+        total = total.add(det.item.price.multiply(det.quantity))
       }
     }
     if(discountAmt > new Double(total)){
@@ -367,7 +367,14 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   void updatePromotionClient( Order order ){
     Descuento desc = OrderController.findDiscount( order )
     if( desc != null && desc.id != null ){
-      Double discount = desc.getNotaVenta().getMontoDescuento() / (desc.getNotaVenta().getVentaTotal()+desc.getNotaVenta().getMontoDescuento())
+      BigDecimal ventaTotal = BigDecimal.ZERO
+      String genericoNoApplica = StringUtils.trimToEmpty(Registry.genericsWithoutDiscount)
+      for(OrderItem oi : order.items){
+        if( !genericoNoApplica.equalsIgnoreCase(StringUtils.trimToEmpty(oi.item.type)) ){
+          ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
+        }
+      }
+      Double discount = desc.getNotaVenta().getMontoDescuento() / (ventaTotal+desc.getNotaVenta().getMontoDescuento())
       Boolean apl = false
       DescuentoClave descuentoClave = null
       if( desc?.descuentosClave != null ){

@@ -54,6 +54,7 @@ class LentesContactoDialog extends JDialog implements FocusListener {
   private List<String> lstCurva = new ArrayList<String>()
   private PedidoLcDet pedidoLcDet
   Integer cantidad = 0
+  Boolean cancelled
 
   public boolean button = false
 
@@ -64,6 +65,7 @@ class LentesContactoDialog extends JDialog implements FocusListener {
     this.idOrder = idFactura
     this.idCustomer = idCustomer
     this.fillOblig = fillOblig
+    this.cancelled = false
     if(StringUtils.trimToEmpty(curva).length() > 0){
       String[] curve = curva.split( "," )
       for(String crv : curve){
@@ -151,6 +153,9 @@ class LentesContactoDialog extends JDialog implements FocusListener {
   // UI Management
 
   // Public Methods
+  Boolean getCancelled( ){
+    return cancelled
+  }
 
   // UI Response
   protected void onButtonCancel( ) {
@@ -158,6 +163,7 @@ class LentesContactoDialog extends JDialog implements FocusListener {
       lblWarning.visible = true
       lblWarning.text = 'Favor de llenar todos los campos'
     } else {
+      cancelled = true
       dispose()
     }
   }

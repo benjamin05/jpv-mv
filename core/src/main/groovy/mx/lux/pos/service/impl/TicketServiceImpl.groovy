@@ -49,6 +49,7 @@ class TicketServiceImpl implements TicketService {
   private static final String TAG_DEPOSITO_US = 'DOLARES'
   private static final String TAG_GENERICO_ARMAZON = 'A'
   private static final String TAG_GENERICO_INV = 'A,H'
+  private static final String TAG_DF = '09'
 
   private static final BigDecimal CERO_BIGDECIMAL = 0.005
 
@@ -63,6 +64,12 @@ class TicketServiceImpl implements TicketService {
 
   @Resource
   private CuponMvRepository cuponMvRepository
+
+  @Resource
+  private RepRepository repRepository
+
+  @Resource
+  private CiudadesRepository ciudadesRepository
 
   @Resource
   private PrecioRepository precioRepository
@@ -668,6 +675,21 @@ class TicketServiceImpl implements TicketService {
           }
         }
       }
+      String estado = ""
+      if( notaVenta.sucursal != null ){
+        Rep rep = repRepository.findOne( StringUtils.trimToEmpty(notaVenta.sucursal.idEstado) )
+        QCiudades qCiudades = QCiudades.ciudades
+        Ciudades ciudades = ciudadesRepository.findOne(qCiudades.estado.eq(notaVenta.sucursal.idEstado).
+                and(qCiudades.rango1.loe(notaVenta.sucursal.cp).and(qCiudades.rango2.goe(notaVenta.sucursal.cp))))
+        String ciudad = ciudades.nombre
+        if( ciudades.nombre.contains( "(" ) ){
+          String[] data = ciudades.nombre.split("\\(")
+          if( data.length > 1 ){
+            ciudad = data[0]
+          }
+        }
+        estado = StringUtils.trimToEmpty(ciudad)+", "+StringUtils.trimToEmpty( rep.nombre )
+      }
       def items = [
           nombre_ticket: 'ticket-venta',
           nota_venta: notaVenta,
@@ -694,7 +716,9 @@ class TicketServiceImpl implements TicketService {
           cupon3: cupon3Par,
           montoCupon2: formatter.format(monto2Par),
           montoCupon3: formatter.format(monto3Par),
-          leyendaCupon: leyendaCupon
+          leyendaCupon: leyendaCupon,
+          municipio: StringUtils.trimToEmpty(notaVenta?.sucursal?.municipio?.nombre),
+          estado: estado
       ] as Map<String, Object>
 
       imprimeTicket( 'template/ticket-venta-si.vm', items )
@@ -2346,12 +2370,20 @@ class TicketServiceImpl implements TicketService {
   void imprimeCupon( CuponMv cuponMv, String titulo, BigDecimal monto ){
     log.debug( "imprimeCupon( )" )
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
+    String restrictions = ""
+    String restrictions1 = ""
+    if( cuponMv != null && StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+      restrictions = 'APLICA EN LA COMPRA MINIMA DE $1000.00'
+      restrictions1 = 'CONSULTA CONDICIONES EN TIENDA.'
+    }
     if( cuponMv != null ){
       def datos = [
         titulo: titulo,
         monto: String.format('$%s', monto),
         clave: cuponMv.claveDescuento,
-        fecha_vigencia: df.format(cuponMv.fechaVigencia)
+        fecha_vigencia: df.format(cuponMv.fechaVigencia),
+        restrictions: restrictions,
+        restrictions1: restrictions1
       ]
       this.imprimeTicket( 'template/ticket-cupon.vm', datos )
     } else {
