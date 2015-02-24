@@ -688,7 +688,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
             }
             List<String> sources = CancellationController.findSourceOrdersWithCredit(newOrderId)
             if (sources?.any()) {
-                new TotalCancellationDialog( this, sources, true ).show()
+                new TotalCancellationDialog( this, sources.first(), true, false ).show()
                 //new RefundDialog(this, sources.first()).show()
                 Boolean reuse = CancellationController.printReUse( newOrderId )
                 if( !reuse ){

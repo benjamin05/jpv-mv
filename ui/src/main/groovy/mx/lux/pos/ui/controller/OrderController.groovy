@@ -2439,6 +2439,9 @@ class OrderController {
           String ticket = StringUtils.trimToEmpty(Registry.currentSite.toString())+"-"+StringUtils.trimToEmpty(cuponMv.facturaDestino)
           NotaVenta facturaDestino = notaVentaService.obtenerNotaVentaPorTicket( ticket )
           if( !facturaDestino.sFactura.equalsIgnoreCase(TAG_CANCELADA) ){
+            if( facturaDestino.montoDescuento.doubleValue() <= cuponMv.montoCupon.doubleValue() ){
+              cuponMv.montoCupon = facturaDestino.montoDescuento
+            }
             lstCupones.add( cuponMv )
           }
         }
@@ -2477,7 +2480,7 @@ class OrderController {
     }
 
 
-    static void printResumeCancCoupon( String idOrder, String devAmount ){
+    static void printResumeCancCoupon( String idOrder, List<String> devAmount ){
       ticketService.imprimeResumenCuponCan( idOrder, devAmount )
     }
 

@@ -241,6 +241,7 @@ class CancelacionServiceImpl implements CancelacionService {
                         Pago pago = pagoRepository.findOne(pagoId)
                         log.debug("obtiene pago: ${pago?.id}")
                         if (pago?.id) {
+                          if( pago?.porDevolver?.doubleValue() > 0.00 ){
                             Boolean putDataDev = false
                             String formaPago = TAG_EFECTIVO
                             if ('ORIGINAL'.equalsIgnoreCase(valor)) {
@@ -265,6 +266,7 @@ class CancelacionServiceImpl implements CancelacionService {
                             pago.porDevolver = 0
                             pagos.add(pago)
                             devoluciones.add(devolucion)
+                          }
                         } else {
                             throw new Exception("no se encuentra el pago con id: ${pagoId}")
                         }
@@ -1169,6 +1171,14 @@ class CancelacionServiceImpl implements CancelacionService {
     autorizaMovRepository.flush()
   }
 
+
+
+
+  @Override
+  Modificacion obtenerModificacion( String idNotaVenta ){
+    QModificacion qModificacion = QModificacion.modificacion
+    return modificacionRepository.findOne( qModificacion.idFactura.eq(idNotaVenta) )
+  }
 
 
 }

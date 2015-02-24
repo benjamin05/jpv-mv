@@ -332,7 +332,7 @@ class ShowOrderPanel extends JPanel {
           cancelToday()
         } else {
           //new CancellationDialog( this, order.id, true ).show()
-          new TotalCancellationDialog( this, order.id, false ).show()
+          new TotalCancellationDialog( this, order.id, false, true ).show()
           CancellationController.refreshOrder( order )
           doBindings()
         }
@@ -353,7 +353,7 @@ class ShowOrderPanel extends JPanel {
     }
     CancellationController.resetValuesofCancellation( order.id )
     if ( authorized ) {
-      new TotalCancellationDialog( this, order.id, true ).show()
+      new TotalCancellationDialog( this, order.id, true, false ).show()
       //new RefundDialog( this, order.id ).show()
       CancellationController.refreshOrder( order )
       doBindings()

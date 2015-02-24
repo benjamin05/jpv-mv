@@ -2,11 +2,14 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
+import mx.lux.pos.ui.controller.CancellationController
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.controller.PaymentController
 import mx.lux.pos.ui.model.Coupons
 import mx.lux.pos.ui.model.DevBank
+import mx.lux.pos.ui.model.Item
+import mx.lux.pos.ui.model.OrderItem
 import mx.lux.pos.ui.model.Payment
 import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.renderer.DateCellRenderer
@@ -32,6 +35,12 @@ class TotalCancellationDialog extends JDialog {
   private DateFormat df = new SimpleDateFormat( "dd/MM/yyyy" )
   private DateVerifier dv = DateVerifier.instance
   private def sb = new SwingBuilder()
+  private static final String DATE_FORMAT = 'dd-MM-yyyy'
+  private static final String GENERICO_ARMAZON = 'A'
+  private static final String TAG_SURTE_PINO = 'P'
+  private static final String TAG_RAZON_CAMBIO_FORMA_PAGO = 'CAMBIO DE FORMA DE PAGO'
+  private static final String TAG_CANCELADA = 'T'
+  private static final Integer TAG_TIPO_TRANS_DEV = 2
 
   private JTextField txtBill
   private JLabel lblVerifTarjeta
@@ -83,14 +92,16 @@ class TotalCancellationDialog extends JDialog {
   private String TAG_DESC_FORMA_PAGO_C1 = "REDENCION SEGUROS"
 
   public boolean button = false
+  public Boolean askAuth
   public Boolean alreadyCanc
 
-    TotalCancellationDialog( Component parent, String orderId, Boolean transf ) {
+    TotalCancellationDialog( Component parent, String orderId, Boolean transf, Boolean askAuth ) {
     order = OrderController.getOrder( orderId )
     email = CustomerController.findCustomerEmail( order.customer.id )
     payments = PaymentController.findPaymentsByOrderId( orderId ) as List<Payment>
     devBank = OrderController.findDevBanks( )
     alreadyCanc = transf
+    this.askAuth = askAuth
     for(Payment payment : payments){
       paymentsAmount = paymentsAmount.add(payment.amount)
       if(StringUtils.trimToEmpty(payment.paymentTypeId).equalsIgnoreCase(TAG_FORMA_PAGO_TC) ){
@@ -121,7 +132,7 @@ class TotalCancellationDialog extends JDialog {
     ) {
       panel( autoscrolls: true ) {
         borderLayout()
-        panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap", "[fill,grow]", "[]1[]" ), autoscrolls: true ) {
+        panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap", "[fill,grow]", "[]0[]" ), autoscrolls: true ) {
           def displayFont = new Font( '', Font.BOLD, 14 )
           label( text: "Pagos:" )
           scrollPane = scrollPane( constraints: 'h 80!,hidemode 3' ) {
@@ -162,15 +173,15 @@ class TotalCancellationDialog extends JDialog {
                     } as DefaultTableModel
                 }
             }
-          pnlDevOriginal = panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ),
+          pnlDevOriginal = panel( border: titledBorder( title: 'DEVOLUCION' ), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ),
                   constraints: 'hidemode 3', visible: StringUtils.trimToEmpty(devAmount).length() > 0 ) {
-            label( text: "DEVOLUCION:", font: displayFont )
+            //label( text: "DEVOLUCION:", font: displayFont )
             label( text: devAmount, font: displayFont )
           }
-          pnlDevCash = panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap 2', '[fill,grow][fill,grow]', '[]' ),
+          pnlDevCash = panel( border: titledBorder( title: 'DEVOLUCION EFECTIVO' ), layout: new MigLayout( 'wrap 2', '[fill,grow][fill,grow]', '[]' ),
                   constraints: 'hidemode 3', visible: StringUtils.trimToEmpty(devAmountTd).length() > 0 ) {
             panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[]', '[]' ) ) {
-              label( text: "DEVOLUCION:", font: displayFont )
+              //label( text: "DEVOLUCION:", font: displayFont )
               label( text: devAmountTd, font: displayFont )
             }
             panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[]', '[]' ), constraints: 'hidemode 3' ) {
@@ -278,7 +289,8 @@ class TotalCancellationDialog extends JDialog {
         }
     })
     for(Payment payment : order.payments){
-      BigDecimal paymentForDev = payment.refundable.compareTo(BigDecimal.ZERO) <= 0 ? payment.amount : payment.refundable
+      Boolean alreadyCanc = StringUtils.trimToEmpty(order.status).equalsIgnoreCase(TAG_CANCELADA)
+      BigDecimal paymentForDev = alreadyCanc ? payment.refundable : payment.amount
       if( paymentForDev.doubleValue() >= couponsAmount ){
         String tipoPago = "EF"
         if( StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_TC) ){
@@ -298,10 +310,8 @@ class TotalCancellationDialog extends JDialog {
       }
       couponsAmount = couponsAmount.doubleValue()-paymentForDev.doubleValue() < 0.00 ? BigDecimal.ZERO : couponsAmount.doubleValue()-paymentForDev.doubleValue()
     }
-    amount = /*(amountNbrEf.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrEf,TAG_DESC_FORMA_PAGO_EF) : "")+*/""+
-            (amountNbrTc.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTc,TAG_DESC_FORMA_PAGO_TC) : "")+" "+
-            //(amountNbrTd.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTd,TAG_DESC_FORMA_PAGO_TD) : "")+" "+
-            (amountNbrC1.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrC1,TAG_DESC_FORMA_PAGO_C1) : "")
+    amount = (amountNbrTc.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTc,TAG_DESC_FORMA_PAGO_TC) : "")+" "+
+             (amountNbrC1.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrC1,TAG_DESC_FORMA_PAGO_C1) : "")
     //devAmountTd = amountNbrTd.doubleValue() > 0 ? String.format('$%.2f-%s',amountNbrTd,TAG_DESC_FORMA_PAGO_TD) : ""
     devAmountTd = amountNbrTd.doubleValue() > 0 ? nf.format(amountNbrTd) : ""
 
@@ -328,15 +338,26 @@ class TotalCancellationDialog extends JDialog {
       }
       String selectedBank = (selection != null && cbBank.visible) ? selection.id.toString() : ""
       String dataDev = "${StringUtils.trimToEmpty(txtName.text)},${StringUtils.trimToEmpty(selectedBank)}," +
-                "${StringUtils.trimToEmpty(txtClaveAccount.text)},${StringUtils.trimToEmpty(txtClaveAccount1.text)},${StringUtils.trimToEmpty(txtEmail.text)}"
-      AuthorizationCanDialog authDialog = new AuthorizationCanDialog( this, "Cancelaci\u00f3n requiere autorizaci\u00f3n", order, dataDev, alreadyCanc )
-      authDialog.show()
+              "${StringUtils.trimToEmpty(txtClaveAccount.text)},${StringUtils.trimToEmpty(txtClaveAccount1.text)},${StringUtils.trimToEmpty(txtEmail.text)}"
+      if( askAuth ){
+        AuthorizationCanDialog authDialog = new AuthorizationCanDialog( this, "Cancelaci\u00f3n requiere autorizaci\u00f3n", order, dataDev, alreadyCanc )
+        authDialog.show()
+      } else {
+        cancelWithoutAuth( dataDev )
+      }
       dispose()
     }
   }
 
   protected void onButtonPrint( ) {
-    OrderController.printResumeCancCoupon( StringUtils.trimToEmpty(order.id), devAmount )
+    List<String> dev = new ArrayList<>()
+    if( StringUtils.trimToEmpty(devAmount).length() > 0 ){
+      dev.add( devAmount )
+    }
+    if( StringUtils.trimToEmpty(devAmountTd).length() > 0 ){
+      dev.add( devAmountTd+"-EFECTIVO" )
+    }
+    OrderController.printResumeCancCoupon( StringUtils.trimToEmpty(order.id), dev )
   }
 
   Boolean validDevTd( ){
@@ -424,6 +445,133 @@ class TotalCancellationDialog extends JDialog {
     }
     return valid
   }
+
+
+
+  void cancelWithoutAuth( String dataDev ){
+    String reasonCan = CancellationController.reasonCancellation( StringUtils.trimToEmpty(order.id) )
+    if ( allowLateCancellation() ) {
+          boolean authorized = true
+          CancellationController.reassignCoupons( org.apache.commons.lang3.StringUtils.trimToEmpty(order.id) )
+                  CancellationController.refreshOrder( order )
+                  CancellationController.refoundCoupons( order.id )
+                  Map<Integer, String> creditRefunds = [ : ]
+                  order.payments.each { Payment pmt ->
+                      if( pmt.refundable.compareTo(BigDecimal.ZERO) > 0 ){
+                          creditRefunds.put( pmt?.id, PaymentController.findReturnTypeDev( pmt.id, dataDev )  )
+                      }
+                  }
+                  Order orderCom = null
+                  if( order.payments.size() > 0 ){
+                      orderCom = OrderController.findOrderByIdOrder(order.payments.first().order)
+                  }
+                  String orderDate = orderCom != null ? orderCom.date.format(DATE_FORMAT) : order.date.format(DATE_FORMAT)
+                  String currentDate = new Date().format(DATE_FORMAT)
+                  if(currentDate.trim().equalsIgnoreCase(orderDate.trim())){
+                      if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, dataDev ) ) {
+                          CancellationController.printOrderCancellation( order.id )
+                          dispose()
+                      } else {
+                          sb.optionPane(
+                                  message: 'Ocurrio un error al registrar devoluciones',
+                                  messageType: JOptionPane.ERROR_MESSAGE
+                          ).createDialog( this, 'No se registran devoluciones' )
+                                  .show()
+                      }
+                  } else {
+                      BigDecimal refundable = BigDecimal.ZERO
+                      if( orderCom != null ){
+                          for(Payment payment : orderCom.payments){
+                              refundable = refundable.add(payment.refundable)
+                          }
+                      }
+                      if( refundable.compareTo(BigDecimal.ZERO) > 0 ){
+                          orderCom = OrderController.findOrderByIdOrder(order.id)
+                          printCancellationNotToday( orderCom, creditRefunds, dataDev )
+                      }
+                  }
+      try{
+        if( !StringUtils.trimToEmpty(reasonCan).equalsIgnoreCase(TAG_RAZON_CAMBIO_FORMA_PAGO) ){
+          CancellationController.sendCancellationOrderLc( org.apache.commons.lang3.StringUtils.trimToEmpty( order.bill ) )
+        }
+        Order newOrder = OrderController.findOrderByIdOrder( order.id )
+        CancellationController.registerLogAuth( StringUtils.trimToEmpty(order.id), TAG_TIPO_TRANS_DEV, -1 )
+        OrderController.runScriptBckpOrder( newOrder )
+      } catch ( Exception e ){
+        println e
+      }
+    }
+  }
+
+
+  private boolean allowLateCancellation( ) {
+        if ( CancellationController.allowLateCancellation( order.id ) ) {
+            return true
+        } else {
+            sb.optionPane(
+                    message: "No se permite cancelaci\u00f3n posterior \na la fecha de compra: ${order.date?.format( 'dd-MM-yyyy HH:mm' )}",
+                    optionType: JOptionPane.DEFAULT_OPTION
+            ).createDialog( this, "No se permite cancelaci\u00f3n" )
+                    .show()
+        }
+        return false
+  }
+
+
+
+    private def printCancellationNotToday(Order orderCom, Map<Integer, String> creditRefunds, String dataDev){
+        Item item = new Item()
+        String surte = ''
+        for(OrderItem i : orderCom.items){
+            if(i.item.type.trim().equalsIgnoreCase(GENERICO_ARMAZON)){
+                surte = i.delivers.trim()
+                item = i.item
+            }
+        }
+        if(item.id != null && !surte.equalsIgnoreCase(TAG_SURTE_PINO)){
+            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, dataDev )){
+                CancellationController.printOrderCancellation( order.id )
+                dispose()
+            } else {
+                sb.optionPane(
+                        message: 'Ocurrio un error al registrar devoluciones',
+                        messageType: JOptionPane.ERROR_MESSAGE
+                ).createDialog( this, 'No se registran devoluciones' )
+                        .show()
+            }
+        } else if(item.id != null && surte.equalsIgnoreCase(TAG_SURTE_PINO)){
+            Order order = OrderController.findOrderByIdOrder( order.id.trim() )
+            if( order.deliveryDate == null ){
+                if(CancellationController.verificaPino(order.id) ){
+
+                } else {
+                }
+            } else {
+
+            }
+            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, dataDev )){
+                CancellationController.printOrderCancellation( order.id )
+                dispose()
+            } else {
+                sb.optionPane(
+                        message: 'Ocurrio un error al registrar devoluciones',
+                        messageType: JOptionPane.ERROR_MESSAGE
+                ).createDialog( this, 'No se registran devoluciones' )
+                        .show()
+            }
+        } else if( item.id == null ){
+            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, dataDev )){
+                CancellationController.printOrderCancellation( order.id )
+                dispose()
+            } else {
+                sb.optionPane(
+                        message: 'Ocurrio un error al registrar devoluciones',
+                        messageType: JOptionPane.ERROR_MESSAGE
+                ).createDialog( this, 'No se registran devoluciones' )
+                        .show()
+            }
+        }
+    }
 
 
 }

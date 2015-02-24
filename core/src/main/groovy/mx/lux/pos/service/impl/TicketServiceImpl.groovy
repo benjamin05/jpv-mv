@@ -1526,6 +1526,7 @@ class TicketServiceImpl implements TicketService {
         String cuenta = ""
         String clabe = ""
         String correo = ""
+        BigDecimal devEfec = BigDecimal.ZERO
         devolucionesLst.each { Devolucion dev ->
           BigDecimal monto = dev?.monto ?: 0
           if ( 'd'.equalsIgnoreCase( dev?.tipo ) ) {
@@ -1548,6 +1549,7 @@ class TicketServiceImpl implements TicketService {
               cuenta = data[2]
               clabe = "/ "+data[3]
               correo = data[4]
+              devEfec = devEfec.add( dev.monto )
             }
             log.debug( "genera devolucion: ${item}" )
             devoluciones.add( item )
@@ -1595,7 +1597,8 @@ class TicketServiceImpl implements TicketService {
             nombre: nombre,
             cuenta: cuenta,
             clabe: clabe,
-            correo: correo
+            correo: correo,
+            devEfec: formatter.format(devEfec)
         ]
         imprimeTicket( 'template/ticket-cancelacion.vm', items )
       } else {
@@ -2418,7 +2421,7 @@ class TicketServiceImpl implements TicketService {
   }
 
 
-    void imprimeResumenCuponCan( String idFactura, String porDev ){
+    void imprimeResumenCuponCan( String idFactura, List<String> porDev ){
       NumberFormat formatterMoney = new DecimalFormat( '$#,##0.00' )
       log.debug( "imprimeResumenCuponCan( )" )
       NotaVenta notaVenta = notaVentaRepository.findOne( idFactura )
@@ -2461,18 +2464,31 @@ class TicketServiceImpl implements TicketService {
               articulosDest = articulosDest.replaceFirst(",","")
             }
           }
-          cuponesTotal = cuponesTotal.add(cuponMv1.montoCupon)
+          BigDecimal montoC = BigDecimal.ZERO
+          if( notaDestino.first().montoDescuento.doubleValue() <= cuponMv1.montoCupon ){
+            cuponesTotal = cuponesTotal.add(notaDestino.first().montoDescuento)
+            montoC = notaDestino.first().montoDescuento
+          } else {
+            cuponesTotal = cuponesTotal.add(cuponMv1.montoCupon)
+            montoC = cuponMv1.montoCupon
+          }
+          //cuponesTotal = cuponesTotal.add(cuponMv1.montoCupon)
           def facturaApl = [
               cliente: cliente,
               factura: cuponMv1.facturaDestino,
               articulos: articulosDest,
               fecha: cuponMv1.fechaAplicacion.format("dd/MM/yyyy"),
-              monto: formatterMoney.format(cuponMv1.montoCupon),
+              monto: formatterMoney.format(montoC),
               saldo: saldo,
               fechaEntrega: fechaEntrega
           ]
           cupones.add( facturaApl )
-          sumaCupones = sumaCupones.add(cuponMv1.montoCupon)
+          if( notaDestino.first().montoDescuento.doubleValue() <= cuponMv1.montoCupon ){
+            sumaCupones = sumaCupones.add(notaDestino.first().montoDescuento)
+          } else {
+            sumaCupones = sumaCupones.add(cuponMv1.montoCupon)
+          }
+          //sumaCupones = sumaCupones.add(cuponMv1.montoCupon)
         }
         Boolean tieneTarjeta = false
         for( Pago pago : notaVenta.pagos ){

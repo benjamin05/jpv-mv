@@ -61,4 +61,6 @@ interface CancelacionService {
   void imprimeTransaccionOtrasSalidas( Integer idTrans )
 
   void registraLogAutorizacion( String idFactura, String idEmp, Integer idTipoTrans, Pago pago )
+
+  Modificacion obtenerModificacion( String idNotaVenta )
 }

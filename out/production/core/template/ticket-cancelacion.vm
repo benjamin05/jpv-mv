@@ -46,7 +46,8 @@ ${CR}
 #SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)TOTAL:${COL_DET_3}#altnull(${total_movimientos})
 ${LF}
 ${LF}
-#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})DATOS DEVOLUCION:${LF}
+#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})DATOS DEVOLUCION EFECTIVO:${LF}
+#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)IMPORTE:#altnull(${devEfec})${CR}
 #SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)NOMBRE:#altnull(${nombre})${CR}
 #if(${cuenta} != '')#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)CTA/CLABE:#altnull(${cuenta}) #altnull(${clabe})#end${CR}
 #SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)CORREO:#altnull(${correo})${CR}

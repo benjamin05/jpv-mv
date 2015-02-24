@@ -511,4 +511,15 @@ class CancellationController {
   }
 
 
+
+  static String reasonCancellation( String idOrder ){
+    String reason = ""
+    Modificacion modificacion = cancelacionService.obtenerModificacion( idOrder )
+    if( modificacion != null ){
+      reason = StringUtils.trimToEmpty(modificacion.causa)
+    }
+    return reason
+  }
+
+
 }

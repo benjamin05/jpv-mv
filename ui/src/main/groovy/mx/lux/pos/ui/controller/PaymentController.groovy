@@ -146,14 +146,13 @@ class PaymentController {
       }
     }
     if(pago != null){
-      if(TAG_FORMA_PAGO_TRANSF.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago))){
-        if(typePaymentDevOri.contains(pago.idFormaPago)){
-          type = 'ORIGINAL'
-        }
+      if(TAG_FORMA_PAGO_TRANSF.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago)) &&
+              typePaymentDevOri.contains(pago.idFormaPago)){
+        type = 'ORIGINAL'
       } else if(typePaymentDevOri.contains(pago.idFPago)){
         type = 'ORIGINAL'
-      } else if(TAG_FORMA_PAGO_TD.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago)) ||
-              TAG_FORMA_PAGO_EF.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago))){
+      } else if(TAG_FORMA_PAGO_TD.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFormaPago)) ||
+              TAG_FORMA_PAGO_EF.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFormaPago))){
         if( isTB ){
           type = 'TRANSFERENCIA BANCARIA'
         } else {
