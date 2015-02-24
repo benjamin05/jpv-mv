@@ -119,9 +119,9 @@ class TotalCancellationDialog extends JDialog {
         modal: true,
         layout: new MigLayout( 'fill,wrap', '[]', '[fill]' )
     ) {
-      panel() {
+      panel( autoscrolls: true ) {
         borderLayout()
-        panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap", "[fill,grow]", "[]5[]" ) ) {
+        panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap", "[fill,grow]", "[]1[]" ), autoscrolls: true ) {
           def displayFont = new Font( '', Font.BOLD, 14 )
           label( text: "Pagos:" )
           scrollPane = scrollPane( constraints: 'h 80!,hidemode 3' ) {
@@ -152,8 +152,8 @@ class TotalCancellationDialog extends JDialog {
               label( text: "Total Cupones: ${couponsAmountTmp}", visible: coupons.size() > 0, constraints: 'hidemode 3' )
             }
 
-            label( text: "Detalles:", visible: couponsDet.size() > 0, constraints: 'hidemode 3' )
-            scrollPaneCoupons = scrollPane( constraints: 'h 50!,hidemode 3', visible: couponsDet.size() > 0 ) {
+            label( text: "Detalles:", visible: coupons.size() > 0, constraints: 'hidemode 3' )
+            scrollPaneCoupons = scrollPane( constraints: 'h 50!,hidemode 3', visible: coupons.size() > 0 ) {
                 tblDetCoupons = table( selectionMode: ListSelectionModel.SINGLE_SELECTION ) {
                   couponsDetModel = tableModel( list: couponsDet ) {
                         closureColumn( header: 'Cliente', read: {Coupons cmv -> cmv?.client}, maxWidth: 150 )
@@ -342,21 +342,28 @@ class TotalCancellationDialog extends JDialog {
   Boolean validDevTd( ){
     Boolean valid = true
     txtName.foreground = UI_Standards.NORMAL_FOREGROUND
+    txtName.setBorder(BorderFactory.createEmptyBorder())
     txtEmail.foreground = UI_Standards.NORMAL_FOREGROUND
-    //txtBill.foreground = UI_Standards.NORMAL_FOREGROUND
+    txtEmail.setBorder(BorderFactory.createEmptyBorder())
     txtClaveAccount.foreground = UI_Standards.NORMAL_FOREGROUND
+    txtClaveAccount.setBorder(BorderFactory.createEmptyBorder())
     txtClaveAccount1.foreground = UI_Standards.NORMAL_FOREGROUND
+    txtClaveAccount1.setBorder(BorderFactory.createEmptyBorder())
+    cbBank.foreground = UI_Standards.NORMAL_FOREGROUND
+    cbBank.setBorder(BorderFactory.createEmptyBorder())
     if( pnlDevCash.visible ){
       String pattern= '[A-Za-z0-9]+';
       if( StringUtils.trimToEmpty(txtName.text).length() <= 0 ||
             !StringUtils.trimToEmpty(txtName.text).replace(" ","").matches(pattern) ){
             valid = false
             txtName.foreground = UI_Standards.WARNING_FOREGROUND
+            txtName.setBorder(BorderFactory.createLineBorder(Color.RED))
       }
 
       if( StringUtils.trimToEmpty(txtEmail.text).length() <= 0 ){
             valid = false
             txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
+            txtEmail.setBorder(BorderFactory.createLineBorder(Color.RED))
             //txtEmail.text = "DATO OBLIGATORIO"
       } else {
             String[] emailData = StringUtils.trimToEmpty(txtEmail.text).split("@")
@@ -365,6 +372,7 @@ class TotalCancellationDialog extends JDialog {
                         !StringUtils.trimToEmpty(emailData[1]).matches(pattern) ){*/
                 valid = false
                 txtEmail.foreground = UI_Standards.WARNING_FOREGROUND
+                txtEmail.setBorder(BorderFactory.createLineBorder(Color.RED))
                 //txtEmail.text = "FORMATO INCORRECTO"
                 //}
             } /*else {
@@ -376,11 +384,13 @@ class TotalCancellationDialog extends JDialog {
             if( StringUtils.trimToEmpty(txtClaveAccount.text).length() <= 0 ){
                 valid = false
                 txtClaveAccount.foreground = UI_Standards.WARNING_FOREGROUND
+                txtClaveAccount.setBorder(BorderFactory.createLineBorder(Color.RED))
                 //txtClaveAccount.text = "DATO OBLIGATORIO"
             } else {
                 if( !StringUtils.trimToEmpty(txtClaveAccount.text).isNumber() ){
                     valid = false
                     txtClaveAccount.foreground = UI_Standards.WARNING_FOREGROUND
+                    txtClaveAccount.setBorder(BorderFactory.createLineBorder(Color.RED))
                     //txtClaveAccount.text = "VERIFIQUE LOS DATOS"
                 }
             }
@@ -388,16 +398,19 @@ class TotalCancellationDialog extends JDialog {
             if(StringUtils.trimToEmpty(txtClaveAccount1.text).length() <= 0){
                 valid = false
                 txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
+                txtClaveAccount1.setBorder(BorderFactory.createLineBorder(Color.RED))
                 //txtClaveAccount1.text = "DATO OBLIGATORIO"
             } else if( (StringUtils.trimToEmpty(txtClaveAccount1.text).length() < 18 ||
                     StringUtils.trimToEmpty(txtClaveAccount1.text).length() < 18) ){
                 valid = false
                 txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
+                txtClaveAccount1.setBorder(BorderFactory.createLineBorder(Color.RED))
                 //txtClaveAccount1.text = "FORMATO INCORRECTO"
             } else {
                 if( !StringUtils.trimToEmpty(txtClaveAccount1.text).isNumber() ){
                     valid = false
                     txtClaveAccount1.foreground = UI_Standards.WARNING_FOREGROUND
+                    txtClaveAccount1.setBorder(BorderFactory.createLineBorder(Color.RED))
                     //txtClaveAccount1.text = "VERIFIQUE LOS DATOS"
                 }
             }
@@ -406,6 +419,7 @@ class TotalCancellationDialog extends JDialog {
       if( cbBank.visible && cbBank.selectedItem == null ){
             valid = false
             cbBank.foreground = UI_Standards.WARNING_FOREGROUND
+          cbBank.setBorder(BorderFactory.createLineBorder(Color.RED))
       }
     }
     return valid
