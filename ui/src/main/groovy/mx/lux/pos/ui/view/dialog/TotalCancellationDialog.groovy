@@ -173,12 +173,12 @@ class TotalCancellationDialog extends JDialog {
                     } as DefaultTableModel
                 }
             }
-          pnlDevOriginal = panel( border: titledBorder( title: 'DEVOLUCION' ), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ),
+          pnlDevOriginal = panel( border: titledBorder( title: 'DEVOLUCION' ), layout: new MigLayout( 'wrap', '[grow,center]', '[]1[]' ),
                   constraints: 'hidemode 3', visible: StringUtils.trimToEmpty(devAmount).length() > 0 ) {
             //label( text: "DEVOLUCION:", font: displayFont )
             label( text: devAmount, font: displayFont )
           }
-          pnlDevCash = panel( border: titledBorder( title: 'DEVOLUCION EFECTIVO' ), layout: new MigLayout( 'wrap 2', '[fill,grow][fill,grow]', '[]' ),
+          pnlDevCash = panel( border: titledBorder( title: 'DEVOLUCION EFECTIVO' ), layout: new MigLayout( 'wrap 2', '[fill,grow][fill,grow]', '[]1[]' ),
                   constraints: 'hidemode 3', visible: StringUtils.trimToEmpty(devAmountTd).length() > 0 ) {
             panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[]', '[]' ) ) {
               //label( text: "DEVOLUCION:", font: displayFont )
@@ -219,17 +219,17 @@ class TotalCancellationDialog extends JDialog {
             label( text: "Nombre:" )
             txtName = textField( text: order.customer.onlyFullName, constraints: 'span 3' )
             lblBank = label( text: "Banco:", visible: false )
-            cbBank = comboBox( items: devBank*.name, constraints: 'hidemode 3,span 3', visible: false )
-            lblClaveAccount = label( text: "Cta./CLABE:", constraints: 'hidemode 3', visible: false )
+            cbBank = comboBox( items: devBank*.name, constraints: 'span 3', visible: false )
+            lblClaveAccount = label( text: "Cta./CLABE:", visible: false )
             txtClaveAccount = textField( visible: false )
             lblSlash = label( text: "/", visible: false )
             txtClaveAccount1 = textField( visible: false )
             label( text: "Correo:" )
             txtEmail = textField( text: email, constraints: 'span 3' )
           }
-          panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ) ) {
-            lblVerifTarjeta = label( text: "    Verificar que el cliente traiga la Tarjeta de Credito.", constraints: 'hidemode 3', font: displayFont )
-            lblVerifMaterial = label( text: "        Verificar que el cliente traiga el material.", constraints: 'hidemode 3', font: displayFont )
+          panel( constraints: 'hidemode 3', visible: hasTC, border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[grow,center]', '[]' ) ) {
+            lblVerifTarjeta = label( text: "    Verificar tarjeta y material del cliente.", constraints: 'hidemode 3', font: displayFont )
+            //lblVerifMaterial = label( text: "        Verificar que el cliente traiga el material.", constraints: 'hidemode 3', font: displayFont )
           }
         }
         panel( constraints: BorderLayout.PAGE_END ) {
