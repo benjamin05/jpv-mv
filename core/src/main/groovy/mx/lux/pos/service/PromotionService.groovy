@@ -36,4 +36,6 @@ interface PromotionService {
   Boolean getApplyPromotion( PromotionModel pModel, PromotionAvailable pPromotion )
 
   void RegistrarClavesDescuento()
+
+  void cargaArchivoMensajeTicket( )
 }

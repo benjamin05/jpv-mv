@@ -72,6 +72,9 @@ class TicketServiceImpl implements TicketService {
   private CiudadesRepository ciudadesRepository
 
   @Resource
+  private MensajeTicketRepository mensajeTicketRepository
+
+  @Resource
   private PrecioRepository precioRepository
 
   @Resource
@@ -635,6 +638,58 @@ class TicketServiceImpl implements TicketService {
       List<String> promociones = new ArrayList<>()
       List<OrdenPromDet> lstPromociones = ordenPromDetRepository.findByIdFactura( notaVenta.id )
       List<String> msjPromo = new ArrayList<>()
+        QMensajeTicket mensaje = QMensajeTicket.mensajeTicket
+        List<MensajeTicket> lstMensajesTickets = (List<MensajeTicket>)mensajeTicketRepository.findAll( mensaje.fechaFinal.after( new Date() ) )
+        for(MensajeTicket msj : lstMensajesTickets){
+            Boolean alreadyAdd = false
+            Boolean hasBrand = false
+            Boolean hasArticle = false
+            if( (!StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('') && !StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('*'))||
+                    (!StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('') && !StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('*')) ){
+                if( StringUtils.trimToEmpty(msj.idLinea) != '' ){
+                    hasBrand = true
+                }
+                if( StringUtils.trimToEmpty(msj.listaArticulo) != '' ){
+                    hasArticle = true
+                }
+                if( hasBrand ){
+                    Boolean validBrand = false
+                    String[] marcas = marcasFactura.split(',')
+                    for(String marca : marcas){
+                        if(StringUtils.trimToEmpty(marca) != '' && msj.idLinea.contains(marca)){
+                            validBrand = true
+                        }
+                    }
+                    if( validBrand ){
+                        if( hasArticle ){
+                            String[] articulos = articulosFactura.split(',')
+                            for(String art : articulos){
+                                if(!alreadyAdd && StringUtils.trimToEmpty(art) != '' && msj.listaArticulo.contains(art)){
+                                    alreadyAdd = true
+                                    msjPromo.add(msj.mensaje)
+                                }
+                            }
+                        } else {
+                            if(!alreadyAdd){
+                                alreadyAdd = true
+                                msjPromo.add(msj.mensaje)
+                            }
+                        }
+                    }
+                } else if( hasArticle ){
+                    String[] articulos = articulosFactura.split(',')
+                    for(String art : articulos){
+                        if(!alreadyAdd && StringUtils.trimToEmpty(art) != '' && msj.listaArticulo.contains(art)){
+                            alreadyAdd = true
+                            msjPromo.add(msj.mensaje)
+                        }
+                    }
+                }
+            } else if( (StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('') || StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('*'))&&
+                    (StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('') || StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('*')) ){
+                msjPromo.add(msj.mensaje)
+            }
+        }
 
       for(OrdenPromDet promo : lstPromociones){
           Promocion promocion = promocionRepository.findOne( promo.idPromocion )

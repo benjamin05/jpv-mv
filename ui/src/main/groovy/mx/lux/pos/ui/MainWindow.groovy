@@ -757,7 +757,7 @@ class MainWindow extends JFrame implements KeyListener {
             IOController.getInstance().loadAcusePedidoLc()
             IOController.getInstance().autoUpdateFxRates()
             DailyCloseController.openDay()
-            //IOController.getInstance().loadMessageTicketFile()
+            IOController.getInstance().loadMessageTicketFile()
             DailyCloseController.RegistrarPromociones()
             DailyCloseController.RegistrarClavesDescuento()
             IOController.getInstance().autoUpdateEmployeeFile()
