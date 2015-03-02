@@ -72,6 +72,9 @@ class TicketServiceImpl implements TicketService {
   private CiudadesRepository ciudadesRepository
 
   @Resource
+  private MunicipioRepository municipioRepository
+
+  @Resource
   private MensajeTicketRepository mensajeTicketRepository
 
   @Resource
@@ -733,14 +736,19 @@ class TicketServiceImpl implements TicketService {
       String estado = ""
       if( notaVenta.sucursal != null ){
         Rep rep = repRepository.findOne( StringUtils.trimToEmpty(notaVenta.sucursal.idEstado) )
-        QCiudades qCiudades = QCiudades.ciudades
-        Ciudades ciudades = ciudadesRepository.findOne(qCiudades.estado.eq(notaVenta.sucursal.idEstado).
-                and(qCiudades.rango1.loe(notaVenta.sucursal.cp).and(qCiudades.rango2.goe(notaVenta.sucursal.cp))))
-        String ciudad = ciudades.nombre
-        if( ciudades.nombre.contains( "(" ) ){
-          String[] data = ciudades.nombre.split("\\(")
-          if( data.length > 1 ){
-            ciudad = data[0]
+        QMunicipio qMunicipio = QMunicipio.municipio
+        List<Municipio> municipios = municipioRepository.findAll( qMunicipio.idEstado.eq(StringUtils.trimToEmpty(notaVenta?.sucursal?.idEstado)).
+                and( qMunicipio.idLocalidad.eq(StringUtils.trimToEmpty(notaVenta?.sucursal?.idLocalidad)) ) )
+        /*Ciudades ciudades = ciudadesRepository.findOne(qCiudades.estado.eq(notaVenta.sucursal.idEstado).
+                and(qCiudades.rango1.loe(notaVenta.sucursal.cp).and(qCiudades.rango2.goe(notaVenta.sucursal.cp))))*/
+        String ciudad = ""
+        if( municipios.size() > 0 ){
+          ciudad = municipios.first().nombre
+          if( municipios.first().nombre.contains( "(" ) ){
+            String[] data = municipios.first().nombre.split("\\(")
+            if( data.length > 1 ){
+              ciudad = data[0]
+            }
           }
         }
         estado = StringUtils.trimToEmpty(ciudad)+", "+StringUtils.trimToEmpty( rep.nombre )
