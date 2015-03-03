@@ -68,7 +68,7 @@ class InvoiceController {
     return contribuyenteService.esRfcValido( rfc )
   }
 
-  static Invoice requestInvoice( Invoice invoice, Boolean lenteDesglosado, Boolean rxDesglosado, Boolean clientDesglosado ) {
+  static Invoice requestInvoice( Invoice invoice, Boolean lenteDesglosado, Boolean rxDesglosado, Boolean clientDesglosado, Boolean lenteArmazonDesglosado ) {
     log.info( "solicitando invoice para el ticket: ${invoice?.ticket}" )
     if ( StringUtils.isNotBlank( invoice?.ticket ) && StringUtils.isNotBlank( invoice?.orderId ) ) {
       User user = Session.get( SessionItem.USER ) as User
@@ -118,7 +118,7 @@ class InvoiceController {
           paciente: invoice.patient ?: '0',
           observaciones: receta
       )
-      comprobante = comprobanteService.registrarComprobante( comprobante, lenteDesglosado, rxDesglosado, clientDesglosado )
+      comprobante = comprobanteService.registrarComprobante( comprobante, lenteDesglosado, rxDesglosado, clientDesglosado, lenteArmazonDesglosado )
       if ( comprobante?.id ) {
         Integer idCliente = comprobante.idCliente.isInteger() ? comprobante.idCliente.toInteger() : null
         Contribuyente contribuyente = new Contribuyente(

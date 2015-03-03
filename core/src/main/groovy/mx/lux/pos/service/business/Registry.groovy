@@ -197,7 +197,7 @@ class Registry {
         if ( ( idCliente == null )) {
         companies = RepositoryFactory.rfcMaster.findByIdCliente( 0 )
       } else{
-            companies = RepositoryFactory.rfcMaster.findByIdCliente( idCliente )
+            companies = RepositoryFactory.rfcMaster.findByIdClienteAndRfc( idCliente, rfc.trim() )
         }
       company = ( companies.size() > 0 ? companies.first() : null )
     }

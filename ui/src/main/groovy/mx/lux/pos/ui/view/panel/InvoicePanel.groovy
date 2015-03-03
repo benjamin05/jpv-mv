@@ -14,6 +14,7 @@ import javax.swing.*
 import javax.swing.border.TitledBorder
 import java.awt.*
 import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import java.util.List
 
 class InvoicePanel extends JPanel {
@@ -42,6 +43,7 @@ class InvoicePanel extends JPanel {
   private JTextField txtCorreo
   private JCheckBox cbExtranjero
   private JCheckBox cbDesgloseLente
+  private JCheckBox cbDesgloseLenteArmazon
   private JCheckBox cbDesgloseRx
   private JCheckBox cbDesgloseCliente
   private JComboBox cbEstado
@@ -135,6 +137,24 @@ class InvoicePanel extends JPanel {
           cbDesgloseLente = checkBox( text: 'Lente', selected: true )
           cbDesgloseRx = checkBox( text: 'Rx', selected: true )
           cbDesgloseCliente = checkBox( text: 'Paciente', selected: true )
+          label( text: ' ' )
+          cbDesgloseLenteArmazon = checkBox( text: 'Lente y Armazon', selected: false )
+          cbDesgloseLente.addActionListener( new ActionListener() {
+              @Override
+              void actionPerformed(ActionEvent e) {
+                if( cbDesgloseLente.selected ){
+                  cbDesgloseLenteArmazon.selected = false
+                }
+              }
+          })
+          cbDesgloseLenteArmazon.addActionListener( new ActionListener() {
+              @Override
+              void actionPerformed(ActionEvent e) {
+                  if( cbDesgloseLenteArmazon.selected ){
+                    cbDesgloseLente.selected = false
+                  }
+              }
+          })
         }
       }
 
@@ -248,6 +268,7 @@ class InvoicePanel extends JPanel {
     cbDesgloseLente.selected = true
     cbDesgloseRx.selected = true
     cbDesgloseCliente.selected = true
+    cbDesgloseLenteArmazon.selected = false
     doBindings()
   }
 
@@ -428,7 +449,8 @@ class InvoicePanel extends JPanel {
     JButton source = ev.source as JButton
     source.enabled = false
     if ( isValidInput() ) {
-      Invoice invoiceTmp = InvoiceController.requestInvoice( invoice, cbDesgloseLente.selected, cbDesgloseRx.selected, cbDesgloseCliente.selected )
+      Invoice invoiceTmp = InvoiceController.requestInvoice( invoice, cbDesgloseLente.selected, cbDesgloseRx.selected,
+              cbDesgloseCliente.selected, cbDesgloseLenteArmazon.selected )
       if ( invoiceTmp?.id ) {
         fillInvoiceFields( invoiceTmp )
         sb.optionPane(
