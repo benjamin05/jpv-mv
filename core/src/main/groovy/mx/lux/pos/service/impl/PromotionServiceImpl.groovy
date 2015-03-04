@@ -46,6 +46,9 @@ class PromotionServiceImpl implements PromotionService {
   @Resource
     private DescuentoRepository descuentoRepository
 
+  @Resource
+  private MensajeTicketRepository mensajeTicketRepository
+
 
   public void updateOrder( PromotionModel pModel, String pOrderNbr ) {
     log.debug( "Update Order: ${ pOrderNbr } " )
@@ -216,5 +219,61 @@ class PromotionServiceImpl implements PromotionService {
     Promocion promocion = promocionRepository.findOne( idPromocion )
     return promocion
   }
+
+
+    @Transactional
+    @Override
+    void cargaArchivoMensajeTicket( ){
+        log.debug( "cargaArchivoMensajeTicket( )" )
+        File folder = new File( Registry.inputFilePath )
+        //File newFolder = new File( Registry.processedFilesPath )
+        if( folder?.exists() ){
+            folder.eachFileMatch( ~/.+_.+_.+_.+\.MSG/ ) { File file ->
+                log.debug( "leyendo archivo: ${file.name}" )
+                for(String line : file.readLines() ){
+                    line = line.replace( "||", "| |")
+                    line = line.replace( "||", "| |")
+                    String[] elementos = line.split( /\|/ )
+                    if( elementos.size() >= 7 ){
+                        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy")
+                        MensajeTicket mensaje = new MensajeTicket()
+                        Integer folio = 0
+                        try{
+                            folio = NumberFormat.getInstance().parse(elementos[0])
+                        } catch (NumberFormatException e){ println e }
+                        mensaje.setFolio( folio )
+                        mensaje.setDescripcion( elementos[1] )
+                        mensaje.setFechaInicio( formatter.parse(elementos[2]) )
+                        mensaje.setFechaFinal( formatter.parse(elementos[3]) )
+                        mensaje.setIdLinea( elementos[4] )
+                        mensaje.setListaArticulo( elementos[5] )
+                        mensaje.setMensaje( elementos[6] )
+                        mensajeTicketRepository.saveAndFlush( mensaje )
+                    }
+                }
+                def newFile = new File( Registry.processedFilesPath, file.name )
+                List<File> lstFiles = new ArrayList<>();
+                if(newFile.exists()) {
+                    newFile.delete()
+                }
+                try {
+                    FileInputStream inFile = new FileInputStream(file);
+                    FileOutputStream outFile = new FileOutputStream(newFile);
+                    Integer c;
+                    lstFiles.add(file)
+                    while( (c = inFile.read() ) != -1)
+                        outFile.write(c);
+                    inFile.close();
+                    outFile.close();
+                } catch(IOException e) {
+                    System.out.println( e )
+                }
+                for(File files : lstFiles){
+                    files.delete()
+                }
+            }
+        }
+    }
+
 
 }
