@@ -72,6 +72,12 @@ class TicketServiceImpl implements TicketService {
   private CiudadesRepository ciudadesRepository
 
   @Resource
+  private MunicipioRepository municipioRepository
+
+  @Resource
+  private MensajeTicketRepository mensajeTicketRepository
+
+  @Resource
   private PrecioRepository precioRepository
 
   @Resource
@@ -635,6 +641,58 @@ class TicketServiceImpl implements TicketService {
       List<String> promociones = new ArrayList<>()
       List<OrdenPromDet> lstPromociones = ordenPromDetRepository.findByIdFactura( notaVenta.id )
       List<String> msjPromo = new ArrayList<>()
+        QMensajeTicket mensaje = QMensajeTicket.mensajeTicket
+        List<MensajeTicket> lstMensajesTickets = (List<MensajeTicket>)mensajeTicketRepository.findAll( mensaje.fechaFinal.after( new Date() ) )
+        for(MensajeTicket msj : lstMensajesTickets){
+            Boolean alreadyAdd = false
+            Boolean hasBrand = false
+            Boolean hasArticle = false
+            if( (!StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('') && !StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('*'))||
+                    (!StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('') && !StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('*')) ){
+                if( StringUtils.trimToEmpty(msj.idLinea) != '' ){
+                    hasBrand = true
+                }
+                if( StringUtils.trimToEmpty(msj.listaArticulo) != '' ){
+                    hasArticle = true
+                }
+                if( hasBrand ){
+                    Boolean validBrand = false
+                    String[] marcas = marcasFactura.split(',')
+                    for(String marca : marcas){
+                        if(StringUtils.trimToEmpty(marca) != '' && msj.idLinea.contains(marca)){
+                            validBrand = true
+                        }
+                    }
+                    if( validBrand ){
+                        if( hasArticle ){
+                            String[] articulos = articulosFactura.split(',')
+                            for(String art : articulos){
+                                if(!alreadyAdd && StringUtils.trimToEmpty(art) != '' && msj.listaArticulo.contains(art)){
+                                    alreadyAdd = true
+                                    msjPromo.add(msj.mensaje)
+                                }
+                            }
+                        } else {
+                            if(!alreadyAdd){
+                                alreadyAdd = true
+                                msjPromo.add(msj.mensaje)
+                            }
+                        }
+                    }
+                } else if( hasArticle ){
+                    String[] articulos = articulosFactura.split(',')
+                    for(String art : articulos){
+                        if(!alreadyAdd && StringUtils.trimToEmpty(art) != '' && msj.listaArticulo.contains(art)){
+                            alreadyAdd = true
+                            msjPromo.add(msj.mensaje)
+                        }
+                    }
+                }
+            } else if( (StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('') || StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('*'))&&
+                    (StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('') || StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('*')) ){
+                msjPromo.add(msj.mensaje)
+            }
+        }
 
       for(OrdenPromDet promo : lstPromociones){
           Promocion promocion = promocionRepository.findOne( promo.idPromocion )
@@ -678,17 +736,24 @@ class TicketServiceImpl implements TicketService {
       String estado = ""
       if( notaVenta.sucursal != null ){
         Rep rep = repRepository.findOne( StringUtils.trimToEmpty(notaVenta.sucursal.idEstado) )
-        QCiudades qCiudades = QCiudades.ciudades
-        Ciudades ciudades = ciudadesRepository.findOne(qCiudades.estado.eq(notaVenta.sucursal.idEstado).
-                and(qCiudades.rango1.loe(notaVenta.sucursal.cp).and(qCiudades.rango2.goe(notaVenta.sucursal.cp))))
-        String ciudad = ciudades.nombre
-        if( ciudades.nombre.contains( "(" ) ){
-          String[] data = ciudades.nombre.split("\\(")
-          if( data.length > 1 ){
-            ciudad = data[0]
+        if( StringUtils.trimToEmpty(notaVenta?.sucursal?.idEstado).equalsIgnoreCase(TAG_DF) ){
+          estado = rep.nombre
+        } else {
+          QMunicipio qMunicipio = QMunicipio.municipio
+          List<Municipio> municipios = municipioRepository.findAll( qMunicipio.idEstado.eq(StringUtils.trimToEmpty(notaVenta?.sucursal?.idEstado)).
+                  and( qMunicipio.idLocalidad.eq(StringUtils.trimToEmpty(notaVenta?.sucursal?.idLocalidad)) ) )
+          String ciudad = ""
+          if( municipios.size() > 0 ){
+            ciudad = municipios.first().nombre
+            if( municipios.first().nombre.contains( "(" ) ){
+              String[] data = municipios.first().nombre.split("\\(")
+              if( data.length > 1 ){
+                        ciudad = data[0]
+              }
+            }
           }
+          estado = StringUtils.trimToEmpty(ciudad)+", "+StringUtils.trimToEmpty( rep.nombre )
         }
-        estado = StringUtils.trimToEmpty(ciudad)+", "+StringUtils.trimToEmpty( rep.nombre )
       }
       def items = [
           nombre_ticket: 'ticket-venta',
@@ -718,7 +783,7 @@ class TicketServiceImpl implements TicketService {
           montoCupon3: formatter.format(monto3Par),
           leyendaCupon: leyendaCupon,
           municipio: StringUtils.trimToEmpty(notaVenta?.sucursal?.municipio?.nombre),
-          estado: estado
+          estado: StringUtils.trimToEmpty(estado)
       ] as Map<String, Object>
 
       imprimeTicket( 'template/ticket-venta-si.vm', items )
@@ -1543,7 +1608,7 @@ class TicketServiceImpl implements TicketService {
               devEfectivo = "EL PLAZO DE LA DEVOLUCION"
               devEfectivo1 = "ES DE 3 A 4 DIAS HABILES."
             }
-            String[] data = dev.devEfectivo.split(",")
+            String[] data = StringUtils.trimToEmpty(dev.devEfectivo).split(",")
             if( data.length >= 5 ){
               nombre = data[0]
               cuenta = data[2]
