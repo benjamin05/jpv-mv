@@ -20,7 +20,7 @@ class AddressAdapter {
 
   // Internal methods
   protected Contribuyente asEntity( ) {
-    return ( obj as Contribuyente )
+    return obj != null ? ( obj as Contribuyente ) : new Contribuyente()
   }
 
   // Public methods

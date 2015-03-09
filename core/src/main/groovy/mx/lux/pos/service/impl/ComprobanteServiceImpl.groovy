@@ -329,7 +329,7 @@ class ComprobanteServiceImpl implements ComprobanteService {
 
   @Override
   @Transactional
-  Comprobante registrarComprobante( Comprobante comprobante, Boolean lenteDesglosado, Boolean rxDesglosado, Boolean clientDesglosado ) {
+  Comprobante registrarComprobante( Comprobante comprobante, Boolean lenteDesglosado, Boolean rxDesglosado, Boolean clientDesglosado, Boolean lenteArmazonDesglosado ) {
     log.info( "registrando comprobante fiscal, ticket: ${comprobante?.ticket}, idFactura: ${comprobante?.idFactura}" )
     if ( esTicketValido( comprobante?.ticket ) && StringUtils.isNotBlank( comprobante?.idFactura ) ) {
       NotaVenta venta = notaVentaRepository.findOne( comprobante.idFactura )
@@ -356,6 +356,8 @@ class ComprobanteServiceImpl implements ComprobanteService {
           BigDecimal total = venta.ventaNeta ? venta.ventaNeta.subtract(montoCupones): BigDecimal.ZERO
           BigDecimal subTotal = total.divide( referencia, 10, RoundingMode.CEILING ) ?: BigDecimal.ZERO
           BigDecimal impuestos = (total.subtract( subTotal ))
+          BigDecimal subTotalLente = BigDecimal.ZERO
+          BigDecimal subTotalArmazon = BigDecimal.ZERO
 
           Comprobante ultimo = null
           List<Comprobante> anteriores = comprobanteRepository.findByTicketOrderByFechaImpresionDesc( comprobante.ticket )
@@ -407,8 +409,21 @@ class ComprobanteServiceImpl implements ComprobanteService {
             if((genericoA && genericoB) || (genericoB && montaje)){
               genericoAyB = true
             }
-          }
 
+            if( lenteArmazonDesglosado ){
+              if(det.articulo.idGenerico.equalsIgnoreCase(TAG_GENERICO_A)){
+                subTotalArmazon = subTotalArmazon.add( det.precioUnitFinal )
+              } else {
+                subTotalLente = subTotalLente.add( det.precioUnitFinal )
+              }
+            }
+          }
+          if( subTotalArmazon.doubleValue() > 0.00 ){
+            subTotalArmazon = subTotalArmazon.divide( referencia, 10, RoundingMode.CEILING )
+          }
+          if( subTotalLente.doubleValue() > 0.00 ){
+            subTotalLente = subTotalLente.divide( referencia, 10, RoundingMode.CEILING )
+          }
           Boolean hasCupon = false
           BigDecimal montoSinCupon = BigDecimal.ZERO
           for(Pago pay : venta.pagos){
@@ -445,6 +460,17 @@ class ComprobanteServiceImpl implements ComprobanteService {
                     BigDecimal amount = importe
                     if( lenteDesglosado ){
                       descripcion = articulo.descripcion
+                    } else if( lenteArmazonDesglosado ){
+                      if(articulo.idGenerico.trim().equalsIgnoreCase(TAG_GENERICO_A)){
+                        descripcion = "${StringUtils.trimToEmpty(articulo.articulo)} ARMAZON"
+                        priceUnit = subTotalArmazon
+                        amount = subTotalArmazon
+                      } else if(articulo.idGenerico.trim().equalsIgnoreCase(TAG_GENERICO_B)){
+                        descripcion = "${StringUtils.trimToEmpty(articulo.articulo)} LENTE ${StringUtils.trimToEmpty(articulo.descripcion)}"
+                        priceUnit = subTotalLente
+                        amount = subTotalLente
+                        idGenerico = 'ANTEOJO'
+                      }
                     } else {
                         if(genericoAyB && articulo.idGenerico.trim().equalsIgnoreCase(TAG_GENERICO_B)){
                             idArticulo = 'ANTEOJO'
@@ -475,7 +501,11 @@ class ComprobanteServiceImpl implements ComprobanteService {
                             importe: amount.setScale(2, RoundingMode.CEILING)
                     )
                     if( !lenteDesglosado ){
-                    if( genericoAyB && descripcion.trim().contains('ANTEOJO GRADUADO') ){
+                      if( lenteArmazonDesglosado ){
+                        if( articulo.idGenerico.trim().equalsIgnoreCase(TAG_GENERICO_A) || articulo.idGenerico.trim().equalsIgnoreCase(TAG_GENERICO_B) ){
+                          detalles.add( detalle )
+                        }
+                      } else if( genericoAyB && descripcion.trim().contains('ANTEOJO GRADUADO') ){
                       if( !ABinsertado ){
                         log.debug( "genera detalle comprobante: ${detalle.dump()}" )
                         detalles.add( detalle )

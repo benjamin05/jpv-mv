@@ -15,6 +15,8 @@ interface ContribuyenteRepository extends JpaRepository<Contribuyente, Integer>,
 
   List<Contribuyente> findByIdClienteAndRfc( Integer pIdCliente, String pRfc )
 
+  List<Contribuyente> findByRfc( String pRfc )
+
     @Query( value = "select id_cliente from rfc where rfc_fiscal = ?1", nativeQuery = true )
     Integer getIdCliente(String rfc)
 
