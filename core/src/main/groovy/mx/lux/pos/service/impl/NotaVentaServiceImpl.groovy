@@ -44,6 +44,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
   private static final String TAG_NOTA_CANCELADA = 'T'
   private static final String TAG_TRANSFERENCIA = 'TR'
   private static final String TAG_GENERICOS_B = 'B'
+  private static final String TAG_GENERICOS_H = 'H'
   private static final String TAG_GENERICOS_PAQUETE = 'Q'
   private static final String TAG_GENERICOS_ARMAZON = 'A'
   private static final String TAG_GENERICOS_TIPO = 'G'
@@ -973,6 +974,13 @@ class NotaVentaServiceImpl implements NotaVentaService {
             montosCup = null
           }
         }
+        if( montosCup == null ){
+          montosCup = montoCuponRepository.findOne( mc.generico.eq(det.articulo.idGenerico).
+                and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) )
+         if( montosCup != null && montosCup.cantidad > det.cantidadFac.intValue() ){
+           montosCup = null
+         }
+        }
         if( montosCup != null ){
           lstMontosCupon.add( montosCup )
         }
@@ -1016,6 +1024,13 @@ class NotaVentaServiceImpl implements NotaVentaService {
                   if( montosCup != null && StringUtils.trimToEmpty(montosCup.tipo).length() > 0 ){
                       montosCup = null
                   }
+              }
+              if( montosCup == null ){
+                montosCup = montoCuponRepository.findOne( mc.generico.eq(det.articulo.idGenerico).
+                      and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) )
+                if( montosCup != null && montosCup.cantidad < det.cantidadFac ){
+                      montosCup = null
+                }
               }
               if( montosCup != null ){
                   lstMontosCupon.add( montosCup )
@@ -1530,10 +1545,17 @@ class NotaVentaServiceImpl implements NotaVentaService {
       }
     } else {
       NotaVenta notaOrigen = notaVentaRepository.findOne( idFacturaOrigen )
+      Boolean hasLc = false
       if( notaOrigen == null ){
         List<NotaVenta> lstNotas = notaVentaRepository.findByFactura( idFacturaOrigen )
         if( lstNotas.size() > 0 ){
           notaOrigen = lstNotas.get(0)
+        }
+      } else {
+        for( DetalleNotaVenta det : notaOrigen.detalles ){
+          if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICOS_H) ){
+            hasLc = true
+          }
         }
       }
       Integer factura = 0
@@ -1543,6 +1565,8 @@ class NotaVentaServiceImpl implements NotaVentaService {
       String clave = claveAleatoria( StringUtils.trimToEmpty(factura.toString()), StringUtils.trimToEmpty(numeroCupon.toString()) )
       if( ffCupon ){
         clave = clave.replaceFirst(clave.charAt(0).toString(),"F")
+      } else if( hasLc ){
+        clave = clave.replaceFirst(clave.charAt(0).toString(),"H")
       }
       Calendar calendar = Calendar.getInstance();
       calendar.setTime(new Date());

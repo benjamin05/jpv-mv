@@ -62,6 +62,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TAG_GENERICO_SEGUROS = 'J'
     private static final String TAG_GENERICO_ARMAZON = 'A'
     private static final String TAG_GENERICO_LENTE = 'B'
+    private static final String TAG_GENERICO_LENTE_CONTACTO = 'H'
     private static final String TAG_SEGUROS_ARMAZON = 'SS'
     private static final String TAG_SEGUROS_OFTALMICO = 'SEG'
     private static final String TAG_SUBTIPO_NINO = 'N'
@@ -1939,11 +1940,40 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
   private void generatedCoupons( Boolean validClave, Order newOrder){
     if(validClave){
-          Integer var = 1
-          if( Registry.tirdthPairValid() ){
-              var = 2
+      Boolean hasGenericH = false
+      for( OrderItem oi : newOrder.items ){
+        if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+          hasGenericH = true
+        }
+      }
+      if( hasGenericH ){
+        Integer var = 1
+        if( Registry.tirdthPairValid() ){
+          var = 2
+        }
+        for(int i=0;i<var;i++){
+          BigDecimal montoCupon = i == 0 ? OrderController.getCuponAmount(newOrder.id) : OrderController.getCuponAmountThirdPair( newOrder.id )
+          if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
+            String titulo = i == 0 ? "CUPON SEGUNDO PAR LC" : "CUPON TERCER PAR LC"
+            Integer numCupon = i == 0 ? 2 : 3
+            CuponMv cuponMv = new CuponMv()
+            cuponMv.facturaDestino = ""
+            cuponMv.facturaOrigen = order.id
+            cuponMv.fechaAplicacion = null
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
+            cuponMv.fechaVigencia = calendar.getTime()
+            cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
+            OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
           }
-          for(int i=0;i<var;i++){
+        }
+      } else {
+        Integer var = 1
+        if( Registry.tirdthPairValid() ){
+          var = 2
+        }
+        for(int i=0;i<var;i++){
               BigDecimal montoCupon = i == 0 ? OrderController.getCuponAmount(newOrder.id) : OrderController.getCuponAmountThirdPair( newOrder.id )
               if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
                   String titulo = i == 0 ? "CUPON SEGUNDO PAR" : "CUPON TERCER PAR"
@@ -1960,7 +1990,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
                   OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
               }
-          }
+        }
+      }
     }
   }
 

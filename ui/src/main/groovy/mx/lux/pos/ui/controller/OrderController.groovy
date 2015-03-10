@@ -47,6 +47,7 @@ class OrderController {
     private static final String DATE_FORMAT = 'dd-MM-yyyy'
     private static final String TAG_REUSO = 'R'
     private static final String TAG_MSJ_CUPON = 'DESCUENTO CUPON'
+    private static final String TAG_MSJ_CUPON_LC = 'DESCUENTO CUPON LC'
     private static final String TAG_TIPO_DESCUENTO = 'M'
     private static final String TAG_GENERICO_SEG = 'J'
     private static final String TAG_ID_GARANTIA = "GR"
@@ -2383,7 +2384,7 @@ class OrderController {
           descuentoClave = new DescuentoClave()
           descuentoClave.clave_descuento = cuponMv1.claveDescuento
           descuentoClave.porcenaje_descuento = cuponMv1.montoCupon.doubleValue()
-          descuentoClave.descripcion_descuento = TAG_MSJ_CUPON
+          descuentoClave.descripcion_descuento = StringUtils.trimToEmpty(cuponMv1.claveDescuento).startsWith("H") ? TAG_MSJ_CUPON_LC : TAG_MSJ_CUPON
           descuentoClave.tipo = TAG_TIPO_DESCUENTO
           descuentoClave.vigente = true
         }
