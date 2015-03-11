@@ -944,6 +944,8 @@ class NotaVentaServiceImpl implements NotaVentaService {
     log.debug( 'obtenerMontoCupon( )' )
     BigDecimal montoCupon = BigDecimal.ZERO
     Articulo articulo = new Articulo()
+    Integer paqueteCant = 0
+    String paqueteStr = ""
     List<MontoCupon> lstMontosCupon = new ArrayList<>()
     NotaVenta nota = notaVentaRepository.findOne( idNotaVenta )
     if( nota != null){
@@ -977,8 +979,16 @@ class NotaVentaServiceImpl implements NotaVentaService {
         if( montosCup == null ){
           montosCup = montoCuponRepository.findOne( mc.generico.eq(det.articulo.idGenerico).
                 and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) )
-         if( montosCup != null && montosCup.cantidad > det.cantidadFac.intValue() ){
-           montosCup = null
+         if( montosCup != null ){
+           if( StringUtils.trimToEmpty(paqueteStr).length() > 0 ){
+             paqueteCant = paqueteCant+det.cantidadFac.intValue()
+           } else {
+             paqueteStr = montosCup.subtipo
+             paqueteCant = paqueteCant+det.cantidadFac.intValue()
+           }
+           if( paqueteCant < montosCup.cantidad ){
+             montosCup = null
+           }
          }
         }
         if( montosCup != null ){
@@ -1529,6 +1539,15 @@ class NotaVentaServiceImpl implements NotaVentaService {
       calendar.setTime(new Date());
       calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
       Date fechaVigencia = cuponMv.fechaVigencia != null ? cuponMv.fechaVigencia : calendar.getTime()
+      Boolean hasLc = false
+      for( DetalleNotaVenta det : notaOrigen.detalles ){
+        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICOS_H) ){
+          hasLc = true
+        }
+      }
+      if( hasLc ){
+        clave = clave.replaceFirst(clave.charAt(0).toString(),"H")
+      }
       cuponMvRepository.insertClave( clave, notaOrigen.factura, facturaDestino, fechaAplicacion, fechaVigencia )
       cuponMv = cuponMvRepository.findOne(clave)
       cuponMv.montoCupon = montoCupon
