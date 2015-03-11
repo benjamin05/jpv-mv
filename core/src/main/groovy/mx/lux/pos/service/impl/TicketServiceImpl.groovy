@@ -12,6 +12,7 @@ import mx.lux.pos.service.business.Registry
 import mx.lux.pos.util.CustomDateUtils
 import mx.lux.pos.util.CustomDateUtils as MyDateUtils
 import mx.lux.pos.util.MoneyUtils
+import mx.lux.pos.util.SubtypeCouponsUtils
 import org.apache.commons.lang.WordUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.time.DateFormatUtils
@@ -2466,13 +2467,26 @@ class TicketServiceImpl implements TicketService {
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
     String restrictions = ""
     String restrictions1 = ""
+    String titulo2 = ""
     if( cuponMv != null && StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
       restrictions = 'APLICA EN LA COMPRA MINIMA DE $1000.00'
       restrictions1 = 'CONSULTA CONDICIONES EN TIENDA.'
     }
+    if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
+      NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket( "${StringUtils.trimToEmpty(Registry.currentSite.toString())}-${StringUtils.trimToEmpty(cuponMv.facturaOrigen)}" );
+      if( notaVenta != null ){
+        for(DetalleNotaVenta det : notaVenta.detalles){
+          if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") &&
+                  det.cantidadFac.intValue() > 1 ){
+            titulo2 = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
+          }
+        }
+      }
+    }
     if( cuponMv != null ){
       def datos = [
         titulo: titulo,
+        titulo2: titulo2,
         monto: String.format('$%s', monto),
         clave: cuponMv.claveDescuento,
         fecha_vigencia: df.format(cuponMv.fechaVigencia),
