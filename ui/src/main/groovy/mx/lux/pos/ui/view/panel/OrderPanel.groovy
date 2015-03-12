@@ -1376,7 +1376,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
         }
         for(OrderItem det : order.items){
-          totalOrder = totalOrder.add( det.item.listPrice )
+          if( !StringUtils.trimToEmpty(det.item.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+            totalOrder = totalOrder.add( det.item.listPrice.multiply(new BigDecimal(det.quantity)) )
+          }
         }
         if( minimum.compareTo(totalOrder) > 0 ){
           notMinAmount = true
@@ -1387,7 +1389,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           this.promotionDriver.requestApplyPromotion(pPromotion)
         } else {
           NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.US)
-          sb.optionPane(message: "La Promocion debe aplicarse a un monto minimo de ${nf.format(minimum)}", optionType: JOptionPane.DEFAULT_OPTION)
+          sb.optionPane(message: "Monto Mínimo de Compra ${nf.format(minimum)}", optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "Error")
                   .show()
         }
