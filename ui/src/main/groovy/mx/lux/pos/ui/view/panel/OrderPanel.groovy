@@ -1359,13 +1359,38 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     protected void onTogglePromotion(IPromotionAvailable pPromotion, Boolean pNewValue) {
       Boolean valid = true
+      Boolean notMinAmount = false
+      BigDecimal minimum = BigDecimal.ZERO
+      BigDecimal totalOrder = BigDecimal.ZERO
       for(int i=0;i<promotionList.size();i++){
         if( promotionList.get(i) instanceof PromotionDiscount){
           valid = false
         }
       }
+      if( valid ){
+        if( pPromotion instanceof PromotionAvailable){
+          if( pPromotion.promotion instanceof PromotionCombo){
+            minimum = pPromotion.promotion.base.entity.montoMinimo
+          } else if( pPromotion.promotion instanceof PromotionSingle){
+            minimum = pPromotion.promotion.entity.montoMinimo
+          }
+        }
+        for(OrderItem det : order.items){
+          totalOrder = totalOrder.add( det.item.listPrice )
+        }
+        if( minimum.compareTo(totalOrder) > 0 ){
+          notMinAmount = true
+        }
+      }
       if (pNewValue && valid) {
-        this.promotionDriver.requestApplyPromotion(pPromotion)
+        if( !notMinAmount ){
+          this.promotionDriver.requestApplyPromotion(pPromotion)
+        } else {
+          NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.US)
+          sb.optionPane(message: "La Promocion debe aplicarse a un monto minimo de ${nf.format(minimum)}", optionType: JOptionPane.DEFAULT_OPTION)
+                .createDialog(new JTextField(), "Error")
+                  .show()
+        }
       } else {
         this.promotionDriver.requestCancelPromotion(pPromotion)
 

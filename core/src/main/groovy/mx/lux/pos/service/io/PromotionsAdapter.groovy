@@ -15,7 +15,7 @@ class PromotionsAdapter {
         Field_01, IdPromocion, TipoPromocion, Descripcion, VigenciaIni, VigenciaFin, Prioridad, IdGrupoTienda, ArticuloProm,
         AplicaConv, AplicaAuto, Obligatoria, PrecioOferta, IdGenerico, Tipo, Subtipo, Articulo, Marca, PrecioDescontado,
         Descuento, Genericoc, Tipoc, Subtipoc, Articuloc, PrecioDescontadoc, Descuentoc, TipoPrecio,   TipoPrecioc,
-        Marcac
+        Marcac,MontoMinimo
     }
 
     private static Integer currentSite
@@ -116,6 +116,7 @@ class PromotionsAdapter {
             p.precioDescontadoC = NumberFormat.getInstance().parse(String.format("%.2f", this.precioDescontadoc))
             //p.descuentoC = NumberUtils.createBigDecimal(String.format("%.2f", this.descuentoc) )
             p.descuentoC =NumberFormat.getInstance().parse(String.format("%.2f", this.descuentoc) )
+            p.montoMinimo =NumberFormat.getInstance().parse(String.format("%.2f", this.montoMinimo) )
         }
     }
 
@@ -229,6 +230,10 @@ class PromotionsAdapter {
 
     Double getDescuentoc( ) {
         return asDouble( Field.Descuentoc )
+    }
+
+    Double getMontoMinimo( ) {
+        return asDouble( Field.MontoMinimo )
     }
 
     String toString() {
