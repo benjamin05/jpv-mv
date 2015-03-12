@@ -977,8 +977,9 @@ class NotaVentaServiceImpl implements NotaVentaService {
           }
         }
         if( montosCup == null ){
-          montosCup = montoCuponRepository.findOne( mc.generico.eq(det.articulo.idGenerico).
+          List<MontoCupon> lstMontosCup = montoCuponRepository.findAll( mc.generico.eq(det.articulo.idGenerico).
                 and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) )
+          montosCup = lstMontosCup.size() > 0 ? lstMontosCup.first() : null
          if( montosCup != null ){
            if( StringUtils.trimToEmpty(paqueteStr).length() > 0 ){
              paqueteCant = paqueteCant+det.cantidadFac.intValue()
@@ -986,7 +987,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
              paqueteStr = montosCup.subtipo
              paqueteCant = paqueteCant+det.cantidadFac.intValue()
            }
-           if( paqueteCant < montosCup.cantidad ){
+           if( montosCup.cantidad == null || paqueteCant < montosCup.cantidad ){
              montosCup = null
            }
          }
