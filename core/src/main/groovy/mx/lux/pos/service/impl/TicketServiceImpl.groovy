@@ -50,6 +50,7 @@ class TicketServiceImpl implements TicketService {
   private static final String TAG_DEPOSITO_US = 'DOLARES'
   private static final String TAG_GENERICO_ARMAZON = 'A'
   private static final String TAG_GENERICO_INV = 'A,H'
+  private static final String TAG_GENERICO_H = 'H'
   private static final String TAG_DF = '09'
 
   private static final BigDecimal CERO_BIGDECIMAL = 0.005
@@ -573,6 +574,25 @@ class TicketServiceImpl implements TicketService {
       Locale locale = new Locale( 'es' )
       def detalles = [ ]
       List<DetalleNotaVenta> detallesLst = detalleNotaVentaRepository.findByIdFacturaOrderByIdArticuloAsc( idNotaVenta )
+        Boolean cupon2Par= false
+        BigDecimal monto2Par = BigDecimal.ZERO
+        Boolean cupon3Par= false
+        BigDecimal monto3Par = BigDecimal.ZERO
+        String leyendaCupon = ""
+        String cuponLc = ""
+        QCuponMv qCuponMv = QCuponMv.cuponMv
+        List<CuponMv> cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura).
+                and(qCuponMv.facturaDestino.isEmpty().or(qCuponMv.facturaDestino.isNull())) ) as List<CuponMv>
+      if( cuponMv.size() == 1 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith(TAG_GENERICO_H) ){
+        if( notaVenta != null ){
+          for(DetalleNotaVenta det : notaVenta.detalles){
+            if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") &&
+                  det.cantidadFac.intValue() > 1 ){
+              cuponLc = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
+            }
+          }
+        }
+      }
       BigDecimal subtotal = BigDecimal.ZERO
       BigDecimal totalArticulos = BigDecimal.ZERO
       detallesLst?.each { DetalleNotaVenta tmp ->
@@ -580,7 +600,11 @@ class TicketServiceImpl implements TicketService {
         // BigDecimal precio = tmp?.precioUnitFinal?.multiply( tmp?.cantidadFac ) ?: 0
         BigDecimal precio = tmp?.precioUnitLista?.multiply( tmp?.cantidadFac ) ?: 0
         subtotal = subtotal.add( precio )
-        String descripcion = "[${tmp?.articulo?.articulo}] ${tmp?.surte != null ? '['+tmp?.surte.trim()+']' : ''} ${tmp?.articulo?.descripcion}"
+        Boolean cupon = false
+        if( tmp?.cantidadFac?.intValue() > 1 && StringUtils.trimToEmpty(tmp?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_H)){
+          cupon = true
+        }
+        String descripcion = "[${tmp?.articulo?.articulo}] ${tmp?.surte != null ? '['+tmp?.surte.trim()+']' : ''} ${cupon ? '['+cuponLc.trim()+']' : ''} ${tmp?.articulo?.descripcion}"
         String descripcion1
         String descripcion2 = ""
         if ( descripcion.length() > 36 ) {
@@ -702,15 +726,12 @@ class TicketServiceImpl implements TicketService {
             promociones.add( data )
           }
       }
-      Boolean cupon2Par= false
-      BigDecimal monto2Par = BigDecimal.ZERO
-      Boolean cupon3Par= false
-      BigDecimal monto3Par = BigDecimal.ZERO
-      String leyendaCupon = ""
-      QCuponMv qCuponMv = QCuponMv.cuponMv
-      List<CuponMv> cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura).
-              and(qCuponMv.facturaDestino.isEmpty().or(qCuponMv.facturaDestino.isNull())) )
-      if(cuponMv.size() == 1 && Registry.tirdthPairValid()){
+
+      if(cuponMv.size() == 1 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith(TAG_GENERICO_H) ){
+        leyendaCupon = "SOLICITA TU TICKET."
+        cupon2Par = true
+        monto2Par = cuponMv.get(0).montoCupon
+      } else if(cuponMv.size() == 1 && Registry.tirdthPairValid()){
         leyendaCupon = "SOLICITA TU TICKET."
         cupon3Par = true
         monto3Par = cuponMv.get(0).montoCupon
@@ -2468,9 +2489,13 @@ class TicketServiceImpl implements TicketService {
     String restrictions = ""
     String restrictions1 = ""
     String titulo2 = ""
-    if( cuponMv != null && StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
-      restrictions = 'APLICA EN LA COMPRA MINIMA DE $1000.00'
-      restrictions1 = 'CONSULTA CONDICIONES EN TIENDA.'
+    if( cuponMv != null ){
+      if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+        restrictions = 'APLICA EN LA COMPRA MINIMA DE $1000.00'
+        restrictions1 = 'CONSULTA CONDICIONES EN TIENDA.'
+      } else if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
+        restrictions = 'APLICAN RESTRICCIONES'
+      }
     }
     if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
       NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket( "${StringUtils.trimToEmpty(Registry.currentSite.toString())}-${StringUtils.trimToEmpty(cuponMv.facturaOrigen)}" );
