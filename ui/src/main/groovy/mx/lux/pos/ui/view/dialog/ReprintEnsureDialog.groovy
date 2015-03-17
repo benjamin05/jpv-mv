@@ -63,7 +63,7 @@ class ReprintEnsureDialog extends JDialog {
     private void doSave(){
       Order order = OrderController.findOrderByTicket(StringUtils.trimToEmpty(sucursal.text)+"-"+StringUtils.trimToEmpty(factura.text))
       NotaVenta notaWarranty = new NotaVenta()
-      Boolean registro = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order?.id)), true, null, notaWarranty.id, "" )
+      Boolean registro = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order?.id)), true, null, notaWarranty.id, false )
       if(!registro){
        sb.optionPane(
           message: 'Ticket no valido',
