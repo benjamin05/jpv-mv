@@ -116,7 +116,7 @@ class PromotionsAdapter {
             p.precioDescontadoC = NumberFormat.getInstance().parse(String.format("%.2f", this.precioDescontadoc))
             //p.descuentoC = NumberUtils.createBigDecimal(String.format("%.2f", this.descuentoc) )
             p.descuentoC =NumberFormat.getInstance().parse(String.format("%.2f", this.descuentoc) )
-            p.montoMinimo =NumberFormat.getInstance().parse(String.format("%.2f", this.montoMinimo) )
+            p.montoMinimo =this.montoMinimo != null ? NumberFormat.getInstance().parse(String.format("%.2f", this.montoMinimo) ) : 0.00
         }
     }
 
