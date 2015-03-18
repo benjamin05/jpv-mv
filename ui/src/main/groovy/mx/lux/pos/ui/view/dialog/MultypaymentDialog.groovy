@@ -118,10 +118,12 @@ class MultypaymentDialog extends JDialog implements FocusListener {
     if( !hasPaymentCupon && validClave ){
       OrderController.deletePromotion( StringUtils.trimToEmpty(secondOrder.id) )
       amountCuponSecondOrder = OrderController.getCuponAmount(firstOrder.id )
-      PromotionDriver promotionDriver = PromotionDriver.instance
-      updateOrder()
-      promotionDriver.addCouponDiscount( this.secondOrder, amountCupon().amount, firstOrder.id, amountCuponSecondOrder )
-      orderPanel.promotionDriver.requestPromotionSave(secondOrder?.id, false)
+      if( amountCuponSecondOrder.compareTo(BigDecimal.ZERO) > 0 ){
+        PromotionDriver promotionDriver = PromotionDriver.instance
+        updateOrder()
+        promotionDriver.addCouponDiscount( this.secondOrder, amountCupon().amount, firstOrder.id, amountCuponSecondOrder )
+        orderPanel.promotionDriver.requestPromotionSave(secondOrder?.id, false)
+      }
       //OrderController.addPaymentToOrder( secondOrder.id, amountCupon() )
       updateOrder()
     }
@@ -933,7 +935,9 @@ class MultypaymentDialog extends JDialog implements FocusListener {
 
 
   private void generatedCoupon ( Order newOrder1, Order newOrder2 ){
-    OrderController.updateCuponMv( newOrder1.id, newOrder2.id, amountCuponSecondOrder, 2, false )
+    if( amountCuponSecondOrder.compareTo(BigDecimal.ZERO) > 0 ){
+      OrderController.updateCuponMv( newOrder1.id, newOrder2.id, amountCuponSecondOrder, 2, false )
+    }
     if( Registry.tirdthPairValid() ){
       BigDecimal montoCupon = OrderController.getCuponAmountThirdPair( newOrder1.id )
       CuponMv cupon = OrderController.obtenerCuponMv( StringUtils.trimToEmpty(newOrder1.bill), "", montoCupon, 3 )
