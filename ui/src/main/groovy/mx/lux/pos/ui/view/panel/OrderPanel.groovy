@@ -66,6 +66,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TAG_SEGUROS_ARMAZON = 'SS'
     private static final String TAG_SEGUROS_OFTALMICO = 'SEG'
     private static final String TAG_SUBTIPO_NINO = 'N'
+    private static final String TAG_RECETA_LC = 'LC'
 
     private Logger logger = LoggerFactory.getLogger(this.getClass())
     private SwingBuilder sb
@@ -576,6 +577,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           }
                         }
                     }
+                } else if( StringUtils.trimToEmpty(article).equalsIgnoreCase(TAG_RECETA_LC) ){
+                  if( customer.id != CustomerController.findDefaultCustomer().id ){
+                    if( order?.id == null ){
+                      order = OrderController.openOrder(StringUtils.trimToEmpty(customer.id.toString()), order.employee)
+                      updateOrder( StringUtils.trimToEmpty(order.id) )
+                    }
+                    Branch branch = Session.get(SessionItem.BRANCH) as Branch
+                    EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, false)
+                    editRx.show()
+                    OrderController.saveRxOrder(order?.id, this.rec.id)
+                  } else {
+                      optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
+                              .createDialog(new JTextField(), "Articulo Invalido")
+                              .show()
+                  }
                 } else {
                     optionPane(message: "No se encontraron resultados para: ${article}", optionType: JOptionPane.DEFAULT_OPTION)
                             .createDialog(new JTextField(), "B\u00fasqueda: ${article}")
