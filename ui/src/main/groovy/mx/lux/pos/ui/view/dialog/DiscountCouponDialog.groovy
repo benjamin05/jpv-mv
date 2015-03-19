@@ -342,7 +342,7 @@ class DiscountCouponDialog extends JDialog {
     SimpleDateFormat formatter = new SimpleDateFormat("ddMMyy");
     String clave = ""
     BigDecimal amount = BigDecimal.ZERO
-    if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 11 ){
+    if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 10 ){
       for(int i=0;i<StringUtils.trimToEmpty(txtCorporateKey.text).length();i++){
         if(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()).isNumber()){
           Integer number = 0
@@ -354,8 +354,15 @@ class DiscountCouponDialog extends JDialog {
           clave = clave+0
         }
       }
-      String dateStr = StringUtils.trimToEmpty(clave).substring(1,7)
-      String amountStr = StringUtils.trimToEmpty(clave).substring(7,11)
+      String dateStr = ""
+      String amountStr = ""
+      if( StringUtils.trimToEmpty(clave).length() > 10 ){
+        dateStr = StringUtils.trimToEmpty(clave).substring(1,7)
+        amountStr = StringUtils.trimToEmpty(clave).substring(7,11)
+      } else {
+        dateStr = "0"+StringUtils.trimToEmpty(clave).substring(1,6)
+        amountStr = StringUtils.trimToEmpty(clave).substring(6,10)
+      }
       Date date = null
       try{
         date = formatter.parse(dateStr)
