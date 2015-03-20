@@ -2912,7 +2912,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           warranty = false
         }
       }
-      if( warranty ){
+      if( warranty && notaVenta?.detalles.size() > 0 ){
         AseguraNotaDialog dialog = new AseguraNotaDialog()
         dialog.show()
         if( dialog.notaVenta != null ){
