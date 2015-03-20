@@ -1839,7 +1839,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
     private void flujoOtraOrden(){
-        if (itemsModel.size() > 0) {
+        //if (itemsModel.size() > 0) {
             if (paymentsModel.size() == 0) {
                 if( !validLenses() ){
                     order.dioptra = null
@@ -1858,11 +1858,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     OrderController.notifyAlert(TXT_REQUEST_NEW_ORDER, TXT_PAYMENTS_PRESENT)
                 }
             }
-        } else {
+        /*} else {
             sb.doLater {
                 OrderController.notifyAlert(TXT_REQUEST_NEW_ORDER, TXT_PAYMENTS_PRESENT)
             }
-        }
+        }*/
     }
 
     private Boolean isPaymentListEmpty() {
