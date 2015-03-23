@@ -542,15 +542,16 @@ class DiscountCouponDialog extends JDialog {
         if( claveClear ){
           txtDiscountPercent.setValue( new BigDecimal(percentajeInt) )
           valid = true
+          amount = orderTotal * new BigDecimal(percentajeInt/100)
         }
       }
       DescuentoClave descuentoClave = null
       if( valid ){
         descuentoClave = new DescuentoClave()
         descuentoClave.clave_descuento = StringUtils.trimToEmpty(txtCorporateKey.text)
-        descuentoClave.porcenaje_descuento = new BigDecimal(percentajeInt)
+        descuentoClave.porcenaje_descuento = amount
         descuentoClave.descripcion_descuento = "Descuentos CRM"
-        descuentoClave.tipo = "P"
+        descuentoClave.tipo = "M"
         descuentoClave.vigente = true
         descuentoClave.cupon = false
       }

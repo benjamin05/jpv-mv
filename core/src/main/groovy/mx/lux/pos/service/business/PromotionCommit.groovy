@@ -102,17 +102,65 @@ class PromotionCommit {
     NotaVenta dbOrder = RepositoryFactory.orders.findOne( pModel.order.orderNbr )
     Double netAmount = 0
     Double amountEnsure = 0
+    String generic = ""
+    Boolean crm = false
+    Boolean allGen = false
+    Boolean oneValGen = false
+    Boolean oneNotValGen = false
+    if( pModel.orderDiscount != null && StringUtils.trimToEmpty(pModel.orderDiscount.discountType.text).equalsIgnoreCase("Descuentos CRM") ){
+      crm = true
+      generic = StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(1,3)
+      if( generic.contains("**") ){
+            allGen = true
+      } else if( generic.contains("*") ){
+            oneValGen = true
+      } else if( generic.contains("!") ){
+            oneNotValGen = true
+      }
+    }
     for ( DetalleNotaVenta dbOrderLine : dbOrder.detalles ) {
       if( pModel.orderDiscount != null ){
         if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico))  ){
           PromotionOrderDetail orderDetail = pModel.order.orderDetailSet.get( dbOrderLine.idArticulo )
-          if ( orderDetail != null ) {
-            dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+          if( crm ){
+            if( allGen ){
+              if ( orderDetail != null ) {
+                dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+              } else {
+                dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+              }
+              dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+              netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+            } else if( oneValGen ){
+              if( StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
+                if ( orderDetail != null ) {
+                  dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+                } else {
+                  dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+                }
+                dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+                netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+              }
+            } else if( oneNotValGen ){
+              if( !StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
+                if ( orderDetail != null ) {
+                  dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+                } else {
+                  dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+                }
+                dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+                netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+              }
+            }
           } else {
-            dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+            if ( orderDetail != null ) {
+              dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+            } else {
+              dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+            }
+            dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+            netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
           }
-          dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
-          netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
           RepositoryFactory.orderLines.save( dbOrderLine )
         } else {
           amountEnsure = amountEnsure+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
@@ -133,6 +181,7 @@ class PromotionCommit {
     netAmount = netAmount+amountEnsure
     dbOrder.ventaNeta = asAmount( netAmount.round() )
     dbOrder.ventaTotal = asAmount( netAmount.round() )
+
     if ( pModel.hasOrderDiscountApplied() ) {
       println pModel.orderDiscount.discountAmount.round()
       dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount.round() )
