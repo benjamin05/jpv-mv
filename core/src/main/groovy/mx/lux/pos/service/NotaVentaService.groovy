@@ -159,4 +159,6 @@ interface NotaVentaService {
   List<CuponMv> obtenerCuponMvFacturaOriFF( String factura )
 
   List<NotaVenta> obtenerNotaVentaPorFecha( Date fecha )
+
+  Boolean validaClaveCrmWeb( String clave )
 }

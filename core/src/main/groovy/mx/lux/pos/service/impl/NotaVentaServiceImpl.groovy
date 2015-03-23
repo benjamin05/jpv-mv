@@ -68,6 +68,9 @@ class NotaVentaServiceImpl implements NotaVentaService {
   private SucursalRepository sucursalRepository
 
   @Resource
+  private AcusesTipoRepository acusesTipoRepository
+
+  @Resource
   private PromocionRepository promocionRepository
 
   @Resource
@@ -2099,6 +2102,40 @@ class NotaVentaServiceImpl implements NotaVentaService {
     QNotaVenta qNotaVenta = QNotaVenta.notaVenta
     return notaVentaRepository.findAll( qNotaVenta.factura.isNotNull().and(qNotaVenta.factura.isNotEmpty()).
             and(qNotaVenta.fechaHoraFactura.between(fechaInicio, fechaFin)) )
+  }
+
+
+
+  @Override
+  Boolean validaClaveCrmWeb( String clave ){
+    Boolean valid = false
+    AcusesTipo acuseUrl = acusesTipoRepository.findOne( "aplica_crm" )
+    if( acuseUrl != null ){
+      String url = StringUtils.trimToEmpty(acuseUrl.pagina)
+      url += String.format( '?arg=||%s||C', StringUtils.trimToEmpty( clave ) )
+      String response = ""
+      ExecutorService executor = Executors.newFixedThreadPool(1)
+      int timeoutSecs = 15
+      final Future<?> future = executor.submit(new Runnable() {
+        public void run() {
+          try {
+            log.debug( "Liga consulta clave Crm: ${url}" )
+            response = url.toURL().text
+            response = response?.find( /<XX>\s*(.*)\s*<\/XX>/ ) {m, r -> return r}
+            log.debug( "Respuesta: ${response}" )
+          } catch (Exception e) {
+            throw new RuntimeException(e)
+          }
+        }
+      })
+      try {
+        future.get(timeoutSecs, TimeUnit.SECONDS)
+      } catch (Exception e) {println e}
+      if( StringUtils.trimToEmpty(response).equalsIgnoreCase("CLAVE DISPONIBLE") ){
+        valid = true
+      }
+    }
+    return valid
   }
 
 

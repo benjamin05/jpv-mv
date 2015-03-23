@@ -2,6 +2,7 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.CuponMv
+import mx.lux.pos.model.Descuento
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.model.DescuentoClave
@@ -194,8 +195,15 @@ class DiscountCouponDialog extends JDialog {
         if( descuentoClave == null ){
           descuentoClave = OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
         }
+        if( descuentoClave != null && StringUtils.trimToEmpty(title).equalsIgnoreCase("Seguro")){
+          descuentoClave = null
+        }
         if( descuentoClave == null ){
           descuentoClave = requestVerify()//OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
+        }
+
+        if( descuentoClave == null ){
+          descuentoClave = requestCrmVerify()
         }
 
         if (  descuentoClave != null ) {
@@ -448,6 +456,106 @@ class DiscountCouponDialog extends JDialog {
     }
     return descuentoClave
   }
+
+
+
+    DescuentoClave requestCrmVerify( ){
+      Boolean valid = false
+      String clave = ""
+      BigDecimal amount = BigDecimal.ZERO
+      Integer percentajeInt = 0
+      if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 11 ){
+        for(int i=0;i<StringUtils.trimToEmpty(txtCorporateKey.text).length();i++){
+          if(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()).isNumber()){
+            Integer number = 0
+            try{
+              number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()))
+            } catch ( NumberFormatException e ) { println e }
+            clave = clave+StringUtils.trimToEmpty((10-number).toString())
+          } else {
+            clave = clave+0
+          }
+        }
+        String generic = ""
+        String percentaje = ""
+        generic = StringUtils.trimToEmpty(txtCorporateKey.text).substring(1,3)
+        percentaje = StringUtils.trimToEmpty(clave).substring(3,5)
+        try{
+          percentajeInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(percentaje))
+        } catch ( NumberFormatException e) { e.printStackTrace() }
+
+        Boolean claveClear = false
+        warning = ""
+        NotaVenta notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(idOrder) )
+        if( notaVenta != null ){
+          Boolean claveValid = false
+          Boolean allGen = false
+          Boolean oneValGen = false
+          Boolean oneNotValGen = false
+          if( generic.contains("**") ){
+            allGen = true
+          } else if( generic.contains("*") ){
+            oneValGen = true
+          } else if( generic.contains("!") ){
+            oneNotValGen = true
+          }
+          if( allGen ){
+            claveValid = true
+          } else {
+            orderTotal = 0.00
+            for(DetalleNotaVenta det : notaVenta.detalles){
+              if( oneValGen ){
+                if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
+                  claveValid = true
+                  orderTotal = orderTotal + det.precioUnitLista
+                }
+              } else if( oneNotValGen ){
+                if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
+                  claveValid = true
+                  orderTotal = orderTotal + det.precioUnitLista
+                }
+              }
+            }
+          }
+
+          if( claveValid ){
+            Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
+            if( descuento == null ){
+              //if( OrderController.validCrmClaveWeb( txtCorporateKey.text ) ){
+                claveClear = true
+              /*} else {
+                  warning = "Clave incorrecta"
+                  println "Clave ya aplicada"
+              }*/
+            } else {
+              warning = "Clave incorrecta"
+              println "Clave ya aplicada"
+            }
+          } else {
+            warning = "El producto no corresponde al descuento"
+            println "Genericos de productos no coinciden con los de la clave"
+          }
+        }
+        if( StringUtils.trimToEmpty(warning).length() > 0 ){
+          lblStatus.text = warning
+        }
+        if( claveClear ){
+          txtDiscountPercent.setValue( new BigDecimal(percentajeInt) )
+          valid = true
+        }
+      }
+      DescuentoClave descuentoClave = null
+      if( valid ){
+        descuentoClave = new DescuentoClave()
+        descuentoClave.clave_descuento = StringUtils.trimToEmpty(txtCorporateKey.text)
+        descuentoClave.porcenaje_descuento = new BigDecimal(percentajeInt)
+        descuentoClave.descripcion_descuento = "Descuentos CRM"
+        descuentoClave.tipo = "P"
+        descuentoClave.vigente = true
+        descuentoClave.cupon = false
+      }
+      return descuentoClave
+    }
 
 
 }

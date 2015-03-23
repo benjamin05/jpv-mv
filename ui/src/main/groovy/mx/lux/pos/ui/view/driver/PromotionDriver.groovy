@@ -225,6 +225,9 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       couponDiscount.activate()
       if ( couponDiscount.getDiscountSelected() ) {
           Double discountAmount = 0.00
+          if( StringUtils.trimToEmpty(couponDiscount.title).equalsIgnoreCase("CRM") ){
+            total = couponDiscount.orderTotal
+          }
           if(couponDiscount.getDiscountAmt() > new Double(total)){
             discountAmount = new Double(total)
           } else {

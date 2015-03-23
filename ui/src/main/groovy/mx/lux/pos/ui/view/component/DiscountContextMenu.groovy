@@ -43,6 +43,11 @@ class DiscountContextMenu extends JPopupMenu {
         visible: true,
         actionPerformed: { onWarrantyDiscountSelected( ) },
       )
+
+      menuCouponDiscount = menuItem( text: "CRM",
+        visible: true,
+        actionPerformed: { onCrmDiscountSelected( ) },
+      )
     }
   }
   
@@ -91,6 +96,17 @@ class DiscountContextMenu extends JPopupMenu {
     driver.requestCouponDiscount( "Seguro" )
     for(Payment payment : driver.view.order.payments){
             OrderController.removePaymentFromOrder( driver.view.order.id, payment )
+    }
+    OrderController.saveOrder( driver.view.order )
+    orderPanel.updateOrder( driver.view.order.id )
+  }
+
+
+
+  protected void onCrmDiscountSelected(){
+    driver.requestCouponDiscount( "CRM" )
+    for(Payment payment : driver.view.order.payments){
+      OrderController.removePaymentFromOrder( driver.view.order.id, payment )
     }
     OrderController.saveOrder( driver.view.order )
     orderPanel.updateOrder( driver.view.order.id )

@@ -3001,4 +3001,20 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     return valid
   }
 
+
+  static Descuento findClaveApplied( String clave ) {
+    List<Descuento> desc = descuentoRepository.findByClave( StringUtils.trimToEmpty( clave ) )
+    if( desc.size() > 0 ){
+      return  desc.first()
+    }
+    return  null
+  }
+
+
+
+  static Boolean validCrmClaveWeb( String clave ){
+    log.debug( "validCrmClaveWeb( )" )
+    Boolean claveFree = notaVentaService.validaClaveCrmWeb( clave )
+    return claveFree
+  }
 }
