@@ -102,6 +102,7 @@ class PromotionCommit {
     NotaVenta dbOrder = RepositoryFactory.orders.findOne( pModel.order.orderNbr )
     Double netAmount = 0
     Double amountEnsure = 0
+    Double amountRestOrder = 0
     String generic = ""
     Boolean crm = false
     Boolean allGen = false
@@ -140,6 +141,8 @@ class PromotionCommit {
                 }
                 dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
                 netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+              } else {
+                amountRestOrder = amountRestOrder+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
               }
             } else if( oneNotValGen ){
               if( !StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
@@ -150,6 +153,8 @@ class PromotionCommit {
                 }
                 dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
                 netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+              } else {
+                amountRestOrder = amountRestOrder+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
               }
             }
           } else {
@@ -178,7 +183,7 @@ class PromotionCommit {
       }
     }
     RepositoryFactory.orderLines.flush()
-    netAmount = netAmount+amountEnsure
+    netAmount = netAmount+amountEnsure+amountRestOrder
     dbOrder.ventaNeta = asAmount( netAmount.round() )
     dbOrder.ventaTotal = asAmount( netAmount.round() )
 
