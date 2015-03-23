@@ -392,6 +392,10 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
           descripcionDesc = "Descuento Corporativo"
         } else if(StringUtils.trimToEmpty(desc?.clave).length() <= 0) {
           descripcionDesc = "Descuento Tienda"
+        } else if((StringUtils.trimToEmpty(desc?.clave).startsWith("L") || StringUtils.trimToEmpty(desc?.clave).startsWith("N") ||
+                StringUtils.trimToEmpty(desc?.clave).startsWith("S")) &&
+                (StringUtils.trimToEmpty(desc?.clave).length() == 10 || StringUtils.trimToEmpty(desc?.clave).length() == 11)) {
+            descripcionDesc = "Redencion de Seguro"
         }
         descuentoClave = new DescuentoClave()
         descuentoClave.clave_descuento = desc?.clave

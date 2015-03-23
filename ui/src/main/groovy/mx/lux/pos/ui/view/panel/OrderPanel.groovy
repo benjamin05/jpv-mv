@@ -891,6 +891,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         int artCount = 0
         dioptra = new Dioptra()
         Boolean hasDioptra = false
+        Boolean hasLc = false
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
@@ -898,6 +899,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
                 hasDioptra = true
               }
+            }
+            if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+              hasLc = true
             }
         }
         if( !hasDioptra ){
@@ -920,6 +924,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         if( warranty ){
           if( validLensesPack() ){
+            Boolean continueSave = true
+            rec = OrderController.findRx(order, customer)
+            if( hasLc && (rec == null || rec.id == null) ){
+              Branch branch = Session.get(SessionItem.BRANCH) as Branch
+              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+              editRx.show()
+              try {
+                if( rec != null ){
+                  OrderController.saveRxOrder(order?.id, this.rec.id)
+                } else {
+                  continueSave = false
+                }
+              } catch ( Exception e ){ println e }
+            }
+              if( continueSave ){
                 if (!dioptra.getLente().equals(null)) {
                     Item i = OrderController.findArt(dio.trim())
                     if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -987,7 +1006,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     ticketRx = false
                     flujoImprimir(artCount)
                 }
-
+            }
           } else {
                 sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                         .createDialog(new JTextField(), "Error")
@@ -1580,6 +1599,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     private void fireRequestContinue(DefaultTableModel itemsModel) {
         int artCount = 0
+        Boolean hasLc = false
         dioptra = new Dioptra()
         Boolean hasDioptra = false
         Boolean hasOnlyEnsure = false
@@ -1593,6 +1613,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
           if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
             hasOnlyEnsure = true
+          }
+          if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+            hasLc = true
           }
         }
         if( !hasDioptra ){
@@ -1622,6 +1645,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+          rec = OrderController.findRx(order, customer)
+          Boolean continueSave = true
+          if( hasLc && (rec == null || rec.id == null) ){
+            Branch branch = Session.get(SessionItem.BRANCH) as Branch
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+            editRx.show()
+            try {
+              if( rec != null ){
+                OrderController.saveRxOrder(order?.id, this.rec.id)
+              } else {
+                continueSave = false
+              }
+            } catch ( Exception e ){ println e }
+          }
+          if( continueSave ){
           if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1680,6 +1718,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   ticketRx = false
                   flujoContinuar()
               }
+            }
         } else {
           sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
              .createDialog(new JTextField(), "Error")
@@ -1722,6 +1761,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         dioptra = new Dioptra()
         Boolean hasDioptra = false
         Boolean hasOnlyEnsure = false
+        Boolean hasLc = false
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
@@ -1732,6 +1772,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
           if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
             hasOnlyEnsure = true
+          }
+          if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+            hasLc = true
           }
         }
         if( !hasDioptra ){
@@ -1761,6 +1804,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+          Boolean continueSave = true
+          rec = OrderController.findRx(order, customer)
+          if( hasLc && (rec == null || rec.id == null) ){
+            Branch branch = Session.get(SessionItem.BRANCH) as Branch
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+            editRx.show()
+            try {
+              if( rec != null ){
+                OrderController.saveRxOrder(order?.id, this.rec.id)
+              } else {
+                continueSave = false
+              }
+            } catch ( Exception e ){ println e }
+          }
+          if( continueSave ){
               if (!dioptra.getLente().equals(null)) {
                   Item i = OrderController.findArt(dio.trim())
                   if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1819,6 +1877,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   ticketRx = false
                   flujoOtraOrden()
               }
+            }
         } else {
               sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                       .createDialog(new JTextField(), "Error")
