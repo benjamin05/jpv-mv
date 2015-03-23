@@ -512,7 +512,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         item = results.first()
                         Articulo art = ItemController.findArticle( item.id )
                         if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
-                            if( OrderController.validArticleGenericNoDelivered(item.id) ){
+                            if( OrderController.validArticleGenericNoDelivered(item.id) ||
+                                    StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
                                 if( customer.id != CustomerController.findDefaultCustomer().id ){
                                   if( !appliedEnsure( art ) ){
                                     validarVentaNegativa(item, customer, holdPromo)
@@ -547,7 +548,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         if (item?.id) {
                           Articulo art = ItemController.findArticle( item.id )
                           if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
-                              if( OrderController.validArticleGenericNoDelivered(item.id) ){
+                              if( OrderController.validArticleGenericNoDelivered(item.id) ||
+                                      StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO)){
                                   if(customer.id != CustomerController.findDefaultCustomer().id){
                                     if( !appliedEnsure( art ) ){
                                       validarVentaNegativa(item, customer, holdPromo)
