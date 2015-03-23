@@ -1,11 +1,14 @@
 package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
+import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.model.ICorporateKeyVerifier
+import mx.lux.pos.ui.model.OrderItem
 import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.component.NumericTextField
 import mx.lux.pos.ui.view.component.PercentTextField
 import net.miginfocom.swing.MigLayout
+import org.apache.commons.lang3.StringUtils
 
 import javax.swing.*
 import java.awt.*

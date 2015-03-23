@@ -182,13 +182,19 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   void requestCorporateDiscount( ) {
     log.debug( "Corporate Discount Selected" )
     DiscountDialog dlgDiscount = new DiscountDialog( true )
-    dlgDiscount.setOrderTotal( view.order.total )
+    BigDecimal total = BigDecimal.ZERO
+    for(OrderItem oi : view.order.items){
+      if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(oi.item.type))  ){
+        total = total.add( oi.item.price )
+      }
+    }
+    dlgDiscount.setOrderTotal( total )
     dlgDiscount.setVerifier( this )
     dlgDiscount.activate()
     if ( dlgDiscount.getDiscountSelected() ) {
       log.debug( String.format( "Corporate Discount Selected: %,.2f (%,.1f%%)", dlgDiscount.getDiscountAmt(),
           dlgDiscount.getDiscountPct() ) )
-      Double discount = dlgDiscount.getDiscountAmt() / view.order.total
+      Double discount = dlgDiscount.getDiscountAmt() / total
       if ( service.requestOrderDiscount( this.model, dlgDiscount.corporateKey, discount ) ) {
         log.debug( this.model.orderDiscount.toString() )
         this.updatePromotionList()
