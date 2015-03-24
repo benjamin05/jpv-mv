@@ -586,8 +586,7 @@ class TicketServiceImpl implements TicketService {
       if( cuponMv.size() == 1 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith(TAG_GENERICO_H) ){
         if( notaVenta != null ){
           for(DetalleNotaVenta det : notaVenta.detalles){
-            if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") &&
-                  det.cantidadFac.intValue() > 1 ){
+            if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") ){
               cuponLc = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
             }
           }
@@ -595,14 +594,18 @@ class TicketServiceImpl implements TicketService {
       }
       BigDecimal subtotal = BigDecimal.ZERO
       BigDecimal totalArticulos = BigDecimal.ZERO
+      Integer contadorLc = 0
       detallesLst?.each { DetalleNotaVenta tmp ->
         // TODO: rld review for SOI lux
         // BigDecimal precio = tmp?.precioUnitFinal?.multiply( tmp?.cantidadFac ) ?: 0
         BigDecimal precio = tmp?.precioUnitLista?.multiply( tmp?.cantidadFac ) ?: 0
         subtotal = subtotal.add( precio )
         Boolean cupon = false
-        if( tmp?.cantidadFac?.intValue() > 1 && StringUtils.trimToEmpty(tmp?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_H)){
-          cupon = true
+        if( StringUtils.trimToEmpty(tmp?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_H) ){
+          contadorLc = contadorLc+tmp?.cantidadFac?.intValue()
+          if( contadorLc > 1 ){
+            cupon = true
+          }
         }
         String descripcion = "[${tmp?.articulo?.articulo}] ${tmp?.surte != null ? '['+tmp?.surte.trim()+']' : ''} ${cupon ? '['+cuponLc.trim()+']' : ''} ${tmp?.articulo?.descripcion}"
         String descripcion1
@@ -2500,9 +2503,9 @@ class TicketServiceImpl implements TicketService {
     if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
       NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket( "${StringUtils.trimToEmpty(Registry.currentSite.toString())}-${StringUtils.trimToEmpty(cuponMv.facturaOrigen)}" );
       if( notaVenta != null ){
+        Integer contador = 0
         for(DetalleNotaVenta det : notaVenta.detalles){
-          if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") &&
-                  det.cantidadFac.intValue() > 1 ){
+          if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") ){
             titulo2 = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
           }
         }
