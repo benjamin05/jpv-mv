@@ -1311,7 +1311,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               }
             }
 
-            //if( !ensureApply && !ffApply ){
+            if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
               if( cuponMv != null ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
                 OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
@@ -1321,6 +1321,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               } else if( !ensureApply && !ffApply ){
                 generatedCoupons( validClave, newOrder )
               }
+            }
             if( !ensureApply && !ffApply ){
               if( OrderController.insertSegKig && !hasC1 ){
                 Boolean hasLensKid = false
