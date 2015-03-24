@@ -28,6 +28,8 @@ class PaymentController {
   private static NotaVentaService notaVentaService
   private static String TAG_CUPON = "CUPON"
   private static String TAG_FORMA_PAGO_TRANSF = "TR"
+  private static String TAG_FORMA_PAGO_TD = "TD"
+  private static String TAG_FORMA_PAGO_EF = "EF"
 
   @Autowired
   PaymentController(
@@ -132,17 +134,30 @@ class PaymentController {
   }
 
 
-  static String findReturnTypeDev( Integer idPayment ){
+  static String findReturnTypeDev( Integer idPayment, String dataDev ){
     String type = 'EFECTIVO'
     Pago pago = pagoService.obtenerPago( idPayment )
     String typePaymentDevOri = Registry.typePaymentDev
+    Boolean isTB = true
+    String[] data = dataDev.split(",")
+    for(String d : data){
+      if( StringUtils.trimToEmpty(d).length() <= 0 ){
+        isTB = false
+      }
+    }
     if(pago != null){
-      if(TAG_FORMA_PAGO_TRANSF.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago))){
-        if(typePaymentDevOri.contains(pago.idFormaPago)){
-          type = 'ORIGINAL'
-        }
+      if(TAG_FORMA_PAGO_TRANSF.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago)) &&
+              typePaymentDevOri.contains(pago.idFormaPago)){
+        type = 'ORIGINAL'
       } else if(typePaymentDevOri.contains(pago.idFPago)){
         type = 'ORIGINAL'
+      } else if(TAG_FORMA_PAGO_TD.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFormaPago)) ||
+              TAG_FORMA_PAGO_EF.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFormaPago))){
+        if( isTB ){
+          type = 'TRANSFERENCIA BANCARIA'
+        } else {
+          type = 'CHEQUE'
+        }
       }
     }
     return type

@@ -103,6 +103,9 @@ public class Promocion implements Serializable, Comparable<Promocion> {
     @Column( name = "descuentoc" )
     private BigDecimal descuentoC;
 
+    @Column( name = "monto_minimo" )
+    private BigDecimal montoMinimo;
+
     // Internal Methods
     @PostLoad
     protected void onPostLoad() {
@@ -347,6 +350,14 @@ public class Promocion implements Serializable, Comparable<Promocion> {
 
     public void setDescuentoC( BigDecimal pDescuentoC ) {
         descuentoC = pDescuentoC;
+    }
+
+    public BigDecimal getMontoMinimo() {
+        return montoMinimo;
+    }
+
+    public void setMontoMinimo(BigDecimal montoMinimo) {
+        this.montoMinimo = montoMinimo;
     }
 
     // Entity

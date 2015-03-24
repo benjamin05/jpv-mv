@@ -20,6 +20,8 @@ public class QDevolucion extends EntityPathBase<Devolucion> {
 
     public static final QDevolucion devolucion = new QDevolucion("devolucion");
 
+    public final StringPath devEfectivo = createString("devEfectivo");
+
     public final DateTimePath<java.util.Date> fecha = createDateTime("fecha", java.util.Date.class);
 
     public final QFormaPago formaPago;

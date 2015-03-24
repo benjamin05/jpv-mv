@@ -3,6 +3,8 @@ package mx.lux.pos.ui.view.dialog
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.Pago
 import mx.lux.pos.model.Parametro
+import mx.lux.pos.model.PromotionAvailable
+import mx.lux.pos.model.PromotionDiscount
 import mx.lux.pos.model.TipoParametro
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.MainWindow
@@ -26,6 +28,7 @@ class PaymentMultyDialog extends JDialog {
 
   private static Double ZERO_TOLERANCE = 0.005
   private static final String TAG_FORMA_PAGO_EFECTIVO = 'EFECTIVO'
+  private static final String TAG_FORMA_PAGO_CUPON_C1 = 'C1'
 
   private SwingBuilder sb
   private Payment tmpPayment
@@ -361,25 +364,64 @@ class PaymentMultyDialog extends JDialog {
     JButton source = ev.source as JButton
     source.enabled = false
     BigDecimal amountView = BigDecimal.ZERO
-    try{
-      amountView = NumberFormat.getInstance().parse( amount.text.trim() )
-    } catch ( NumberFormatException ex ){
-      println ex
+
+    Boolean hasDiscount = false
+    if( order.deals.size() > 0 || secondOrder.deals.size() > 0 ){
+      hasDiscount = true
     }
-    if( amountView.doubleValue() <= minimumAmount.doubleValue() ){
-      minimumAmount = amountView
-      Boolean saveFirst = flujoImprimir( order, false )
-      if( saveFirst ){
-        flujoImprimir( secondOrder, true )
+
+    if( TAG_FORMA_PAGO_CUPON_C1.equalsIgnoreCase(StringUtils.trimToEmpty(tmpPayment.paymentTypeId)) ){
+      if( hasDiscount ){
+        OrderController.notifyAlert('Error en forma de pago', 'Verifique que la nota no tenga descuento aplicado')
+        source.enabled = true
+      } else {
+          AuthorizationByManagerDialog authDialog = new AuthorizationByManagerDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+          authDialog.show()
+          if (authDialog.authorized) {
+              try{
+                  amountView = NumberFormat.getInstance().parse( amount.text.trim() )
+              } catch ( NumberFormatException ex ){
+                  println ex
+              }
+          if( amountView.doubleValue() <= minimumAmount.doubleValue() ){
+                  minimumAmount = amountView
+                  Boolean saveFirst = flujoImprimir( order, false )
+                  if( saveFirst ){
+                      flujoImprimir( secondOrder, true )
+                  }
+          } else {
+                  sb.optionPane(
+                          message: 'El pago debe ser menor al monto por pagar',
+                          messageType: JOptionPane.ERROR_MESSAGE
+                  ).createDialog(this, 'Pago incorrecto')
+                          .show()
+          }
+          source.enabled = true
+        } else {
+            source.enabled = true
+          }
       }
     } else {
-      sb.optionPane(
-          message: 'El pago debe ser menor al monto por pagar',
-          messageType: JOptionPane.ERROR_MESSAGE
-      ).createDialog(this, 'Pago incorrecto')
-          .show()
+        try{
+            amountView = NumberFormat.getInstance().parse( amount.text.trim() )
+        } catch ( NumberFormatException ex ){
+            println ex
+        }
+        if( amountView.doubleValue() <= minimumAmount.doubleValue() ){
+            minimumAmount = amountView
+            Boolean saveFirst = flujoImprimir( order, false )
+            if( saveFirst ){
+                flujoImprimir( secondOrder, true )
+            }
+        } else {
+            sb.optionPane(
+                    message: 'El pago debe ser menor al monto por pagar',
+                    messageType: JOptionPane.ERROR_MESSAGE
+            ).createDialog(this, 'Pago incorrecto')
+                    .show()
+        }
+        source.enabled = true
     }
-    source.enabled = true
   }
 
   private BigDecimal amountToPayFirstOrder( Order order ){

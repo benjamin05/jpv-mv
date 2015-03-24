@@ -332,7 +332,7 @@ class ShowOrderPanel extends JPanel {
           cancelToday()
         } else {
           //new CancellationDialog( this, order.id, true ).show()
-          new TotalCancellationDialog( this, order.id ).show()
+          new TotalCancellationDialog( this, order.id, false, true ).show()
           CancellationController.refreshOrder( order )
           doBindings()
         }
@@ -353,7 +353,8 @@ class ShowOrderPanel extends JPanel {
     }
     CancellationController.resetValuesofCancellation( order.id )
     if ( authorized ) {
-      new RefundDialog( this, order.id ).show()
+      new TotalCancellationDialog( this, order.id, true, false ).show()
+      //new RefundDialog( this, order.id ).show()
       CancellationController.refreshOrder( order )
       doBindings()
     }
@@ -554,7 +555,7 @@ class ShowOrderPanel extends JPanel {
         order.payments.each { Payment pmt ->
             creditRefunds.put( pmt?.id, 'ORIGINAL' )
         }
-        if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds ) ) {
+        if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, "" ) ) {
           CancellationController.freeCoupon( order.id )
           //CancellationController.printMaterialReturn( order.id )
           //CancellationController.printMaterialReception( order.id )

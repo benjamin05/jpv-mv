@@ -51,6 +51,9 @@ public class Devolucion implements Serializable {
     @Column( name = "tipo", length = 1 )
     private String tipo;
 
+    @Column( name = "dev_efectivo" )
+    private String devEfectivo;
+
     @ManyToOne
     @NotFound( action = NotFoundAction.IGNORE )
     @JoinColumn( name = "id_mod", updatable = false, insertable = false )
@@ -198,5 +201,13 @@ public class Devolucion implements Serializable {
 
     public void setNotaVenta(NotaVenta notaVenta) {
         this.notaVenta = notaVenta;
+    }
+
+    public String getDevEfectivo() {
+        return devEfectivo;
+    }
+
+    public void setDevEfectivo(String devEfectivo) {
+        this.devEfectivo = devEfectivo;
     }
 }

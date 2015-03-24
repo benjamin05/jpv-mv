@@ -45,6 +45,10 @@ class Customer {
         "${title ? "${title} " : ''}${name ?: ''} ${fathersName ?: ''} ${mothersName ?: ''}"
     }
 
+    String getOnlyFullName() {
+        "${name ?: ''} ${fathersName ?: ''} ${mothersName ?: ''}"
+    }
+
     static Integer parse(String edad) {
         Integer age = EDAD_DEFAULT
         try {

@@ -49,6 +49,7 @@ class TicketServiceImpl implements TicketService {
   private static final String TAG_DEPOSITO_US = 'DOLARES'
   private static final String TAG_GENERICO_ARMAZON = 'A'
   private static final String TAG_GENERICO_INV = 'A,H'
+  private static final String TAG_DF = '09'
 
   private static final BigDecimal CERO_BIGDECIMAL = 0.005
 
@@ -63,6 +64,18 @@ class TicketServiceImpl implements TicketService {
 
   @Resource
   private CuponMvRepository cuponMvRepository
+
+  @Resource
+  private RepRepository repRepository
+
+  @Resource
+  private CiudadesRepository ciudadesRepository
+
+  @Resource
+  private MunicipioRepository municipioRepository
+
+  @Resource
+  private MensajeTicketRepository mensajeTicketRepository
 
   @Resource
   private PrecioRepository precioRepository
@@ -628,6 +641,58 @@ class TicketServiceImpl implements TicketService {
       List<String> promociones = new ArrayList<>()
       List<OrdenPromDet> lstPromociones = ordenPromDetRepository.findByIdFactura( notaVenta.id )
       List<String> msjPromo = new ArrayList<>()
+        QMensajeTicket mensaje = QMensajeTicket.mensajeTicket
+        List<MensajeTicket> lstMensajesTickets = (List<MensajeTicket>)mensajeTicketRepository.findAll( mensaje.fechaFinal.after( new Date() ) )
+        for(MensajeTicket msj : lstMensajesTickets){
+            Boolean alreadyAdd = false
+            Boolean hasBrand = false
+            Boolean hasArticle = false
+            if( (!StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('') && !StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('*'))||
+                    (!StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('') && !StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('*')) ){
+                if( StringUtils.trimToEmpty(msj.idLinea) != '' ){
+                    hasBrand = true
+                }
+                if( StringUtils.trimToEmpty(msj.listaArticulo) != '' ){
+                    hasArticle = true
+                }
+                if( hasBrand ){
+                    Boolean validBrand = false
+                    String[] marcas = marcasFactura.split(',')
+                    for(String marca : marcas){
+                        if(StringUtils.trimToEmpty(marca) != '' && msj.idLinea.contains(marca)){
+                            validBrand = true
+                        }
+                    }
+                    if( validBrand ){
+                        if( hasArticle ){
+                            String[] articulos = articulosFactura.split(',')
+                            for(String art : articulos){
+                                if(!alreadyAdd && StringUtils.trimToEmpty(art) != '' && msj.listaArticulo.contains(art)){
+                                    alreadyAdd = true
+                                    msjPromo.add(msj.mensaje)
+                                }
+                            }
+                        } else {
+                            if(!alreadyAdd){
+                                alreadyAdd = true
+                                msjPromo.add(msj.mensaje)
+                            }
+                        }
+                    }
+                } else if( hasArticle ){
+                    String[] articulos = articulosFactura.split(',')
+                    for(String art : articulos){
+                        if(!alreadyAdd && StringUtils.trimToEmpty(art) != '' && msj.listaArticulo.contains(art)){
+                            alreadyAdd = true
+                            msjPromo.add(msj.mensaje)
+                        }
+                    }
+                }
+            } else if( (StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('') || StringUtils.trimToEmpty(msj.idLinea).equalsIgnoreCase('*'))&&
+                    (StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('') || StringUtils.trimToEmpty(msj.listaArticulo).equalsIgnoreCase('*')) ){
+                msjPromo.add(msj.mensaje)
+            }
+        }
 
       for(OrdenPromDet promo : lstPromociones){
           Promocion promocion = promocionRepository.findOne( promo.idPromocion )
@@ -668,6 +733,28 @@ class TicketServiceImpl implements TicketService {
           }
         }
       }
+      String estado = ""
+      if( notaVenta.sucursal != null ){
+        Rep rep = repRepository.findOne( StringUtils.trimToEmpty(notaVenta.sucursal.idEstado) )
+        if( StringUtils.trimToEmpty(notaVenta?.sucursal?.idEstado).equalsIgnoreCase(TAG_DF) ){
+          estado = rep.nombre
+        } else {
+          QMunicipio qMunicipio = QMunicipio.municipio
+          List<Municipio> municipios = municipioRepository.findAll( qMunicipio.idEstado.eq(StringUtils.trimToEmpty(notaVenta?.sucursal?.idEstado)).
+                  and( qMunicipio.idLocalidad.eq(StringUtils.trimToEmpty(notaVenta?.sucursal?.idLocalidad)) ) )
+          String ciudad = ""
+          if( municipios.size() > 0 ){
+            ciudad = municipios.first().nombre
+            if( municipios.first().nombre.contains( "(" ) ){
+              String[] data = municipios.first().nombre.split("\\(")
+              if( data.length > 1 ){
+                        ciudad = data[0]
+              }
+            }
+          }
+          estado = StringUtils.trimToEmpty(ciudad)+", "+StringUtils.trimToEmpty( rep.nombre )
+        }
+      }
       def items = [
           nombre_ticket: 'ticket-venta',
           nota_venta: notaVenta,
@@ -694,7 +781,9 @@ class TicketServiceImpl implements TicketService {
           cupon3: cupon3Par,
           montoCupon2: formatter.format(monto2Par),
           montoCupon3: formatter.format(monto3Par),
-          leyendaCupon: leyendaCupon
+          leyendaCupon: leyendaCupon,
+          municipio: StringUtils.trimToEmpty(notaVenta?.sucursal?.municipio?.nombre),
+          estado: StringUtils.trimToEmpty(estado)
       ] as Map<String, Object>
 
       imprimeTicket( 'template/ticket-venta-si.vm', items )
@@ -1496,6 +1585,13 @@ class TicketServiceImpl implements TicketService {
         BigDecimal totalTransferencias = 0
         BigDecimal totalDevoluciones = 0
         List<Devolucion> devolucionesLst = devolucionRepository.findByIdModOrderByFechaAsc( modificacion.id )
+        String devEfectivo = ""
+        String devEfectivo1 = ""
+        String nombre = ""
+        String cuenta = ""
+        String clabe = ""
+        String correo = ""
+        BigDecimal devEfec = BigDecimal.ZERO
         devolucionesLst.each { Devolucion dev ->
           BigDecimal monto = dev?.monto ?: 0
           if ( 'd'.equalsIgnoreCase( dev?.tipo ) ) {
@@ -1505,6 +1601,21 @@ class TicketServiceImpl implements TicketService {
                 devolucion: "${dev?.formaPago?.descripcion ?: ''}",
                 importe: formatter.format( monto )
             ]
+            if( StringUtils.trimToEmpty(dev?.formaPago?.id).equalsIgnoreCase("TB") ){
+              devEfectivo = "EL PLAZO DE LA DEVOLUCION"
+              devEfectivo1 = "ES DE 1 DIA HABIL."
+            } else if( StringUtils.trimToEmpty(dev?.formaPago?.id).equalsIgnoreCase("CH") ){
+              devEfectivo = "EL PLAZO DE LA DEVOLUCION"
+              devEfectivo1 = "ES DE 3 A 4 DIAS HABILES."
+            }
+            String[] data = StringUtils.trimToEmpty(dev.devEfectivo).split(",")
+            if( data.length >= 5 ){
+              nombre = data[0]
+              cuenta = data[2]
+              clabe = "/ "+data[3]
+              correo = data[4]
+              devEfec = devEfec.add( dev.monto )
+            }
             log.debug( "genera devolucion: ${item}" )
             devoluciones.add( item )
           } else {
@@ -1545,7 +1656,14 @@ class TicketServiceImpl implements TicketService {
             total_devoluciones: formatter.format( totalDevoluciones ),
             transferencias: transferencias,
             total_transferencias: formatter.format( totalTransferencias ),
-            total_movimientos: formatter.format( totalDevoluciones.add( totalTransferencias ) )
+            total_movimientos: formatter.format( totalDevoluciones.add( totalTransferencias ) ),
+            message: devEfectivo,
+            message1: devEfectivo1,
+            nombre: nombre,
+            cuenta: cuenta,
+            clabe: clabe,
+            correo: correo,
+            devEfec: formatter.format(devEfec)
         ]
         imprimeTicket( 'template/ticket-cancelacion.vm', items )
       } else {
@@ -2346,12 +2464,20 @@ class TicketServiceImpl implements TicketService {
   void imprimeCupon( CuponMv cuponMv, String titulo, BigDecimal monto ){
     log.debug( "imprimeCupon( )" )
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
+    String restrictions = ""
+    String restrictions1 = ""
+    if( cuponMv != null && StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+      restrictions = 'APLICA EN LA COMPRA MINIMA DE $1000.00'
+      restrictions1 = 'CONSULTA CONDICIONES EN TIENDA.'
+    }
     if( cuponMv != null ){
       def datos = [
         titulo: titulo,
         monto: String.format('$%s', monto),
         clave: cuponMv.claveDescuento,
-        fecha_vigencia: df.format(cuponMv.fechaVigencia)
+        fecha_vigencia: df.format(cuponMv.fechaVigencia),
+        restrictions: restrictions,
+        restrictions1: restrictions1
       ]
       this.imprimeTicket( 'template/ticket-cupon.vm', datos )
     } else {
@@ -2360,7 +2486,7 @@ class TicketServiceImpl implements TicketService {
   }
 
 
-    void imprimeResumenCuponCan( String idFactura, String porDev ){
+    void imprimeResumenCuponCan( String idFactura, List<String> porDev ){
       NumberFormat formatterMoney = new DecimalFormat( '$#,##0.00' )
       log.debug( "imprimeResumenCuponCan( )" )
       NotaVenta notaVenta = notaVentaRepository.findOne( idFactura )
@@ -2403,18 +2529,31 @@ class TicketServiceImpl implements TicketService {
               articulosDest = articulosDest.replaceFirst(",","")
             }
           }
-          cuponesTotal = cuponesTotal.add(cuponMv1.montoCupon)
+          BigDecimal montoC = BigDecimal.ZERO
+          if( notaDestino.first().montoDescuento.doubleValue() <= cuponMv1.montoCupon ){
+            cuponesTotal = cuponesTotal.add(notaDestino.first().montoDescuento)
+            montoC = notaDestino.first().montoDescuento
+          } else {
+            cuponesTotal = cuponesTotal.add(cuponMv1.montoCupon)
+            montoC = cuponMv1.montoCupon
+          }
+          //cuponesTotal = cuponesTotal.add(cuponMv1.montoCupon)
           def facturaApl = [
               cliente: cliente,
               factura: cuponMv1.facturaDestino,
               articulos: articulosDest,
               fecha: cuponMv1.fechaAplicacion.format("dd/MM/yyyy"),
-              monto: formatterMoney.format(cuponMv1.montoCupon),
+              monto: formatterMoney.format(montoC),
               saldo: saldo,
               fechaEntrega: fechaEntrega
           ]
           cupones.add( facturaApl )
-          sumaCupones = sumaCupones.add(cuponMv1.montoCupon)
+          if( notaDestino.first().montoDescuento.doubleValue() <= cuponMv1.montoCupon ){
+            sumaCupones = sumaCupones.add(notaDestino.first().montoDescuento)
+          } else {
+            sumaCupones = sumaCupones.add(cuponMv1.montoCupon)
+          }
+          //sumaCupones = sumaCupones.add(cuponMv1.montoCupon)
         }
         Boolean tieneTarjeta = false
         for( Pago pago : notaVenta.pagos ){

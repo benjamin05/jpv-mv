@@ -12,7 +12,7 @@ interface CancelacionService {
 
   List<Devolucion> listarDevolucionesDeNotaVenta( String idNotaVenta )
 
-  List<Devolucion> registrarDevolucionesDeNotaVenta( String idNotaVenta, Map<Integer, String> devolucionesPagos )
+  List<Devolucion> registrarDevolucionesDeNotaVenta( String idNotaVenta, Map<Integer, String> devolucionesPagos, String dataDev )
 
   List<Pago> registrarTransferenciasParaNotaVenta( String idOrigen, String idDestino, Map<Integer, BigDecimal> transferenciasPagos )
 
@@ -61,4 +61,6 @@ interface CancelacionService {
   void imprimeTransaccionOtrasSalidas( Integer idTrans )
 
   void registraLogAutorizacion( String idFactura, String idEmp, Integer idTipoTrans, Pago pago )
+
+  Modificacion obtenerModificacion( String idNotaVenta )
 }

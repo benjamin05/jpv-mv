@@ -46,6 +46,15 @@ ${CR}
 #SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)TOTAL:${COL_DET_3}#altnull(${total_movimientos})
 ${LF}
 ${LF}
+#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})DATOS DEVOLUCION EFECTIVO:${LF}
+#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)IMPORTE:#altnull(${devEfec})${CR}
+#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)NOMBRE:#altnull(${nombre})${CR}
+#if(${cuenta} != '')#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)CTA/CLABE:#altnull(${cuenta}) #altnull(${clabe})#end${CR}
+#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)CORREO:#altnull(${correo})${CR}
+${LF}
+#if(${message} != '')#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})${message}${CR}
+#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})${message1}#end
+${LF}
 ${LF}
 #SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)_______________________${COL_DET_2}_______________________
 #SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)#altnull(${cliente})${COL_DET_2}#altnull(${gerente})

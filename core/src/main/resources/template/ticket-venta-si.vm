@@ -6,19 +6,20 @@
 #define($COL_DET_3)${ESC}${writer.write(36)}${writer.write(69)}${writer.write(0)}#end
 ## Inicia ticket
 #ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)${compania.shortName}${LF}
-#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)${compania.name}
+#if( ${compania} != 'null' )#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)${compania.name}
 #SET_STYLE(${FUENTE_B} 0 0 0 0)${compania.address_1}
 #SET_STYLE(${FUENTE_B} 0 0 0 0)${compania.address_2}
 #SET_STYLE(${FUENTE_B} 0 0 0 0)${compania.address_3}
-#SET_STYLE(${FUENTE_B} 0 0 0 0)${compania.taxId}${LF}
+#SET_STYLE(${FUENTE_B} 0 0 0 0)${compania.taxId}#end${LF}
 #SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)#altnull(${sucursal.nombre}) [#altnull(${sucursal.id})]
 #SET_STYLE(${FUENTE_B} 0 0 0 0)#altnull(${sucursal.direccion})${CR}
 #SET_STYLE(${FUENTE_B} 0 0 0 0)#altnull(${sucursal.colonia})${CR}
 #SET_STYLE(${FUENTE_B} 0 0 0 0)C.P. #altnull(${sucursal.cp}) #altnull(${sucursal.ciudad})${CR}
 #SET_STYLE(${FUENTE_B} 0 0 0 0)Tel: #altnull(${sucursal.telefonos})${CR}
+#SET_STYLE(${FUENTE_B} 0 0 0 0)Delegacion: #altnull(${municipio})${CR}
 #ALINEAR_DERECHA()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 0)Ticket: #altnull(${sucursal.centroCostos})-#altnull(${nota_venta.factura})${LF}
 #SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 0)SOI: #altnull(${nota_venta.id})${LF}
-#SET_STYLE(${FUENTE_B} 0 0 0 0)Fecha: #altnull(${fecha})${CR}
+#SET_STYLE(${FUENTE_B} 0 0 0 0)${estado} Fecha: #altnull(${fecha})${CR}
 #SET_STYLE(${FUENTE_B} 0 0 0 0)#altnull(${hora}) hrs.
 #LINEA_SEPARACION_SIMPLE()
 #ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)VENTA${LF}
@@ -70,7 +71,7 @@ ${LF}
 #ALINEAR_CENTRO()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)GRACIAS POR SU PREFERENCIA
 #if( ${despliega_atencion_a_clientes} )
 #SET_STYLE(${FUENTE_B} 0 0 0 0)ATENCION A CLIENTES
-#SET_STYLE(${FUENTE_B} 0 0 0 0)mail: ${compania.webAddress}${CR}
+#SET_STYLE(${FUENTE_B} 0 0 0 0)mail: #if( ${compania} != 'null' )${compania.webAddress}#end${CR}
 #SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})www.opticasmasvision.com.mx${LF}
 #end
 #SET_STYLE(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)#altnull(${sucursal.centroCostos})-#altnull(${nota_venta.factura})${LF}

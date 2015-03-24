@@ -161,7 +161,7 @@ class StringList {
     if (value == null) {
       try {
         NF.setParseIntegerOnly( false )
-        value = NF.parse( this.entry( ix ) )
+        value = NF.parse( StringUtils.trimToEmpty(this.entry( ix )).length() > 0 ? this.entry( ix ) : 0.00 )
       } catch ( Exception e ) {
         throw new ParseException( String.format( MSG_UNABLE_TO_PARSE, this.entry( ix ), "Integer" ), 0 )
       }

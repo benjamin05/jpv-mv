@@ -19,6 +19,7 @@ class Payment {
   String username
   String paymentType
   String paymentTypeId
+  String paymentTypeOri
   String terminal
   String terminalId
   String plan
@@ -58,6 +59,7 @@ class Payment {
           username: pago.idEmpleado,
           paymentType: pago.eTipoPago?.descripcion,
           paymentTypeId: pago.idFPago,
+          paymentTypeOri: pago.idFormaPago,
           terminal: pago.terminal?.descripcion,
           terminalId: pago.idTerminal,
           plan: pago.plan?.descripcion,

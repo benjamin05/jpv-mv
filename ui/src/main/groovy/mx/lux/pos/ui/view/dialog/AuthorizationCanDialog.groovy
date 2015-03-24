@@ -37,18 +37,21 @@ class AuthorizationCanDialog extends JDialog {
   private static final String TAG_SURTE_PINO = 'P'
   private static final String TAG_RAZON_CAMBIO_FORMA_PAGO = 'CAMBIO DE FORMA DE PAGO'
   private static final String TAG_FORMA_PAGO_TC = 'TC'
+  private String dataDev
 
   private static final Integer TAG_TIPO_TRANS_DEV = 2
 
   private static final String DATE_FORMAT = 'dd-MM-yyyy'
+  private Boolean alreadyCan
 
-
-    AuthorizationCanDialog( Component parent, String message, Order order ) {
+    AuthorizationCanDialog( Component parent, String message, Order order, String devData, Boolean alreadyCan ) {
     sb = new SwingBuilder()
     this.order = order
+    dataDev = devData
     reasons = CancellationController.findAllCancellationReasons()
     definedMessage = message ?: ''
     authorized = false
+    this.alreadyCan = alreadyCan
     buildUI( parent )
   }
 
@@ -142,7 +145,7 @@ class AuthorizationCanDialog extends JDialog {
                     Map<Integer, String> creditRefunds = [ : ]
                         order.payments.each { Payment pmt ->
                           if( pmt.refundable.compareTo(BigDecimal.ZERO) > 0 ){
-                            creditRefunds.put( pmt?.id, PaymentController.findReturnTypeDev( pmt.id )  )
+                            creditRefunds.put( pmt?.id, PaymentController.findReturnTypeDev( pmt.id, dataDev )  )
                           }
                         }
                         Order orderCom = null
@@ -152,7 +155,7 @@ class AuthorizationCanDialog extends JDialog {
                         String orderDate = orderCom != null ? orderCom.date.format(DATE_FORMAT) : order.date.format(DATE_FORMAT)
                         String currentDate = new Date().format(DATE_FORMAT)
                         if(currentDate.trim().equalsIgnoreCase(orderDate.trim())){
-                            if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds ) ) {
+                            if ( CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, dataDev ) ) {
                                 CancellationController.printOrderCancellation( order.id )
                                 dispose()
                             } else {
@@ -192,6 +195,7 @@ class AuthorizationCanDialog extends JDialog {
     }
 
     private boolean cancelOrder( ) {
+      if( !alreadyCan ){
         if ( CancellationController.cancelOrder( order.id, reasonField.selectedItem as String, "", false ) ) {
             if( !StringUtils.trimToEmpty(reasonField.selectedItem.toString()).equalsIgnoreCase(TAG_RAZON_CAMBIO_FORMA_PAGO) ){
               CancellationController.outputContactLens( order.id )
@@ -211,6 +215,9 @@ class AuthorizationCanDialog extends JDialog {
                     .show()
             return false
         }
+      } else {
+        return true
+      }
     }
 
 
@@ -239,7 +246,7 @@ class AuthorizationCanDialog extends JDialog {
             }
         }
         if(item.id != null && !surte.equalsIgnoreCase(TAG_SURTE_PINO)){
-            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds )){
+            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, dataDev )){
                 //CancellationController.printMaterialReturn( order.id )
                 //CancellationController.printMaterialReception( order.id )
                 CancellationController.printOrderCancellation( order.id )
@@ -264,7 +271,7 @@ class AuthorizationCanDialog extends JDialog {
                 //CancellationController.printMaterialReturn( order.id )
                 //CancellationController.printMaterialReception( order.id )
             }
-            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds )){
+            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, dataDev )){
                 CancellationController.printOrderCancellation( order.id )
                 dispose()
             } else {
@@ -275,7 +282,7 @@ class AuthorizationCanDialog extends JDialog {
                         .show()
             }
         } else if( item.id == null ){
-            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds )){
+            if(CancellationController.refundPaymentsCreditFromOrder( order.id, creditRefunds, dataDev )){
                 CancellationController.printOrderCancellation( order.id )
                 dispose()
             } else {

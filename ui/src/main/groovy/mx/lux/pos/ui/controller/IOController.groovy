@@ -91,10 +91,10 @@ class IOController {
     }
 
 
-    /*void loadMessageTicketFile( ){
+    void loadMessageTicketFile( ){
         log.debug( "loadMessageTicketFile( )" )
         ServiceManager.promotionService.cargaArchivoMensajeTicket()
-    }*/
+    }
 
     void cargaFoliosPendientesPedidosLc(){
         ServiceManager.orderService.cargaFoliosPendientesPedidosLc()
