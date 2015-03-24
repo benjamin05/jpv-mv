@@ -373,9 +373,39 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     if( desc != null && desc.id != null ){
       BigDecimal ventaTotal = BigDecimal.ZERO
       String genericoNoApplica = StringUtils.trimToEmpty(Registry.genericsWithoutDiscount)
+      String generic = ""
+      Boolean crm = false
+      Boolean allGen = false
+      Boolean oneValGen = false
+      Boolean oneNotValGen = false
+        if( desc.clave.length() == 11 && desc.clave.contains("*") ){
+            crm = true
+            generic = StringUtils.trimToEmpty(desc.clave).substring(1,3)
+            if( generic.contains("**") ){
+                allGen = true
+            } else if( generic.contains("*") ){
+                oneValGen = true
+            } else if( generic.contains("!") ){
+                oneNotValGen = true
+            }
+        }
       for(OrderItem oi : order.items){
         if( !genericoNoApplica.equalsIgnoreCase(StringUtils.trimToEmpty(oi.item.type)) ){
-          ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
+          if( crm ){
+            if( allGen ){
+              ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
+            } else if( oneValGen ) {
+              if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
+                ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
+              }
+            } else if( oneNotValGen ){
+              if( !StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
+                ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
+              }
+            }
+          } else {
+            ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
+          }
         }
       }
       Double discount = desc.getNotaVenta().getMontoDescuento() / (ventaTotal+desc.getNotaVenta().getMontoDescuento())

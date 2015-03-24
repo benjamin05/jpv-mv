@@ -103,6 +103,7 @@ class PromotionCommit {
     Double netAmount = 0
     Double amountEnsure = 0
     Double amountRestOrder = 0
+    Double amountDesc = 0
     String generic = ""
     Boolean crm = false
     Boolean allGen = false
@@ -141,6 +142,7 @@ class PromotionCommit {
                 }
                 dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
                 netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+                amountDesc = amountDesc+dbOrderLine.precioUnitLista.doubleValue()-dbOrderLine.precioUnitFinal.doubleValue()
               } else {
                 amountRestOrder = amountRestOrder+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
               }
@@ -153,6 +155,7 @@ class PromotionCommit {
                 }
                 dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
                 netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+                amountDesc = amountDesc+dbOrderLine.precioUnitLista.doubleValue()-dbOrderLine.precioUnitFinal.doubleValue()
               } else {
                 amountRestOrder = amountRestOrder+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
               }
@@ -189,7 +192,11 @@ class PromotionCommit {
 
     if ( pModel.hasOrderDiscountApplied() ) {
       println pModel.orderDiscount.discountAmount.round()
-      dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount.round() )
+      if( amountDesc > 0 && pModel.orderDiscount.discountType.description.contains("*") ){
+        dbOrder.montoDescuento = asAmount( amountDesc )
+      } else {
+        dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount.round() )
+      }
       dbOrder.por100Descuento = Math.round( pModel.orderDiscount.discountPercent * 100.0 ) as Integer
     } else {
       dbOrder.montoDescuento = BigDecimal.ZERO
