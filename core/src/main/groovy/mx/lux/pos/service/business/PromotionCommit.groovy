@@ -116,7 +116,7 @@ class PromotionCommit {
             allGen = true
       } else if( generic.contains("*") ){
             oneValGen = true
-      } else if( generic.contains("!") ){
+      } else if( generic.replace("!","\\!").contains("\\!") ){
             oneNotValGen = true
       }
     }
@@ -192,7 +192,8 @@ class PromotionCommit {
 
     if ( pModel.hasOrderDiscountApplied() ) {
       println pModel.orderDiscount.discountAmount.round()
-      if( amountDesc > 0 && pModel.orderDiscount.discountType.description.contains("*") ){
+      if( amountDesc > 0 && (pModel.orderDiscount.discountType.description.contains("*") ||
+              pModel.orderDiscount.discountType.description.contains("\\!")) ){
         dbOrder.montoDescuento = asAmount( amountDesc )
       } else {
         dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount.round() )

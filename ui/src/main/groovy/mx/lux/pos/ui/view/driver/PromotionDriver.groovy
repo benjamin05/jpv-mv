@@ -378,14 +378,14 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       Boolean allGen = false
       Boolean oneValGen = false
       Boolean oneNotValGen = false
-        if( desc.clave.length() == 11 && desc.clave.contains("*") ){
+        if( desc.clave.length() == 11 && (desc.clave.contains("*") || desc.clave.replace("!","\\!").contains("\\!")) ){
             crm = true
             generic = StringUtils.trimToEmpty(desc.clave).substring(1,3)
             if( generic.contains("**") ){
                 allGen = true
             } else if( generic.contains("*") ){
                 oneValGen = true
-            } else if( generic.contains("!") ){
+            } else if( generic.replace("!","\\!").contains("\\!") ){
                 oneNotValGen = true
             }
         }
@@ -419,7 +419,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
           descripcionDesc = "Descuento Corporativo"
         } else if(StringUtils.trimToEmpty(desc?.clave).length() <= 0) {
           descripcionDesc = "Descuento Tienda"
-        } else if(StringUtils.trimToEmpty(desc?.clave).contains("*")) {
+        } else if(StringUtils.trimToEmpty(desc?.clave).contains("*") || StringUtils.trimToEmpty(desc?.clave?.replace("!","\\!")).contains("\\!")) {
             descripcionDesc = "Descuentos CRM"
         }
         descuentoClave = new DescuentoClave()
