@@ -982,7 +982,9 @@ class NotaVentaServiceImpl implements NotaVentaService {
           montosCup = lstMontosCup.size() > 0 ? lstMontosCup.first() : null
          if( montosCup != null ){
            if( StringUtils.trimToEmpty(paqueteStr).length() > 0 ){
-             paqueteCant = paqueteCant+det.cantidadFac.intValue()
+             if( StringUtils.trimToEmpty(paqueteStr).equalsIgnoreCase(StringUtils.trimToEmpty(det?.articulo?.subtipo)) ){
+               paqueteCant = paqueteCant+det.cantidadFac.intValue()
+             }
            } else {
              paqueteStr = montosCup.subtipo
              paqueteCant = paqueteCant+det.cantidadFac.intValue()
