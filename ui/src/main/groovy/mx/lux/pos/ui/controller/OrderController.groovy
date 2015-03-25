@@ -3017,4 +3017,12 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     Boolean claveFree = notaVentaService.validaClaveCrmWeb( clave )
     return claveFree
   }
+
+
+  static void saveAcuseCrmClave( String idOrder ){
+    log.debug( "saveAcuseCrmClave( )" )
+    notaVentaService.guardaAcuseClaveCrm( idOrder )
+  }
+
+
 }

@@ -12,6 +12,7 @@ import mx.lux.pos.service.NotaVentaService
 import mx.lux.pos.service.business.EliminarNotaVentaTask
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.io.PromotionsAdapter
+import mx.lux.pos.util.CustomDateUtils
 import mx.lux.pos.util.StringList
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.time.DateUtils
@@ -78,6 +79,9 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
   @Resource
   private DescuentoRepository descuentoRepository
+
+  @Resource
+  private AcuseRepository acuseRepository
 
   @Resource
   private DescuentoClaveRepository descuentoClaveRepository
@@ -1081,12 +1085,14 @@ class NotaVentaServiceImpl implements NotaVentaService {
     @Override
     Boolean validaLentes( String idFactura ){
       Boolean hasLente = false
+      if( idFactura != null ){
         NotaVenta nota = notaVentaRepository.findOne( idFactura )
         for(DetalleNotaVenta det : nota.detalles){
           if( det.articulo.indice_dioptra != null && StringUtils.trimToEmpty(det.articulo.indice_dioptra) != '' ){
             hasLente = true
           }
         }
+      }
       return hasLente
     }
 
@@ -2136,6 +2142,35 @@ class NotaVentaServiceImpl implements NotaVentaService {
       }
     }
     return valid
+  }
+
+
+
+  @Override
+  @Transactional
+  void guardaAcuseClaveCrm( String idFactura ){
+    NotaVenta notaVenta = notaVentaRepository.findOne( StringUtils.trimToEmpty(idFactura) )
+    if( notaVenta != null ){
+      List<Descuento> descuentos = descuentoRepository.findByIdFactura( notaVenta.id?.trim() )
+      Descuento descuento = null
+      for(Descuento desc : descuentos){
+        if( desc != null && desc.clave.length() == 11 && (desc.clave.contains("*") ||
+                desc.clave.replace("!","\\!").contains("\\!")) ){
+          descuento = desc
+        }
+      }
+      if( descuento != null ){
+        Acuse acuse = new Acuse()
+        acuse.contenido = String.format( 'argVal=%s|', StringUtils.trimToEmpty(Registry.currentSite.toString()) )
+        acuse.contenido += String.format( '%s|', StringUtils.trimToEmpty(notaVenta.idCliente.toString()) )
+        acuse.contenido += String.format( '%s|', StringUtils.trimToEmpty(descuento.clave) )
+        acuse.contenido += String.format( '%s|', String.format( notaVenta.factura ) )
+        acuse.contenido += String.format( '%s|', "V" )
+        acuse.fechaCarga = new Date()
+        acuse.idTipo = "aplica_crm"
+        acuseRepository.saveAndFlush( acuse )
+      }
+    }
   }
 
 

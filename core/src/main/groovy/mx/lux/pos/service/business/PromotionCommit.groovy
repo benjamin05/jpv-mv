@@ -193,7 +193,7 @@ class PromotionCommit {
     if ( pModel.hasOrderDiscountApplied() ) {
       println pModel.orderDiscount.discountAmount.round()
       if( amountDesc > 0 && (pModel.orderDiscount.discountType.description.contains("*") ||
-              pModel.orderDiscount.discountType.description.contains("\\!")) ){
+              pModel.orderDiscount.discountType.description.replace("!","\\!").contains("\\!")) ){
         dbOrder.montoDescuento = asAmount( amountDesc )
       } else {
         dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount.round() )

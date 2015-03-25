@@ -161,4 +161,6 @@ interface NotaVentaService {
   List<NotaVenta> obtenerNotaVentaPorFecha( Date fecha )
 
   Boolean validaClaveCrmWeb( String clave )
+
+  void guardaAcuseClaveCrm( String idFactura )
 }

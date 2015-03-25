@@ -86,7 +86,7 @@ class PromotionServiceImpl implements PromotionService {
   }
 
   void requestPersist( PromotionModel pModel, Boolean saveOrder ) {
-    log.debug( String.format( "Request Persist Promotions for Order:%s", pModel.order.orderNbr ) )
+    log.debug( String.format( "Request Persist Promotions for Order:%s", pModel?.order?.orderNbr ) )
     PromotionCommit.writePromotions( pModel )
     PromotionCommit.writeDiscounts( pModel, saveOrder )
   }

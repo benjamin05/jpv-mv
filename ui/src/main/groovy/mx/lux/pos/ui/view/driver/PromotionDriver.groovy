@@ -378,7 +378,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       Boolean allGen = false
       Boolean oneValGen = false
       Boolean oneNotValGen = false
-        if( desc.clave.length() == 11 && (desc.clave.contains("*") || desc.clave.replace("!","\\!").contains("\\!")) ){
+      if( StringUtils.trimToEmpty(desc.clave).length() == 11 && (desc.clave.replace("*","\\*").contains("*") || desc.clave.replace("!","\\!").contains("\\!")) ){
             crm = true
             generic = StringUtils.trimToEmpty(desc.clave).substring(1,3)
             if( generic.contains("**") ){

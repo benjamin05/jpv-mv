@@ -1203,6 +1203,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         OrderController.validaEntrega(StringUtils.trimToEmpty(newOrder?.bill),newOrder?.branch?.id?.toString(), true)
         Boolean needJb = OrderController.creaJb(StringUtils.trimToEmpty(newOrder?.ticket), cSaldo)
 
+        OrderController.saveAcuseCrmClave( order.id )
         ItemController.updateLenteContacto( newOrder.id )
         if(isLc(newOrder)){
           OrderController.creaJbLc( newOrder.id )
