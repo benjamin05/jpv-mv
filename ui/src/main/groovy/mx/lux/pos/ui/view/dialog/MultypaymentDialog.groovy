@@ -355,8 +355,12 @@ class MultypaymentDialog extends JDialog implements FocusListener {
     }
     BigDecimal firstCupon = OrderController.getCuponAmount( firstOrder.id )
     BigDecimal secondCupon = OrderController.getCuponAmount( secondOrder.id )
-    if( couponLc && firstCupon.compareTo(BigDecimal.ZERO) > 0 ){
-      amountCupon = firstOrder.deals.size() <= 0 ? firstCupon : BigDecimal.ZERO
+    if( couponLc ){
+      if( firstCupon.compareTo(BigDecimal.ZERO) > 0 ){
+        amountCupon = firstOrder.deals.size() <= 0 ? firstCupon : BigDecimal.ZERO
+      } else {
+        amountCupon = BigDecimal.ZERO
+      }
     } else {
       amountCupon = validClave ? Math.max(firstCupon,secondCupon) : BigDecimal.ZERO
     }

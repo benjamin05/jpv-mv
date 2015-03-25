@@ -583,6 +583,9 @@ class TicketServiceImpl implements TicketService {
         QCuponMv qCuponMv = QCuponMv.cuponMv
         List<CuponMv> cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura).
                 and(qCuponMv.facturaDestino.isEmpty().or(qCuponMv.facturaDestino.isNull())) ) as List<CuponMv>
+        if( cuponMv.size() <= 0 ){
+          cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura) ) as List<CuponMv>
+        }
       if( cuponMv.size() == 1 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith(TAG_GENERICO_H) ){
         if( notaVenta != null ){
           for(DetalleNotaVenta det : notaVenta.detalles){
