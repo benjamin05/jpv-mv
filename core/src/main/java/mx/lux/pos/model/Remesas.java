@@ -11,7 +11,11 @@ import java.util.Date;
 public class Remesas implements Serializable {
 
 
+    private static final long serialVersionUID = -7198826207467733267L;
+
     @Id
+    @GeneratedValue( strategy = GenerationType.SEQUENCE, generator = "remesas_id_remesa_seq" )
+    @SequenceGenerator( schema = "public", sequenceName = "remesas_id_remesa_seq", name = "remesas_id_remesa_seq", allocationSize = 1 )
     @Column( name = "id_remesa" )
     private Integer id;
 

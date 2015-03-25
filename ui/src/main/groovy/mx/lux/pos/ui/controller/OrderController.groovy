@@ -572,6 +572,10 @@ class OrderController {
                 notaVenta = notaVentaService.cerrarNotaVenta(notaVenta)
                 if (inventarioService.solicitarTransaccionVenta(notaVenta)) {
                     log.debug("transaccion de inventario correcta")
+                    if( inventarioService.solicitarTransaccionEntradaSP(notaVenta) ){
+                      log.debug("transaccion entrada SP correcta")
+                      inventarioService.insertarRegistroRemesa( notaVenta )
+                    }
                 } else {
                     log.warn("no se pudo procesar la transaccion de inventario")
                 }
@@ -1056,7 +1060,7 @@ class OrderController {
                       savePromisedDate(notaVenta?.id, diaPrometido)
                     }
                 }
-                if (StringUtils.trimToEmpty(detalle?.surte).equals('P')) {
+                if (StringUtils.trimToEmpty(detalle?.surte).equals('P') && !detalle?.articulo?.generico?.inventariable) {
                     surte = true
                 }
             }
@@ -2972,6 +2976,14 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static void genreatedEntranceSP ( String idOrder ){
+    NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+    if( notaVenta != null ){
+
+    }
+  }
+
+
   static List<DevBank> findDevBanks( ){
     List<DevBank> lstBanks = new ArrayList<>()
     List<BancoDev> lstBancos = bancoDevRepository.findAll( )
@@ -3000,5 +3012,6 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     }
     return valid
   }
+
 
 }
