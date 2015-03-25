@@ -521,12 +521,12 @@ class DiscountCouponDialog extends JDialog {
           if( claveValid ){
             Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
             if( descuento == null ){
-              //if( OrderController.validCrmClaveWeb( txtCorporateKey.text ) ){
+              if( OrderController.validCrmClaveWeb( txtCorporateKey.text ) ){
                 claveClear = true
-              /*} else {
+              } else {
                   warning = "Clave incorrecta"
                   println "Clave ya aplicada"
-              }*/
+              }
             } else {
               warning = "Clave incorrecta"
               println "Clave ya aplicada"
