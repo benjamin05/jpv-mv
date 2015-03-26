@@ -324,7 +324,7 @@ class ItemController {
        Articulo articulo = articuloService.obtenerArticulo( idArticulo )
         if( articulo != null ){
             return (StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_H)
-            && StringUtils.trimToEmpty(articulo.idGenTipo).equalsIgnoreCase(TAG_GEN_TIPO_C))
+            && StringUtils.trimToEmpty(articulo.tipo).equalsIgnoreCase(TAG_GEN_TIPO_C))
         } else {
             return null
         }
