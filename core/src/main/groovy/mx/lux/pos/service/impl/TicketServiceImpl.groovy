@@ -586,6 +586,7 @@ class TicketServiceImpl implements TicketService {
         //if( cuponMv.size() <= 0 ){
         List<CuponMv> cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura) ) as List<CuponMv>
         //}
+      Boolean sameSubtipo = true
       if( cuponMv.size() == 1 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith(TAG_GENERICO_H) ){
         if( notaVenta != null ){
           List<DetalleNotaVenta> lstDet = new ArrayList<>(notaVenta.detalles)
@@ -595,9 +596,18 @@ class TicketServiceImpl implements TicketService {
                   return o1.cantidadFac.compareTo(o2.cantidadFac)
               }
           } )
-          for(DetalleNotaVenta det : notaVenta.detalles){
+          String subtipo = ""
+          for(DetalleNotaVenta det : lstDet){
             if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") ){
               cuponLc = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
+              if( subtipo.length() > 0 ){
+                if( !StringUtils.trimToEmpty(subtipo).equalsIgnoreCase(StringUtils.trimToEmpty(det.articulo.subtipo) ) ){
+                  sameSubtipo = false
+                }
+              } else {
+                subtipo = StringUtils.trimToEmpty(det.articulo.subtipo)
+                cuponLc = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
+              }
             }
           }
         }
@@ -616,14 +626,14 @@ class TicketServiceImpl implements TicketService {
         // BigDecimal precio = tmp?.precioUnitFinal?.multiply( tmp?.cantidadFac ) ?: 0
         BigDecimal precio = tmp?.precioUnitLista?.multiply( tmp?.cantidadFac ) ?: 0
         subtotal = subtotal.add( precio )
-        Boolean cupon = false
+        Boolean cupon = sameSubtipo
         if( StringUtils.trimToEmpty(tmp?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_H) ){
           contadorLc = contadorLc+tmp?.cantidadFac?.intValue()
           if( contadorLc > 1 ){
             cupon = true
           }
         }
-        String descripcion = "[${tmp?.articulo?.articulo}] ${tmp?.surte != null ? '['+tmp?.surte.trim()+']' : ''} ${cupon ? '['+cuponLc.trim()+']' : ''} ${tmp?.articulo?.descripcion}"
+        String descripcion = "[${tmp?.articulo?.articulo}] ${tmp?.surte != null ? '['+tmp?.surte.trim()+']' : ''} ${cupon && cuponLc.length() > 0 ? '['+cuponLc.trim()+']' : ''} ${tmp?.articulo?.descripcion}"
         String descripcion1
         String descripcion2 = ""
         if ( descripcion.length() > 36 ) {

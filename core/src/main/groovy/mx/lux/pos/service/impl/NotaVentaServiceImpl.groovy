@@ -993,7 +993,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
                paqueteCant = paqueteCant+det.cantidadFac.intValue()
              } else {
                paqueteStr = montosCup.subtipo
-               paqueteCant = paqueteCant+det.cantidadFac.intValue()
+               paqueteCant = det.cantidadFac.intValue()
              }
            } else {
              paqueteStr = montosCup.subtipo
