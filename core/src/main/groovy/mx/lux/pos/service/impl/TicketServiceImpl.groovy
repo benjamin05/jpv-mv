@@ -581,13 +581,20 @@ class TicketServiceImpl implements TicketService {
         String leyendaCupon = ""
         String cuponLc = ""
         QCuponMv qCuponMv = QCuponMv.cuponMv
-        List<CuponMv> cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura).
-                and(qCuponMv.facturaDestino.isEmpty().or(qCuponMv.facturaDestino.isNull())) ) as List<CuponMv>
-        if( cuponMv.size() <= 0 ){
-          cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura) ) as List<CuponMv>
-        }
+        /*List<CuponMv> cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura).
+                and(qCuponMv.facturaDestino.isEmpty().or(qCuponMv.facturaDestino.isNull())) ) as List<CuponMv>*/
+        //if( cuponMv.size() <= 0 ){
+        List<CuponMv> cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura) ) as List<CuponMv>
+        //}
       if( cuponMv.size() == 1 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith(TAG_GENERICO_H) ){
         if( notaVenta != null ){
+          List<DetalleNotaVenta> lstDet = new ArrayList<>(notaVenta.detalles)
+          Collections.sort( lstDet, new Comparator<DetalleNotaVenta>() {
+              @Override
+              int compare(DetalleNotaVenta o1, DetalleNotaVenta o2) {
+                  return o1.cantidadFac.compareTo(o2.cantidadFac)
+              }
+          } )
           for(DetalleNotaVenta det : notaVenta.detalles){
             if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") ){
               cuponLc = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
@@ -598,6 +605,12 @@ class TicketServiceImpl implements TicketService {
       BigDecimal subtotal = BigDecimal.ZERO
       BigDecimal totalArticulos = BigDecimal.ZERO
       Integer contadorLc = 0
+      Collections.sort( detallesLst, new Comparator<DetalleNotaVenta>() {
+        @Override
+        int compare(DetalleNotaVenta o1, DetalleNotaVenta o2) {
+          return o1.cantidadFac.compareTo(o2.cantidadFac)
+        }
+      } )
       detallesLst?.each { DetalleNotaVenta tmp ->
         // TODO: rld review for SOI lux
         // BigDecimal precio = tmp?.precioUnitFinal?.multiply( tmp?.cantidadFac ) ?: 0

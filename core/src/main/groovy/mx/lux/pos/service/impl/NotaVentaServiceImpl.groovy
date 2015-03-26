@@ -949,7 +949,14 @@ class NotaVentaServiceImpl implements NotaVentaService {
     List<MontoCupon> lstMontosCupon = new ArrayList<>()
     NotaVenta nota = notaVentaRepository.findOne( idNotaVenta )
     if( nota != null){
-      for( DetalleNotaVenta det : nota.detalles ){
+      List<DetalleNotaVenta> lstDet = new ArrayList<>(nota.detalles)
+      Collections.sort( lstDet, new Comparator<DetalleNotaVenta>() {
+          @Override
+          int compare(DetalleNotaVenta o1, DetalleNotaVenta o2) {
+              return o1.articulo.subtipo.compareTo(o2.articulo.subtipo)
+          }
+      })
+      for( DetalleNotaVenta det : lstDet ){
         List<Precio> lstPrecios = precioRepository.findByArticulo( det.articulo.articulo )
         BigDecimal precio = det.articulo.precio//.multiply(det.cantidadFac)
         if( lstPrecios.size() > 0 ){
@@ -980,9 +987,12 @@ class NotaVentaServiceImpl implements NotaVentaService {
           List<MontoCupon> lstMontosCup = montoCuponRepository.findAll( mc.generico.eq(det.articulo.idGenerico).
                 and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) )
           montosCup = lstMontosCup.size() > 0 ? lstMontosCup.first() : null
-         if( montosCup != null ){
+          if( montosCup != null ){
            if( StringUtils.trimToEmpty(paqueteStr).length() > 0 ){
              if( StringUtils.trimToEmpty(paqueteStr).equalsIgnoreCase(StringUtils.trimToEmpty(det?.articulo?.subtipo)) ){
+               paqueteCant = paqueteCant+det.cantidadFac.intValue()
+             } else {
+               paqueteStr = montosCup.subtipo
                paqueteCant = paqueteCant+det.cantidadFac.intValue()
              }
            } else {
