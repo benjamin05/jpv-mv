@@ -233,4 +233,20 @@ class AccessController {
   }
 
 
+  static boolean canAuthorizeIp( String username, String password ) {
+    log.info( "solicitando autorizacion por usuario sistemas: $username" )
+    if ( checkCredentials( username, password ) ) {
+      String usuarioSistemas = StringUtils.trimToEmpty(Registry.usuarioSistemas)
+      Empleado empleado = empleadoService.obtenerEmpleado( username )
+      if ( usuarioSistemas.equalsIgnoreCase(StringUtils.trimToEmpty(empleado.id)) ) {
+        log.info( "autorizacion realizada: $username" )
+        return true
+      } else {
+        log.info( "autorizacion rechazada, no es usuario autorizador" )
+      }
+    } else {
+            log.warn( "credenciales erroneas" )
+    }
+    return false
+  }
 }

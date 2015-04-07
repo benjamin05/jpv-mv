@@ -3013,4 +3013,10 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static Boolean changeIpBox( String ip ){
+    return notaVentaService.cambiaIpCaja( ip )
+  }
+
+
+
 }

@@ -116,6 +116,7 @@ enum TipoParametro {
   URL_SALIDA_ALMACEN('url_salida_almacen',''),
   URL_ENTRADA_ALMACEN('url_entrada_sucursal',''),
   URL_CONFIRMA_ENTRADA('url_confirma_entrada',''),
+  USUARIO_SISTEMAS('usuario_sistemas','9999'),
   TRANS_INV_TIPO_SALIDA_ALMACEN( 'trans_inv_salida_almacen', 'SALIDA_ALMACEN' ),
   TRANS_INV_TIPO_ENTRADA_ALMACEN( 'trans_inv_entrada_almacen', 'ENTRADA_ALMACEN' ),
   TERMINAL_CAJA('terminal_caja',''),

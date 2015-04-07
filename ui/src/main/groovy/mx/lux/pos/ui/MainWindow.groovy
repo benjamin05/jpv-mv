@@ -7,6 +7,8 @@ import mx.lux.pos.ui.controller.*
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.view.action.ExitAction
 import mx.lux.pos.ui.view.dialog.AuthorizationDialog
+import mx.lux.pos.ui.view.dialog.AuthorizationIpDialog
+import mx.lux.pos.ui.view.dialog.ChangeIpBoxDialog
 import mx.lux.pos.ui.view.dialog.ChangePasswordDialog
 import mx.lux.pos.ui.view.dialog.CustomerSearchDialog
 import mx.lux.pos.ui.view.dialog.EntregaTrabajoDialog
@@ -95,6 +97,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem generateInventoryFile
     private JMenuItem newSalesDayMenuItem
     private JMenuItem reprintEnsureMenuItem
+    private JMenuItem ipBoxMenuItem
     private JMenuItem cotizacionMenuItem
     private JMenuItem kardexMenuItem
     private JMenuItem salesTodayMenuItem
@@ -615,6 +618,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 disactivateSPItem.visible = userLoggedIn
                                 importEmployeeMenuItem.visible = userLoggedIn
                                 reprintEnsureMenuItem.visible = userLoggedIn
+                                ipBoxMenuItem.visible = userLoggedIn
                             }
                     ) {
                         entregaMenuItem = menuItem(text: 'Entrega',
@@ -637,17 +641,32 @@ class MainWindow extends JFrame implements KeyListener {
                         importEmployeeMenuItem = menuItem( text: 'Importa Empleado',
                                 visible: true,
                                 actionPerformed: {
-                                    Runtime garbage = Runtime.getRuntime();
-                                    garbage.gc();
-                                    AuthorizationDialog authDialog = new AuthorizationDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+                                  Runtime garbage = Runtime.getRuntime();
+                                  garbage.gc();
+                                  AuthorizationDialog authDialog = new AuthorizationDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+                                  authDialog.show()
+                                  if (authDialog.authorized) {
+                                    ImportEmployeeDialog dialog = new ImportEmployeeDialog()
+                                    dialog.show()
+                                  } else {
+                                    OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
+                                  }
+                                }
+                        )
+                        ipBoxMenuItem = menuItem( text: 'Edita IP Caja',
+                              visible: true,
+                              actionPerformed: {
+                                Runtime garbage = Runtime.getRuntime();
+                                garbage.gc();
+                                    AuthorizationIpDialog authDialog = new AuthorizationIpDialog(this, "Esta operacion requiere autorizaci\u00f3n")
                                     authDialog.show()
                                     if (authDialog.authorized) {
-                                      ImportEmployeeDialog dialog = new ImportEmployeeDialog()
-                                      dialog.show()
+                                        ChangeIpBoxDialog dialog = new ChangeIpBoxDialog()
+                                        dialog.show()
                                     } else {
                                         OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
                                     }
-                                }
+                              }
                         )
                         reprintEnsureMenuItem = menuItem( text: 'Reimprimir Seguro',
                                 visible: true,

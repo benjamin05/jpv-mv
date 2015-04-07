@@ -2058,4 +2058,21 @@ class NotaVentaServiceImpl implements NotaVentaService {
   }
 
 
+  @Override
+  @Transactional
+  Boolean cambiaIpCaja( String ip ){
+    Boolean hecho = false
+    Parametro parametro = parametroRepository.findOne( TipoParametro.TERMINAL_CAJA.value )
+    if( parametro != null ){
+      try {
+        parametro.valor = ip
+        parametroRepository.saveAndFlush( parametro )
+        hecho = true
+      } catch ( Exception e ){ println e }
+    }
+    return hecho
+  }
+
+
+
 }
