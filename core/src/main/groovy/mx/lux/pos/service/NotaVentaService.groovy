@@ -161,4 +161,6 @@ interface NotaVentaService {
   List<NotaVenta> obtenerNotaVentaPorFecha( Date fecha )
 
   Boolean cambiaIpCaja( String ip )
+
+  void borrarNotaVenta( String idFactura )
 }

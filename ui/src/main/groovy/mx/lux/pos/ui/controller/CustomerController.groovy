@@ -355,6 +355,30 @@ class CustomerController {
         dialog.dispose()
     }
 
+
+    static void requestEditPayingCustomer(CustomerListener pListener) {
+        this.log.debug('Request Customer on Site ')
+        List<ClienteProceso> clientes = clienteService.obtenerClientesEnCaja(true)
+        OrderActiveSelectionDialog dialog = new OrderActiveSelectionDialog()
+        dialog.customerList = clientes
+        dialog.activate()
+        if (dialog.orderSelected != null) {
+            Order o = Order.toOrder(dialog.orderSelected.order)
+            Customer c = Customer.toCustomer(dialog.orderSelected.customer)
+            pListener.reset()
+            pListener.disableUI()
+            pListener.operationTypeSelected = OperationType.EDIT_PAYING
+            pListener.setCustomer(c)
+            pListener.setOrder(o)
+            pListener.enableUI()
+            pListener.setPromotion(o)
+        } else {
+            pListener.operationTypeSelected = OperationType.DEFAULT
+        }
+        dialog.dispose()
+    }
+
+
     private static Customer openCustomerDialog(Customer customer, boolean editar) {
         log.error('llamando metodo deprecado: openCustomerDialog')
         return null

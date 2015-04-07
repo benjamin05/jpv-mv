@@ -9,7 +9,8 @@ enum OperationType {
   DOMESTIC( 'Cliente Nacional' ),
   FOREIGN( 'Cliente Extranjero' ),
   QUOTE( 'Cotización' ) ,
-  AGREEMENT( 'Convenio' )
+  AGREEMENT( 'Convenio' ),
+  EDIT_PAYING( 'Editar Cliente Caja' )
   //MULTYPAYMENT( 'Multipago' )
 
   final String value

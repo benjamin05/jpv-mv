@@ -2075,4 +2075,18 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
 
 
+  @Override
+  @Transactional
+  void borrarNotaVenta( String idFactura ){
+    NotaVenta notaVenta = notaVentaRepository.findOne( idFactura )
+    if( notaVenta != null && StringUtils.trimToEmpty(notaVenta.factura).length() <= 0 ){
+      EliminarNotaVentaTask task = new EliminarNotaVentaTask()
+      task.addNotaVenta( notaVenta.id )
+      log.debug( task.toString() )
+      task.run()
+      log.debug( task.toString() )
+    }
+  }
+
+
 }

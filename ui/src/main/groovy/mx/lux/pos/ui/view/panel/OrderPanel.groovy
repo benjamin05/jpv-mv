@@ -34,6 +34,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TXT_BTN_QUOTE = 'Cotizar'
     private static final String TXT_BTN_PRINT = 'Imprimir'
     private static final String TXT_BTN_NEW_ORDER = 'Otra venta'
+    private static final String TXT_BTN_CANCEL_ORDER = 'Anular venta'
     private static final String TXT_BTN_CONTINUE = 'Continuar'
     private static final String TXT_NO_ORDER_PRESENT = 'Se debe agregar al menos un artículo.'
     private static final String TXT_PAYMENTS_PRESENT = 'Elimine los pagos registrados y reintente.'
@@ -77,6 +78,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private JButton printButton
     private JButton continueButton
     private JButton newOrderButton
+    private JButton cancelOrderButton
     private JTextArea comments
     private JTextField itemSearch
     private List<IPromotionAvailable> promotionList
@@ -286,6 +288,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 }
                 change = label(foreground: UI_Standards.WARNING_FOREGROUND, constraints: BorderLayout.CENTER)
                 panel(constraints: BorderLayout.LINE_END, border: BorderFactory.createEmptyBorder(0, 0, 0, 0)) {
+                    cancelOrderButton = button(TXT_BTN_CANCEL_ORDER,
+                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            actionPerformed: { fireRequestCancelOrder( ) },
+                            constraints: 'hidemode 3',
+                            visible: false
+                    )
                     newOrderButton = button(TXT_BTN_NEW_ORDER,
                             preferredSize: UI_Standards.BIG_BUTTON_SIZE,
                             actionPerformed: { fireRequestNewOrder(itemsModel) }
@@ -350,6 +358,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 this.promotionDriver.model?.orderDiscount?.discountPercent == 1.0 ||
                 ( order.due.compareTo(BigDecimal.ZERO) <= 0 && this.promotionDriver.model?.isAnyApplied()) )
         this.continueButton.setVisible( !this.printButton.visible )
+        if( order.items.size() > 0 ){
+          cancelOrderButton.visible = true
+        } else {
+          cancelOrderButton.visible = false
+        }
     }
 
     void updateOrder(String pOrderId) {
@@ -513,6 +526,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       }
                     }
                     break
+                case OperationType.EDIT_PAYING:
+                  sb.doLater {
+                    CustomerController.requestEditPayingCustomer(this)
+                    //isPaying = true
+                  }
+                  break
                 /*case OperationType.MULTYPAYMENT:
                     sb.doLater {
                         CustomerController.requestMultypayment(this, this)
@@ -668,7 +687,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private def doNewPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
           OperationType operationType1 = operationType.selectedItem as OperationType
-           if (ev.clickCount == 1 && !operationType1.equals(OperationType.PENDING)) {
+           if (ev.clickCount == 1 && (!operationType1.equals(OperationType.PENDING) && !operationType1.equals(OperationType.EDIT_PAYING))) {
                 if (order.due) {
                   Boolean hasDiscount = false
                   for(int i=0;i<promotionList.size();i++){
@@ -700,7 +719,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private def doShowPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
           OperationType operationType1 = operationType.selectedItem as OperationType
-            if (ev.clickCount == 2 && !operationType1.equals(OperationType.PENDING)) {
+            if (ev.clickCount == 2 && (!operationType1.equals(OperationType.PENDING) && !operationType1.equals(OperationType.EDIT_PAYING))) {
                 new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false).show()
                 updateOrder(order?.id)
             }
@@ -1747,6 +1766,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 Order newOrder = OrderController.saveOrder(order)
                 CustomerController.updateCustomerInSite(this.customer.id)
                 this.promotionDriver.requestPromotionSave(newOrder?.id, false)
+                for(IPromotionAvailable promo : promotionList){
+                  if( promo instanceof PromotionDiscount ){
+                    OrderController.updateCuponMvByClave(order.id, StringUtils.trimToEmpty(promo.discountType.description))
+                  }
+                }
                 this.reset()
             }
         } else {
@@ -1755,6 +1779,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
         }
     }
+
+
+    private void fireRequestCancelOrder( ) {
+      OrderController.deleteOrder( StringUtils.trimToEmpty(order.id) )
+      this.reset()
+    }
+
 
 
     private void fireRequestNewOrder(DefaultTableModel itemsModel) {
@@ -1883,6 +1914,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             if (paymentsModel.size() == 0) {
                 if( !validLenses() ){
                     order.dioptra = null
+                }
+                for(IPromotionAvailable promo : promotionList){
+                    if( promo instanceof PromotionDiscount ){
+                        OrderController.updateCuponMvByClave(order.id, StringUtils.trimToEmpty(promo.discountType.description))
+                    }
                 }
                 Customer c = this.customer
                 Order newOrder = OrderController.saveOrder(order)

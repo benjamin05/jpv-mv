@@ -3018,5 +3018,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static void deleteOrder( String idOrder ){
+    notaVentaService.borrarNotaVenta( idOrder )
+  }
+
 
 }
