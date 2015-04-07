@@ -341,6 +341,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           isPaying = false
         }
         currentOperationType = (OperationType) operationType.getSelectedItem()
+        if( currentOperationType.equals(OperationType.PAYING) ){
+          itemSearch.enabled = false
+        } else {
+          itemSearch.enabled = true
+        }
         this.printButton.setVisible(!this.isPaymentListEmpty() ||
                 this.promotionDriver.model?.orderDiscount?.discountPercent == 1.0 ||
                 ( order.due.compareTo(BigDecimal.ZERO) <= 0 && this.promotionDriver.model?.isAnyApplied()) )
@@ -460,15 +465,59 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     break
                 case OperationType.PAYING:
                     sb.doLater {
+                        Boolean valid = true
+                        Process process = new ProcessBuilder("ifconfig").start();
+                        String s = null;
+                        String line = ""
+                        String ip = ""
+                        BufferedReader input = new BufferedReader( new InputStreamReader(process.getInputStream()) );
+                        BufferedReader error = new BufferedReader( new InputStreamReader(process.getErrorStream()) );
+                        println("Here is the standard output of the command:\n");
+                        while ((s = input.readLine()) != null) {
+                          if( s.contains("Direc. inet") ){
+                            line = s
+                            break
+                          }
+                        }
+                        println("Here is the standard error of the command (if any):\n");
+                        while ((s = error.readLine()) != null) {
+                            System.out.println(s);
+                        }
+
+                      if( StringUtils.trimToEmpty(line).length() > 0 && line.contains(":") ){
+                        String[] data = StringUtils.trimToEmpty(line).split(":")
+                        if( data.length > 1 ){
+                          String[] dataTmp = StringUtils.trimToEmpty(data[1]).split(" ")
+                          if( data.length > 0 ){
+                            ip = dataTmp[0]
+                          }
+                        }
+                      }
+
+                      String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+                      if( term.length() > 0 ){
+                        if( !term.contains(ip) ){
+                          valid = false
+                        }
+                      }
+                      if( valid ){
                         CustomerController.requestPayingCustomer(this)
                         isPaying = true
+                      } else {
+                          sb.optionPane(
+                                  message: 'Debe estar en la caja para seleccionar esta opcion',
+                                  messageType: JOptionPane.ERROR_MESSAGE
+                          ).createDialog(this, 'Maquina Incorrecta')
+                                  .show()
+                        operationTypeSelected = OperationType.DEFAULT
+                      }
                     }
                     break
-                case OperationType.MULTYPAYMENT:
+                /*case OperationType.MULTYPAYMENT:
                     sb.doLater {
                         CustomerController.requestMultypayment(this, this)
                     }
-                    break
+                    break*/
             }
             if(!operationType.selectedItem.equals(OperationType.DOMESTIC)){
               operationType.removeItem( OperationType.DOMESTIC )
@@ -618,7 +667,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     private def doNewPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
-            if (ev.clickCount == 1) {
+          OperationType operationType1 = operationType.selectedItem as OperationType
+           if (ev.clickCount == 1 && !operationType1.equals(OperationType.PENDING)) {
                 if (order.due) {
                   Boolean hasDiscount = false
                   for(int i=0;i<promotionList.size();i++){
@@ -649,7 +699,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     private def doShowPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
-            if (ev.clickCount == 2) {
+          OperationType operationType1 = operationType.selectedItem as OperationType
+            if (ev.clickCount == 2 && !operationType1.equals(OperationType.PENDING)) {
                 new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false).show()
                 updateOrder(order?.id)
             }
@@ -1350,74 +1401,79 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
     protected void onMouseClickedAtPromotions(MouseEvent pEvent) {
-        if (SwingUtilities.isRightMouseButton(pEvent) && (pEvent.getID() == MouseEvent.MOUSE_CLICKED)) {
-            if (discountMenu == null) {
-                discountMenu = new DiscountContextMenu(this.promotionDriver)
-            }
-            discountMenu.activate(pEvent, this)
+      OperationType operationType1 = operationType.selectedItem as OperationType
+      if (SwingUtilities.isRightMouseButton(pEvent) && (pEvent.getID() == MouseEvent.MOUSE_CLICKED) &&
+              !operationType1.equals(OperationType.PAYING )) {
+        if (discountMenu == null) {
+          discountMenu = new DiscountContextMenu(this.promotionDriver)
         }
+        discountMenu.activate(pEvent, this)
+      }
     }
 
     protected void onTogglePromotion(IPromotionAvailable pPromotion, Boolean pNewValue) {
-      Boolean valid = true
-      Boolean notMinAmount = false
-      BigDecimal minimum = BigDecimal.ZERO
-      BigDecimal totalOrder = BigDecimal.ZERO
-      for(int i=0;i<promotionList.size();i++){
-        if( promotionList.get(i) instanceof PromotionDiscount){
-          valid = false
-        }
-      }
-      if( valid ){
-        if( pPromotion instanceof PromotionAvailable){
-          if( pPromotion.promotion instanceof PromotionCombo){
-            minimum = pPromotion.promotion.base.entity.montoMinimo
-          } else if( pPromotion.promotion instanceof PromotionSingle){
-            minimum = pPromotion.promotion.entity.montoMinimo
-          }
-        }
-        for(OrderItem det : order.items){
-          if( !StringUtils.trimToEmpty(det.item.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
-            totalOrder = totalOrder.add( det.item.listPrice.multiply(new BigDecimal(det.quantity)) )
-          }
-        }
-        if( minimum.compareTo(totalOrder) > 0 ){
-          notMinAmount = true
-        }
-      }
-      if (pNewValue && valid) {
-        if( !notMinAmount ){
-          this.promotionDriver.requestApplyPromotion(pPromotion)
-        } else {
-          NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.US)
-          sb.optionPane(message: "Monto Mínimo de Compra ${nf.format(minimum)}", optionType: JOptionPane.DEFAULT_OPTION)
-                .createDialog(new JTextField(), "Error")
-                  .show()
-        }
-      } else {
-        this.promotionDriver.requestCancelPromotion(pPromotion)
-
-          Payment payment = null
-          for(Payment pay : order.payments){
-              if( StringUtils.trimToEmpty(pay.paymentTypeId).equalsIgnoreCase(TAG_PAYMENT_TYPE_TRANSF) ){
-                  payment = pay
+      OperationType operationType1 = operationType.selectedItem as OperationType
+      if( !operationType1.equals(OperationType.PAYING) ){
+          Boolean valid = true
+          Boolean notMinAmount = false
+          BigDecimal minimum = BigDecimal.ZERO
+          BigDecimal totalOrder = BigDecimal.ZERO
+          for(int i=0;i<promotionList.size();i++){
+              if( promotionList.get(i) instanceof PromotionDiscount){
+                  valid = false
               }
           }
-          if( payment != null ){
-            List<CuponMv> lstCupons = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(order.id) )
-            if( lstCupons.size() > 0 ){
-              OrderController.existDiscountKey( StringUtils.trimToEmpty(lstCupons.first().claveDescuento),
-                      StringUtils.trimToEmpty(payment.paymentReference) )
-            }
+          if( valid ){
+              if( pPromotion instanceof PromotionAvailable){
+                  if( pPromotion.promotion instanceof PromotionCombo){
+                      minimum = pPromotion.promotion.base.entity.montoMinimo
+                  } else if( pPromotion.promotion instanceof PromotionSingle){
+                      minimum = pPromotion.promotion.entity.montoMinimo
+                  }
+              }
+              for(OrderItem det : order.items){
+                  if( !StringUtils.trimToEmpty(det.item.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                      totalOrder = totalOrder.add( det.item.listPrice.multiply(new BigDecimal(det.quantity)) )
+                  }
+              }
+              if( minimum.compareTo(totalOrder) > 0 ){
+                  notMinAmount = true
+              }
           }
+          if (pNewValue && valid) {
+              if( !notMinAmount ){
+                  this.promotionDriver.requestApplyPromotion(pPromotion)
+              } else {
+                  NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.US)
+                  sb.optionPane(message: "Monto Mínimo de Compra ${nf.format(minimum)}", optionType: JOptionPane.DEFAULT_OPTION)
+                          .createDialog(new JTextField(), "Error")
+                          .show()
+              }
+          } else {
+              this.promotionDriver.requestCancelPromotion(pPromotion)
 
-        OrderController.deleteCuponMv( order.id )
+              Payment payment = null
+              for(Payment pay : order.payments){
+                  if( StringUtils.trimToEmpty(pay.paymentTypeId).equalsIgnoreCase(TAG_PAYMENT_TYPE_TRANSF) ){
+                      payment = pay
+                  }
+              }
+              if( payment != null ){
+                  List<CuponMv> lstCupons = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(order.id) )
+                  if( lstCupons.size() > 0 ){
+                      OrderController.existDiscountKey( StringUtils.trimToEmpty(lstCupons.first().claveDescuento),
+                              StringUtils.trimToEmpty(payment.paymentReference) )
+                  }
+              }
+
+              OrderController.deleteCuponMv( order.id )
+          }
+          for(Payment payment : order.payments){
+              OrderController.removePaymentFromOrder( order.id, payment )
+          }
+          OrderController.saveOrder( order )
+          updateOrder(order?.id)
       }
-      for(Payment payment : order.payments){
-        OrderController.removePaymentFromOrder( order.id, payment )
-      }
-      OrderController.saveOrder( order )
-      updateOrder(order?.id)
     }
 
     Order getOrder() {

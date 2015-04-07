@@ -475,6 +475,10 @@ class Registry {
         return  asString(TipoParametro.ALMACENES)
     }
 
+  static String getTerminalCaja() {
+    return  asString(TipoParametro.TERMINAL_CAJA)
+  }
+
     static Integer getAlmacenPorAclarar() {
         return  asInteger(TipoParametro.ALMACEN_POR_ACLARAR)
     }
