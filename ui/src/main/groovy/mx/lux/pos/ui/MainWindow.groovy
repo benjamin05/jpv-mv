@@ -653,21 +653,6 @@ class MainWindow extends JFrame implements KeyListener {
                                   }
                                 }
                         )
-                        ipBoxMenuItem = menuItem( text: 'Edita IP Caja',
-                              visible: true,
-                              actionPerformed: {
-                                Runtime garbage = Runtime.getRuntime();
-                                garbage.gc();
-                                    AuthorizationIpDialog authDialog = new AuthorizationIpDialog(this, "Esta operacion requiere autorizaci\u00f3n")
-                                    authDialog.show()
-                                    if (authDialog.authorized) {
-                                        ChangeIpBoxDialog dialog = new ChangeIpBoxDialog()
-                                        dialog.show()
-                                    } else {
-                                        OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
-                                    }
-                              }
-                        )
                         reprintEnsureMenuItem = menuItem( text: 'Reimprimir Seguro',
                                 visible: true,
                                 actionPerformed: {
@@ -696,6 +681,21 @@ class MainWindow extends JFrame implements KeyListener {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
                                     disactivateSP()
+                                }
+                        )
+                        ipBoxMenuItem = menuItem( text: 'Configurar Caja',
+                                visible: true,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    AuthorizationIpDialog authDialog = new AuthorizationIpDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+                                    authDialog.show()
+                                    if (authDialog.authorized) {
+                                        ChangeIpBoxDialog dialog = new ChangeIpBoxDialog()
+                                        dialog.show()
+                                    } else {
+                                        OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
+                                    }
                                 }
                         )
                         sessionMenuItem = menuItem( text: 'Cerrar Sesi\u00f3n',
