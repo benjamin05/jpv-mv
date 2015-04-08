@@ -220,6 +220,10 @@ class Registry {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
   }
 
+  static String getCommandIp( ) {
+    return asString( TipoParametro.COMANDO_IP )
+  }
+
   static String getValidEnsureDate( ) {
     return asString( TipoParametro.FECHA_VALIDA_SEGURO )
   }

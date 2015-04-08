@@ -282,32 +282,32 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 borderLayout()
                 panel(constraints: BorderLayout.LINE_START, border: BorderFactory.createEmptyBorder(0, 0, 0, 0)) {
                     closeButton = button(TXT_BTN_CLOSE,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: doClose
                     )
                 }
                 change = label(foreground: UI_Standards.WARNING_FOREGROUND, constraints: BorderLayout.CENTER)
                 panel(constraints: BorderLayout.LINE_END, border: BorderFactory.createEmptyBorder(0, 0, 0, 0)) {
                     cancelOrderButton = button(TXT_BTN_CANCEL_ORDER,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: { fireRequestCancelOrder( ) },
                             constraints: 'hidemode 3',
                             visible: false
                     )
                     newOrderButton = button(TXT_BTN_NEW_ORDER,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: { fireRequestNewOrder(itemsModel) }
                     )
                     quoteButton = button(TXT_BTN_QUOTE,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: { fireRequestQuote() }
                     )
                     continueButton = button(TXT_BTN_CONTINUE,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: { fireRequestContinue(itemsModel) }
                     )
                     printButton = button(TXT_BTN_PRINT,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: doPrint
                     )
                 }
@@ -479,10 +479,24 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 case OperationType.PAYING:
                     sb.doLater {
                         Boolean valid = true
-                        Process process = new ProcessBuilder("ifconfig").start();
+                        String command = Registry.commandIp
+                        Process process = new ProcessBuilder(StringUtils.trimToEmpty(command)).start();
                         String s = null;
                         String line = ""
                         String ip = ""
+
+                        Enumeration en = NetworkInterface.getNetworkInterfaces();
+                        while(en.hasMoreElements()){
+                            NetworkInterface ni=(NetworkInterface) en.nextElement();
+                            Enumeration ee = ni.getInetAddresses();
+                            while(ee.hasMoreElements()) {
+                                InetAddress ia= (InetAddress) ee.nextElement();
+                                System.out.println("Test:"+ia.getHostAddress());
+                            }
+                        }
+
+
+
                         BufferedReader input = new BufferedReader( new InputStreamReader(process.getInputStream()) );
                         BufferedReader error = new BufferedReader( new InputStreamReader(process.getErrorStream()) );
                         println("Here is the standard output of the command:\n");
@@ -503,11 +517,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           String[] dataTmp = StringUtils.trimToEmpty(data[1]).split(" ")
                           if( data.length > 0 ){
                             ip = dataTmp[0]
+                            println "Ip Maquina: "+ip
                           }
                         }
                       }
 
                       String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+                      println "Ip Valida: "+term
                       if( term.length() > 0 ){
                         if( !term.contains(ip) ){
                           valid = false
@@ -578,7 +594,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         item = results.first()
                         Articulo art = ItemController.findArticle( item.id )
                         if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
-                            if( OrderController.validArticleGenericNoDelivered(item.id) ){
+                            if( OrderController.validArticleGenericNoDelivered(item.id) ||
+                                    StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
                                 if( customer.id != CustomerController.findDefaultCustomer().id ){
                                   if( !appliedEnsure( art ) ){
                                     validarVentaNegativa(item, customer, holdPromo)
@@ -613,7 +630,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         if (item?.id) {
                           Articulo art = ItemController.findArticle( item.id )
                           if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
-                              if( OrderController.validArticleGenericNoDelivered(item.id) ){
+                              if( OrderController.validArticleGenericNoDelivered(item.id) ||
+                                      StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO)){
                                   if(customer.id != CustomerController.findDefaultCustomer().id){
                                     if( !appliedEnsure( art ) ){
                                       validarVentaNegativa(item, customer, holdPromo)
@@ -687,7 +705,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private def doNewPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
           OperationType operationType1 = operationType.selectedItem as OperationType
-           if (ev.clickCount == 1 && (!operationType1.equals(OperationType.PENDING) && !operationType1.equals(OperationType.EDIT_PAYING))) {
+           if (ev.clickCount == 1 && (!operationType1.equals(OperationType.PENDING) &&
+                   !operationType1.equals(OperationType.EDIT_PAYING) && !operationType1.equals(OperationType.QUOTE))) {
                 if (order.due) {
                   Boolean hasDiscount = false
                   for(int i=0;i<promotionList.size();i++){
@@ -719,7 +738,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private def doShowPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
           OperationType operationType1 = operationType.selectedItem as OperationType
-            if (ev.clickCount == 2 && (!operationType1.equals(OperationType.PENDING) && !operationType1.equals(OperationType.EDIT_PAYING))) {
+            if (ev.clickCount == 2 && (!operationType1.equals(OperationType.PENDING) &&
+                    !operationType1.equals(OperationType.EDIT_PAYING) && !operationType1.equals(OperationType.QUOTE))) {
                 new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false).show()
                 updateOrder(order?.id)
             }

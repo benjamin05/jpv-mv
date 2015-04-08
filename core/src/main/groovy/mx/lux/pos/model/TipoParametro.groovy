@@ -12,6 +12,7 @@ enum TipoParametro {
   ARCHIVO_CLASIFICACION_ARTICULOS( 'archivo_clasificacion_articulos', 'articulos.*.csv' ),
   BANCO_DEPOSITO( 'banco_deposito', '' ),
   CLIENTES_ACTIVOS( 'clientes_activos', 'Público General,Cliente Nuevo,Cliente en Proceso,Cliente en Caja,Cotización' ),
+  COMANDO_IP('comando_ip','ifconfig'),
   CUPON_TERCER_PAR( 'cupon_tercer_par', 'si' ),
   FECHA_VALIDA_SEGURO( 'fecha_valida_seguro', '02/02/2015' ),
   PAGOS_NO_TRANSFERENCIA( 'pagos_no_transf', 'C2,C3,C4,BD' ),
