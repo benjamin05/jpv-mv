@@ -38,6 +38,12 @@ public class MontoCupon implements Serializable {
     @Column( name = "monto_tercer_par" )
     private BigDecimal montoTercerPar;
 
+    @Column( name = "subtipo" )
+    private String subtipo;
+
+    @Column( name = "cantidad" )
+    private Integer cantidad;
+
 
     public Integer getId() {
         return id;
@@ -93,5 +99,21 @@ public class MontoCupon implements Serializable {
 
     public void setMontoTercerPar(BigDecimal montoTercerPar) {
         this.montoTercerPar = montoTercerPar;
+    }
+
+    public String getSubtipo() {
+        return subtipo;
+    }
+
+    public void setSubtipo(String subtipo) {
+        this.subtipo = subtipo;
+    }
+
+    public Integer getCantidad() {
+        return cantidad;
+    }
+
+    public void setCantidad(Integer cantidad) {
+        this.cantidad = cantidad;
     }
 }

@@ -39,6 +39,8 @@ class OrderDiscount implements IPromotion {
         if( cuponMv != null ){
           if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
             desc = String.format( "Amigos y Familiares %s" , StringUtils.trimToEmpty(cuponMv.montoCupon.toString()).replace(".00","") )
+          } else if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
+            desc = String.format( "Cupon %s LC" , StringUtils.trimToEmpty(cuponMv.montoCupon.toString()).replace(".00","") )
           } else {
             desc = String.format( "Cupon %s" , StringUtils.trimToEmpty(cuponMv.montoCupon.toString()).replace(".00","") )
           }

@@ -384,6 +384,9 @@ class CancelacionServiceImpl implements CancelacionService {
                         } else {
                             throw new Exception("no se encuentra transferencia con pago origen id: ${dev.idPago}")
                         }
+                      if( dev.devEfectivo == null ){
+                        dev.devEfectivo = ''
+                      }
                     }
                     devoluciones = devolucionRepository.save(devoluciones)
                     log.debug("devoluciones registradas: ${devoluciones*.id}")

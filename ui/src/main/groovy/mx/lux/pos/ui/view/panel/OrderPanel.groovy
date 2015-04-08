@@ -63,9 +63,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TAG_GENERICO_SEGUROS = 'J'
     private static final String TAG_GENERICO_ARMAZON = 'A'
     private static final String TAG_GENERICO_LENTE = 'B'
+    private static final String TAG_GENERICO_LENTE_CONTACTO = 'H'
     private static final String TAG_SEGUROS_ARMAZON = 'SS'
     private static final String TAG_SEGUROS_OFTALMICO = 'SEG'
     private static final String TAG_SUBTIPO_NINO = 'N'
+    private static final String TAG_RECETA_LC = 'LC'
 
     private Logger logger = LoggerFactory.getLogger(this.getClass())
     private SwingBuilder sb
@@ -479,10 +481,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 case OperationType.PAYING:
                     sb.doLater {
                         Boolean valid = true
-                        String command = Registry.commandIp
+                        /*String command = Registry.commandIp
                         Process process = new ProcessBuilder(StringUtils.trimToEmpty(command)).start();
                         String s = null;
-                        String line = ""
+                        String line = ""*/
                         String ip = ""
 
                         Enumeration en = NetworkInterface.getNetworkInterfaces();
@@ -490,14 +492,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                             NetworkInterface ni=(NetworkInterface) en.nextElement();
                             Enumeration ee = ni.getInetAddresses();
                             while(ee.hasMoreElements()) {
-                                InetAddress ia= (InetAddress) ee.nextElement();
-                                System.out.println("Test:"+ia.getHostAddress());
+                              InetAddress ia= (InetAddress) ee.nextElement();
+                              if(StringUtils.trimToEmpty(ia.canonicalHostName).contains(InetAddress.getLocalHost().getHostName())){
+                                ip = ia.getHostAddress()
+                                println("Ip Maquina: "+ip)
+                              }
                             }
                         }
-
-
-
-                        BufferedReader input = new BufferedReader( new InputStreamReader(process.getInputStream()) );
+                        /*BufferedReader input = new BufferedReader( new InputStreamReader(process.getInputStream()) );
                         BufferedReader error = new BufferedReader( new InputStreamReader(process.getErrorStream()) );
                         println("Here is the standard output of the command:\n");
                         while ((s = input.readLine()) != null) {
@@ -520,7 +522,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                             println "Ip Maquina: "+ip
                           }
                         }
-                      }
+                      }*/
 
                       String term = StringUtils.trimToEmpty(Registry.terminalCaja)
                       println "Ip Valida: "+term
@@ -661,6 +663,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           }
                         }
                     }
+                } else if( StringUtils.trimToEmpty(article).equalsIgnoreCase(TAG_RECETA_LC) ){
+                  if( customer.id != CustomerController.findDefaultCustomer().id ){
+                    if( order?.id == null ){
+                      order = OrderController.openOrder(StringUtils.trimToEmpty(customer.id.toString()), order.employee)
+                      updateOrder( StringUtils.trimToEmpty(order.id) )
+                    }
+                    Branch branch = Session.get(SessionItem.BRANCH) as Branch
+                    EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, false)
+                    editRx.show()
+                    OrderController.saveRxOrder(order?.id, this.rec.id)
+                  } else {
+                      optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
+                              .createDialog(new JTextField(), "Articulo Invalido")
+                              .show()
+                  }
                 } else {
                     optionPane(message: "No se encontraron resultados para: ${article}", optionType: JOptionPane.DEFAULT_OPTION)
                             .createDialog(new JTextField(), "B\u00fasqueda: ${article}")
@@ -688,7 +705,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private def doShowItemClick = { MouseEvent ev ->
-        if (SwingUtilities.isLeftMouseButton(ev)) {
+        OperationType operationType1 = operationType.selectedItem as OperationType
+        if (SwingUtilities.isLeftMouseButton(ev) && !operationType1.equals(OperationType.PAYING )) {
             if (ev.clickCount == 2) {
                 new ItemDialog(ev.component, order, ev.source.selectedElement, this).show()
                 updateOrder(order?.id)
@@ -964,6 +982,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         int artCount = 0
         dioptra = new Dioptra()
         Boolean hasDioptra = false
+        Boolean hasLc = false
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
@@ -971,6 +990,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
                 hasDioptra = true
               }
+            }
+            if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+              hasLc = true
             }
         }
         if( !hasDioptra ){
@@ -993,6 +1015,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         if( warranty ){
           if( validLensesPack() ){
+            Boolean continueSave = true
+            rec = OrderController.findRx(order, customer)
+            if( hasLc && (rec == null || rec.id == null) ){
+              Branch branch = Session.get(SessionItem.BRANCH) as Branch
+              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+              editRx.show()
+              try {
+                if( rec != null ){
+                  OrderController.saveRxOrder(order?.id, this.rec.id)
+                } else {
+                  continueSave = false
+                }
+              } catch ( Exception e ){ println e }
+            }
+              if( continueSave ){
                 if (!dioptra.getLente().equals(null)) {
                     Item i = OrderController.findArt(dio.trim())
                     if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1060,7 +1097,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     ticketRx = false
                     flujoImprimir(artCount)
                 }
-
+            }
           } else {
                 sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                         .createDialog(new JTextField(), "Error")
@@ -1364,7 +1401,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               }
             }
 
-            //if( !ensureApply && !ffApply ){
+            if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
               if( cuponMv != null ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
                 OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
@@ -1374,6 +1411,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               } else if( !ensureApply && !ffApply ){
                 generatedCoupons( validClave, newOrder )
               }
+            }
             if( !ensureApply && !ffApply ){
               if( OrderController.insertSegKig && !hasC1 ){
                 Boolean hasLensKid = false
@@ -1659,6 +1697,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     private void fireRequestContinue(DefaultTableModel itemsModel) {
         int artCount = 0
+        Boolean hasLc = false
         dioptra = new Dioptra()
         Boolean hasDioptra = false
         Boolean hasOnlyEnsure = false
@@ -1672,6 +1711,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
           if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
             hasOnlyEnsure = true
+          }
+          if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+            hasLc = true
           }
         }
         if( !hasDioptra ){
@@ -1701,6 +1743,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+          rec = OrderController.findRx(order, customer)
+          Boolean continueSave = true
+          if( hasLc && (rec == null || rec.id == null) ){
+            Branch branch = Session.get(SessionItem.BRANCH) as Branch
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+            editRx.show()
+            try {
+              if( rec != null ){
+                OrderController.saveRxOrder(order?.id, this.rec.id)
+              } else {
+                continueSave = false
+              }
+            } catch ( Exception e ){ println e }
+          }
+          if( continueSave ){
           if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1759,6 +1816,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   ticketRx = false
                   flujoContinuar()
               }
+            }
         } else {
           sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
              .createDialog(new JTextField(), "Error")
@@ -1813,6 +1871,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         dioptra = new Dioptra()
         Boolean hasDioptra = false
         Boolean hasOnlyEnsure = false
+        Boolean hasLc = false
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
@@ -1823,6 +1882,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
           if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
             hasOnlyEnsure = true
+          }
+          if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+            hasLc = true
           }
         }
         if( !hasDioptra ){
@@ -1852,6 +1914,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+          Boolean continueSave = true
+          rec = OrderController.findRx(order, customer)
+          if( hasLc && (rec == null || rec.id == null) ){
+            Branch branch = Session.get(SessionItem.BRANCH) as Branch
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+            editRx.show()
+            try {
+              if( rec != null ){
+                OrderController.saveRxOrder(order?.id, this.rec.id)
+              } else {
+                continueSave = false
+              }
+            } catch ( Exception e ){ println e }
+          }
+          if( continueSave ){
               if (!dioptra.getLente().equals(null)) {
                   Item i = OrderController.findArt(dio.trim())
                   if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1910,6 +1987,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   ticketRx = false
                   flujoOtraOrden()
               }
+            }
         } else {
               sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                       .createDialog(new JTextField(), "Error")
@@ -1930,7 +2008,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
     private void flujoOtraOrden(){
-        if (itemsModel.size() > 0) {
+        //if (itemsModel.size() > 0) {
             if (paymentsModel.size() == 0) {
                 if( !validLenses() ){
                     order.dioptra = null
@@ -1954,11 +2032,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     OrderController.notifyAlert(TXT_REQUEST_NEW_ORDER, TXT_PAYMENTS_PRESENT)
                 }
             }
-        } else {
+        /*} else {
             sb.doLater {
                 OrderController.notifyAlert(TXT_REQUEST_NEW_ORDER, TXT_PAYMENTS_PRESENT)
             }
-        }
+        }*/
     }
 
     private Boolean isPaymentListEmpty() {
@@ -2079,11 +2157,40 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
   private void generatedCoupons( Boolean validClave, Order newOrder){
     if(validClave){
-          Integer var = 1
-          if( Registry.tirdthPairValid() ){
-              var = 2
+      Boolean hasGenericH = false
+      for( OrderItem oi : newOrder.items ){
+        if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+          hasGenericH = true
+        }
+      }
+      if( hasGenericH ){
+        Integer var = 1
+        if( Registry.tirdthPairValid() ){
+          var = 2
+        }
+        for(int i=0;i<var;i++){
+          BigDecimal montoCupon = i == 0 ? OrderController.getCuponAmount(newOrder.id) : OrderController.getCuponAmountThirdPair( newOrder.id )
+          if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
+            String titulo = i == 0 ? "CUPON SEGUNDO PAR LC" : "CUPON TERCER PAR LC"
+            Integer numCupon = i == 0 ? 2 : 3
+            CuponMv cuponMv = new CuponMv()
+            cuponMv.facturaDestino = ""
+            cuponMv.facturaOrigen = order.id
+            cuponMv.fechaAplicacion = null
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
+            cuponMv.fechaVigencia = calendar.getTime()
+            cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
+            OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
           }
-          for(int i=0;i<var;i++){
+        }
+      } else {
+        Integer var = 1
+        if( Registry.tirdthPairValid() ){
+          var = 2
+        }
+        for(int i=0;i<var;i++){
               BigDecimal montoCupon = i == 0 ? OrderController.getCuponAmount(newOrder.id) : OrderController.getCuponAmountThirdPair( newOrder.id )
               if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
                   String titulo = i == 0 ? "CUPON SEGUNDO PAR" : "CUPON TERCER PAR"
@@ -2100,7 +2207,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
                   OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
               }
-          }
+        }
+      }
     }
   }
 
