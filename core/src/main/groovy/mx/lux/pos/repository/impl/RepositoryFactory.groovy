@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component
 class RepositoryFactory {
 
   private static ClienteRepository customerCatalog
+  private static CuponMvRepository coupon
   private static DescuentoRepository discounts
   private static GenericoRepository genres
   private static GrupoArticuloRepository groupPartMaster
@@ -94,7 +95,8 @@ class RepositoryFactory {
           AcusesTipoRepository pAcusesTipoRepository,
           JbServiciosRepository pJbServiciosRepository,
           JbNotasRepository pJbNotasRepository,
-          RemesasRepository remesasRepository
+          RemesasRepository remesasRepository,
+          CuponMvRepository pCuponMvRepository
 
   ) {
     customerCatalog = pClienteRepository
@@ -140,6 +142,7 @@ class RepositoryFactory {
       jbServiciosRepository  = pJbServiciosRepository
       jbNotasRepository  = pJbNotasRepository
       pRemesasRepository = remesasRepository
+      coupon = pCuponMvRepository
   }
 
     static JbNotasRepository getJbNotasRepository() {
@@ -326,4 +329,10 @@ class RepositoryFactory {
     static RemesasRepository getRemittanceRepository() {
         return pRemesasRepository
     }
+
+    static CuponMvRepository getCoupon() {
+      return coupon
+    }
+
+
 }

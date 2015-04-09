@@ -1,6 +1,9 @@
 package mx.lux.pos.service.business
 
+import mx.lux.pos.model.CuponMv
+import mx.lux.pos.model.Descuento
 import mx.lux.pos.model.Modificacion
+import mx.lux.pos.model.QCuponMv
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
 import org.slf4j.Logger
@@ -76,6 +79,30 @@ class EliminarNotaVentaTask {
     }
   }
 
+
+  private void deleteHistoricoDiscounts( ) {
+    DescuentoRepository detCatalog = RepositoryFactory.discounts
+    CuponMvRepository coupon = RepositoryFactory.coupon
+    QCuponMv qCuponMv = QCuponMv.cuponMv
+    try {
+      for ( String idFactura : idFacturas ) {
+        List<Descuento> lstDescuentos = detCatalog.findByIdFactura( idFactura )
+        List<CuponMv> lstCupones = coupon.findAll( qCuponMv.facturaDestino.eq(idFactura) ) as List<CuponMv>
+        for(Descuento descuento : lstDescuentos){
+          detCatalog.delete( descuento.id )
+        }
+        for(CuponMv cuponMv : lstCupones){
+          cuponMv.facturaDestino = ""
+          cuponMv.fechaAplicacion = null
+          coupon.saveAndFlush( cuponMv )
+        }
+      }
+      detCatalog.flush()
+    } catch ( Exception e ) {
+      this.logger.error( "No se pudo borrar ", e )
+    }
+  }
+
   private Boolean validateModificacion( String pIdFactura ) {
     ModificacionRepository catalog = RepositoryFactory.orderModifications
     Collection<Modificacion> modifications = catalog.findByIdFactura( pIdFactura )
@@ -95,6 +122,7 @@ class EliminarNotaVentaTask {
     status = TaskStatus.Running
     if ( idFacturas.size() > 0 ) {
       this.deleteHistoricoPromocion()
+      this.deleteHistoricoDiscounts()
       this.deletePagos()
       this.deleteDetalleNotaVenta()
       this.deleteNotaVenta()

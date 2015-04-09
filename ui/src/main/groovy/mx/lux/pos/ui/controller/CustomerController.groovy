@@ -315,7 +315,7 @@ class CustomerController {
             if (nueva == 0) {
                 pListener.reset()
                 pListener.disableUI()
-                pListener.operationTypeSelected = OperationType.PAYING
+                pListener.operationTypeSelected = OperationType.EDIT_PAYING
                 pListener.setCustomer(customer)
                 pListener.enableUI()
             } else {
