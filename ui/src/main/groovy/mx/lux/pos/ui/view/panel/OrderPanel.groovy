@@ -1860,6 +1860,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
     private void fireRequestCancelOrder( ) {
+      List<Order> lstOrders = CancellationController.findOrderToResetValues(order.id)
+      for (Order order : lstOrders) {
+        CancellationController.resetValuesofCancellation(order.id)
+      }
       OrderController.deleteOrder( StringUtils.trimToEmpty(order.id) )
       this.reset()
     }
