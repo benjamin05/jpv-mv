@@ -199,8 +199,14 @@ class NotaVentaServiceImpl implements NotaVentaService {
         if( //notaVenta?.montoDescuento?.compareTo(BigDecimal.ZERO) > 0 &&
                 ((notaVenta?.ventaNeta?.subtract(total) < new BigDecimal(0.05)) && (notaVenta?.ventaNeta?.subtract(total) > new BigDecimal(-0.05))) ){
           log.debug( "redondeo monto total" )
-          if( detalles.size() > 0 ){
-            DetalleNotaVenta det =  detalles.first()
+          DetalleNotaVenta det = null
+          for(DetalleNotaVenta detalleNotaVenta : detalles){
+            if( !StringUtils.trimToEmpty(detalleNotaVenta.articulo.idGenerico).equalsIgnoreCase("J") ){
+              det = detalleNotaVenta
+            }
+          }
+          if( detalles.size() > 0 && det != null ){
+            //DetalleNotaVenta det =  detalles.first()
             BigDecimal monto = det.precioUnitFinal.add(diferencia)
             if( diferencia.compareTo(BigDecimal.ZERO) > 0 || diferencia.compareTo(BigDecimal.ZERO) < 0 ){
               det.setPrecioUnitFinal( monto )
