@@ -2182,4 +2182,12 @@ class NotaVentaServiceImpl implements NotaVentaService {
   }
 
 
+
+  @Override
+  List<NotaVenta> obtenerNotasPorCancelar(  ){
+    QNotaVenta qNotaVenta = QNotaVenta.notaVenta
+    return notaVentaRepository.findAll( qNotaVenta.factura.isNull().or(qNotaVenta.factura.isEmpty()) ) as List<NotaVenta>
+  }
+
+
 }

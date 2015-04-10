@@ -167,4 +167,6 @@ interface NotaVentaService {
   void agregarLogNotaAnulada( String idFactura, String idEmpleado )
 
   Boolean validaNotaNoAnulada( String idFactura )
+
+  List<NotaVenta> obtenerNotasPorCancelar(  )
 }

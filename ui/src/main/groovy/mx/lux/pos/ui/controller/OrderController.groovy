@@ -3032,4 +3032,18 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static List<OrderToCancell> findOrdersToCancell(){
+    List<OrderToCancell> lstOrders = new ArrayList<>()
+    List<NotaVenta> lstNotas = notaVentaService.obtenerNotasPorCancelar()
+    for( NotaVenta nota : lstNotas ){
+      OrderToCancell orderToCancell = new OrderToCancell()
+      orderToCancell.idOrder = StringUtils.trimToEmpty(nota.id)
+      orderToCancell.client = StringUtils.trimToEmpty(nota.cliente.nombreCompleto)
+      orderToCancell.discount = nota.desc != null ? StringUtils.trimToEmpty(nota.desc.descripcionDescuento) : ""
+      lstOrders.add( orderToCancell )
+    }
+    return lstOrders
+  }
+
+
 }
