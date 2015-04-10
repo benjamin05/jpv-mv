@@ -979,6 +979,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private def doPrint = { ActionEvent ev ->
+      if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         dioptra = new Dioptra()
         Boolean hasDioptra = false
@@ -1119,6 +1120,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               .show()
           }
         }
+      } else {
+          JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
+                  "Venta Anulada", JOptionPane.ERROR_MESSAGE )
+      }
     }
 
     private void controlItem(Item item, Boolean itemDelete) {
@@ -1600,6 +1605,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void fireRequestQuote() {
+      if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         dioptra = OrderController.generaDioptra(OrderController.preDioptra(order?.dioptra))
         String dio = OrderController.codigoDioptra(dioptra)
         Item i = OrderController.findArt(dio.trim())
@@ -1619,6 +1625,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               OrderController.notifyAlert(TXT_REQUEST_QUOTE, TXT_NO_ORDER_PRESENT)
             }
           }
+      } else {
+          JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
+                  "Venta Anulada", JOptionPane.ERROR_MESSAGE )
+      }
     }
 
     private void setCustomerInOrder() {
@@ -1696,6 +1706,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void fireRequestContinue(DefaultTableModel itemsModel) {
+      if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         Boolean hasLc = false
         dioptra = new Dioptra()
@@ -1833,6 +1844,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
           }
       }
+    } else {
+        JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
+              "Venta Anulada", JOptionPane.ERROR_MESSAGE )
+      }
     }
 
     private void flujoContinuar() {
@@ -1865,12 +1880,15 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         CancellationController.resetValuesofCancellation(order.id)
       }
       OrderController.deleteOrder( StringUtils.trimToEmpty(order.id) )
+      User u = Session.get(SessionItem.USER) as User
+      OrderController.addLogOrderCancelled( StringUtils.trimToEmpty(order.id), StringUtils.trimToEmpty(u.username) )
       this.reset()
     }
 
 
 
     private void fireRequestNewOrder(DefaultTableModel itemsModel) {
+      if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         dioptra = new Dioptra()
         Boolean hasDioptra = false
@@ -2007,6 +2025,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               JOptionPane.showMessageDialog( null, MSJ_ERROR_WARRANTY,
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
           }
+      }
+    } else {
+          JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
+                  "Venta Anulada", JOptionPane.ERROR_MESSAGE )
       }
     }
 

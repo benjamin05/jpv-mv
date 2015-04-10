@@ -163,4 +163,8 @@ interface NotaVentaService {
   Boolean cambiaIpCaja( String ip )
 
   void borrarNotaVenta( String idFactura )
+
+  void agregarLogNotaAnulada( String idFactura, String idEmpleado )
+
+  Boolean validaNotaNoAnulada( String idFactura )
 }

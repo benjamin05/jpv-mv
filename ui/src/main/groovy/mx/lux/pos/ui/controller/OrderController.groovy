@@ -3023,5 +3023,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     notaVentaService.borrarNotaVenta( idOrder )
   }
 
+  static void addLogOrderCancelled( String idOrder, String idEmployee ){
+    notaVentaService.agregarLogNotaAnulada( idOrder, idEmployee )
+  }
+
+  static Boolean validOrderNotCancelled( String idOrder ){
+    return notaVentaService.validaNotaNoAnulada( idOrder )
+  }
+
 
 }

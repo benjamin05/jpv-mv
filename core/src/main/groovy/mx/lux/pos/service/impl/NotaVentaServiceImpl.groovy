@@ -54,6 +54,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
   private static final String TAG_GEN_TIPO_NC = 'NC'
   private static final String TAG_CAUSA_CAN_PAGOS = 'CAMBIO DE FORMA DE PAGO'
   private static final String TAG_ARTICULO_COLOR = 'COG'
+  private static final Integer TAG_TIPO_TRANS_ANUL = 4
 
   @Resource
   private NotaVentaRepository notaVentaRepository
@@ -66,6 +67,9 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
   @Resource
   private SucursalRepository sucursalRepository
+
+  @Resource
+  private AutorizaMovRepository autorizaMovRepository
 
   @Resource
   private PromocionRepository promocionRepository
@@ -2147,6 +2151,33 @@ class NotaVentaServiceImpl implements NotaVentaService {
       log.debug( task.toString() )
       task.run()
       log.debug( task.toString() )
+    }
+  }
+
+
+
+  @Override
+  @Transactional
+  void agregarLogNotaAnulada( String idFactura, String idEmpleado ){
+    AutorizaMov autorizaMov = new AutorizaMov()
+    autorizaMov.idEmpleado = idEmpleado
+    autorizaMov.fecha = new Date()
+    autorizaMov.hora = new Date()
+    autorizaMov.tipoTransaccion = TAG_TIPO_TRANS_ANUL
+    autorizaMov.factura = idFactura
+    autorizaMov.notas = ""
+    autorizaMovRepository.saveAndFlush( autorizaMov )
+  }
+
+
+  @Override
+  Boolean validaNotaNoAnulada( String idFactura ){
+    QAutorizaMov qAutorizaMov = QAutorizaMov.autorizaMov
+    AutorizaMov autorizaMov = autorizaMovRepository.findOne( qAutorizaMov.factura.eq(idFactura) )
+    if( autorizaMov != null ){
+      return false
+    } else{
+      return true
     }
   }
 
