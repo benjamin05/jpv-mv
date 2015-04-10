@@ -615,7 +615,7 @@ class MainWindow extends JFrame implements KeyListener {
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
                                 User user = Session.get( SessionItem.USER ) as User
-                                String validUser = StringUtils.trimToEmpty(Registry.usuarioSistemas)
+                                String validUser = StringUtils.trimToEmpty(Registry.idManager)
                                 sessionMenuItem.visible = userLoggedIn
                                 newSalesDayMenuItem.visible = userLoggedIn
                                 entregaMenuItem.visible = userLoggedIn
@@ -684,7 +684,7 @@ class MainWindow extends JFrame implements KeyListener {
                         )
                         supportMenu = menu(
                                 visible: false,
-                                text: 'Inventario Fisico'
+                                text: 'Soporte'
                         ){
                           disactivateSPItem = menuItem( text: 'Activa/Desactiva Surte Pino',
                                     visible: true,

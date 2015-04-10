@@ -14,6 +14,7 @@ import mx.lux.pos.ui.view.driver.PromotionDriver
 import mx.lux.pos.ui.view.renderer.MoneyCellRenderer
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang3.StringUtils
+import org.codehaus.groovy.runtime.InvokerInvocationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -116,6 +117,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private Boolean advanceOnlyInventariable
     private Boolean canceledWarranty
     private String sComments = ''
+    private String ip
     private HelpItemSearchDialog helpItemSearchDialog
 
     private String MSJ_ERROR_WARRANTY = ""
@@ -134,6 +136,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                customerTypes.add(customer)
             }
         }
+        ip = ipCurrentMachine()
         customer = CustomerController.findDefaultCustomer()
         promotionList = new ArrayList<PromotionAvailable>()
         promotionListTmp = new ArrayList<PromotionAvailable>()
@@ -480,54 +483,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     break
                 case OperationType.PAYING:
                     sb.doLater {
-                        Boolean valid = true
-                        /*String command = Registry.commandIp
-                        Process process = new ProcessBuilder(StringUtils.trimToEmpty(command)).start();
-                        String s = null;
-                        String line = ""*/
-                        String ip = ""
-
-                        Enumeration en = NetworkInterface.getNetworkInterfaces();
-                        while(en.hasMoreElements()){
-                            NetworkInterface ni=(NetworkInterface) en.nextElement();
-                            Enumeration ee = ni.getInetAddresses();
-                            while(ee.hasMoreElements()) {
-                              InetAddress ia= (InetAddress) ee.nextElement();
-                              if(StringUtils.trimToEmpty(ia.canonicalHostName).contains(InetAddress.getLocalHost().getHostName())){
-                                ip = ia.getHostAddress()
-                                println("Ip Maquina: "+ip)
-                              }
-                            }
-                        }
-                        /*BufferedReader input = new BufferedReader( new InputStreamReader(process.getInputStream()) );
-                        BufferedReader error = new BufferedReader( new InputStreamReader(process.getErrorStream()) );
-                        println("Here is the standard output of the command:\n");
-                        while ((s = input.readLine()) != null) {
-                          if( s.contains("Direc. inet") ){
-                            line = s
-                            break
-                          }
-                        }
-                        println("Here is the standard error of the command (if any):\n");
-                        while ((s = error.readLine()) != null) {
-                            System.out.println(s);
-                        }
-
-                      if( StringUtils.trimToEmpty(line).length() > 0 && line.contains(":") ){
-                        String[] data = StringUtils.trimToEmpty(line).split(":")
-                        if( data.length > 1 ){
-                          String[] dataTmp = StringUtils.trimToEmpty(data[1]).split(" ")
-                          if( data.length > 0 ){
-                            ip = dataTmp[0]
-                            println "Ip Maquina: "+ip
-                          }
-                        }
-                      }*/
-
+                      Boolean valid = true
                       String term = StringUtils.trimToEmpty(Registry.terminalCaja)
                       println "Ip Valida: "+term
                       if( term.length() > 0 ){
-                        if( !term.contains(ip) ){
+                        if( !term.contains(ip) || ip.length() <= 0 ){
                           valid = false
                         }
                       }
@@ -536,7 +496,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         isPaying = true
                       } else {
                           sb.optionPane(
-                                  message: 'Debe estar en la caja para seleccionar esta opcion',
+                                  message: 'Opcion valida solo en caja',
                                   messageType: JOptionPane.ERROR_MESSAGE
                           ).createDialog(this, 'Maquina Incorrecta')
                                   .show()
@@ -546,7 +506,25 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     break
                 case OperationType.EDIT_PAYING:
                   sb.doLater {
-                    CustomerController.requestEditPayingCustomer(this)
+                    Boolean valid = true
+
+                    String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+                    println "Ip Valida: "+term
+                    if( term.length() > 0 ){
+                      if( !term.contains(ip) || ip.length() <= 0 ){
+                        valid = false
+                      }
+                    }
+                    if( valid ){
+                      CustomerController.requestEditPayingCustomer(this)
+                    } else {
+                      sb.optionPane(
+                                  message: 'Opcion valida solo en caja',
+                                  messageType: JOptionPane.ERROR_MESSAGE
+                      ).createDialog(this, 'Maquina Incorrecta')
+                                  .show()
+                      operationTypeSelected = OperationType.DEFAULT
+                    }
                     //isPaying = true
                   }
                   break
@@ -723,7 +701,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private def doNewPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
           OperationType operationType1 = operationType.selectedItem as OperationType
-           if (ev.clickCount == 1 && (!operationType1.equals(OperationType.PENDING) &&
+          Boolean valid = true
+          String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+          if( term.length() > 0 ){
+            if( operationType1.equals(OperationType.DEFAULT) ){
+              if( !term.contains(ip) || ip.length() <= 0 ){
+                valid = false
+              }
+            }
+          }
+           if (ev.clickCount == 1 && valid && (!operationType1.equals(OperationType.PENDING) &&
                    !operationType1.equals(OperationType.EDIT_PAYING) && !operationType1.equals(OperationType.QUOTE))) {
                 if (order.due) {
                   Boolean hasDiscount = false
@@ -756,7 +743,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private def doShowPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
           OperationType operationType1 = operationType.selectedItem as OperationType
-            if (ev.clickCount == 2 && (!operationType1.equals(OperationType.PENDING) &&
+          Boolean valid = true
+          String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+          if( term.length() > 0 ){
+                if( operationType1.equals(OperationType.DEFAULT) ){
+                    if( !term.contains(ip) || ip.length() <= 0 ){
+                        valid = false
+                    }
+                }
+          }
+            if (ev.clickCount == 2 && valid && (!operationType1.equals(OperationType.PENDING) &&
                     !operationType1.equals(OperationType.EDIT_PAYING) && !operationType1.equals(OperationType.QUOTE))) {
                 new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false).show()
                 updateOrder(order?.id)
@@ -2274,6 +2270,40 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
     }
     return valid
+  }
+
+
+
+  private String ipCurrentMachine( ){
+    String line = ""
+    String ip = ""
+    try{
+          line = System.getenv("SSH_CLIENT");
+    } catch ( Exception e ) { println e }
+
+    if( StringUtils.trimToEmpty(line).length() > 0 ){
+          String[] data = StringUtils.trimToEmpty(line).split(" ")
+          if( data.length > 1 ){
+              ip = data[0]
+              println "Ip Maquina: "+ip
+         }
+    }
+
+    if(StringUtils.trimToEmpty(ip).length() <= 0){
+          Enumeration en = NetworkInterface.getNetworkInterfaces();
+          while(en.hasMoreElements()){
+              NetworkInterface ni=(NetworkInterface) en.nextElement();
+              Enumeration ee = ni.getInetAddresses();
+              while(ee.hasMoreElements()) {
+                  InetAddress ia= (InetAddress) ee.nextElement();
+                  if(StringUtils.trimToEmpty(ia.canonicalHostName).contains(InetAddress.getLocalHost().getHostName())){
+                      ip = ia.getHostAddress()
+                      println("Ip Maquina: "+ip)
+                  }
+              }
+          }
+    }
+    return ip
   }
 
 

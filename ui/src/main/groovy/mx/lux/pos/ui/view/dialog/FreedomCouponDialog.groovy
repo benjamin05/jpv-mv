@@ -91,7 +91,11 @@ class FreedomCouponDialog extends JDialog {
   }
 
   protected static void onTogglePromotion(OrderToCancell orderToCancell) {
-     orderToCancell.selected = true
+    if( orderToCancell.selected ){
+      orderToCancell.selected = false
+    } else {
+      orderToCancell.selected = true
+    }
   }
 
   private def doAuthorize = { ActionEvent ev ->
