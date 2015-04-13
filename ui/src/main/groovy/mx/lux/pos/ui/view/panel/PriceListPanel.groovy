@@ -56,19 +56,26 @@ class PriceListPanel {
               def authDialog = new AuthorizationDialog( source, 'Requiere autorización para cargar Lista de Precios' )
               authDialog.show()
               if ( authDialog.authorized ) {
-                def priceList = PriceListController.loadPriceList( selectedItem, PriceListLoadType.MANUAL )
-                if ( priceList?.loaded ) {
-                  optionPane( message: "Lista de precios: ${priceList.id} cargada el: ${priceList.loaded.format( 'dd/MM/yyyy HH:mm' )}",
-                      optionType: JOptionPane.DEFAULT_OPTION
-                  ).createDialog( panel, "Carga Manual" ).show()
+                PriceList selected = selectedItem as PriceList
+                if( selected.activated.compareTo(new Date()) <= 0 ){
+                  def priceList = PriceListController.loadPriceList( selectedItem, PriceListLoadType.MANUAL )
+                  if ( priceList?.loaded ) {
+                    optionPane( message: "Lista de precios: ${priceList.id} cargada el: ${priceList.loaded.format( 'dd/MM/yyyy HH:mm' )}",
+                         optionType: JOptionPane.DEFAULT_OPTION
+                    ).createDialog( panel, "Carga Manual" ).show()
+                  } else {
+                    optionPane( message: "No se puede cargar Lista de precios: ${priceList.id}",
+                         optionType: JOptionPane.DEFAULT_OPTION
+                    ).createDialog( panel, "Carga Manual" ).show()
+                  }
+                  pending.clear()
+                  pending.addAll( PriceListController.getPendingPriceLists() )
+                  pendingTable.model.fireTableDataChanged()
                 } else {
-                  optionPane( message: "No se puede cargar Lista de precios: ${priceList.id}",
-                      optionType: JOptionPane.DEFAULT_OPTION
-                  ).createDialog( panel, "Carga Manual" ).show()
+                  optionPane( message: "Lista de precios se activa hasta el ${selected.activated.format("dd/MM/yyyy")}",
+                        optionType: JOptionPane.DEFAULT_OPTION
+                  ).createDialog( panel, "Carga Lista de Precios" ).show()
                 }
-                pending.clear()
-                pending.addAll( PriceListController.getPendingPriceLists() )
-                pendingTable.model.fireTableDataChanged()
               }
             }
           }
