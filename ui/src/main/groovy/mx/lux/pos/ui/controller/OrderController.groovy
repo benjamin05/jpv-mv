@@ -3039,7 +3039,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       OrderToCancell orderToCancell = new OrderToCancell()
       orderToCancell.idOrder = StringUtils.trimToEmpty(nota.id)
       orderToCancell.client = StringUtils.trimToEmpty(nota.cliente.nombreCompleto)
-      orderToCancell.discount = nota.desc != null ? StringUtils.trimToEmpty(nota.desc.descripcionDescuento) : ""
+      orderToCancell.discount = nota.desc != null ? StringUtils.trimToEmpty(nota.desc.clave) : ""
       lstOrders.add( orderToCancell )
     }
     return lstOrders
