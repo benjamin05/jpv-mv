@@ -35,7 +35,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TXT_BTN_QUOTE = 'Cotizar'
     private static final String TXT_BTN_PRINT = 'Imprimir'
     private static final String TXT_BTN_NEW_ORDER = 'Otra venta'
-    private static final String TXT_BTN_CANCEL_ORDER = 'Anular venta'
+    private static final String TXT_BTN_CANCEL_ORDER = '<html><p align="center">Anular venta</p></html>'
     private static final String TXT_BTN_CONTINUE = 'Continuar'
     private static final String TXT_NO_ORDER_PRESENT = 'Se debe agregar al menos un artículo.'
     private static final String TXT_PAYMENTS_PRESENT = 'Elimine los pagos registrados y reintente.'
