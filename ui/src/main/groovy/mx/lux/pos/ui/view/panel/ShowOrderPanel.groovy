@@ -7,6 +7,7 @@ import mx.lux.pos.model.IPromotionAvailable
 import mx.lux.pos.model.Jb
 import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.model.Pago
+import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.controller.AccessController
 import mx.lux.pos.ui.controller.CancellationController
@@ -418,14 +419,28 @@ class ShowOrderPanel extends JPanel {
 
 
   private  def doSwitchPP = { ActionEvent ev ->
-      JButton source = ev.source as JButton
-      source.enabled = false
+    Boolean validIp = true
+    String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+    String ip = ipCurrentMachine()
+    if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
+      validIp = false
+    }
+    JButton source = ev.source as JButton
+    source.enabled = false
+    if( validIp ){
       if(ppButton.getText().equals('Pagar')){
           doShowPayment()
       } else{
           doPrint()
       }
-      source.enabled = true
+    } else {
+      sb.optionPane(
+         message: 'Los pagos solo se pueden registrar en caja.',
+         messageType: JOptionPane.ERROR_MESSAGE
+      ).createDialog(this, 'Pago en caja')
+         .show()
+    }
+    source.enabled = true
   }
 
   private doPrint(){
@@ -581,6 +596,39 @@ class ShowOrderPanel extends JPanel {
       order = null
       navigatorPanel.finalize()
       navigatorPanel = null
+    }
+
+
+    private String ipCurrentMachine( ){
+        String line = ""
+        String ip = ""
+        try{
+            line = System.getenv("SSH_CLIENT");
+        } catch ( Exception e ) { println e }
+
+        if( StringUtils.trimToEmpty(line).length() > 0 ){
+            String[] data = StringUtils.trimToEmpty(line).split(" ")
+            if( data.length > 1 ){
+                ip = data[0]
+                println "Ip Maquina: "+ip
+            }
+        }
+
+        if(StringUtils.trimToEmpty(ip).length() <= 0){
+            Enumeration en = NetworkInterface.getNetworkInterfaces();
+            while(en.hasMoreElements()){
+                NetworkInterface ni=(NetworkInterface) en.nextElement();
+                Enumeration ee = ni.getInetAddresses();
+                while(ee.hasMoreElements()) {
+                    InetAddress ia= (InetAddress) ee.nextElement();
+                    if(StringUtils.trimToEmpty(ia.canonicalHostName).contains(InetAddress.getLocalHost().getHostName())){
+                        ip = ia.getHostAddress()
+                        println("Ip Maquina: "+ip)
+                    }
+                }
+            }
+        }
+        return ip
     }
 
 }

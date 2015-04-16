@@ -487,7 +487,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       String term = StringUtils.trimToEmpty(Registry.terminalCaja)
                       println "Ip Valida: "+term
                       if( term.length() > 0 ){
-                        if( !term.contains(ip) || ip.length() <= 0 ){
+                        if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
                           valid = false
                         }
                       }
@@ -511,7 +511,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     String term = StringUtils.trimToEmpty(Registry.terminalCaja)
                     println "Ip Valida: "+term
                     if( term.length() > 0 ){
-                      if( !term.contains(ip) || ip.length() <= 0 ){
+                      if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
                         valid = false
                       }
                     }
@@ -705,7 +705,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           String term = StringUtils.trimToEmpty(Registry.terminalCaja)
           if( term.length() > 0 ){
             if( operationType1.equals(OperationType.DEFAULT) ){
-              if( !term.contains(ip) || ip.length() <= 0 ){
+              if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
                 valid = false
               }
             }
@@ -747,7 +747,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           String term = StringUtils.trimToEmpty(Registry.terminalCaja)
           if( term.length() > 0 ){
                 if( operationType1.equals(OperationType.DEFAULT) ){
-                    if( !term.contains(ip) || ip.length() <= 0 ){
+                    if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
                         valid = false
                     }
                 }
