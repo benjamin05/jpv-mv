@@ -1,17 +1,23 @@
 package mx.lux.pos.service.business
 
+import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.impl.RepositoryFactory
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.math.NumberUtils
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.Resource
+import org.springframework.core.io.support.PropertiesLoaderUtils
 
 import java.text.NumberFormat
 
+@Slf4j
 class Registry {
 
 
   private static final String TAG_TRANSACCION_VENTA = 'VENTA'
   private static final String TAG_TRANSACCION_REMESA = 'REM'
+
   static Parametro find( TipoParametro pParametro ) {
     Parametro p = RepositoryFactory.getRegistry().findOne( pParametro.getValue() )
     if ( p == null ) {
@@ -611,5 +617,34 @@ class Registry {
     return valid
 
   }
+
+    static String getOperatingSystem( ){
+        String name = System.getProperty("os.name")
+        //log.info("Sistema Operativo: ${name}")
+        return name
+    }
+
+    static String getParametroOS(String key){
+
+        String fileProperties;
+
+        if ( getOperatingSystem().equals("Linux") )
+            fileProperties = "linux.properties"
+        else
+        if ( getOperatingSystem().equals("Windows 7") )
+            fileProperties = "windows.properties"
+        else
+        if ( getOperatingSystem().equals("Windows XP") )
+            fileProperties = "windows.properties"
+        else
+            fileProperties = "linux.properties"
+
+        Properties properties = new Properties();
+        Resource resource = new ClassPathResource(fileProperties)
+        properties = PropertiesLoaderUtils.loadProperties(resource)
+
+        return properties.getProperty( key )
+    }
+
 
 }

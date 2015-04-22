@@ -1334,13 +1334,13 @@ class NotaVentaServiceImpl implements NotaVentaService {
   @Override
   @Transactional
   void cargaFoliosPendientesPedidosLc( ){
-      Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
-      Parametro parametro = parametroRepository.findOne( TipoParametro.RUTA_RECIBIDOS.value )
-      log.debug( "Ubicacion Archivo: %s", ubicacion.valor )
-      log.debug( "Ubicacion Destino: %s", parametro.valor )
+      String ubicacion = Registry.getParametroOS("ruta_por_recibir")
+      String parametro = Registry.getParametroOS("ruta_recibidos")
+      log.debug( "Ubicacion Archivo: ${ubicacion}" )
+      log.debug( "Ubicacion Destino: ${parametro}" )
 
-      File source = new File( StringUtils.trimToEmpty(ubicacion.valor) )
-      File destination = new File( StringUtils.trimToEmpty(parametro.valor) )
+      File source = new File( StringUtils.trimToEmpty(ubicacion) )
+      File destination = new File( StringUtils.trimToEmpty(parametro) )
       String idSucursal = StringUtils.trimToEmpty(Registry.currentSite.toString())
       if ( source.exists() && destination.exists() ) {
           source.eachFile() { file ->
@@ -1417,13 +1417,13 @@ class NotaVentaServiceImpl implements NotaVentaService {
     @Override
     @Transactional
     void cargaAcusesPedidosLc( ){
-        Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
-        Parametro parametro = parametroRepository.findOne( TipoParametro.RUTA_RECIBIDOS.value )
-        log.debug( "Ubicacion Archivo: %s", ubicacion.valor )
-        log.debug( "Ubicacion Destino: %s", parametro.valor )
+        String ubicacion = Registry.getParametroOS("ruta_por_recibir")
+        String parametro = Registry.getParametroOS("ruta_recibidos")
+        log.debug( "Ubicacion Archivo: ${ubicacion}" )
+        log.debug( "Ubicacion Destino: ${parametro}" )
 
-        File source = new File( StringUtils.trimToEmpty(ubicacion.valor) )
-        File destination = new File( StringUtils.trimToEmpty(parametro.valor) )
+        File source = new File( StringUtils.trimToEmpty(ubicacion) )
+        File destination = new File( StringUtils.trimToEmpty(parametro) )
         String idSucursal = StringUtils.trimToEmpty(Registry.currentSite.toString())
         if ( source.exists() && destination.exists() ) {
             source.eachFile() { file ->

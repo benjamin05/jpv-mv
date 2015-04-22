@@ -120,15 +120,16 @@ class PromotionServiceImpl implements PromotionService {
   @Override
   String obtenRutaPorRecibir( ) {
     log.debug( "obteniendo ruta por recibir" )
-    def parametro = parametroRepository.findOne( TipoParametro.RUTA_POR_RECIBIR.value )
-    log.debug( "ruta por recibir: ${parametro?.valor}" )
-    return parametro?.valor
+    //def parametro = parametroRepository.findOne( TipoParametro.RUTA_POR_RECIBIR.value )
+    def parametro = Registry.getParametroOS("ruta_por_recibir")
+    log.debug( "ruta por recibir: ${parametro}" )
+    return parametro
   }
 
   @Override
   String obtenRutaRecibidos( ) {
     log.debug( "obteniendo ruta recibidos" )
-    def parametro = parametroRepository.findOne( TipoParametro.RUTA_RECIBIDOS.value )
+    def parametro = Registry.getParametroOS("ruta_recibidos")
     log.debug( "ruta recibidos: ${parametro?.valor}" )
     return parametro?.valor
   }
@@ -138,18 +139,18 @@ class PromotionServiceImpl implements PromotionService {
   void RegistrarPromociones( ) {
     log.debug( "RegistrarPromociones()" )
     try {
-      Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
-      log.debug( "Ubicacion:: %s", ubicacion.valor )
-      Parametro parametro = parametroRepository.findOne( TipoParametro.RUTA_RECIBIDOS.value )
+      String ubicacion = Registry.getParametroOS("ruta_por_recibir")
+      log.debug( "Ubicacion:: ${ubicacion}" )
+      String parametro = Registry.getParametroOS("ruta_recibidos")
       PromotionImportTask promotionImportTask = new PromotionImportTask()
 
-      List<String> lstGrupoPromociones = promotionImportTask.runGroupPromotions( ubicacion.valor, parametro.valor )
+      List<String> lstGrupoPromociones = promotionImportTask.runGroupPromotions( ubicacion, parametro )
       if ( lstGrupoPromociones.size() > 0 ) {
         PromotionCommit.updateGroupPromotions( lstGrupoPromociones )
         log.debug( "Se registraron los grupos de promociones" )
       }
 
-      List<PromotionsAdapter> lstPromociones = promotionImportTask.run( ubicacion.valor, parametro.valor )
+      List<PromotionsAdapter> lstPromociones = promotionImportTask.run( ubicacion, parametro )
       log.debug( "Tamaño lista de Promociones::", lstPromociones.size() )
 
       PromotionCommit.updatePromotions( lstPromociones )
@@ -162,11 +163,13 @@ class PromotionServiceImpl implements PromotionService {
   @Override
   void RegistrarClavesDescuento(){
     StringList nameFile
-    Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
-    log.debug( "Ubicacion:: %s", ubicacion.valor )
-    Parametro parametro = parametroRepository.findOne( TipoParametro.RUTA_RECIBIDOS.value )
-    String ubicacionSource = ubicacion.valor
-    String ubicacionsDestination = parametro.valor
+    String ubicacion = Registry.getParametroOS("ruta_por_recibir")
+    log.debug( "Ubicacion:: ${ubicacion}" )
+    String parametro = Registry.getParametroOS("ruta_recibidos")
+
+      String ubicacionSource = ubicacion
+      String ubicacionsDestination = parametro
+
     File source = new File( ubicacionSource )
     File destination = new File( ubicacionsDestination )
     if ( source.exists() && destination.exists() ) {

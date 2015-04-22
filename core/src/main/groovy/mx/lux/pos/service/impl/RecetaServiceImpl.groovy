@@ -186,8 +186,8 @@ class RecetaServiceImpl implements RecetaService {
     @Override
     private void generaArchivoEnvio( String contenido, String nombre) throws ServiceException {
             try {
-                Parametro ruta = Registry.find(TipoParametro.RUTA_POR_ENVIAR)
-                File archivo = new File( ruta?.valor, nombre.toString() )
+                String ruta = Registry.getParametroOS("ruta_por_enviar")
+                File archivo = new File( ruta, nombre.toString() )
                 BufferedWriter out = new BufferedWriter( new FileWriter( archivo ) )
                 out.write( contenido )
                 out.close()

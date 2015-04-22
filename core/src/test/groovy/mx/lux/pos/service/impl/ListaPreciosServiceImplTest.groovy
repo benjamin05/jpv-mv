@@ -2,6 +2,7 @@ package mx.lux.pos.service.impl
 
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
+import mx.lux.pos.service.business.Registry
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -109,7 +110,7 @@ class ListaPreciosServiceImplTest extends Specification {
 
   def 'regresa valor al obtener ruta por recibir'( ) {
     given:
-    def rId = TipoParametro.RUTA_POR_RECIBIR.value
+    def rId = Registry.getParametroOS("ruta_por_recibir")
     def expected = '/home/paso/por_recibir'
 
     when:
@@ -141,7 +142,7 @@ class ListaPreciosServiceImplTest extends Specification {
 
   def 'regresa valor al obtener ruta lista de precios'( ) {
     given:
-    def rId = TipoParametro.RUTA_LISTA_PRECIOS.value
+    def rId = Registry.getParametroOS("ruta_lista_precios")
     def expected = '/home/paso/lp'
 
     when:
@@ -173,7 +174,7 @@ class ListaPreciosServiceImplTest extends Specification {
 
   def 'regresa valor al obtener ruta recibidos'( ) {
     given:
-    def rId = TipoParametro.RUTA_RECIBIDOS.value
+    def rId = Registry.getParametroOS("ruta_recibidos")
     def expected = '/home/paso/recibidos'
 
     when:

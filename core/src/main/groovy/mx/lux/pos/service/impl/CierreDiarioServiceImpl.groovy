@@ -202,19 +202,20 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
     Sucursal sucursal = sucursalRepository.findOne( Integer.parseInt( parametro.getValor() ) )
     insertarAcuse( fechaCierre, cierreDiario.horaCierre, sucursal )
 
-    Parametro ubicacion = Registry.find( TipoParametro.RUTA_CIERRE )
+    //Parametro ubicacion = Registry.find( TipoParametro.RUTA_CIERRE )
+    String ubicacion = Registry.getParametroOS("ruta_cierre")
     try {
-      generarFicheroZD( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZO( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZP( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZM( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZS( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZV( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZT( fechaCierre, sucursal, ubicacion.valor )
+      generarFicheroZD( fechaCierre, sucursal, ubicacion )
+      generarFicheroZO( fechaCierre, sucursal, ubicacion )
+      generarFicheroZP( fechaCierre, sucursal, ubicacion )
+      generarFicheroZM( fechaCierre, sucursal, ubicacion )
+      generarFicheroZS( fechaCierre, sucursal, ubicacion )
+      generarFicheroZV( fechaCierre, sucursal, ubicacion )
+      generarFicheroZT( fechaCierre, sucursal, ubicacion )
       //generarFicheroCLI( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroCO( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroff( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZZ( fechaCierre, sucursal, ubicacion.valor )
+      generarFicheroCO( fechaCierre, sucursal, ubicacion )
+      generarFicheroff( fechaCierre, sucursal, ubicacion )
+      generarFicheroZZ( fechaCierre, sucursal, ubicacion )
 
       String dateClose = df.format(fechaCierre)
       String today = df.format( new Date() )
@@ -233,17 +234,18 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
   void regenerarArchivosZ( Date fechaCierre ) {
     Parametro parametro = parametroRepository.findOne( TipoParametro.ID_SUCURSAL.value )
     Sucursal sucursal = sucursalRepository.findOne( Integer.parseInt( parametro.getValor() ) )
-    Parametro ubicacion = Registry.find( TipoParametro.RUTA_CIERRE )
+    //Parametro ubicacion = Registry.find( TipoParametro.RUTA_CIERRE )
+    String ubicacion = Registry.getParametroOS("ruta_cierre")
     try {
-      generarFicheroZD( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZO( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZP( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZM( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZS( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZV( fechaCierre, sucursal, ubicacion.valor )
+      generarFicheroZD( fechaCierre, sucursal, ubicacion )
+      generarFicheroZO( fechaCierre, sucursal, ubicacion )
+      generarFicheroZP( fechaCierre, sucursal, ubicacion )
+      generarFicheroZM( fechaCierre, sucursal, ubicacion )
+      generarFicheroZS( fechaCierre, sucursal, ubicacion )
+      generarFicheroZV( fechaCierre, sucursal, ubicacion )
       //generarFicheroCLI( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroff( fechaCierre, sucursal, ubicacion.valor )
-      generarFicheroZZ( fechaCierre, sucursal, ubicacion.valor )
+      generarFicheroff( fechaCierre, sucursal, ubicacion )
+      generarFicheroZZ( fechaCierre, sucursal, ubicacion )
       InventorySearch.generateInFile( fechaCierre, fechaCierre )
       archivarCierre( fechaCierre )
     } catch ( Exception e ) {
@@ -893,7 +895,8 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
 
   private void generarFicheroInv( Date fechaCierre ){
     log.debug( "generarArchivoInventario( )" )
-    Parametro ubicacion = Registry.find( TipoParametro.RUTA_CIERRE )
+    //Parametro ubicacion = Registry.find( TipoParametro.RUTA_CIERRE )
+    String ubicacion = Registry.getParametroOS("ruta_cierre")
     Parametro sucursal = Registry.find( TipoParametro.ID_SUCURSAL )
     String nombreFichero = "${ String.format("%02d", NumberFormat.getInstance().parse(sucursal.valor)) }.${ CustomDateUtils.format( new Date(), 'dd-MM-yyyy' ) }.${ CustomDateUtils.format( new Date(), 'HHmm' ) }.inv"
     log.info( "Generando archivo ${ nombreFichero }" )
@@ -904,7 +907,7 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
     ]
     Boolean generado = true
     try{
-      String fichero = "${ ubicacion.valor }/${ nombreFichero }"
+      String fichero = "${ ubicacion }/${ nombreFichero }"
       log.debug( "Generando Fichero: ${ fichero }" )
       log.debug( "Plantilla: fichero-inv.vm" )
       File file = new File( fichero )
@@ -1530,14 +1533,16 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
     String strDateTmp = CustomDateUtils.format( DateUtils.truncate( pForDate, Calendar.DATE), DATE_FORMAT)
     log.debug (String.format( 'CierreDiarioService.archivarCierre( %s )', strDate) )
     ArchiveTask task = new ArchiveTask(  )
-    task.baseDir = Registry.dailyClosePath
+    //task.baseDir = Registry.dailyClosePath
+    task.baseDir = Registry.getParametroOS("ruta_cierre")
     task.archiveFile = String.format( FMT_ARCHIVE_FILENAME, Registry.currentSite, strDate )
     task.filePattern = String.format( FMT_FILE_PATTERN, strDateTmp )
     task.run()
     sleep 20000
     if ( pDeleteAfter ) {
       long nFiles = 0
-      new File( Registry.dailyClosePath ).eachFile( ) { File f ->
+      //new File( Registry.dailyClosePath ).eachFile( ) { File f ->
+      new File( Registry.getParametroOS("ruta_cierre") ).eachFile( ) { File f ->
         if ( f.getName().contains( strDateTmp ) || f.getName().contains('.inv')) {
           f.delete()
           nFiles ++

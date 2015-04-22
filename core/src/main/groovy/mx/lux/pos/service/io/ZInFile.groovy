@@ -78,7 +78,8 @@ class ZInFile {
 
   void write( ) {
     if ( this.trInvList.size() > 0 ) {
-      File file = new File( Registry.getDailyClosePath() + File.separator + filename )
+      File file = new File( Registry.getParametroOS("ruta_cierre") + File.separator + filename )
+      //File file = new File( Registry.getDailyClosePath() + File.separator + filename )
       if ( file.exists() ) {
         file.delete()
       }

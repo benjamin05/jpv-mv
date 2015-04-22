@@ -95,7 +95,7 @@ class IOServiceImpl implements IOService {
     logger.debug( String.format( MSG_PART_CLASS_FILE_LOADED, classReader.linesRead, classReader.partUpdatedCount ) )
 
     File source = new File( classReader.filename )
-    File destination = new File( Registry.find( TipoParametro.RUTA_RECIBIDOS ).valor )
+    File destination = new File( Registry.getParametroOS("ruta_recibidos") )
     if ( destination.exists() ) {
         def newFile = new File( destination, source.name )
         source.renameTo( newFile )

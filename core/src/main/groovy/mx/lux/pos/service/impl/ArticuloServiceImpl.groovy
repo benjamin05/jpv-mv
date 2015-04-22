@@ -313,7 +313,8 @@ class ArticuloServiceImpl implements ArticuloService {
   Boolean generarArchivoInventario( ){
     log.debug( "generarArchivoInventario( )" )
 
-    Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_ENVIAR )
+    //Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_ENVIAR )
+      String ubicacion = Registry.getParametroOS("ruta_por_enviar")
     Parametro sucursal = Registry.find( TipoParametro.ID_SUCURSAL )
     String nombreFichero = "${ String.format("%02d", NumberFormat.getInstance().parse(sucursal.valor)) }.${ CustomDateUtils.format( new Date(), 'dd-MM-yyyy' ) }.${ CustomDateUtils.format( new Date(), 'HHmm' ) }.inv"
     log.info( "Generando archivo ${ nombreFichero }" )
@@ -324,7 +325,7 @@ class ArticuloServiceImpl implements ArticuloService {
     ]
     Boolean generado = true
     try{
-      String fichero = "${ ubicacion.valor }/${ nombreFichero }"
+      String fichero = "${ ubicacion }/${ nombreFichero }"
       log.debug( "Generando Fichero: ${ fichero }" )
       log.debug( "Plantilla: fichero-inv.vm" )
       File file = new File( fichero )

@@ -663,9 +663,9 @@ class ComprobanteServiceImpl implements ComprobanteService {
     if ( StringUtils.isNotBlank( idFiscal ) ) {
       Comprobante comprobante = obtenerComprobante( idFiscal )
       if ( comprobante?.id ) {
-        Parametro parametroRuta = parametroRepository.findOne( TipoParametro.RUTA_COMPROBANTES.value )
+        String parametroRuta = Registry.getParametroOS("ruta_comprobantes")
         try {
-          File dirFacturas = new File( parametroRuta?.valor )
+          File dirFacturas = new File( parametroRuta )
           dirFacturas.exists() ?: dirFacturas.mkdir()
           File dirReceptor = new File( dirFacturas, comprobante.rfc )
           dirReceptor.exists() ?: dirReceptor.mkdir()

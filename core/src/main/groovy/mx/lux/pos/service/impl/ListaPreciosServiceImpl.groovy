@@ -42,26 +42,27 @@ class ListaPreciosServiceImpl implements ListaPreciosService {
 
   @Override
   String obtenRutaPorRecibir( ) {
-    log.debug( "obteniendo ruta por recibir" )
-    def parametro = parametroRepository.findOne( TipoParametro.RUTA_POR_RECIBIR.value )
-    log.debug( "ruta por recibir: ${parametro?.valor}" )
-    return parametro?.valor
+      log.debug( "obteniendo ruta por recibir" )
+      def parametro = Registry.getParametroOS("ruta_por_recibir")
+      log.debug( "ruta por recibir: ${parametro}" )
+
+      return parametro
   }
 
   @Override
   String obtenRutaListaPrecios( ) {
     log.debug( "obteniendo ruta lista de precios" )
-    def parametro = parametroRepository.findOne( TipoParametro.RUTA_LISTA_PRECIOS.value )
-    log.debug( "ruta lista de precios: ${parametro?.valor}" )
-    return parametro?.valor
+    def parametro = Registry.getParametroOS("ruta_lista_precios")
+    log.debug( "ruta lista de precios: ${parametro}" )
+    return parametro
   }
 
   @Override
   String obtenRutaRecibidos( ) {
     log.debug( "obteniendo ruta recibidos" )
-    def parametro = parametroRepository.findOne( TipoParametro.RUTA_RECIBIDOS.value )
-    log.debug( "ruta recibidos: ${parametro?.valor}" )
-    return parametro?.valor
+    def parametro = Registry.getParametroOS("ruta_recibidos")
+    log.debug( "ruta recibidos: ${parametro}" )
+    return parametro
   }
 
   @Override

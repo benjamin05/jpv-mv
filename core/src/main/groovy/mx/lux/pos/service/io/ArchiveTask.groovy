@@ -24,7 +24,8 @@ class ArchiveTask {
     if ( filename == null ) {
       filename = String.format( FILE_ARCHIVE_DEFAULT, CustomDateUtils.format( new Date(), FMT_DATE_TIME ) )
     }
-    return Registry.archivePath + File.separator + filename + EXT_ZIP
+    //return Registry.archivePath + File.separator + filename + EXT_ZIP
+    return Registry.getParametroOS("ruta_por_enviar") + File.separator + filename + EXT_ZIP
   }
 
 
@@ -33,7 +34,8 @@ class ArchiveTask {
       if ( filename == null ) {
         filename = String.format( FILE_ARCHIVE_DEFAULT, CustomDateUtils.format( new Date(), FMT_DATE_TIME ) )
       }
-      return Registry.archivePathDropbox + File.separator + filename + EXT_ZIP
+      //return Registry.archivePathDropbox + File.separator + filename + EXT_ZIP
+      return Registry.getParametroOS("ruta_por_enviar_dropbox") + File.separator + filename + EXT_ZIP
   }
 
 
@@ -42,18 +44,23 @@ class ArchiveTask {
     if ( filename == null ) {
       filename = String.format( FILE_ARCHIVE_DEFAULT, CustomDateUtils.format( new Date(), FMT_DATE_TIME ) )
     }
-    return Registry.archivePathMessenger + File.separator + filename + EXT_ZIP
+
+      return Registry.getParametroOS("ruta_por_enviar_mensajero") + File.separator + filename + EXT_ZIP
+    //return Registry.archivePathMessenger + File.separator + filename + EXT_ZIP
   }
   // Public methods
   void run( ) {
+      System.out.println("ArchiveTask.run()")
     if ( ( this.filePattern != null ) && ( this.baseDir != null ) ) {
-      String sSistemaOperativo = System.getProperty("os.name");
-      logger.debug(sSistemaOperativo);
+        System.out.println("ArchiveTask.run().if()")
+      //String sSistemaOperativo = System.getProperty("os.name");
+      //logger.debug(sSistemaOperativo);
       StringBuffer sb = new StringBuffer()
       StringBuffer sbDrop = new StringBuffer()
       StringBuffer sbMsgr = new StringBuffer()
-      sb.append( String.format( "%s ", Registry.archiveCommand ) );
-      if( sSistemaOperativo.trim().startsWith( SO_WINDOWS ) ){
+      //sb.append( String.format( "%s ", Registry.archiveCommand ) );
+      sb.append( String.format( "%s ", Registry.getParametroOS("comando_zip") ) );
+      if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
         sb.append( String.format( '"%s" ', this.getArchiveFile() ) );
         sb.append( String.format( '"%s" ', this.baseDir + File.separator + this.filePattern ) )
         sb.append( String.format( '"%s" ', this.baseDir+File.separator+"*.inv" ) )
@@ -107,41 +114,74 @@ class ArchiveTask {
         f.delete()
       }
 
+        String filename;
+        if ( Registry.getOperatingSystem().startsWith("Linux") ) {
+            filename = "empaqueta.sh"
+        }else{
+            filename = "empaqueta.bat"
+        }
+
       try {
-        File file = new File( 'empaqueta.sh' )
-        if ( file.exists() ) {
-            file.delete()
-        }
-        PrintStream strOut = new PrintStream( file )
-        StringBuffer sb1 = new StringBuffer()
-        sb1.append('CIERRE_HOME='+Registry.dailyClosePath)
-        sb1.append( "\n" )
-        sb1.append('cd $CIERRE_HOME')
-        sb1.append( "\n" )
-        sb1.append('tar -cvf '+this.getArchiveFile()+' '+this.filePattern+' '+"*.inv")
-        sb1.append( "\n" )
-        sb1.append('tar -cvf '+this.getArchiveFileMessenger()+' '+this.filePattern+' '+"*.inv")
-        sb1.append( "\n" )
-        sb1.append('tar -cvf '+this.getArchiveFileDropbox()+' '+this.filePattern+' '+"*.inv")
-        strOut.println sb1.toString()
-        strOut.close()
+          /*
+          File file = new File(filename)
+          if (file.exists()) {
+              file.delete()
+          }
+          PrintStream strOut = new PrintStream(file)
+          StringBuffer sb1 = new StringBuffer()
+          //sb1.append('CIERRE_HOME='+Registry.dailyClosePath)
+          //if (Registry.getOperatingSystem().startsWith("Linux")) {
+          sb1.append('CIERRE_HOME=' + Registry.getParametroOS("ruta_cierre"))
+          sb1.append("\n")
+          sb1.append('cd $CIERRE_HOME')
+          sb1.append("\n")
+          sb1.append(Registry.getParametroOS("comando_zip") + " " + this.getArchiveFile() + ' ' + this.filePattern + ' ' + "*.inv")
+          //sb1.append('tar -cvf ' + this.getArchiveFile() + ' ' + this.filePattern + ' ' + "*.inv")
+          sb1.append("\n")
+          sb1.append(Registry.getParametroOS("comando_zip") + " " + this.getArchiveFileMessenger() + ' ' + this.filePattern + ' ' + "*.inv")
+          sb1.append("\n")
+          sb1.append(Registry.getParametroOS("comando_zip") + " " + this.getArchiveFileDropbox() + ' ' + this.filePattern + ' ' + "*.inv")
+          strOut.println sb1.toString()
+          strOut.close()
 
-        String s = null
-        file.setExecutable( true )
-        file.setReadable( true )
-        file.setWritable( true )
-        Process p1 = Runtime.getRuntime().exec("chmod 777 empaqueta.sh");
-        Process p = Runtime.getRuntime().exec("./empaqueta.sh");
+          String s = null
+          file.setExecutable(true)
+          file.setReadable(true)
+          file.setWritable(true)
+          if (Registry.getOperatingSystem().startsWith("Linux")) {
+              Process p1 = Runtime.getRuntime().exec("chmod 777 empaqueta.sh");
+              Process p = Runtime.getRuntime().exec("./empaqueta.sh");
+          }else{
+              //Pendiente Windows
+              //Process p1 = Runtime.getRuntime().exec("chmod 777 empaqueta.sh");
+              //Process p = Runtime.getRuntime().exec("./empaqueta.bat");
+          }
 
-        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+              BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+              BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
-        while ((s = stdInput.readLine()) != null) {
-            println(s+"\n");
-        }
-        while ((s = stdError.readLine()) != null) {
-            println(s+"\n");
-        }
+              while ((s = stdInput.readLine()) != null) {
+                  println(s + "\n");
+              }
+              while ((s = stdError.readLine()) != null) {
+                  println(s + "\n");
+              }
+          //} else{
+
+         // }*/
+
+          // Genera archivos Paso
+          //sb1.append(Registry.getParametroOS("comando_zip") + " " + this.getArchiveFile() + ' ' + this.filePattern + ' ' + "*.inv")
+          String command = Registry.getParametroOS("comando_tar") + " " + this.getArchiveFile() + ' '
+          + Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' + "*.inv";
+          logger.debug(command)
+          Process p1 = Runtime.getRuntime().exec(command);
+
+          // Genera archivos Mensajero
+          command = Registry.getParametroOS("comando_tar") + " " + this.getArchiveFileMessenger() + ' '
+          + Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' +"*.inv";
+          logger.debug(command)
+          Process p2 = Runtime.getRuntime().exec(command);
 
       } catch ( Exception e ) {
         logger.error( e.getMessage(), e )

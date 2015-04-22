@@ -16,8 +16,12 @@ class ResourceManager {
   static Logger log = LoggerFactory.getLogger( ResourceManager.class )
 
   static File getLocation( TipoParametro pParametroRuta ) {
-    Parametro p = Registry.find( pParametroRuta )
-    File f = new File( p.valor )
+//    Parametro p = Registry.find( pParametroRuta )
+      String p = Registry.getParametroOS( pParametroRuta.toString().toLowerCase() )
+
+      log.info("Location: ${p}")
+
+    File f = new File( p )
     if ( !f.exists() ) {
       try {
         f.mkdir()

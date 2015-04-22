@@ -206,8 +206,9 @@ class TicketServiceImpl implements TicketService {
 
       if ( ticket?.exists() ) {
       try {
-        def parametro = parametroRepository.findOne( TipoParametro.IMPRESORA_TICKET.value )
-        def cmd = "${parametro?.valor} " + "${ticket.path}"
+        //def parametro = parametroRepository.findOne( TipoParametro.IMPRESORA_TICKET.value )
+          def parametro = Registry.getParametroOS("impresora_ticket")
+        def cmd = "${parametro} " + "${ticket.path}"
         log.info( "ejecuta: ${cmd}" )
 
 

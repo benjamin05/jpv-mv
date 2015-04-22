@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -216,8 +218,12 @@ public class ReportBusiness {
             report.setWritable( true );
 
             String tmpPath = System.getProperty( "java.io.tmpdir" );
-            String cmd = "chmod 777 -R "+tmpPath;
-            Process p = Runtime.getRuntime().exec(cmd);
+
+            if ( Registry.getOperatingSystem().startsWith("Linux")) {
+                String cmd = "chmod 777 -R " + tmpPath;
+                Process p = Runtime.getRuntime().exec(cmd);
+            }
+
             JasperReport jasperReport = JasperCompileManager.compileReport( template.getInputStream() );
             JasperPrint jasperPrint = JasperFillManager.fillReport( jasperReport, parametros, new JREmptyDataSource() );
             jasperPrint.setProperty("net.sf.jasperreports.expo rt.character.encoding","ISO-8859-1");
@@ -225,16 +231,18 @@ public class ReportBusiness {
             //JasperExportManager.exportReportToPdfFile( jasperPrint, report.getPath() );
 
             try{
-            JRTextExporter exporter = new JRTextExporter();
-            exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-            exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, report.getAbsolutePath() );
-            exporter.setParameter(JRTextExporterParameter.CHARACTER_WIDTH, new Float(4));
-            exporter.setParameter(JRTextExporterParameter.CHARACTER_HEIGHT, new Float(9));
-            exporter.setParameter(JRTextExporterParameter.PAGE_WIDTH, new Float(300));
-            exporter.setParameter(JRTextExporterParameter.PAGE_HEIGHT, new Float(500));
-            exporter.setParameter(JRTextExporterParameter.BETWEEN_PAGES_TEXT, "");
-            exporter.exportReport();
-            Runtime.getRuntime().exec("firefox "+report.getAbsolutePath());
+                JRTextExporter exporter = new JRTextExporter();
+                exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
+                exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, report.getAbsolutePath());
+                exporter.setParameter(JRTextExporterParameter.CHARACTER_WIDTH, new Float(4));
+                exporter.setParameter(JRTextExporterParameter.CHARACTER_HEIGHT, new Float(9));
+                exporter.setParameter(JRTextExporterParameter.PAGE_WIDTH, new Float(300));
+                exporter.setParameter(JRTextExporterParameter.PAGE_HEIGHT, new Float(500));
+                exporter.setParameter(JRTextExporterParameter.BETWEEN_PAGES_TEXT, "");
+                exporter.exportReport();
+
+                Runtime.getRuntime().exec(Registry.getParametroOS("web_browser") + " " + report.getAbsolutePath());
+
             } catch (JRException jRException) {
                 System.err.println(jRException);
             }

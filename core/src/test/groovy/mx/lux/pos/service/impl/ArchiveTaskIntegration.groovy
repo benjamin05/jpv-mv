@@ -19,7 +19,8 @@ class ArchiveTaskIntegration extends Specification {
     String strDate = CustomDateUtils.format( DateUtils.truncate( pForDate, Calendar.DATE), DATE_FORMAT)
     println (String.format( 'CierreDiarioService.archivarCierre( %s )', strDate) )
     ArchiveTask task = new ArchiveTask(  )
-    task.baseDir = Registry.dailyClosePath
+    //task.baseDir = Registry.dailyClosePath
+    task.baseDir = Registry.getParametroOS("ruta_cierre")
     task.archiveFile = String.format( FMT_ARCHIVE_FILENAME, Registry.currentSite, strDate )
     task.filePattern = String.format( FMT_FILE_PATTERN, strDate )
     task.run()
