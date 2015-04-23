@@ -3014,4 +3014,36 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static Boolean changeIpBox( String ip ){
+    return notaVentaService.cambiaIpCaja( ip )
+  }
+
+
+  static void deleteOrder( String idOrder ){
+    notaVentaService.borrarNotaVenta( idOrder )
+  }
+
+  static void addLogOrderCancelled( String idOrder, String idEmployee ){
+    notaVentaService.agregarLogNotaAnulada( idOrder, idEmployee )
+  }
+
+  static Boolean validOrderNotCancelled( String idOrder ){
+    return notaVentaService.validaNotaNoAnulada( idOrder )
+  }
+
+
+  static List<OrderToCancell> findOrdersToCancell(){
+    List<OrderToCancell> lstOrders = new ArrayList<>()
+    List<NotaVenta> lstNotas = notaVentaService.obtenerNotasPorCancelar()
+    for( NotaVenta nota : lstNotas ){
+      OrderToCancell orderToCancell = new OrderToCancell()
+      orderToCancell.idOrder = StringUtils.trimToEmpty(nota.id)
+      orderToCancell.client = StringUtils.trimToEmpty(nota.cliente.nombreCompleto)
+      orderToCancell.discount = nota.desc != null ? StringUtils.trimToEmpty(nota.desc.clave) : ""
+      lstOrders.add( orderToCancell )
+    }
+    return lstOrders
+  }
+
+
 }

@@ -303,7 +303,7 @@ class DiscountCouponDialog extends JDialog {
   void onButtonOk() {
     CuponMv cuponMv = OrderController.obtenerCuponMvByClave(StringUtils.trimToEmpty(txtCorporateKey.text))
     if( cuponMv != null ){
-      OrderController.updateCuponMvByClave(idOrder, cuponMv.claveDescuento)
+      //OrderController.updateCuponMvByClave(idOrder, cuponMv.claveDescuento)
     }
     discountSelected = true
     setDiscountAmt( txtDiscountAmount.getValue( ) )

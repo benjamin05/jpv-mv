@@ -12,6 +12,7 @@ enum TipoParametro {
   ARCHIVO_CLASIFICACION_ARTICULOS( 'archivo_clasificacion_articulos', 'articulos.*.csv' ),
   BANCO_DEPOSITO( 'banco_deposito', '' ),
   CLIENTES_ACTIVOS( 'clientes_activos', 'Público General,Cliente Nuevo,Cliente en Proceso,Cliente en Caja,Cotización' ),
+  COMANDO_IP('comando_ip','ifconfig'),
   CUPON_TERCER_PAR( 'cupon_tercer_par', 'si' ),
   FECHA_VALIDA_SEGURO( 'fecha_valida_seguro', '02/02/2015' ),
   PAGOS_NO_TRANSFERENCIA( 'pagos_no_transf', 'C2,C3,C4,BD' ),
@@ -116,8 +117,10 @@ enum TipoParametro {
   URL_SALIDA_ALMACEN('url_salida_almacen',''),
   URL_ENTRADA_ALMACEN('url_entrada_sucursal',''),
   URL_CONFIRMA_ENTRADA('url_confirma_entrada',''),
+  USUARIO_SISTEMAS('usuario_sistemas','9999'),
   TRANS_INV_TIPO_SALIDA_ALMACEN( 'trans_inv_salida_almacen', 'SALIDA_ALMACEN' ),
   TRANS_INV_TIPO_ENTRADA_ALMACEN( 'trans_inv_entrada_almacen', 'ENTRADA_ALMACEN' ),
+  TERMINAL_CAJA('terminal_caja',''),
   INV_EXPORT_SALIDA_ALMACEN_TR( 'inventario_exportar_tr_salida_almacen', 'si' ),
   INV_EXPORT_ENTRADA_ALMACEN_TR( 'inventario_exportar_tr_entrada_almacen', 'no' ),
 

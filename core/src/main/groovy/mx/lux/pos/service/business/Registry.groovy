@@ -220,6 +220,10 @@ class Registry {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
   }
 
+  static String getCommandIp( ) {
+    return asString( TipoParametro.COMANDO_IP )
+  }
+
   static String getValidEnsureDate( ) {
     return asString( TipoParametro.FECHA_VALIDA_SEGURO )
   }
@@ -474,6 +478,14 @@ class Registry {
     static String getAlmacenes() {
         return  asString(TipoParametro.ALMACENES)
     }
+
+  static String getUsuarioSistemas() {
+    return  asString(TipoParametro.USUARIO_SISTEMAS)
+  }
+
+  static String getTerminalCaja() {
+    return  asString(TipoParametro.TERMINAL_CAJA)
+  }
 
     static Integer getAlmacenPorAclarar() {
         return  asInteger(TipoParametro.ALMACEN_POR_ACLARAR)
