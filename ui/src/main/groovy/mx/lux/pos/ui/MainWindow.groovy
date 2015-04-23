@@ -7,9 +7,12 @@ import mx.lux.pos.ui.controller.*
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.view.action.ExitAction
 import mx.lux.pos.ui.view.dialog.AuthorizationDialog
+import mx.lux.pos.ui.view.dialog.AuthorizationIpDialog
+import mx.lux.pos.ui.view.dialog.ChangeIpBoxDialog
 import mx.lux.pos.ui.view.dialog.ChangePasswordDialog
 import mx.lux.pos.ui.view.dialog.CustomerSearchDialog
 import mx.lux.pos.ui.view.dialog.EntregaTrabajoDialog
+import mx.lux.pos.ui.view.dialog.FreedomCouponDialog
 import mx.lux.pos.ui.view.dialog.ImportEmployeeDialog
 import mx.lux.pos.ui.view.dialog.ReprintEnsureDialog
 import mx.lux.pos.ui.view.panel.*
@@ -61,6 +64,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenu inventoryMenu
     private JMenu reportsMenu
     private JMenu controlTrabajosMenu
+    private JMenu supportMenu
     private JMenuItem orderMenuItem
     private JMenuItem orderSearchMenuItem
     private JMenuItem dailyCloseMenuItem
@@ -95,6 +99,8 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem generateInventoryFile
     private JMenuItem newSalesDayMenuItem
     private JMenuItem reprintEnsureMenuItem
+    private JMenuItem ipBoxMenuItem
+    private JMenuItem freedomCouponMenuItem
     private JMenuItem cotizacionMenuItem
     private JMenuItem kardexMenuItem
     private JMenuItem salesTodayMenuItem
@@ -608,6 +614,8 @@ class MainWindow extends JFrame implements KeyListener {
                     toolsMenu = menu( text: 'Herramientas', mnemonic: 'H',
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
+                                User user = Session.get( SessionItem.USER ) as User
+                                String validUser = StringUtils.trimToEmpty(Registry.idManager)
                                 sessionMenuItem.visible = userLoggedIn
                                 newSalesDayMenuItem.visible = userLoggedIn
                                 entregaMenuItem.visible = userLoggedIn
@@ -615,6 +623,9 @@ class MainWindow extends JFrame implements KeyListener {
                                 disactivateSPItem.visible = userLoggedIn
                                 importEmployeeMenuItem.visible = userLoggedIn
                                 reprintEnsureMenuItem.visible = userLoggedIn
+                                ipBoxMenuItem.visible = userLoggedIn
+                                freedomCouponMenuItem.visible = userLoggedIn
+                                supportMenu.visible = StringUtils.trimToEmpty(user.username).equalsIgnoreCase(validUser)
                             }
                     ) {
                         entregaMenuItem = menuItem(text: 'Entrega',
@@ -637,16 +648,16 @@ class MainWindow extends JFrame implements KeyListener {
                         importEmployeeMenuItem = menuItem( text: 'Importa Empleado',
                                 visible: true,
                                 actionPerformed: {
-                                    Runtime garbage = Runtime.getRuntime();
-                                    garbage.gc();
-                                    AuthorizationDialog authDialog = new AuthorizationDialog(this, "Esta operacion requiere autorizaci\u00f3n")
-                                    authDialog.show()
-                                    if (authDialog.authorized) {
-                                      ImportEmployeeDialog dialog = new ImportEmployeeDialog()
-                                      dialog.show()
-                                    } else {
-                                        OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
-                                    }
+                                  Runtime garbage = Runtime.getRuntime();
+                                  garbage.gc();
+                                  AuthorizationDialog authDialog = new AuthorizationDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+                                  authDialog.show()
+                                  if (authDialog.authorized) {
+                                    ImportEmployeeDialog dialog = new ImportEmployeeDialog()
+                                    dialog.show()
+                                  } else {
+                                    OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
+                                  }
                                 }
                         )
                         reprintEnsureMenuItem = menuItem( text: 'Reimprimir Seguro',
@@ -671,14 +682,49 @@ class MainWindow extends JFrame implements KeyListener {
                                     requestNewSalesDay()
                                 }
                         )
-                        disactivateSPItem = menuItem( text: 'Activa/Desactiva Surte Pino',
-                                visible: true,
-                                actionPerformed: {
+                        supportMenu = menu(
+                                visible: false,
+                                text: 'Soporte'
+                        ){
+                          disactivateSPItem = menuItem( text: 'Activa/Desactiva Surte Pino',
+                                    visible: true,
+                                    actionPerformed: {
+                                        Runtime garbage = Runtime.getRuntime();
+                                        garbage.gc();
+                                        disactivateSP()
+                                    }
+                          )
+                          ipBoxMenuItem = menuItem( text: 'Configurar Caja',
+                                    visible: true,
+                                    actionPerformed: {
+                                        Runtime garbage = Runtime.getRuntime();
+                                        garbage.gc();
+                                        /*AuthorizationIpDialog authDialog = new AuthorizationIpDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+                                        authDialog.show()
+                                        if (authDialog.authorized) {*/
+                                            ChangeIpBoxDialog dialog = new ChangeIpBoxDialog()
+                                            dialog.show()
+                                        /*} else {
+                                            OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
+                                        }*/
+                                    }
+                          )
+                          freedomCouponMenuItem = menuItem( text: 'Liberar Facturas',
+                                  visible: true,
+                                  actionPerformed: {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
-                                    disactivateSP()
-                                }
-                        )
+                                    /*AuthorizationIpDialog authDialog = new AuthorizationIpDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+                                    authDialog.show()
+                                    if (authDialog.authorized) {*/
+                                      FreedomCouponDialog dialog = new FreedomCouponDialog( this )
+                                      dialog.show()
+                                    /*} else {
+                                      OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
+                                    }*/
+                                  }
+                          )
+                        }
                         sessionMenuItem = menuItem( text: 'Cerrar Sesi\u00f3n',
                                 visible: false,
                                 actionPerformed: {

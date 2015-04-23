@@ -47,6 +47,7 @@ class OrderController {
     private static final String DATE_FORMAT = 'dd-MM-yyyy'
     private static final String TAG_REUSO = 'R'
     private static final String TAG_MSJ_CUPON = 'DESCUENTO CUPON'
+    private static final String TAG_MSJ_CUPON_LC = 'DESCUENTO CUPON LC'
     private static final String TAG_TIPO_DESCUENTO = 'M'
     private static final String TAG_GENERICO_SEG = 'J'
     private static final String TAG_ID_GARANTIA = "GR"
@@ -571,6 +572,10 @@ class OrderController {
                 notaVenta = notaVentaService.cerrarNotaVenta(notaVenta)
                 if (inventarioService.solicitarTransaccionVenta(notaVenta)) {
                     log.debug("transaccion de inventario correcta")
+                    if( inventarioService.solicitarTransaccionEntradaSP(notaVenta) ){
+                      log.debug("transaccion entrada SP correcta")
+                      inventarioService.insertarRegistroRemesa( notaVenta )
+                    }
                 } else {
                     log.warn("no se pudo procesar la transaccion de inventario")
                 }
@@ -1055,7 +1060,7 @@ class OrderController {
                       savePromisedDate(notaVenta?.id, diaPrometido)
                     }
                 }
-                if (StringUtils.trimToEmpty(detalle?.surte).equals('P')) {
+                if (StringUtils.trimToEmpty(detalle?.surte).equals('P') && !detalle?.articulo?.generico?.inventariable) {
                     surte = true
                 }
             }
@@ -2383,7 +2388,7 @@ class OrderController {
           descuentoClave = new DescuentoClave()
           descuentoClave.clave_descuento = cuponMv1.claveDescuento
           descuentoClave.porcenaje_descuento = cuponMv1.montoCupon.doubleValue()
-          descuentoClave.descripcion_descuento = TAG_MSJ_CUPON
+          descuentoClave.descripcion_descuento = StringUtils.trimToEmpty(cuponMv1.claveDescuento).startsWith("H") ? TAG_MSJ_CUPON_LC : TAG_MSJ_CUPON
           descuentoClave.tipo = TAG_TIPO_DESCUENTO
           descuentoClave.vigente = true
         }
@@ -2911,7 +2916,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           warranty = false
         }
       }
-      if( warranty ){
+      if( warranty && notaVenta?.detalles.size() > 0 ){
         AseguraNotaDialog dialog = new AseguraNotaDialog()
         dialog.show()
         if( dialog.notaVenta != null ){
@@ -2971,6 +2976,14 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static void genreatedEntranceSP ( String idOrder ){
+    NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+    if( notaVenta != null ){
+
+    }
+  }
+
+
   static List<DevBank> findDevBanks( ){
     List<DevBank> lstBanks = new ArrayList<>()
     List<BancoDev> lstBancos = bancoDevRepository.findAll( )
@@ -2999,5 +3012,38 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     }
     return valid
   }
+
+
+  static Boolean changeIpBox( String ip ){
+    return notaVentaService.cambiaIpCaja( ip )
+  }
+
+
+  static void deleteOrder( String idOrder ){
+    notaVentaService.borrarNotaVenta( idOrder )
+  }
+
+  static void addLogOrderCancelled( String idOrder, String idEmployee ){
+    notaVentaService.agregarLogNotaAnulada( idOrder, idEmployee )
+  }
+
+  static Boolean validOrderNotCancelled( String idOrder ){
+    return notaVentaService.validaNotaNoAnulada( idOrder )
+  }
+
+
+  static List<OrderToCancell> findOrdersToCancell(){
+    List<OrderToCancell> lstOrders = new ArrayList<>()
+    List<NotaVenta> lstNotas = notaVentaService.obtenerNotasPorCancelar()
+    for( NotaVenta nota : lstNotas ){
+      OrderToCancell orderToCancell = new OrderToCancell()
+      orderToCancell.idOrder = StringUtils.trimToEmpty(nota.id)
+      orderToCancell.client = StringUtils.trimToEmpty(nota.cliente.nombreCompleto)
+      orderToCancell.discount = nota.desc != null ? StringUtils.trimToEmpty(nota.desc.clave) : ""
+      lstOrders.add( orderToCancell )
+    }
+    return lstOrders
+  }
+
 
 }

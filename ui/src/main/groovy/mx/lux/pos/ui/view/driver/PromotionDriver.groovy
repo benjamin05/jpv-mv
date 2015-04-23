@@ -38,6 +38,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   private static final String TXT_POST_TITLE = "Registro de Promociones"
   private static final String TAG_TIPO_DESCUENTO_CUPON = "M"
   private static final String TAG_TIPO_DESCUENTO = 'DESCUENTO CUPON'
+  private static final String TAG_TIPO_DESCUENTO_LC = 'DESCUENTO CUPON LC'
 
   private static final Logger log = LoggerFactory.getLogger( PromotionDriver.class )
 
@@ -181,13 +182,19 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   void requestCorporateDiscount( ) {
     log.debug( "Corporate Discount Selected" )
     DiscountDialog dlgDiscount = new DiscountDialog( true )
-    dlgDiscount.setOrderTotal( view.order.total )
+    BigDecimal total = BigDecimal.ZERO
+    for(OrderItem oi : view.order.items){
+      if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(oi.item.type))  ){
+        total = total.add( oi.item.price.multiply(oi.quantity) )
+      }
+    }
+    dlgDiscount.setOrderTotal( total )
     dlgDiscount.setVerifier( this )
     dlgDiscount.activate()
     if ( dlgDiscount.getDiscountSelected() ) {
       log.debug( String.format( "Corporate Discount Selected: %,.2f (%,.1f%%)", dlgDiscount.getDiscountAmt(),
           dlgDiscount.getDiscountPct() ) )
-      Double discount = dlgDiscount.getDiscountAmt() / view.order.total
+      Double discount = dlgDiscount.getDiscountAmt() / total
       if ( service.requestOrderDiscount( this.model, dlgDiscount.corporateKey, discount ) ) {
         log.debug( this.model.orderDiscount.toString() )
         this.updatePromotionList()
@@ -380,11 +387,15 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       if( desc?.descuentosClave != null ){
         descuentoClave = desc?.descuentosClave
       } else {
-        String descripcionDesc = TAG_TIPO_DESCUENTO
+        String descripcionDesc = StringUtils.trimToEmpty(desc?.clave).startsWith("H") ? TAG_TIPO_DESCUENTO_LC : TAG_TIPO_DESCUENTO
         if(StringUtils.trimToEmpty(desc?.clave).length() > 0 && StringUtils.trimToEmpty(desc?.clave).isNumber()){
           descripcionDesc = "Descuento Corporativo"
         } else if(StringUtils.trimToEmpty(desc?.clave).length() <= 0) {
           descripcionDesc = "Descuento Tienda"
+        } else if((StringUtils.trimToEmpty(desc?.clave).startsWith("L") || StringUtils.trimToEmpty(desc?.clave).startsWith("N") ||
+                StringUtils.trimToEmpty(desc?.clave).startsWith("S")) &&
+                (StringUtils.trimToEmpty(desc?.clave).length() == 10 || StringUtils.trimToEmpty(desc?.clave).length() == 11)) {
+            descripcionDesc = "Redencion de Seguro"
         }
         descuentoClave = new DescuentoClave()
         descuentoClave.clave_descuento = desc?.clave

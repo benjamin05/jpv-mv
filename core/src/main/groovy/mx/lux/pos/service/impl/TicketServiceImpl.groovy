@@ -12,6 +12,7 @@ import mx.lux.pos.service.business.Registry
 import mx.lux.pos.util.CustomDateUtils
 import mx.lux.pos.util.CustomDateUtils as MyDateUtils
 import mx.lux.pos.util.MoneyUtils
+import mx.lux.pos.util.SubtypeCouponsUtils
 import org.apache.commons.lang.WordUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.time.DateFormatUtils
@@ -49,6 +50,7 @@ class TicketServiceImpl implements TicketService {
   private static final String TAG_DEPOSITO_US = 'DOLARES'
   private static final String TAG_GENERICO_ARMAZON = 'A'
   private static final String TAG_GENERICO_INV = 'A,H'
+  private static final String TAG_GENERICO_H = 'H'
   private static final String TAG_DF = '09'
 
   private static final BigDecimal CERO_BIGDECIMAL = 0.005
@@ -573,14 +575,66 @@ class TicketServiceImpl implements TicketService {
       Locale locale = new Locale( 'es' )
       def detalles = [ ]
       List<DetalleNotaVenta> detallesLst = detalleNotaVentaRepository.findByIdFacturaOrderByIdArticuloAsc( idNotaVenta )
+        Boolean cupon2Par= false
+        BigDecimal monto2Par = BigDecimal.ZERO
+        Boolean cupon3Par= false
+        BigDecimal monto3Par = BigDecimal.ZERO
+        String leyendaCupon = ""
+        String cuponLc = ""
+        QCuponMv qCuponMv = QCuponMv.cuponMv
+        /*List<CuponMv> cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura).
+                and(qCuponMv.facturaDestino.isEmpty().or(qCuponMv.facturaDestino.isNull())) ) as List<CuponMv>*/
+        //if( cuponMv.size() <= 0 ){
+        List<CuponMv> cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura) ) as List<CuponMv>
+        //}
+      Boolean sameSubtipo = true
+      if( cuponMv.size() == 1 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith(TAG_GENERICO_H) ){
+        if( notaVenta != null ){
+          List<DetalleNotaVenta> lstDet = new ArrayList<>(notaVenta.detalles)
+          Collections.sort( lstDet, new Comparator<DetalleNotaVenta>() {
+              @Override
+              int compare(DetalleNotaVenta o1, DetalleNotaVenta o2) {
+                  return o1.cantidadFac.compareTo(o2.cantidadFac)
+              }
+          } )
+          String subtipo = ""
+          for(DetalleNotaVenta det : lstDet){
+            if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") ){
+              cuponLc = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
+              if( subtipo.length() > 0 ){
+                if( !StringUtils.trimToEmpty(subtipo).equalsIgnoreCase(StringUtils.trimToEmpty(det.articulo.subtipo) ) ){
+                  sameSubtipo = false
+                }
+              } else {
+                subtipo = StringUtils.trimToEmpty(det.articulo.subtipo)
+                cuponLc = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
+              }
+            }
+          }
+        }
+      }
       BigDecimal subtotal = BigDecimal.ZERO
       BigDecimal totalArticulos = BigDecimal.ZERO
+      Integer contadorLc = 0
+      Collections.sort( detallesLst, new Comparator<DetalleNotaVenta>() {
+        @Override
+        int compare(DetalleNotaVenta o1, DetalleNotaVenta o2) {
+          return o1.cantidadFac.compareTo(o2.cantidadFac)
+        }
+      } )
       detallesLst?.each { DetalleNotaVenta tmp ->
         // TODO: rld review for SOI lux
         // BigDecimal precio = tmp?.precioUnitFinal?.multiply( tmp?.cantidadFac ) ?: 0
         BigDecimal precio = tmp?.precioUnitLista?.multiply( tmp?.cantidadFac ) ?: 0
         subtotal = subtotal.add( precio )
-        String descripcion = "[${tmp?.articulo?.articulo}] ${tmp?.surte != null ? '['+tmp?.surte.trim()+']' : ''} ${tmp?.articulo?.descripcion}"
+        Boolean cupon = sameSubtipo
+        if( StringUtils.trimToEmpty(tmp?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_H) ){
+          contadorLc = contadorLc+tmp?.cantidadFac?.intValue()
+          if( contadorLc > 1 ){
+            cupon = true
+          }
+        }
+        String descripcion = "[${tmp?.articulo?.articulo}] ${tmp?.surte != null ? '['+tmp?.surte.trim()+']' : ''} ${cupon && cuponLc.length() > 0 ? '['+cuponLc.trim()+']' : ''} ${tmp?.articulo?.descripcion}"
         String descripcion1
         String descripcion2 = ""
         if ( descripcion.length() > 36 ) {
@@ -702,15 +756,12 @@ class TicketServiceImpl implements TicketService {
             promociones.add( data )
           }
       }
-      Boolean cupon2Par= false
-      BigDecimal monto2Par = BigDecimal.ZERO
-      Boolean cupon3Par= false
-      BigDecimal monto3Par = BigDecimal.ZERO
-      String leyendaCupon = ""
-      QCuponMv qCuponMv = QCuponMv.cuponMv
-      List<CuponMv> cuponMv = cuponMvRepository.findAll( qCuponMv.facturaOrigen.eq(notaVenta.factura).
-              and(qCuponMv.facturaDestino.isEmpty().or(qCuponMv.facturaDestino.isNull())) )
-      if(cuponMv.size() == 1 && Registry.tirdthPairValid()){
+
+      if(cuponMv.size() == 1 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith(TAG_GENERICO_H) ){
+        leyendaCupon = "SOLICITA TU TICKET."
+        cupon2Par = true
+        monto2Par = cuponMv.get(0).montoCupon
+      } else if(cuponMv.size() == 1 && Registry.tirdthPairValid()){
         leyendaCupon = "SOLICITA TU TICKET."
         cupon3Par = true
         monto3Par = cuponMv.get(0).montoCupon
@@ -2467,13 +2518,30 @@ class TicketServiceImpl implements TicketService {
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
     String restrictions = ""
     String restrictions1 = ""
-    if( cuponMv != null && StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
-      restrictions = 'APLICA EN LA COMPRA MINIMA DE $1000.00'
-      restrictions1 = 'CONSULTA CONDICIONES EN TIENDA.'
+    String titulo2 = ""
+    if( cuponMv != null ){
+      if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+        restrictions = 'APLICA EN LA COMPRA MINIMA DE $1000.00'
+        restrictions1 = 'CONSULTA CONDICIONES EN TIENDA.'
+      } else if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
+        restrictions = 'APLICAN RESTRICCIONES'
+      }
+    }
+    if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
+      NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket( "${StringUtils.trimToEmpty(Registry.currentSite.toString())}-${StringUtils.trimToEmpty(cuponMv.facturaOrigen)}" );
+      if( notaVenta != null ){
+        Integer contador = 0
+        for(DetalleNotaVenta det : notaVenta.detalles){
+          if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") ){
+            titulo2 = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
+          }
+        }
+      }
     }
     if( cuponMv != null ){
       def datos = [
         titulo: titulo,
+        titulo2: titulo2,
         monto: String.format('$%s', monto),
         clave: cuponMv.claveDescuento,
         fecha_vigencia: df.format(cuponMv.fechaVigencia),

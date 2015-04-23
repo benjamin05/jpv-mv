@@ -159,4 +159,14 @@ interface NotaVentaService {
   List<CuponMv> obtenerCuponMvFacturaOriFF( String factura )
 
   List<NotaVenta> obtenerNotaVentaPorFecha( Date fecha )
+
+  Boolean cambiaIpCaja( String ip )
+
+  void borrarNotaVenta( String idFactura )
+
+  void agregarLogNotaAnulada( String idFactura, String idEmpleado )
+
+  Boolean validaNotaNoAnulada( String idFactura )
+
+  List<NotaVenta> obtenerNotasPorCancelar(  )
 }

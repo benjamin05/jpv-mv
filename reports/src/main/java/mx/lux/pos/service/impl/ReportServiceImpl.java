@@ -1591,6 +1591,8 @@ public class ReportServiceImpl implements ReportService {
                 desc.getDescuentosClave().setDescripcion_descuento( "CUPON 3P" );
               } else if( StringUtils.trimToEmpty(desc.getClave()).startsWith("F") ){
                   desc.getDescuentosClave().setDescripcion_descuento( "Amigos y Familiares 200" );
+              } else if( StringUtils.trimToEmpty(desc.getClave()).startsWith("H") ){
+                  desc.getDescuentosClave().setDescripcion_descuento( "CUPON 2P LC" );
               } else if( StringUtils.trimToEmpty(desc.getClave()).length() >= 11 ){
                   desc.getDescuentosClave().setDescripcion_descuento( "Redencion de Seguro" );
               }
@@ -1684,7 +1686,7 @@ public class ReportServiceImpl implements ReportService {
           @Override
           public int compare(CuponesMvDesc o1, CuponesMvDesc o2) {
               return o1.getFacturaOri().compareTo(o2.getFacturaOri());
-          }
+         }
       });
       Integer total2Par = 0;
       Integer total3Par = 0;

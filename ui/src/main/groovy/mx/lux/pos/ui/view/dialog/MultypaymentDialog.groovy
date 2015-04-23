@@ -110,7 +110,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
     Boolean hasPaymentCupon = false
     hasPaymentCupon = OrderController.hasCuponMv( secondOrder.id )
     List<CuponMv> cuponMv = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(firstOrder.id) )
-    if( cuponMv.size() > 0 ){
+    if( cuponMv.size() > 0 || firstOrder.total.compareTo(BigDecimal.ZERO) <= 0 ){
       validClave = false
     }
 
@@ -118,10 +118,12 @@ class MultypaymentDialog extends JDialog implements FocusListener {
     if( !hasPaymentCupon && validClave ){
       OrderController.deletePromotion( StringUtils.trimToEmpty(secondOrder.id) )
       amountCuponSecondOrder = OrderController.getCuponAmount(firstOrder.id )
-      PromotionDriver promotionDriver = PromotionDriver.instance
-      updateOrder()
-      promotionDriver.addCouponDiscount( this.secondOrder, amountCupon().amount, firstOrder.id, amountCuponSecondOrder )
-      orderPanel.promotionDriver.requestPromotionSave(secondOrder?.id, false)
+      if( amountCuponSecondOrder.compareTo(BigDecimal.ZERO) > 0 ){
+        PromotionDriver promotionDriver = PromotionDriver.instance
+        updateOrder()
+        promotionDriver.addCouponDiscount( this.secondOrder, amountCupon().amount, firstOrder.id, amountCuponSecondOrder )
+        orderPanel.promotionDriver.requestPromotionSave(secondOrder?.id, false)
+      }
       //OrderController.addPaymentToOrder( secondOrder.id, amountCupon() )
       updateOrder()
     }
@@ -345,18 +347,43 @@ class MultypaymentDialog extends JDialog implements FocusListener {
 
 
   private void amountOrders (){
+    Boolean couponLc = false
+    for(OrderItem det : firstOrder.items){
+      if( StringUtils.trimToEmpty(det.item.type).equalsIgnoreCase("H") ){
+        couponLc = true
+      }
+    }
     BigDecimal firstCupon = OrderController.getCuponAmount( firstOrder.id )
     BigDecimal secondCupon = OrderController.getCuponAmount( secondOrder.id )
-    amountCupon = validClave ? Math.max(firstCupon,secondCupon) : BigDecimal.ZERO
+    if( couponLc ){
+      if( firstCupon.compareTo(BigDecimal.ZERO) > 0 ){
+        amountCupon = firstOrder.deals.size() <= 0 ? firstCupon : BigDecimal.ZERO
+      } else {
+        amountCupon = BigDecimal.ZERO
+      }
+    } else {
+      amountCupon = validClave ? Math.max(firstCupon,secondCupon) : BigDecimal.ZERO
+    }
     amountBalance = (secondOrder.total).compareTo(BigDecimal.ZERO) > 0 ? secondOrder.total : BigDecimal.ZERO
     amountBalanceTotal = firstOrder.total.add(amountBalance)
   }
 
 
   private Payment amountCupon (){
+    Boolean couponLc = false
+    for(OrderItem det : firstOrder.items){
+      if( StringUtils.trimToEmpty(det.item.type).equalsIgnoreCase("H") ){
+        couponLc = true
+      }
+    }
     BigDecimal firstCupon = OrderController.getCuponAmount( firstOrder.id )
     BigDecimal secondCupon = OrderController.getCuponAmount( secondOrder.id )
-    BigDecimal amountCupon = Math.max(firstCupon,secondCupon)
+    BigDecimal amountCupon = BigDecimal.ZERO
+    if( couponLc && firstCupon.compareTo(BigDecimal.ZERO) > 0 ){
+      amountCupon = firstCupon
+    } else {
+      amountCupon = Math.max(firstCupon,secondCupon)
+    }
     Payment payment = new Payment()
     payment.paymentReference = firstOrder.id
     payment.amount = amountCupon
@@ -912,7 +939,9 @@ class MultypaymentDialog extends JDialog implements FocusListener {
 
 
   private void generatedCoupon ( Order newOrder1, Order newOrder2 ){
-    OrderController.updateCuponMv( newOrder1.id, newOrder2.id, amountCuponSecondOrder, 2, false )
+    if( amountCuponSecondOrder.compareTo(BigDecimal.ZERO) > 0 ){
+      OrderController.updateCuponMv( newOrder1.id, newOrder2.id, amountCuponSecondOrder, 2, false )
+    }
     if( Registry.tirdthPairValid() ){
       BigDecimal montoCupon = OrderController.getCuponAmountThirdPair( newOrder1.id )
       CuponMv cupon = OrderController.obtenerCuponMv( StringUtils.trimToEmpty(newOrder1.bill), "", montoCupon, 3 )

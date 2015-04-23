@@ -33,6 +33,7 @@ class InventarioServiceImpl implements InventarioService {
   private static final String TR_TYPE_ADJUST = "AJUSTE"
   private static final String TR_TYPE_SALE = "VENTA"
   private static final String TR_TYPE_RETURN = "DEVOLUCION"
+  private static final String TR_TYPE_RECEIPT_SP = "ENTRADA_SP"
   private static final String TAG_ID_GEN_TIPO_NO_STOCK = 'NC'
 
   private Logger log = LoggerFactory.getLogger( this.class )
@@ -43,6 +44,9 @@ class InventarioServiceImpl implements InventarioService {
 
   @Resource
   private TransInvRepository transInvRepository
+
+  @Resource
+  private RemesasRepository remesasRepository
 
   @Resource
   private TransInvDetalleRepository transInvDetalleRepository
@@ -138,6 +142,24 @@ class InventarioServiceImpl implements InventarioService {
     return registrado
   }
 
+
+
+  Boolean solicitarTransaccionEntradaSP( NotaVenta pNotaVenta ) {
+    Boolean registrado = false
+    QTransInv trans = QTransInv.transInv
+    List<TransInv> transInv = transInvRepository.findAll(trans.idTipoTrans.eq(TR_TYPE_RECEIPT).
+          and(trans.referencia.eq(pNotaVenta.id))) as List<TransInv>
+    if( transInv.size() <= 0 ){
+      PrepareInvTrBusiness task = PrepareInvTrBusiness.instance
+      InvTrRequest request = task.requestEnterSP( pNotaVenta )
+      println('Resquest: ' + request?.trType)
+      if ( request != null ) {
+        registrado = ( solicitarTransaccion( request ) != null )
+      }
+    }
+    return registrado
+  }
+
   Boolean solicitarTransaccionDevolucion( NotaVenta pNotaVenta ) {
     Boolean registrado = false
     PrepareInvTrBusiness task = PrepareInvTrBusiness.instance
@@ -146,6 +168,15 @@ class InventarioServiceImpl implements InventarioService {
       registrado = ( solicitarTransaccion( request ) != null )
     }
     return registrado
+  }
+
+    void solicitarTransaccionDevolucionSP( NotaVenta pNotaVenta ) {
+      Boolean registrado = false
+      PrepareInvTrBusiness task = PrepareInvTrBusiness.instance
+      InvTrRequest request = task.requestReturnReceiptSP( pNotaVenta )
+      if ( request != null ) {
+        registrado = ( solicitarTransaccion( request ) != null )
+      }
   }
 
   TransInv obtenerTransaccion( String pIdTipoTrans, Integer pFolio ) {
@@ -400,5 +431,35 @@ class InventarioServiceImpl implements InventarioService {
         }
         return transCargada
     }
+
+
+  void insertarRegistroRemesa( NotaVenta pNotaVenta ){
+    Remesas remesa = new Remesas()
+    Integer articulos = 0
+    for( DetalleNotaVenta det : pNotaVenta.detalles ){
+      if( StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ){
+        articulos = articulos+det.cantidadFac.intValue()
+      }
+    }
+    QTransInv qTransInv = QTransInv.transInv
+    TransInv transInv = transInvRepository.findOne( qTransInv.idTipoTrans.eq(TR_TYPE_RECEIPT_SP).
+            and(qTransInv.referencia.eq(StringUtils.trimToEmpty(pNotaVenta.id))) )
+    if( transInv != null ){
+      remesa.idTipoDocto = 'RS'
+      remesa.idDocto = StringUtils.trimToEmpty(transInv.folio.toString())
+      remesa.docto = StringUtils.trimToEmpty(pNotaVenta.factura)
+      remesa.clave = ""
+      remesa.letra = "X"
+      remesa.archivo = ""
+      remesa.articulos = articulos
+      remesa.estado = "cargado"
+      remesa.sistema = "A"
+      remesa.fecha_mod = new Date()
+      remesa.fecha_recibido = new Date()
+      remesa.fecha_carga = new Date()
+      remesasRepository.saveAndFlush( remesa )
+    }
+  }
+
 
 }

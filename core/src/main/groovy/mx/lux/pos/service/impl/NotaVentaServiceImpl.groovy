@@ -44,6 +44,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
   private static final String TAG_NOTA_CANCELADA = 'T'
   private static final String TAG_TRANSFERENCIA = 'TR'
   private static final String TAG_GENERICOS_B = 'B'
+  private static final String TAG_GENERICOS_H = 'H'
   private static final String TAG_GENERICOS_PAQUETE = 'Q'
   private static final String TAG_GENERICOS_ARMAZON = 'A'
   private static final String TAG_GENERICOS_TIPO = 'G'
@@ -53,6 +54,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
   private static final String TAG_GEN_TIPO_NC = 'NC'
   private static final String TAG_CAUSA_CAN_PAGOS = 'CAMBIO DE FORMA DE PAGO'
   private static final String TAG_ARTICULO_COLOR = 'COG'
+  private static final Integer TAG_TIPO_TRANS_ANUL = 4
 
   @Resource
   private NotaVentaRepository notaVentaRepository
@@ -65,6 +67,9 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
   @Resource
   private SucursalRepository sucursalRepository
+
+  @Resource
+  private AutorizaMovRepository autorizaMovRepository
 
   @Resource
   private PromocionRepository promocionRepository
@@ -198,8 +203,14 @@ class NotaVentaServiceImpl implements NotaVentaService {
         if( //notaVenta?.montoDescuento?.compareTo(BigDecimal.ZERO) > 0 &&
                 ((notaVenta?.ventaNeta?.subtract(total) < new BigDecimal(0.05)) && (notaVenta?.ventaNeta?.subtract(total) > new BigDecimal(-0.05))) ){
           log.debug( "redondeo monto total" )
-          if( detalles.size() > 0 ){
-            DetalleNotaVenta det =  detalles.first()
+          DetalleNotaVenta det = null
+          for(DetalleNotaVenta detalleNotaVenta : detalles){
+            if( !StringUtils.trimToEmpty(detalleNotaVenta.articulo.idGenerico).equalsIgnoreCase("J") ){
+              det = detalleNotaVenta
+            }
+          }
+          if( detalles.size() > 0 && det != null ){
+            //DetalleNotaVenta det =  detalles.first()
             BigDecimal monto = det.precioUnitFinal.add(diferencia)
             if( diferencia.compareTo(BigDecimal.ZERO) > 0 || diferencia.compareTo(BigDecimal.ZERO) < 0 ){
               det.setPrecioUnitFinal( monto )
@@ -943,10 +954,19 @@ class NotaVentaServiceImpl implements NotaVentaService {
     log.debug( 'obtenerMontoCupon( )' )
     BigDecimal montoCupon = BigDecimal.ZERO
     Articulo articulo = new Articulo()
+    Integer paqueteCant = 0
+    String paqueteStr = ""
     List<MontoCupon> lstMontosCupon = new ArrayList<>()
     NotaVenta nota = notaVentaRepository.findOne( idNotaVenta )
     if( nota != null){
-      for( DetalleNotaVenta det : nota.detalles ){
+      List<DetalleNotaVenta> lstDet = new ArrayList<>(nota.detalles)
+      Collections.sort( lstDet, new Comparator<DetalleNotaVenta>() {
+          @Override
+          int compare(DetalleNotaVenta o1, DetalleNotaVenta o2) {
+              return o1.articulo.subtipo.compareTo(o2.articulo.subtipo)
+          }
+      })
+      for( DetalleNotaVenta det : lstDet ){
         List<Precio> lstPrecios = precioRepository.findByArticulo( det.articulo.articulo )
         BigDecimal precio = det.articulo.precio//.multiply(det.cantidadFac)
         if( lstPrecios.size() > 0 ){
@@ -972,6 +992,27 @@ class NotaVentaServiceImpl implements NotaVentaService {
           if( montosCup != null && StringUtils.trimToEmpty(montosCup.tipo).length() > 0 ){
             montosCup = null
           }
+        }
+        if( montosCup == null ){
+          List<MontoCupon> lstMontosCup = montoCuponRepository.findAll( mc.generico.eq(det.articulo.idGenerico).
+                and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) )
+          montosCup = lstMontosCup.size() > 0 ? lstMontosCup.first() : null
+          if( montosCup != null ){
+           if( StringUtils.trimToEmpty(paqueteStr).length() > 0 ){
+             if( StringUtils.trimToEmpty(paqueteStr).equalsIgnoreCase(StringUtils.trimToEmpty(det?.articulo?.subtipo)) ){
+               paqueteCant = paqueteCant+det.cantidadFac.intValue()
+             } else {
+               paqueteStr = montosCup.subtipo
+               paqueteCant = det.cantidadFac.intValue()
+             }
+           } else {
+             paqueteStr = montosCup.subtipo
+             paqueteCant = paqueteCant+det.cantidadFac.intValue()
+           }
+           if( montosCup.cantidad == null || paqueteCant < montosCup.cantidad ){
+             montosCup = null
+           }
+         }
         }
         if( montosCup != null ){
           lstMontosCupon.add( montosCup )
@@ -1016,6 +1057,13 @@ class NotaVentaServiceImpl implements NotaVentaService {
                   if( montosCup != null && StringUtils.trimToEmpty(montosCup.tipo).length() > 0 ){
                       montosCup = null
                   }
+              }
+              if( montosCup == null ){
+                montosCup = montoCuponRepository.findOne( mc.generico.eq(det.articulo.idGenerico).
+                      and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) )
+                if( montosCup != null && montosCup.cantidad < det.cantidadFac ){
+                      montosCup = null
+                }
               }
               if( montosCup != null ){
                   lstMontosCupon.add( montosCup )
@@ -1514,6 +1562,15 @@ class NotaVentaServiceImpl implements NotaVentaService {
       calendar.setTime(new Date());
       calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
       Date fechaVigencia = cuponMv.fechaVigencia != null ? cuponMv.fechaVigencia : calendar.getTime()
+      Boolean hasLc = false
+      for( DetalleNotaVenta det : notaOrigen.detalles ){
+        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICOS_H) ){
+          hasLc = true
+        }
+      }
+      if( hasLc ){
+        clave = clave.replaceFirst(clave.charAt(0).toString(),"H")
+      }
       cuponMvRepository.insertClave( clave, notaOrigen.factura, facturaDestino, fechaAplicacion, fechaVigencia )
       cuponMv = cuponMvRepository.findOne(clave)
       cuponMv.montoCupon = montoCupon
@@ -1530,10 +1587,17 @@ class NotaVentaServiceImpl implements NotaVentaService {
       }
     } else {
       NotaVenta notaOrigen = notaVentaRepository.findOne( idFacturaOrigen )
+      Boolean hasLc = false
       if( notaOrigen == null ){
         List<NotaVenta> lstNotas = notaVentaRepository.findByFactura( idFacturaOrigen )
         if( lstNotas.size() > 0 ){
           notaOrigen = lstNotas.get(0)
+        }
+      } else {
+        for( DetalleNotaVenta det : notaOrigen.detalles ){
+          if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICOS_H) ){
+            hasLc = true
+          }
         }
       }
       Integer factura = 0
@@ -1543,6 +1607,8 @@ class NotaVentaServiceImpl implements NotaVentaService {
       String clave = claveAleatoria( StringUtils.trimToEmpty(factura.toString()), StringUtils.trimToEmpty(numeroCupon.toString()) )
       if( ffCupon ){
         clave = clave.replaceFirst(clave.charAt(0).toString(),"F")
+      } else if( hasLc ){
+        clave = clave.replaceFirst(clave.charAt(0).toString(),"H")
       }
       Calendar calendar = Calendar.getInstance();
       calendar.setTime(new Date());
@@ -2055,6 +2121,72 @@ class NotaVentaServiceImpl implements NotaVentaService {
     QNotaVenta qNotaVenta = QNotaVenta.notaVenta
     return notaVentaRepository.findAll( qNotaVenta.factura.isNotNull().and(qNotaVenta.factura.isNotEmpty()).
             and(qNotaVenta.fechaHoraFactura.between(fechaInicio, fechaFin)) )
+  }
+
+
+  @Override
+  @Transactional
+  Boolean cambiaIpCaja( String ip ){
+    Boolean hecho = false
+    Parametro parametro = parametroRepository.findOne( TipoParametro.TERMINAL_CAJA.value )
+    if( parametro != null ){
+      try {
+        parametro.valor = ip
+        parametroRepository.saveAndFlush( parametro )
+        hecho = true
+      } catch ( Exception e ){ println e }
+    }
+    return hecho
+  }
+
+
+
+  @Override
+  @Transactional
+  void borrarNotaVenta( String idFactura ){
+    NotaVenta notaVenta = notaVentaRepository.findOne( idFactura )
+    if( notaVenta != null && StringUtils.trimToEmpty(notaVenta.factura).length() <= 0 ){
+      EliminarNotaVentaTask task = new EliminarNotaVentaTask()
+      task.addNotaVenta( notaVenta.id )
+      log.debug( task.toString() )
+      task.run()
+      log.debug( task.toString() )
+    }
+  }
+
+
+
+  @Override
+  @Transactional
+  void agregarLogNotaAnulada( String idFactura, String idEmpleado ){
+    AutorizaMov autorizaMov = new AutorizaMov()
+    autorizaMov.idEmpleado = idEmpleado
+    autorizaMov.fecha = new Date()
+    autorizaMov.hora = new Date()
+    autorizaMov.tipoTransaccion = TAG_TIPO_TRANS_ANUL
+    autorizaMov.factura = idFactura
+    autorizaMov.notas = ""
+    autorizaMovRepository.saveAndFlush( autorizaMov )
+  }
+
+
+  @Override
+  Boolean validaNotaNoAnulada( String idFactura ){
+    QAutorizaMov qAutorizaMov = QAutorizaMov.autorizaMov
+    AutorizaMov autorizaMov = autorizaMovRepository.findOne( qAutorizaMov.factura.eq(idFactura) )
+    if( autorizaMov != null ){
+      return false
+    } else{
+      return true
+    }
+  }
+
+
+
+  @Override
+  List<NotaVenta> obtenerNotasPorCancelar(  ){
+    QNotaVenta qNotaVenta = QNotaVenta.notaVenta
+    return notaVentaRepository.findAll( qNotaVenta.factura.isNull().or(qNotaVenta.factura.isEmpty()) ) as List<NotaVenta>
   }
 
 

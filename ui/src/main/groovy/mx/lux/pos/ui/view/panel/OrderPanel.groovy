@@ -14,6 +14,7 @@ import mx.lux.pos.ui.view.driver.PromotionDriver
 import mx.lux.pos.ui.view.renderer.MoneyCellRenderer
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang3.StringUtils
+import org.codehaus.groovy.runtime.InvokerInvocationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -34,6 +35,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TXT_BTN_QUOTE = 'Cotizar'
     private static final String TXT_BTN_PRINT = 'Imprimir'
     private static final String TXT_BTN_NEW_ORDER = 'Otra venta'
+    private static final String TXT_BTN_CANCEL_ORDER = '<html><p align="center">Anular venta</p></html>'
     private static final String TXT_BTN_CONTINUE = 'Continuar'
     private static final String TXT_NO_ORDER_PRESENT = 'Se debe agregar al menos un artículo.'
     private static final String TXT_PAYMENTS_PRESENT = 'Elimine los pagos registrados y reintente.'
@@ -62,9 +64,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TAG_GENERICO_SEGUROS = 'J'
     private static final String TAG_GENERICO_ARMAZON = 'A'
     private static final String TAG_GENERICO_LENTE = 'B'
+    private static final String TAG_GENERICO_LENTE_CONTACTO = 'H'
     private static final String TAG_SEGUROS_ARMAZON = 'SS'
     private static final String TAG_SEGUROS_OFTALMICO = 'SEG'
     private static final String TAG_SUBTIPO_NINO = 'N'
+    private static final String TAG_RECETA_LC = 'LC'
 
     private Logger logger = LoggerFactory.getLogger(this.getClass())
     private SwingBuilder sb
@@ -77,6 +81,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private JButton printButton
     private JButton continueButton
     private JButton newOrderButton
+    private JButton cancelOrderButton
     private JTextArea comments
     private JTextField itemSearch
     private List<IPromotionAvailable> promotionList
@@ -112,6 +117,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private Boolean advanceOnlyInventariable
     private Boolean canceledWarranty
     private String sComments = ''
+    private String ip
     private HelpItemSearchDialog helpItemSearchDialog
 
     private String MSJ_ERROR_WARRANTY = ""
@@ -130,6 +136,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                customerTypes.add(customer)
             }
         }
+        ip = ipCurrentMachine()
         customer = CustomerController.findDefaultCustomer()
         promotionList = new ArrayList<PromotionAvailable>()
         promotionListTmp = new ArrayList<PromotionAvailable>()
@@ -280,26 +287,32 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 borderLayout()
                 panel(constraints: BorderLayout.LINE_START, border: BorderFactory.createEmptyBorder(0, 0, 0, 0)) {
                     closeButton = button(TXT_BTN_CLOSE,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: doClose
                     )
                 }
                 change = label(foreground: UI_Standards.WARNING_FOREGROUND, constraints: BorderLayout.CENTER)
                 panel(constraints: BorderLayout.LINE_END, border: BorderFactory.createEmptyBorder(0, 0, 0, 0)) {
+                    cancelOrderButton = button(TXT_BTN_CANCEL_ORDER,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
+                            actionPerformed: { fireRequestCancelOrder( ) },
+                            constraints: 'hidemode 3',
+                            visible: false
+                    )
                     newOrderButton = button(TXT_BTN_NEW_ORDER,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: { fireRequestNewOrder(itemsModel) }
                     )
                     quoteButton = button(TXT_BTN_QUOTE,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: { fireRequestQuote() }
                     )
                     continueButton = button(TXT_BTN_CONTINUE,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: { fireRequestContinue(itemsModel) }
                     )
                     printButton = button(TXT_BTN_PRINT,
-                            preferredSize: UI_Standards.BIG_BUTTON_SIZE,
+                            preferredSize: UI_Standards.BUTTON_SIZE,
                             actionPerformed: doPrint
                     )
                 }
@@ -341,10 +354,20 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           isPaying = false
         }
         currentOperationType = (OperationType) operationType.getSelectedItem()
+        if( currentOperationType.equals(OperationType.PAYING) ){
+          itemSearch.enabled = false
+        } else {
+          itemSearch.enabled = true
+        }
         this.printButton.setVisible(!this.isPaymentListEmpty() ||
                 this.promotionDriver.model?.orderDiscount?.discountPercent == 1.0 ||
                 ( order.due.compareTo(BigDecimal.ZERO) <= 0 && this.promotionDriver.model?.isAnyApplied()) )
         this.continueButton.setVisible( !this.printButton.visible )
+        if( order.items.size() > 0 ){
+          cancelOrderButton.visible = true
+        } else {
+          cancelOrderButton.visible = false
+        }
     }
 
     void updateOrder(String pOrderId) {
@@ -460,15 +483,56 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     break
                 case OperationType.PAYING:
                     sb.doLater {
+                      Boolean valid = true
+                      String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+                      println "Ip Valida: "+term
+                      if( term.length() > 0 ){
+                        if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
+                          valid = false
+                        }
+                      }
+                      if( valid ){
                         CustomerController.requestPayingCustomer(this)
                         isPaying = true
+                      } else {
+                          sb.optionPane(
+                                  message: 'Opcion valida solo en caja',
+                                  messageType: JOptionPane.ERROR_MESSAGE
+                          ).createDialog(this, 'Maquina Incorrecta')
+                                  .show()
+                        operationTypeSelected = OperationType.DEFAULT
+                      }
                     }
                     break
-                case OperationType.MULTYPAYMENT:
+                case OperationType.EDIT_PAYING:
+                  sb.doLater {
+                    Boolean valid = true
+
+                    String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+                    println "Ip Valida: "+term
+                    if( term.length() > 0 ){
+                      if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
+                        valid = false
+                      }
+                    }
+                    if( valid ){
+                      CustomerController.requestEditPayingCustomer(this)
+                    } else {
+                      sb.optionPane(
+                                  message: 'Opcion valida solo en caja',
+                                  messageType: JOptionPane.ERROR_MESSAGE
+                      ).createDialog(this, 'Maquina Incorrecta')
+                                  .show()
+                      operationTypeSelected = OperationType.DEFAULT
+                    }
+                    //isPaying = true
+                  }
+                  break
+                /*case OperationType.MULTYPAYMENT:
                     sb.doLater {
                         CustomerController.requestMultypayment(this, this)
                     }
-                    break
+                    break*/
             }
             if(!operationType.selectedItem.equals(OperationType.DOMESTIC)){
               operationType.removeItem( OperationType.DOMESTIC )
@@ -510,7 +574,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         item = results.first()
                         Articulo art = ItemController.findArticle( item.id )
                         if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
-                            if( OrderController.validArticleGenericNoDelivered(item.id) ){
+                            if( OrderController.validArticleGenericNoDelivered(item.id) ||
+                                    StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
                                 if( customer.id != CustomerController.findDefaultCustomer().id ){
                                   if( !appliedEnsure( art ) ){
                                     validarVentaNegativa(item, customer, holdPromo)
@@ -545,7 +610,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         if (item?.id) {
                           Articulo art = ItemController.findArticle( item.id )
                           if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
-                              if( OrderController.validArticleGenericNoDelivered(item.id) ){
+                              if( OrderController.validArticleGenericNoDelivered(item.id) ||
+                                      StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO)){
                                   if(customer.id != CustomerController.findDefaultCustomer().id){
                                     if( !appliedEnsure( art ) ){
                                       validarVentaNegativa(item, customer, holdPromo)
@@ -575,6 +641,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           }
                         }
                     }
+                } else if( StringUtils.trimToEmpty(article).equalsIgnoreCase(TAG_RECETA_LC) ){
+                  if( customer.id != CustomerController.findDefaultCustomer().id ){
+                    if( order?.id == null ){
+                      order = OrderController.openOrder(StringUtils.trimToEmpty(customer.id.toString()), order.employee)
+                      updateOrder( StringUtils.trimToEmpty(order.id) )
+                    }
+                    Branch branch = Session.get(SessionItem.BRANCH) as Branch
+                    EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, false)
+                    editRx.show()
+                    OrderController.saveRxOrder(order?.id, this.rec.id)
+                  } else {
+                      optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
+                              .createDialog(new JTextField(), "Articulo Invalido")
+                              .show()
+                  }
                 } else {
                     optionPane(message: "No se encontraron resultados para: ${article}", optionType: JOptionPane.DEFAULT_OPTION)
                             .createDialog(new JTextField(), "B\u00fasqueda: ${article}")
@@ -602,7 +683,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private def doShowItemClick = { MouseEvent ev ->
-        if (SwingUtilities.isLeftMouseButton(ev)) {
+        OperationType operationType1 = operationType.selectedItem as OperationType
+        if (SwingUtilities.isLeftMouseButton(ev) && !operationType1.equals(OperationType.PAYING )) {
             if (ev.clickCount == 2) {
                 new ItemDialog(ev.component, order, ev.source.selectedElement, this).show()
                 updateOrder(order?.id)
@@ -618,7 +700,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     private def doNewPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
-            if (ev.clickCount == 1) {
+          OperationType operationType1 = operationType.selectedItem as OperationType
+          Boolean valid = true
+          String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+          if( term.length() > 0 ){
+            if( operationType1.equals(OperationType.DEFAULT) ){
+              if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
+                valid = false
+              }
+            }
+          }
+           if (ev.clickCount == 1 && valid && (!operationType1.equals(OperationType.PENDING) &&
+                   !operationType1.equals(OperationType.EDIT_PAYING) && !operationType1.equals(OperationType.QUOTE))) {
                 if (order.due) {
                   Boolean hasDiscount = false
                   for(int i=0;i<promotionList.size();i++){
@@ -649,7 +742,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     private def doShowPaymentClick = { MouseEvent ev ->
         if (SwingUtilities.isLeftMouseButton(ev)) {
-            if (ev.clickCount == 2) {
+          OperationType operationType1 = operationType.selectedItem as OperationType
+          Boolean valid = true
+          String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+          if( term.length() > 0 ){
+                if( operationType1.equals(OperationType.DEFAULT) ){
+                    if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
+                        valid = false
+                    }
+                }
+          }
+            if (ev.clickCount == 2 && valid && (!operationType1.equals(OperationType.PENDING) &&
+                    !operationType1.equals(OperationType.EDIT_PAYING) && !operationType1.equals(OperationType.QUOTE))) {
                 new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false).show()
                 updateOrder(order?.id)
             }
@@ -871,9 +975,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private def doPrint = { ActionEvent ev ->
+      if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         dioptra = new Dioptra()
         Boolean hasDioptra = false
+        Boolean hasLc = false
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
@@ -881,6 +987,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
                 hasDioptra = true
               }
+            }
+            if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+              hasLc = true
             }
         }
         if( !hasDioptra ){
@@ -903,6 +1012,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         if( warranty ){
           if( validLensesPack() ){
+            Boolean continueSave = true
+            rec = OrderController.findRx(order, customer)
+            if( hasLc && (rec == null || rec.id == null) ){
+              Branch branch = Session.get(SessionItem.BRANCH) as Branch
+              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+              editRx.show()
+              try {
+                if( rec != null ){
+                  OrderController.saveRxOrder(order?.id, this.rec.id)
+                } else {
+                  continueSave = false
+                }
+              } catch ( Exception e ){ println e }
+            }
+              if( continueSave ){
                 if (!dioptra.getLente().equals(null)) {
                     Item i = OrderController.findArt(dio.trim())
                     if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -970,7 +1094,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     ticketRx = false
                     flujoImprimir(artCount)
                 }
-
+            }
           } else {
                 sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                         .createDialog(new JTextField(), "Error")
@@ -992,6 +1116,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               .show()
           }
         }
+      } else {
+          JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
+                  "Venta Anulada", JOptionPane.ERROR_MESSAGE )
+      }
     }
 
     private void controlItem(Item item, Boolean itemDelete) {
@@ -1173,6 +1301,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
         Order newOrder = OrderController.placeOrder(order, vendedor, false)
+        OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
         if( newOrder.rx != null ){
           OrderController.updateExam( newOrder )
         }
@@ -1273,7 +1402,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               }
             }
 
-            //if( !ensureApply && !ffApply ){
+            if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
               if( cuponMv != null ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
                 OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
@@ -1283,6 +1412,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               } else if( !ensureApply && !ffApply ){
                 generatedCoupons( validClave, newOrder )
               }
+            }
             if( !ensureApply && !ffApply ){
               if( OrderController.insertSegKig && !hasC1 ){
                 Boolean hasLensKid = false
@@ -1349,47 +1479,79 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
     protected void onMouseClickedAtPromotions(MouseEvent pEvent) {
-        if (SwingUtilities.isRightMouseButton(pEvent) && (pEvent.getID() == MouseEvent.MOUSE_CLICKED)) {
-            if (discountMenu == null) {
-                discountMenu = new DiscountContextMenu(this.promotionDriver)
-            }
-            discountMenu.activate(pEvent, this)
+      OperationType operationType1 = operationType.selectedItem as OperationType
+      if (SwingUtilities.isRightMouseButton(pEvent) && (pEvent.getID() == MouseEvent.MOUSE_CLICKED) &&
+              !operationType1.equals(OperationType.PAYING )) {
+        if (discountMenu == null) {
+          discountMenu = new DiscountContextMenu(this.promotionDriver)
         }
+        discountMenu.activate(pEvent, this)
+      }
     }
 
     protected void onTogglePromotion(IPromotionAvailable pPromotion, Boolean pNewValue) {
-      Boolean valid = true
-      for(int i=0;i<promotionList.size();i++){
-        if( promotionList.get(i) instanceof PromotionDiscount){
-          valid = false
-        }
-      }
-      if (pNewValue && valid) {
-        this.promotionDriver.requestApplyPromotion(pPromotion)
-      } else {
-        this.promotionDriver.requestCancelPromotion(pPromotion)
-
-          Payment payment = null
-          for(Payment pay : order.payments){
-              if( StringUtils.trimToEmpty(pay.paymentTypeId).equalsIgnoreCase(TAG_PAYMENT_TYPE_TRANSF) ){
-                  payment = pay
+      OperationType operationType1 = operationType.selectedItem as OperationType
+      if( !operationType1.equals(OperationType.PAYING) ){
+          Boolean valid = true
+          Boolean notMinAmount = false
+          BigDecimal minimum = BigDecimal.ZERO
+          BigDecimal totalOrder = BigDecimal.ZERO
+          for(int i=0;i<promotionList.size();i++){
+              if( promotionList.get(i) instanceof PromotionDiscount){
+                  valid = false
               }
           }
-          if( payment != null ){
-            List<CuponMv> lstCupons = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(order.id) )
-            if( lstCupons.size() > 0 ){
-              OrderController.existDiscountKey( StringUtils.trimToEmpty(lstCupons.first().claveDescuento),
-                      StringUtils.trimToEmpty(payment.paymentReference) )
-            }
+          if( valid ){
+              if( pPromotion instanceof PromotionAvailable){
+                  if( pPromotion.promotion instanceof PromotionCombo){
+                      minimum = pPromotion.promotion.base.entity.montoMinimo
+                  } else if( pPromotion.promotion instanceof PromotionSingle){
+                      minimum = pPromotion.promotion.entity.montoMinimo
+                  }
+              }
+              for(OrderItem det : order.items){
+                  if( !StringUtils.trimToEmpty(det.item.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                      totalOrder = totalOrder.add( det.item.listPrice.multiply(new BigDecimal(det.quantity)) )
+                  }
+              }
+              if( minimum.compareTo(totalOrder) > 0 ){
+                  notMinAmount = true
+              }
           }
+          if (pNewValue && valid) {
+              if( !notMinAmount ){
+                  this.promotionDriver.requestApplyPromotion(pPromotion)
+              } else {
+                  NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.US)
+                  sb.optionPane(message: "Monto Mínimo de Compra ${nf.format(minimum)}", optionType: JOptionPane.DEFAULT_OPTION)
+                          .createDialog(new JTextField(), "Error")
+                          .show()
+              }
+          } else {
+              this.promotionDriver.requestCancelPromotion(pPromotion)
 
-        OrderController.deleteCuponMv( order.id )
+              Payment payment = null
+              for(Payment pay : order.payments){
+                  if( StringUtils.trimToEmpty(pay.paymentTypeId).equalsIgnoreCase(TAG_PAYMENT_TYPE_TRANSF) ){
+                      payment = pay
+                  }
+              }
+              if( payment != null ){
+                  List<CuponMv> lstCupons = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(order.id) )
+                  if( lstCupons.size() > 0 ){
+                      OrderController.existDiscountKey( StringUtils.trimToEmpty(lstCupons.first().claveDescuento),
+                              StringUtils.trimToEmpty(payment.paymentReference) )
+                  }
+              }
+
+              OrderController.deleteCuponMv( order.id )
+          }
+          for(Payment payment : order.payments){
+              OrderController.removePaymentFromOrder( order.id, payment )
+          }
+          OrderController.saveOrder( order )
+          updateOrder(order?.id)
       }
-      for(Payment payment : order.payments){
-        OrderController.removePaymentFromOrder( order.id, payment )
-      }
-      OrderController.saveOrder( order )
-      updateOrder(order?.id)
     }
 
     Order getOrder() {
@@ -1439,6 +1601,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void fireRequestQuote() {
+      if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         dioptra = OrderController.generaDioptra(OrderController.preDioptra(order?.dioptra))
         String dio = OrderController.codigoDioptra(dioptra)
         Item i = OrderController.findArt(dio.trim())
@@ -1458,6 +1621,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               OrderController.notifyAlert(TXT_REQUEST_QUOTE, TXT_NO_ORDER_PRESENT)
             }
           }
+      } else {
+          JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
+                  "Venta Anulada", JOptionPane.ERROR_MESSAGE )
+      }
     }
 
     private void setCustomerInOrder() {
@@ -1535,7 +1702,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void fireRequestContinue(DefaultTableModel itemsModel) {
+      if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
+        Boolean hasLc = false
         dioptra = new Dioptra()
         Boolean hasDioptra = false
         Boolean hasOnlyEnsure = false
@@ -1549,6 +1718,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
           if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
             hasOnlyEnsure = true
+          }
+          if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+            hasLc = true
           }
         }
         if( !hasDioptra ){
@@ -1578,6 +1750,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+          rec = OrderController.findRx(order, customer)
+          Boolean continueSave = true
+          if( hasLc && (rec == null || rec.id == null) ){
+            Branch branch = Session.get(SessionItem.BRANCH) as Branch
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+            editRx.show()
+            try {
+              if( rec != null ){
+                OrderController.saveRxOrder(order?.id, this.rec.id)
+              } else {
+                continueSave = false
+              }
+            } catch ( Exception e ){ println e }
+          }
+          if( continueSave ){
           if (!dioptra.getLente().equals(null)) {
             Item i = OrderController.findArt(dio.trim())
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1636,6 +1823,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   ticketRx = false
                   flujoContinuar()
               }
+            }
         } else {
           sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
              .createDialog(new JTextField(), "Error")
@@ -1652,6 +1840,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
           }
       }
+    } else {
+        JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
+              "Venta Anulada", JOptionPane.ERROR_MESSAGE )
+      }
     }
 
     private void flujoContinuar() {
@@ -1663,6 +1855,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 Order newOrder = OrderController.saveOrder(order)
                 CustomerController.updateCustomerInSite(this.customer.id)
                 this.promotionDriver.requestPromotionSave(newOrder?.id, false)
+                for(IPromotionAvailable promo : promotionList){
+                  if( promo instanceof PromotionDiscount ){
+                    OrderController.updateCuponMvByClave(order.id, StringUtils.trimToEmpty(promo.discountType.description))
+                  }
+                }
                 this.reset()
             }
         } else {
@@ -1673,11 +1870,26 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
 
+    private void fireRequestCancelOrder( ) {
+      List<Order> lstOrders = CancellationController.findOrderToResetValues(order.id)
+      for (Order order : lstOrders) {
+        CancellationController.resetValuesofCancellation(order.id)
+      }
+      OrderController.deleteOrder( StringUtils.trimToEmpty(order.id) )
+      User u = Session.get(SessionItem.USER) as User
+      OrderController.addLogOrderCancelled( StringUtils.trimToEmpty(order.id), StringUtils.trimToEmpty(u.username) )
+      this.reset()
+    }
+
+
+
     private void fireRequestNewOrder(DefaultTableModel itemsModel) {
+      if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         dioptra = new Dioptra()
         Boolean hasDioptra = false
         Boolean hasOnlyEnsure = false
+        Boolean hasLc = false
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
@@ -1688,6 +1900,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
           if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
             hasOnlyEnsure = true
+          }
+          if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+            hasLc = true
           }
         }
         if( !hasDioptra ){
@@ -1717,6 +1932,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+          Boolean continueSave = true
+          rec = OrderController.findRx(order, customer)
+          if( hasLc && (rec == null || rec.id == null) ){
+            Branch branch = Session.get(SessionItem.BRANCH) as Branch
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+            editRx.show()
+            try {
+              if( rec != null ){
+                OrderController.saveRxOrder(order?.id, this.rec.id)
+              } else {
+                continueSave = false
+              }
+            } catch ( Exception e ){ println e }
+          }
+          if( continueSave ){
               if (!dioptra.getLente().equals(null)) {
                   Item i = OrderController.findArt(dio.trim())
                   if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
@@ -1775,6 +2005,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   ticketRx = false
                   flujoOtraOrden()
               }
+            }
         } else {
               sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                       .createDialog(new JTextField(), "Error")
@@ -1791,14 +2022,23 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
           }
       }
+    } else {
+          JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
+                  "Venta Anulada", JOptionPane.ERROR_MESSAGE )
+      }
     }
 
 
     private void flujoOtraOrden(){
-        if (itemsModel.size() > 0) {
+        //if (itemsModel.size() > 0) {
             if (paymentsModel.size() == 0) {
                 if( !validLenses() ){
                     order.dioptra = null
+                }
+                for(IPromotionAvailable promo : promotionList){
+                    if( promo instanceof PromotionDiscount ){
+                        OrderController.updateCuponMvByClave(order.id, StringUtils.trimToEmpty(promo.discountType.description))
+                    }
                 }
                 Customer c = this.customer
                 Order newOrder = OrderController.saveOrder(order)
@@ -1814,11 +2054,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     OrderController.notifyAlert(TXT_REQUEST_NEW_ORDER, TXT_PAYMENTS_PRESENT)
                 }
             }
-        } else {
+        /*} else {
             sb.doLater {
                 OrderController.notifyAlert(TXT_REQUEST_NEW_ORDER, TXT_PAYMENTS_PRESENT)
             }
-        }
+        }*/
     }
 
     private Boolean isPaymentListEmpty() {
@@ -1939,11 +2179,40 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
   private void generatedCoupons( Boolean validClave, Order newOrder){
     if(validClave){
-          Integer var = 1
-          if( Registry.tirdthPairValid() ){
-              var = 2
+      Boolean hasGenericH = false
+      for( OrderItem oi : newOrder.items ){
+        if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+          hasGenericH = true
+        }
+      }
+      if( hasGenericH ){
+        Integer var = 1
+        if( Registry.tirdthPairValid() ){
+          var = 2
+        }
+        for(int i=0;i<var;i++){
+          BigDecimal montoCupon = i == 0 ? OrderController.getCuponAmount(newOrder.id) : OrderController.getCuponAmountThirdPair( newOrder.id )
+          if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
+            String titulo = i == 0 ? "CUPON SEGUNDO PAR LC" : "CUPON TERCER PAR LC"
+            Integer numCupon = i == 0 ? 2 : 3
+            CuponMv cuponMv = new CuponMv()
+            cuponMv.facturaDestino = ""
+            cuponMv.facturaOrigen = order.id
+            cuponMv.fechaAplicacion = null
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
+            cuponMv.fechaVigencia = calendar.getTime()
+            cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
+            OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
           }
-          for(int i=0;i<var;i++){
+        }
+      } else {
+        Integer var = 1
+        if( Registry.tirdthPairValid() ){
+          var = 2
+        }
+        for(int i=0;i<var;i++){
               BigDecimal montoCupon = i == 0 ? OrderController.getCuponAmount(newOrder.id) : OrderController.getCuponAmountThirdPair( newOrder.id )
               if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
                   String titulo = i == 0 ? "CUPON SEGUNDO PAR" : "CUPON TERCER PAR"
@@ -1960,7 +2229,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
                   OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
               }
-          }
+        }
+      }
     }
   }
 
@@ -2000,6 +2270,40 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
     }
     return valid
+  }
+
+
+
+  private String ipCurrentMachine( ){
+    String line = ""
+    String ip = ""
+    try{
+          line = System.getenv("SSH_CLIENT");
+    } catch ( Exception e ) { println e }
+
+    if( StringUtils.trimToEmpty(line).length() > 0 ){
+          String[] data = StringUtils.trimToEmpty(line).split(" ")
+          if( data.length > 1 ){
+              ip = data[0]
+              println "Ip Maquina: "+ip
+         }
+    }
+
+    if(StringUtils.trimToEmpty(ip).length() <= 0){
+          Enumeration en = NetworkInterface.getNetworkInterfaces();
+          while(en.hasMoreElements()){
+              NetworkInterface ni=(NetworkInterface) en.nextElement();
+              Enumeration ee = ni.getInetAddresses();
+              while(ee.hasMoreElements()) {
+                  InetAddress ia= (InetAddress) ee.nextElement();
+                  if(StringUtils.trimToEmpty(ia.canonicalHostName).contains(InetAddress.getLocalHost().getHostName())){
+                      ip = ia.getHostAddress()
+                      println("Ip Maquina: "+ip)
+                  }
+              }
+          }
+    }
+    return ip
   }
 
 

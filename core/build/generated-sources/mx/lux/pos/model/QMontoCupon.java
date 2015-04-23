@@ -18,6 +18,8 @@ public class QMontoCupon extends EntityPathBase<MontoCupon> {
 
     public static final QMontoCupon montoCupon = new QMontoCupon("montoCupon");
 
+    public final NumberPath<Integer> cantidad = createNumber("cantidad", Integer.class);
+
     public final StringPath generico = createString("generico");
 
     public final NumberPath<Integer> id = createNumber("id", Integer.class);
@@ -29,6 +31,8 @@ public class QMontoCupon extends EntityPathBase<MontoCupon> {
     public final NumberPath<java.math.BigDecimal> montoMinimo = createNumber("montoMinimo", java.math.BigDecimal.class);
 
     public final NumberPath<java.math.BigDecimal> montoTercerPar = createNumber("montoTercerPar", java.math.BigDecimal.class);
+
+    public final StringPath subtipo = createString("subtipo");
 
     public final StringPath tipo = createString("tipo");
 
