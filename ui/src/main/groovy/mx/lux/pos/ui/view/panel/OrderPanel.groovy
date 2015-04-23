@@ -2299,6 +2299,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   if(StringUtils.trimToEmpty(ia.canonicalHostName).contains(InetAddress.getLocalHost().getHostName())){
                       ip = ia.getHostAddress()
                       println("Ip Maquina: "+ip)
+                      break
                   }
               }
           }
