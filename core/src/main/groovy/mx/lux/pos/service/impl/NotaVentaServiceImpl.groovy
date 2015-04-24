@@ -205,7 +205,11 @@ class NotaVentaServiceImpl implements NotaVentaService {
           log.debug( "redondeo monto total" )
           DetalleNotaVenta det = null
           for(DetalleNotaVenta detalleNotaVenta : detalles){
-            if( !StringUtils.trimToEmpty(detalleNotaVenta.articulo.idGenerico).equalsIgnoreCase("J") ){
+            Articulo articulo = detalleNotaVenta.articulo
+            if( articulo == null ){
+              articulo = articuloRepository.findOne( detalleNotaVenta.idArticulo )
+            }
+            if( !StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase("J") ){
               det = detalleNotaVenta
             }
           }
