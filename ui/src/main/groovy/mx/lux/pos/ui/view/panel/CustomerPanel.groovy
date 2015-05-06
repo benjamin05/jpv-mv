@@ -249,7 +249,7 @@ class CustomerPanel extends JPanel {
                 cbCell = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_SMS )},
                         constraints: 'hidemode 3', visible: showMovil )
                 label( text: 'Celular:', constraints: 'hidemode 3', visible: showMovil )
-                txtSms = textField( constraints: 'hidemode 3', visible: showMovil )
+                txtSms = textField( constraints: 'hidemode 3', visible: showMovil, document: new UpperCaseDocument() )
 
                 if ( edit ) {
                     txtSms.setBorder(BorderFactory.createLineBorder(Color.RED))
@@ -261,7 +261,7 @@ class CustomerPanel extends JPanel {
                 cbHouse = radioButton( buttonGroup: typeContact, actionPerformed: {principalSelected( TAG_ID_TELEFONO )},
                         constraints: 'hidemode 3', visible: showTelefono )
                 label( text: 'Telefono:', constraints: 'hidemode 3', visible: showTelefono )
-                txtTelefono = textField( constraints: 'hidemode 3', visible: showTelefono )
+                txtTelefono = textField( constraints: 'hidemode 3', visible: showTelefono, document: new UpperCaseDocument() )
                 label( text: ' ', constraints: 'hidemode 3', visible: showTelefono )
                 label( text: ' ', constraints: 'hidemode 3', visible: showTelefono )
 
@@ -799,41 +799,32 @@ class CustomerPanel extends JPanel {
     private Boolean validaDatos() {
 
         Boolean completo = true
-
-
         if ( firstName.getText().equals("") ) {
             completo = false
         }
-
         if ( fathersName.getText().equals("") ) {
             completo = false
         }
-
         if ( mothersName.getText().equals("") ) {
             completo = false
         }
-
         if ( txtBirthDate.getText().equals("") ) {
             completo = false
         }
-
         if ( this.edit == true ) {
             if ( model.size() == 0 ) {
 //                completo = false
             }
-
             if ( showMovil ) {
                 if (txtSms.getText().equals("")) {
                     completo = false
                 }
             }
-
             if ( showTelefono ) {
                 if (txtTelefono.getText().equals("")) {
                     completo = false
                 }
             }
-
             if ( showCorreo ) {
                 if ( StringUtils.trimToEmpty( txtEmail.getText() ).equals("") || StringUtils.trimToEmpty( dominio.selectedItem?.toString() ).equals("") ) {
                     if ( StringUtils.trimToEmpty( txtEmail.getText() ).toUpperCase().equals("ND") ) {

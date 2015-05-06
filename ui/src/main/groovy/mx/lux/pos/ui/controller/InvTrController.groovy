@@ -560,7 +560,7 @@ class InvTrController {
     receiptDialog.show()
     log.debug(receiptDialog.getTxtClave())
     if ( StringUtils.trimToEmpty(receiptDialog.getTxtClave()).length() > 0 ) {
-      String path = Registry.inputFilePath
+      String path = Registry.getParametroOS("ruta_por_recibir")
       File source = new File( path )
       File rem = null
       source.eachFile { file ->
