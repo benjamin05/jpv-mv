@@ -1335,7 +1335,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
           pedidoLcRepository.save( pedidoLc )
           pedidoLcRepository.flush()
 
-          String fichero = "${Registry.archivePath}/${Registry.currentSite}-${pedidoLc.id}.LC"
+          String fichero = "${Registry.getParametroOS("ruta_por_enviar")}/${Registry.currentSite}-${pedidoLc.id}.LC"
           log.debug( "Generando Fichero: ${ fichero }" )
           File file = new File( fichero )
           if ( file.exists() ) { file.delete() }

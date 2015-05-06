@@ -172,14 +172,12 @@ class ArchiveTask {
 
           // Genera archivos Paso
           //sb1.append(Registry.getParametroOS("comando_zip") + " " + this.getArchiveFile() + ' ' + this.filePattern + ' ' + "*.inv")
-          String command = Registry.getParametroOS("comando_tar") + " " + this.getArchiveFile() + ' '
-          + Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' + "*.inv";
+          String command = Registry.getParametroOS("comando_tar") + " " + this.getArchiveFile()+' '+ Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' + "*.inv";
           logger.debug(command)
           Process p1 = Runtime.getRuntime().exec(command);
 
           // Genera archivos Mensajero
-          command = Registry.getParametroOS("comando_tar") + " " + this.getArchiveFileMessenger() + ' '
-          + Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' +"*.inv";
+          command = Registry.getParametroOS("comando_tar") + " " + this.getArchiveFileMessenger() +' '+ Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' +"*.inv";
           logger.debug(command)
           Process p2 = Runtime.getRuntime().exec(command);
 
