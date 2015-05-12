@@ -485,6 +485,18 @@ class Registry {
         return  asString(TipoParametro.ALMACENES)
     }
 
+  static String getPasswordLinux() {
+    return  asString(TipoParametro.PASSWORD_LINUX)
+  }
+
+  static String getUserLinux() {
+    return  asString(TipoParametro.USUARIO_LINUX)
+  }
+
+  static String getHostLinux() {
+    return  asString(TipoParametro.HOST_LINUX)
+  }
+
   static String getUsuarioSistemas() {
     return  asString(TipoParametro.USUARIO_SISTEMAS)
   }
@@ -496,6 +508,10 @@ class Registry {
     static Integer getAlmacenPorAclarar() {
         return  asInteger(TipoParametro.ALMACEN_POR_ACLARAR)
     }
+
+  static Integer getPortLinux() {
+    return  asInteger(TipoParametro.PORT_LINUX)
+  }
 
     static Integer getValidityEnsureKid() {
         return  asInteger(TipoParametro.VIGENCIA_SEGURO_INFANTIL)

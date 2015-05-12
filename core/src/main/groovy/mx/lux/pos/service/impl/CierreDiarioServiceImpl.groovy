@@ -1,5 +1,7 @@
 package mx.lux.pos.service.impl
 
+import com.jcraft.jsch.ChannelExec
+import com.jcraft.jsch.JSch
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
@@ -16,8 +18,10 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.ui.velocity.VelocityEngineUtils
 import org.springframework.util.Assert
+import com.jcraft.jsch.Session;
 
 import javax.annotation.Resource
+import javax.swing.JTextArea
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 
@@ -1605,27 +1609,42 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
 
 
     void correProcesoBodegas(  ){
-      log.debug( "correProcesoBodegas(  )" )
-      Integer diaBod = Registry.cellarDay
-      Calendar cal = Calendar.getInstance();
-      Integer dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
-      //if( dayOfMonth == diaBod ){
+      log.debug( "correProcesoBodegas( )" )
+      log.debug("SSH")
+      JSch ssh = new JSch();
+      log.debug("Session")
+      Session session = null;
+      log.debug("ChannelExec")
+      ChannelExec channelssh = null;
         try{
-          String s = null
-          Process p1 = Runtime.getRuntime().exec(TAG_COMANDO_BODEGA);
+          String user = Registry.userLinux
+          String host = Registry.hostLinux
+          Integer port = Registry.portLinux
+          String password = Registry.passwordLinux
+          log.debug( "Host: "+host )
+          log.debug( "User: "+user )
+          log.debug( "Port: "+port )
+          log.debug( "Pass: "+password )
+          session = ssh.getSession(user, host, port);
+          session.setPassword(password);
+          Properties prop = new Properties();
+          prop.put("StrictHostKeyChecking", "no");
+          session.setConfig(prop);
+          session.connect();
 
-          BufferedReader stdInput = new BufferedReader(new InputStreamReader(p1.getInputStream()));
-          BufferedReader stdError = new BufferedReader(new InputStreamReader(p1.getErrorStream()));
-          while ((s = stdInput.readLine()) != null) {
-              println(s+"\n");
-          }
-          while ((s = stdError.readLine()) != null) {
-              println(s+"\n");
-          }
+          channelssh = (ChannelExec) session.openChannel("exec");
+          channelssh.setCommand(TAG_COMANDO_BODEGA);
+          //channelssh.setCommand("mkdir /usr/local/Jsoi2/test");
+          channelssh.connect();
+
         } catch ( Exception ex ){
-          println( ex.getMessage() )
+          log.error( ex.getMessage() )
+        } finally {
+            if (channelssh.isConnected())
+                channelssh.disconnect();
+            if (session.isConnected())
+                session.disconnect();
         }
-      //}
     }
 
 

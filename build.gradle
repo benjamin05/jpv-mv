@@ -87,6 +87,7 @@ project( 'core' ) {
     compile 'postgresql:postgresql:9.1-901.jdbc4'
     compile 'com.ibm.icu:icu4j:49.1'
     compile files('/soi/lib/contents/commons-beanutils-1.6.jar')
+    compile files('/soi/lib/contents/jsch-0.1.42.jar')
     runtime 'org.javassist:javassist:3.15.0-GA'
   }
 
