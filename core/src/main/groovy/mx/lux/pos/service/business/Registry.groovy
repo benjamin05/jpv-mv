@@ -1,5 +1,8 @@
 package mx.lux.pos.service.business
 
+import com.jcraft.jsch.ChannelExec
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.Session
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.impl.RepositoryFactory
@@ -678,5 +681,40 @@ class Registry {
         return properties.getProperty( key )
     }
 
+    static Boolean executeCommand( String command ){
+      log.debug( "execute command: "+command )
+        JSch ssh = new JSch();
+        Session session = null;
+        ChannelExec channelssh = null;
+        try{
+            String user = userLinux
+            String host = hostLinux
+            Integer port = portLinux
+            String password = passwordLinux
+            log.debug( "Host: "+host )
+            log.debug( "User: "+user )
+            log.debug( "Port: "+port )
+            log.debug( "Pass: "+password )
+            session = ssh.getSession(user, host, port);
+            session.setPassword(password);
+            Properties prop = new Properties();
+            prop.put("StrictHostKeyChecking", "no");
+            session.setConfig(prop);
+            session.connect();
+
+            channelssh = (ChannelExec) session.openChannel("exec");
+            channelssh.setCommand(command);
+            //channelssh.setCommand("mkdir /usr/local/Jsoi2/test");
+            channelssh.connect();
+
+        } catch ( Exception ex ){
+            log.error( ex.getMessage() )
+        } finally {
+            if (channelssh.isConnected())
+                channelssh.disconnect();
+            if (session.isConnected())
+                session.disconnect();
+        }
+    }
 
 }

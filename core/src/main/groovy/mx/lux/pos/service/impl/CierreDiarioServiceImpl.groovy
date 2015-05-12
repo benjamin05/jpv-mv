@@ -1610,41 +1610,7 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
 
     void correProcesoBodegas(  ){
       log.debug( "correProcesoBodegas( )" )
-      log.debug("SSH")
-      JSch ssh = new JSch();
-      log.debug("Session")
-      Session session = null;
-      log.debug("ChannelExec")
-      ChannelExec channelssh = null;
-        try{
-          String user = Registry.userLinux
-          String host = Registry.hostLinux
-          Integer port = Registry.portLinux
-          String password = Registry.passwordLinux
-          log.debug( "Host: "+host )
-          log.debug( "User: "+user )
-          log.debug( "Port: "+port )
-          log.debug( "Pass: "+password )
-          session = ssh.getSession(user, host, port);
-          session.setPassword(password);
-          Properties prop = new Properties();
-          prop.put("StrictHostKeyChecking", "no");
-          session.setConfig(prop);
-          session.connect();
-
-          channelssh = (ChannelExec) session.openChannel("exec");
-          channelssh.setCommand(TAG_COMANDO_BODEGA);
-          //channelssh.setCommand("mkdir /usr/local/Jsoi2/test");
-          channelssh.connect();
-
-        } catch ( Exception ex ){
-          log.error( ex.getMessage() )
-        } finally {
-            if (channelssh.isConnected())
-                channelssh.disconnect();
-            if (session.isConnected())
-                session.disconnect();
-        }
+      Registry.executeCommand( TAG_COMANDO_BODEGA )
     }
 
 
