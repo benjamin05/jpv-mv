@@ -507,6 +507,10 @@ class Registry {
         return isTrue( TipoParametro.ACTIVE_STORE_DISCOUNT )
     }
 
+    static Boolean getPromoAgeActive( ) {
+        return isTrue( TipoParametro.PROMO_EDAD_ACTIVA )
+    }
+
     static Boolean getValidSPToStore( ) {
         return isTrue( TipoParametro.SALIDA_VENTA_SP )
     }
@@ -554,6 +558,10 @@ class Registry {
     }
   static Double getAckDelay( ) {
     return asDouble( TipoParametro.ACUSE_RETRASO )
+  }
+
+  static Double getValidAmountPromoAge( ) {
+    return asDouble( TipoParametro.MONTO_VALIDO_PROMO_EDAD )
   }
 
   static Double getAmountToGenerateFFCoupon( ) {

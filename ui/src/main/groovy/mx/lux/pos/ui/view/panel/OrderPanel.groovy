@@ -99,8 +99,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private JLabel paid
     private JLabel due
     private JLabel change
+    private JLabel lblPromo
+    private JLabel lblAmountPromo
 
     private Integer flag = 0
+    private BigDecimal promoAmount = BigDecimal.ZERO
 
     private Boolean isPaying = false
 
@@ -120,6 +123,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private String ip
     private HelpItemSearchDialog helpItemSearchDialog
 
+    private Boolean promoAgeActive
+
     private String MSJ_ERROR_WARRANTY = ""
     private String TXT_ERROR_WARRANTY = ""
 
@@ -137,6 +142,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
         }
         ip = ipCurrentMachine()
+        promoAgeActive = Registry.promoAgeActive
         customer = CustomerController.findDefaultCustomer()
         promotionList = new ArrayList<PromotionAvailable>()
         promotionListTmp = new ArrayList<PromotionAvailable>()
@@ -172,6 +178,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     folio = label()
                     label('Factura')
                     bill = label()
+                    lblPromo = label('Descuento:', constraints: 'hidemode 3', visible: promoAgeActive )
+                    lblAmountPromo = label( constraints: 'hidemode 3', visible: promoAgeActive)
                 }
 
                 panel(border: loweredEtchedBorder(), layout: new MigLayout('wrap 2', '[][grow,right]', '[top]')) {
@@ -321,6 +329,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void doBindings() {
+      if(promoAgeActive){
+        calculatedPromoAge()
+      }
         sb.build {
             bean(customerName, text: bind { customer?.fullName })
             bean(folio, text: bind { order.id })
@@ -1299,6 +1310,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           vendedor = cambiaVendedor?.vendedor
         }
 
+        promotionDriver.addPromoDiscountAge( order, promoAmount )
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
         Order newOrder = OrderController.placeOrder(order, vendedor, false)
         OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
@@ -1528,23 +1540,31 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           .show()
               }
           } else {
+            Boolean canDelete = true
+              if( pPromotion instanceof PromotionDiscount){
+                if( StringUtils.trimToEmpty(pPromotion.discountType.description).equalsIgnoreCase("PREDAD") ){
+                  canDelete = false
+                }
+              }
+            if( canDelete ){
               this.promotionDriver.requestCancelPromotion(pPromotion)
 
               Payment payment = null
               for(Payment pay : order.payments){
-                  if( StringUtils.trimToEmpty(pay.paymentTypeId).equalsIgnoreCase(TAG_PAYMENT_TYPE_TRANSF) ){
-                      payment = pay
-                  }
+                if( StringUtils.trimToEmpty(pay.paymentTypeId).equalsIgnoreCase(TAG_PAYMENT_TYPE_TRANSF) ){
+                  payment = pay
+                }
               }
               if( payment != null ){
-                  List<CuponMv> lstCupons = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(order.id) )
-                  if( lstCupons.size() > 0 ){
-                      OrderController.existDiscountKey( StringUtils.trimToEmpty(lstCupons.first().claveDescuento),
-                              StringUtils.trimToEmpty(payment.paymentReference) )
-                  }
+                List<CuponMv> lstCupons = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(order.id) )
+                if( lstCupons.size() > 0 ){
+                  OrderController.existDiscountKey( StringUtils.trimToEmpty(lstCupons.first().claveDescuento),
+                      StringUtils.trimToEmpty(payment.paymentReference) )
+                }
               }
 
               OrderController.deleteCuponMv( order.id )
+            }
           }
           for(Payment payment : order.payments){
               OrderController.removePaymentFromOrder( order.id, payment )
@@ -2304,6 +2324,41 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
     }
     return ip
+  }
+
+
+
+  private void calculatedPromoAge( ){
+    Boolean promoApplied = false
+    for(IPromotionAvailable promo : promotionList){
+      if( promo.applied ){
+         promoApplied = true
+      }
+      if( !promoApplied ){
+
+      }
+    }
+
+    if( !promoApplied ){
+      promoAmount = OrderController.amountPromoAge( order.id )
+      if( promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
+        promotionDriver.addPromoDiscountAge( order, promoAmount )
+      }/* else {
+        promotionDriver.requestCancelPromotion()
+      }*/
+      lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount)
+      String comments = ''
+      if( order.comments != null && order.comments != '' ){
+        comments = order.comments
+      }
+      Order tmp = OrderController.getOrder(order.id)
+      if (tmp?.id) {
+        if( comments.length() > 0 ){
+          tmp?.comments = comments
+        }
+        order = tmp
+      }
+    }
   }
 
 
