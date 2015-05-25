@@ -337,9 +337,23 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             bean(folio, text: bind { order.id })
             bean(bill, text: bind { order.bill })
             bean(date, text: bind(source: order, sourceProperty: 'date', converter: dateConverter), alignmentX: CENTER_ALIGNMENT)
-            bean(total, text: bind(source: order, sourceProperty: 'total', converter: currencyConverter))
+            if( promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
+                BigDecimal amountParcial = BigDecimal.ZERO
+                BigDecimal amountEnsure = BigDecimal.ZERO
+                for(OrderItem orderItem : order.items){
+                    if( StringUtils.trimToEmpty(orderItem.item.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                        amountEnsure = amountEnsure.add(orderItem.item.price)
+                    } else {
+                        amountParcial = amountParcial.add(orderItem.item.price)
+                    }
+                }
+                total.text = NumberFormat.getCurrencyInstance(Locale.US).format((amountParcial.subtract(promoAmount)).add(amountEnsure))
+                due.text = NumberFormat.getCurrencyInstance(Locale.US).format(((amountParcial.subtract(promoAmount)).add(amountEnsure)).subtract(order.paid))
+            } else {
+              bean(total, text: bind(source: order, sourceProperty: 'total', converter: currencyConverter))
+              bean(due, text: bind(source: order, sourceProperty: 'dueString'))
+            }
             bean(paid, text: bind(source: order, sourceProperty: 'paid', converter: currencyConverter))
-            bean(due, text: bind(source: order, sourceProperty: 'dueString'))
             bean(itemsModel.rowsModel, value: bind(source: order, sourceProperty: 'items', mutual: true))
             bean(paymentsModel.rowsModel, value: bind(source: order, sourceProperty: 'payments', mutual: true))
             bean(comments, text: bind(source: order, sourceProperty: 'comments', mutual: true))
@@ -736,7 +750,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     }
                   }
                     CuponMvView cuponMvView = OrderController.cuponValid( order.customer.id )
-                    new PaymentDialog(ev.component, order, null, cuponMvView, this, hasDiscount).show()
+                    new PaymentDialog(ev.component, order, null, cuponMvView, this, hasDiscount, promoAmount).show()
                     updateOrder(order?.id)
                     //validTransferCuponMv()
                     doBindings()
@@ -1454,6 +1468,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               OrderController.fieldRX(newOrder.id)
             }
             reviewForTransfers(newOrder.id)
+            promoAmount = BigDecimal.ZERO
+            lblAmountPromo.text = promoAmount
             sb.doOutside {
               try{
                 OrderController.runScriptBckpOrder( newOrder )
@@ -2334,18 +2350,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       if( promo.applied ){
          promoApplied = true
       }
-      if( !promoApplied ){
-
-      }
     }
 
     if( !promoApplied ){
       promoAmount = OrderController.amountPromoAge( order.id )
-      if( promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
-        promotionDriver.addPromoDiscountAge( order, promoAmount )
-      }/* else {
-        promotionDriver.requestCancelPromotion()
-      }*/
       lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount)
       String comments = ''
       if( order.comments != null && order.comments != '' ){
