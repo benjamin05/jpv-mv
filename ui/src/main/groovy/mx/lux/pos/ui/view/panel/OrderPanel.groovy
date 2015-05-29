@@ -120,7 +120,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private Boolean advanceOnlyInventariable
     private Boolean canceledWarranty
     private String sComments = ''
-    private String ip
+    private static final String ip = Registry.ipCurrentMachine()
     private HelpItemSearchDialog helpItemSearchDialog
 
     private Boolean promoAgeActive
@@ -141,7 +141,6 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                customerTypes.add(customer)
             }
         }
-        ip = ipCurrentMachine()
         promoAgeActive = Registry.promoAgeActive
         customer = CustomerController.findDefaultCustomer()
         promotionList = new ArrayList<PromotionAvailable>()
@@ -517,6 +516,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         }
                       }
                       if( valid ){
+                        sb.doOutside {
+                          Registry.getSolicitaGarbageColector()
+                        }
                         CustomerController.requestPayingCustomer(this)
                         isPaying = true
                       } else {
@@ -559,6 +561,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     }
                     break*/
             }
+            sb.doOutside {
+              Registry.getSolicitaGarbageColector()
+            }
             if(!operationType.selectedItem.equals(OperationType.DOMESTIC)){
               operationType.removeItem( OperationType.DOMESTIC )
             }
@@ -571,6 +576,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
     private def doItemSearch( Boolean holdPromo ) {
+      Registry.getSolicitaGarbageColector()
       println "holdPromo: "+holdPromo
         Receta rec = new Receta()
         String input = itemSearch.text
@@ -942,6 +948,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                                       .show()
                           }
                       } else {
+                        sb.doOutside {
+                          Registry.getSolicitaGarbageColector()
+                        }
                           order = OrderController.addItemToOrder(order, item, surte)
                           updateOrder( order.id )
                           validaLC(item, false)
@@ -1000,6 +1009,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private def doPrint = { ActionEvent ev ->
+      Registry.getSolicitaGarbageColector()
       if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         dioptra = new Dioptra()
@@ -1008,7 +1018,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
-              controlItem( result, true )
+              if( StringUtils.trimToEmpty(order.dioptra).contains("@") ){
+                controlItem( result, true )
+              }
               if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
                 hasDioptra = true
               }
@@ -1016,6 +1028,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
               hasLc = true
             }
+        }
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
         }
         if( !hasDioptra ){
           order.dioptra = null
@@ -1034,6 +1049,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, true )
         } else {
           warranty = true
+        }
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
         }
         if( warranty ){
           if( validLensesPack() ){
@@ -1152,13 +1170,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         logger.debug('Index Dioptra del Articulo : ' + item?.indexDiotra)
         if (!StringUtils.trimToNull(indexDioptra).equals(null) && !StringUtils.trimToNull(item?.indexDiotra).equals(null)) {
             Dioptra nuevoDioptra = OrderController.generaDioptra(item?.indexDiotra)
-            logger.debug('Nuevo Objeto Dioptra :' + nuevoDioptra)
+            /*logger.debug('Nuevo Objeto Dioptra :' + nuevoDioptra)
             logger.debug('Dioptra :' + dioptra?.material)
             logger.debug('Dioptra :' + dioptra?.lente)
             logger.debug('Dioptra :' + dioptra?.tratamiento)
             logger.debug('Dioptra :' + dioptra?.color)
             logger.debug('Dioptra :' + dioptra?.especial)
-            logger.debug('Dioptra :' + dioptra?.tipo)
+            logger.debug('Dioptra :' + dioptra?.tipo)*/
             dioptra = OrderController.validaDioptra(dioptra, nuevoDioptra)
             logger.debug('Dioptra Generado :' + dioptra)
                 antDioptra = OrderController.addDioptra(order, OrderController.codigoDioptra(dioptra))
@@ -1185,6 +1203,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void flujoImprimir(int artCount) {
+      sb.doOutside {
+        Registry.getSolicitaGarbageColector()
+      }
         armazonString = null
         Boolean validOrder = isValidOrder()
         if (artCount != 0) {
@@ -1316,6 +1337,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void saveOrder() {
+      sb.doOutside {
+        Registry.getSolicitaGarbageColector()
+      }
         User user = Session.get(SessionItem.USER) as User
         String vendedor = user.username
         if( OrderController.showValidEmployee() ){
@@ -1324,7 +1348,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           vendedor = cambiaVendedor?.vendedor
         }
 
-        promotionDriver.addPromoDiscountAge( order, promoAmount )
+        if( promoAgeActive && promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
+          promotionDriver.addPromoDiscountAge( order, promoAmount )
+        }
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
         Order newOrder = OrderController.placeOrder(order, vendedor, false)
         OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
@@ -1738,6 +1764,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void fireRequestContinue(DefaultTableModel itemsModel) {
+      Registry.getSolicitaGarbageColector()
       if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         Boolean hasLc = false
@@ -1747,10 +1774,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
+              if( StringUtils.trimToEmpty(order.dioptra).contains("@") ){
                 controlItem( result, true )
-                if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
-                    hasDioptra = true
-                }
+              }
+              if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
+                hasDioptra = true
+              }
             }
           if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
             hasOnlyEnsure = true
@@ -1758,6 +1787,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
             hasLc = true
           }
+        }
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
         }
         if( !hasDioptra ){
             order.dioptra = null
@@ -2310,11 +2342,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
 
-  private String ipCurrentMachine( ){
+  /*private String ipCurrentMachine( ){
     String line = ""
     String ip = ""
     try{
-          line = System.getenv("SSH_CLIENT");
+      line = System.getenv("SSH_CLIENT");
     } catch ( Exception e ) { println e }
 
     if( StringUtils.trimToEmpty(line).length() > 0 ){
@@ -2340,7 +2372,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
     }
     return ip
-  }
+  }*/
 
 
 
@@ -2365,6 +2397,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           tmp?.comments = comments
         }
         order = tmp
+      }
+    } else {
+      PromotionModel promo = promotionDriver.model
+      promoAmount = BigDecimal.ZERO
+      lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount)
+      String comments = ''
+      if( order.comments != null && order.comments != '' ){
+            comments = order.comments
+      }
+      Order tmp = OrderController.getOrder(order.id)
+      if (tmp?.id) {
+            if( comments.length() > 0 ){
+                tmp?.comments = comments
+            }
+            order = tmp
       }
     }
   }
