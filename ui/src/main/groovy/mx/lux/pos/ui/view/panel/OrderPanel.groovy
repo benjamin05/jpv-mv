@@ -331,6 +331,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       if(promoAgeActive){
         calculatedPromoAge()
       }
+
         sb.build {
             bean(customerName, text: bind { customer?.fullName })
             bean(folio, text: bind { order.id })
@@ -785,7 +786,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
             if (ev.clickCount == 2 && valid && (!operationType1.equals(OperationType.PENDING) &&
                     !operationType1.equals(OperationType.EDIT_PAYING) && !operationType1.equals(OperationType.QUOTE))) {
-                new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false).show()
+                new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false, promoAmount).show()
                 updateOrder(order?.id)
             }
         }
