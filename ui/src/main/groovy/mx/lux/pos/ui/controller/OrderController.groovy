@@ -2,6 +2,7 @@ package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
+import mx.lux.pos.querys.NotaVentaQuery
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.*
@@ -268,8 +269,8 @@ class OrderController {
     static Dioptra addDioptra(Order order, String dioptra) {
       log.debug( "addDioptra( )" )
       //NotaVenta nota = notaVentaService.obtenerNotaVenta(order.id)
-      NotaVentaJava
-      nota.setCodigo_lente(dioptra)
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(order.id)
+      nota.setCodigoLente(dioptra)
       nota = notaVentaService.registrarNotaVenta(nota)
       Dioptra diop = generaDioptra(preDioptra(nota.codigo_lente))
       println('Codigo Lente: ' + nota.codigo_lente)

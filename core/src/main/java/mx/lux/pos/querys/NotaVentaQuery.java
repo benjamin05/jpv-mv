@@ -1,11 +1,10 @@
 package mx.lux.pos.querys;
 
-import mx.lux.pos.model.Jb;
-import mx.lux.pos.repository.JbEstados;
-import mx.lux.pos.repository.JbEstadosGrupo;
-import mx.lux.pos.repository.JbJava;
-import mx.lux.pos.repository.JbTrack;
+import mx.lux.pos.Utilities;
+import mx.lux.pos.model.*;
+import mx.lux.pos.repository.*;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -21,214 +20,114 @@ public class NotaVentaQuery {
 
 	private static ResultSet rs;
     private static Statement stmt;
-    private Jb jb;
-	
 
-	public static List<JbJava> busquedaJb(String rx, String cliente, String estado, String atendio) throws ParseException{
+    static final Logger log = LoggerFactory.getLogger(NotaVentaQuery.class);
 
-      List<JbJava> lstJbs = new ArrayList<JbJava>();
+	public static NotaVentaJava busquedaNotaById(String idNotaVenta) throws ParseException{
+      NotaVentaJava notaVentaJava = new NotaVentaJava();
       try {
-            Connection con = Connections.doConnect();
-            stmt = con.createStatement();
-            String sql = "";
-            if(rx.length() <= 0 && cliente.length() <= 0 && estado.length() <= 0 && atendio.length() <= 0){
-//            	sql = "SELECT * FROM jb INNER JOIN jb_edos ON (jb.estado = jb_edos.id_edo);";
-                sql = "select * from jb left join jb_edos on id_edo = jb.estado order by fecha_mod desc limit 100";
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "";
+        if( idNotaVenta.length() > 0 ){
+          sql = "SELECT * FROM nota_venta WHERE id_factura = '"+StringUtils.trimToEmpty(idNotaVenta)+"';";
+        } else {
+          notaVentaJava = null;
+        }
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          notaVentaJava.setValores(rs.getString("id_factura"), rs.getString("id_empleado"), rs.getInt("id_cliente"), rs.getString("id_convenio"),
+                rs.getInt("id_rep_venta"), rs.getString("tipo_nota_venta"), rs.getDate("fecha_rec_ord"), rs.getString("tipo_cli"),
+            	rs.getBoolean("f_expide_factura"), Utilities.toBigDecimal(rs.getString("venta_total")), Utilities.toBigDecimal(rs.getString("venta_neta")),
+                Utilities.toBigDecimal(rs.getString("suma_pagos")), rs.getDate("fecha_hora_factura"), rs.getDate("fecha_prometida"),
+            	rs.getDate("fecha_entrega"), rs.getBoolean("f_armazon_cli"), rs.getInt("por100_descuento"), Utilities.toBigDecimal(rs.getString("monto_descuento")),
+            	rs.getString("tipo_descuento"), rs.getString("id_empleado_descto"), rs.getBoolean("f_resumen_notas_mo"), rs.getString("s_factura"),
+            	rs.getInt("numero_orden"), rs.getString("tipo_entrega"), rs.getString("observaciones_nv"), rs.getString("id_sync"), rs.getDate("fecha_mod"),
+                rs.getString("id_mod"),rs.getInt("id_sucursal"), rs.getString("factura"), rs.getString("cant_lente"), rs.getString("udf2"), rs.getString("udf3"),
+                rs.getString("udf4"), rs.getString("udf5"), rs.getString("suc_dest"), rs.getString("t_deduc"), rs.getInt("receta"), rs.getString("emp_entrego"),
+                rs.getString("lc"), rs.getDate("hora_entrega"), rs.getBoolean("descuento"), rs.getBoolean("pol_ent"), rs.getString("tipo_venta"),
+                Utilities.toBigDecimal(rs.getString("poliza")), rs.getString("codigo_lente"));
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+  	  return notaVentaJava;
+	}
+
+
+
+    NotaVenta registrarNotaVenta( NotaVentaJava notaVenta ) throws ParseException {
+      log.info( "registrando notaVenta id: ${notaVenta?.id}," );
+      log.info( "fechaHoraFactura: ${notaVenta?.fechaHoraFactura?.format( DATE_TIME_FORMAT )}" );
+      if ( StringUtils.isNotBlank( notaVenta.getIdFactura() ) ) {
+        String idNotaVenta = notaVenta.getIdFactura();
+        if ( busquedaNotaById(idNotaVenta) != null ) {
+          notaVenta.setIdSucursal(sucursalRepository.getCurrentSucursalId());
+                BigDecimal total = BigDecimal.ZERO
+                List<DetalleNotaVenta> detalles = detalleNotaVentaRepository.findByIdFacturaOrderByCantidadFacAsc( idNotaVenta )
+                detalles?.each { DetalleNotaVenta detalleNotaVenta ->
+                    BigDecimal precio = detalleNotaVenta?.precioUnitFinal ?: 0
+                    Integer cantidad = detalleNotaVenta?.cantidadFac ?: 0
+                    BigDecimal subtotal = precio.multiply( cantidad )
+                    total = total.add( subtotal )
+                }
+
+                BigDecimal pagado = BigDecimal.ZERO
+                List<Pago> pagos = pagoRepository.findByIdFactura( idNotaVenta )
+                pagos?.each { Pago pago ->
+                    BigDecimal monto = pago?.monto ?: 0
+                    pagado = pagado.add( monto )
+                }
+                log.debug( "ventaNeta: ${notaVenta.ventaNeta} -> ${total}" )
+                log.debug( "ventaTotal: ${notaVenta.ventaTotal} -> ${total}" )
+                log.debug( "sumaPagos: ${notaVenta.sumaPagos} -> ${pagado}" )
+                BigDecimal diferencia = notaVenta?.ventaNeta?.subtract(total)
+                if( //notaVenta?.montoDescuento?.compareTo(BigDecimal.ZERO) > 0 &&
+                        ((notaVenta?.ventaNeta?.subtract(total) < new BigDecimal(0.05)) && (notaVenta?.ventaNeta?.subtract(total) > new BigDecimal(-0.05))) ){
+                    log.debug( "redondeo monto total" )
+                    DetalleNotaVenta det = null
+                    for(DetalleNotaVenta detalleNotaVenta : detalles){
+                        Articulo articulo = detalleNotaVenta.articulo
+                        if( articulo == null ){
+                            articulo = articuloRepository.findOne( detalleNotaVenta.idArticulo )
+                        }
+                        if( !StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase("J") ){
+                            det = detalleNotaVenta
+                        }
+                    }
+                    if( detalles.size() > 0 && det != null ){
+                        //DetalleNotaVenta det =  detalles.first()
+                        BigDecimal monto = det.precioUnitFinal.add(diferencia)
+                        if( diferencia.compareTo(BigDecimal.ZERO) > 0 || diferencia.compareTo(BigDecimal.ZERO) < 0 ){
+                            det.setPrecioUnitFinal( monto )
+                            det.setPrecioFactura( monto )
+                            detalleNotaVentaRepository.save( det )
+                            detalleNotaVentaRepository.flush()
+                        }
+                    }
+                } else {
+                    notaVenta.ventaNeta = total
+                    notaVenta.ventaTotal = total
+                }
+
+                notaVenta.sumaPagos = pagado
+                notaVenta.tipoNotaVenta = TAG_TIPO_NOTA_VENTA
+                try {
+                    notaVenta = notaVentaRepository.save( notaVenta )
+                    notaVentaRepository.flush()
+                    log.info( "notaVenta registrada id: ${notaVenta?.id}" )
+
+                } catch ( ex ) {
+                    log.error( "problema al registrar notaVenta: ${notaVenta?.dump()}", ex )
+                }
             } else {
-            	String queryRx = "";
-            	Boolean tieneRx = false;
-            	String queryCliente = "";
-            	Boolean tieneCliente = false;
-            	String queryEstado = "";
-            	Boolean tieneEstado = false;
-            	String queryAtendio = "";
-
-            	if( rx.length() > 0 ){
-            		queryRx = "rx = '"+rx+"'";
-            		tieneRx = true;
-            	}
-
-            	if ( cliente.length() > 0 ){
-            		queryCliente = (tieneRx ?" and ": "") +"cliente like '%"+cliente+"%'";
-            	}
-
-            	if ( estado.length() > 0 ) {
-            		queryEstado = (tieneRx || tieneCliente ? " and " : "") + "jb_edos.descr = '"+estado+"'";
-            	}
-
-            	if ( atendio.length() > 0 ) {
-            		queryAtendio = (tieneRx || tieneCliente || tieneEstado ? " and " : "") + "emp_atendio = '"+atendio+"'";
-            	}
-
-            	String parametros = queryRx+queryCliente+queryEstado+queryAtendio;
-            	sql = String.format("SELECT * FROM jb INNER JOIN jb_edos ON (jb.estado = jb_edos.id_edo) WHERE %s order by rx asc;", parametros);            	
+                log.warn( "no se registra notaVenta, id no existe" )
             }
-            rs = stmt.executeQuery(sql);
-            while (rs.next()) {
-            	JbJava jb = new JbJava();
-            	Double saldo = 0.00;
-            	String saldoTmp = rs.getString("saldo");
-            	saldoTmp = saldoTmp != null ? saldoTmp.replace("$", "") : "0.00";
-            	saldoTmp = saldoTmp != null ? saldoTmp.replace(",", "") : "0.00";
-            	try{
-            		saldo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(saldoTmp)).doubleValue();
-            	} catch ( NumberFormatException e ){ System.out.println( e );}
-            	jb.setValores(rs.getString("rx"), rs.getString("descr"), rs.getString("id_viaje"), rs.getString("caja"), 
-            			rs.getString("id_cliente"), rs.getInt("roto"), rs.getString("emp_atendio"), rs.getInt("num_llamada"), 
-            			rs.getString("material"), rs.getString("surte"), new BigDecimal(saldo), rs.getString("jb_tipo"), 
-            			rs.getDate("volver_llamar"), rs.getDate("fecha_promesa"), rs.getDate("fecha_mod"), rs.getString("cliente"), 
-            			rs.getString("id_mod"), rs.getString("obs_ext"), rs.getString("ret_auto"), rs.getBoolean("no_llamar"), 
-            			rs.getString("tipo_venta"), rs.getDate("fecha_venta"), rs.getString("id_grupo"), rs.getBoolean("no_enviar"), 
-            			rs.getString("externo"));
-            	lstJbs.add(jb);
-            }            
-            con.close();
-        } catch (SQLException err) {
-            System.out.println( err );
-        }
-		return lstJbs;
-	}
-	
-	
-	public static JbJava buscarPorRx( String rx ){
-		JbJava jb = new JbJava();
-		try {			
-            Connection con = Connections.doConnect();
-            stmt = con.createStatement();
-            String sql = "select * from jb where rx = '"+rx+"';";
-            rs = stmt.executeQuery(sql);                                
-            while (rs.next()) {
-            	Double saldo = 0.00;            	
-            	String saldoTmp = rs.getString("saldo");
-            	saldoTmp = saldoTmp != null ? saldoTmp.replace("$", "") : "0.00";
-            	saldoTmp = saldoTmp != null ? saldoTmp.replace(",", "") : "0.00";
-            	try{
-            		saldo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(saldoTmp)).doubleValue();
-            	} catch ( ParseException e ){ System.out.println( e );}
-            	jb.setValores(rs.getString("rx"), rs.getString("estado"), rs.getString("id_viaje"), rs.getString("caja"), 
-            			rs.getString("id_cliente"), rs.getInt("roto"), rs.getString("emp_atendio"), rs.getInt("num_llamada"), 
-            			rs.getString("material"), rs.getString("surte"), new BigDecimal(saldo), rs.getString("jb_tipo"), 
-            			rs.getDate("volver_llamar"), rs.getDate("fecha_promesa"), rs.getDate("fecha_mod"), rs.getString("cliente"), 
-            			rs.getString("id_mod"), rs.getString("obs_ext"), rs.getString("ret_auto"), rs.getBoolean("no_llamar"), 
-            			rs.getString("tipo_venta"), rs.getDate("fecha_venta"), rs.getString("id_grupo"), rs.getBoolean("no_enviar"), 
-            			rs.getString("externo"));
-            }            
-            con.close();
-        } catch (SQLException err) {
-            System.out.println( err );
-        }		
-		return jb;
-	}
-	
-	public static JbEstados buscarEstadoPorId( String estado ){
-		JbEstados jbEstados = new JbEstados();
-		try {			
-            Connection con = Connections.doConnect();
-            stmt = con.createStatement();
-            String sql = "select * from jb_edos where id_edo = '"+estado+"';";            
-            rs = stmt.executeQuery(sql);                                
-            while (rs.next()) {
-            	jbEstados = jbEstados.setValores(rs.getString("id_edo"), rs.getString("llamada"), rs.getString("descr"));
-            }            
-            con.close();
-        } catch (SQLException err) {
-            System.out.println( err );
-        }
-		return jbEstados;
-	}
-	
-	
-	public static List<JbTrack> buscarJbTrackPorRx( String rx ){
-		List<JbTrack> lstTracks = new ArrayList<JbTrack>();
-		try {
-			JbTrack jbTrack = new JbTrack();
-            Connection con = Connections.doConnect();
-            stmt = con.createStatement();
-            String sql = "select * from jb_track where rx = '"+rx+"';";
-            rs = stmt.executeQuery(sql);                                
-            while (rs.next()) {
-            	System.out.println(rs.getTimestamp("fecha"));
-            	jbTrack = jbTrack.setValores(rs.getString("rx"), rs.getString("estado"), rs.getString("obs"), rs.getString("emp"), 
-            			rs.getString("id_viaje"), rs.getTimestamp("fecha"), rs.getString("id_mod"), rs.getString("id_jbtrack"));
-            	lstTracks.add(jbTrack);
-            }            
-            con.close();
-        } catch (SQLException err) {
-            System.out.println( err );
-        }
-		return lstTracks;
-	}
-
-    public static void updateEstadoJbRx (String rx, String estado) {
-
-        String sql = "update jb set estado = '" + estado + "' where rx = '" + rx + "'";
-        Connections db = new Connections();
-        db.updateQuery(sql);
-        db.close();
+      } else {
+        log.warn( "no se registra notaVenta, parametros invalidos" )
+      }
+      return notaVenta;
     }
 
-    public static String getMaterialJbRx (String rx) {
-        rs = null;
-        String value = "";
-
-        String sql = "select material from jb where rx = '"+rx+"'";
-        Connections db = new Connections();
-        rs = db.selectQuery(sql);
-
-        try {
-            while ( rs.next() ) {
-                value = rs.getString("material");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return value;
-    }
-
-    public static String getRotoJbRx (String rx) {
-        rs = null;
-        String value = "";
-
-        String sql = "select roto from jb where rx = '"+rx+"'";
-        Connections db = new Connections();
-        rs = db.selectQuery(sql);
-
-        try {
-            while ( rs.next() ) {
-                value = rs.getString("roto");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return value;
-    }
-
-    public static Jb getJbRxSimple (String rx) {
-
-        Jb jb = null;
-        Connections db = new Connections();
-        ResultSetMap<Jb> resultSetMapper = new ResultSetMap<Jb>();
-        ResultSet resultSet = null;
-
-        String sql = "select * from jb where rx = '"+rx+"'";
-
-        resultSet = db.selectQuery(sql);
-
-        List<Jb> lista = resultSetMapper.mapRersultSetToObject(resultSet, Jb.class);
-
-        if( lista != null ) {
-            for(Jb pojo : lista){
-                jb = pojo;
-//                System.out.println(pojo);
-            }
-        }else{
-//            System.out.println("ResultSet is empty. Please check if database table is empty");
-        }
-
-        db.close();
-
-        return jb;
-    }
 }
