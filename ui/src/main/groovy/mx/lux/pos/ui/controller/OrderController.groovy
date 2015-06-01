@@ -266,13 +266,14 @@ class OrderController {
     }
 
     static Dioptra addDioptra(Order order, String dioptra) {
-        log.debug( "addDioptra( )" )
-        NotaVenta nota = notaVentaService.obtenerNotaVenta(order.id)
-        nota.setCodigo_lente(dioptra)
-        nota = notaVentaService.registrarNotaVenta(nota)
-        Dioptra diop = generaDioptra(preDioptra(nota.codigo_lente))
-        println('Codigo Lente: ' + nota.codigo_lente)
-        return diop
+      log.debug( "addDioptra( )" )
+      //NotaVenta nota = notaVentaService.obtenerNotaVenta(order.id)
+      NotaVentaJava
+      nota.setCodigo_lente(dioptra)
+      nota = notaVentaService.registrarNotaVenta(nota)
+      Dioptra diop = generaDioptra(preDioptra(nota.codigo_lente))
+      println('Codigo Lente: ' + nota.codigo_lente)
+      return diop
     }
 
     static String preDioptra(String dioString) {

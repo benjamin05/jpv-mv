@@ -58,7 +58,7 @@ public class Connections {
         String dataBase = getDataBase();
 
 
-        String url = StringUtils.trimToEmpty(dataBase).length() > 0 ? dataBase : "jdbc:postgresql://localhost:5432/12004";
+        String url = StringUtils.trimToEmpty(dataBase).length() > 0 ? dataBase : "jdbc:postgresql://localhost:5432/soi";
         String username = "postgres";
         String password = "";
 

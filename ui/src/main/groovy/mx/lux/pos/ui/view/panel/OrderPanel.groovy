@@ -1127,13 +1127,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         logger.debug('Index Dioptra del Articulo : ' + item?.indexDiotra)
         if (!StringUtils.trimToNull(indexDioptra).equals(null) && !StringUtils.trimToNull(item?.indexDiotra).equals(null)) {
             Dioptra nuevoDioptra = OrderController.generaDioptra(item?.indexDiotra)
-            logger.debug('Nuevo Objeto Dioptra :' + nuevoDioptra)
+            /*logger.debug('Nuevo Objeto Dioptra :' + nuevoDioptra)
             logger.debug('Dioptra :' + dioptra?.material)
             logger.debug('Dioptra :' + dioptra?.lente)
             logger.debug('Dioptra :' + dioptra?.tratamiento)
             logger.debug('Dioptra :' + dioptra?.color)
             logger.debug('Dioptra :' + dioptra?.especial)
-            logger.debug('Dioptra :' + dioptra?.tipo)
+            logger.debug('Dioptra :' + dioptra?.tipo)*/
             dioptra = OrderController.validaDioptra(dioptra, nuevoDioptra)
             logger.debug('Dioptra Generado :' + dioptra)
                 antDioptra = OrderController.addDioptra(order, OrderController.codigoDioptra(dioptra))
