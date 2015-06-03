@@ -2,6 +2,8 @@ package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
+import mx.lux.pos.querys.RecetaQuery
+import mx.lux.pos.repository.RecetaJava
 import mx.lux.pos.service.*
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.impl.FormaContactoService
@@ -390,7 +392,8 @@ class CustomerController {
 
     static List<Rx> findAllPrescriptions(Integer idCliente) {
         log.debug("obteniendo recetas")
-        def results = clienteService.obtenerRecetas(idCliente)
+        //def results = clienteService.obtenerRecetas(idCliente)
+        def results = RecetaQuery.buscaRecetasPorIdCliente(idCliente)
         results.collect {
             Rx.toRx(it)
         }
@@ -410,11 +413,11 @@ class CustomerController {
     }
 
 
-    public static Receta saveRx(Rx receta, String tipo) {
-        log.debug("salvando Receta")
-        Receta rec = new Receta()
-        if (receta?.id != null) {
-            rec.setId(receta.id)
+    public static RecetaJava saveRx(Rx receta, String tipo) {
+      log.debug("salvando Receta")
+      RecetaJava rec = new RecetaJava()
+      if (receta?.id != null) {
+            rec.setIdReceta(receta.id)
             rec.setExamen(receta.exam)
             rec.setFechaReceta(receta.rxDate)
             rec.setTipoOpt(receta.typeOpt)
@@ -424,7 +427,7 @@ class CustomerController {
             rec.setFechaMod(new Date())
             rec.setIdMod(receta.modId)
             rec.setIdSucursal(receta.idStore)
-            rec.setMaterial_arm(receta.materialArm)
+            rec.setMaterialArm(receta.materialArm)
             rec.setTratamientos(receta.treatment)
             rec.setUdf5(receta.udf5)
             rec.setUdf6(receta.udf6)
@@ -454,8 +457,9 @@ class CustomerController {
             rec.setDiCercaR(receta.diCercaR)
             rec.setAltOblR(receta.altOblR.trim())
             rec.setObservacionesR(receta.observacionesR)
-            rec = recetaService.guardarReceta(rec)
-        } else {
+            //rec = recetaService.guardarReceta(rec)
+        rec = RecetaQuery.saveOrUpdateRx( rec )
+      } else {
             Examen examen = examenService.obtenerExamenPorIdCliente(receta.idClient)
             if (examen != null) {
 
@@ -480,7 +484,7 @@ class CustomerController {
             rec.setFechaMod(new Date())
             rec.setIdMod('0')
             rec.setIdSucursal(receta.idStore)
-            rec.setMaterial_arm('')
+            rec.setMaterialArm('')
             rec.setTratamientos('')
             rec.setUdf5('')
             rec.setUdf6(receta.udf6 != null ? receta.udf6 : "")
@@ -508,9 +512,10 @@ class CustomerController {
             rec.setDiCercaR(receta.diCercaR)
             rec.setAltOblR(receta.altOblR.trim())
             rec.setObservacionesR(receta.observacionesR)
-            rec = recetaService.guardarReceta(rec)
-        }
-        return rec
+            //rec = recetaService.guardarReceta(rec)
+          rec = RecetaQuery.saveOrUpdateRx( rec )
+      }
+      return rec
     }
 
     private static SingleCustomerDialog customerDialog
@@ -654,15 +659,16 @@ class CustomerController {
 
     static List<Rx> requestRxByCustomer(Integer idCliente) {
         List<Rx> lstRx = new ArrayList<>()
-        List<Receta> lstRexetas = recetaService.recetaCliente(idCliente)
-        Collections.sort(lstRexetas, new Comparator<Receta>() {
-            @Override
-            int compare(Receta o1, Receta o2) {
-                return o2.fechaReceta.compareTo(o1.fechaReceta)
-            }
+        //List<Receta> lstRexetas = recetaService.recetaCliente(idCliente)
+        List<RecetaJava> lstRexetas = RecetaQuery.buscaRecetasPorIdCliente(idCliente)
+        Collections.sort(lstRexetas, new Comparator<RecetaJava>() {
+          @Override
+          int compare(RecetaJava o1, RecetaJava o2) {
+            return o2.fechaReceta.compareTo(o1.fechaReceta)
+          }
         })
         log.debug("Total de Recetas = ${lstRexetas.size()}")
-        for (Receta rx : lstRexetas) {
+        for (RecetaJava rx : lstRexetas) {
             lstRx.add(Rx.toRx(rx))
         }
         return lstRx

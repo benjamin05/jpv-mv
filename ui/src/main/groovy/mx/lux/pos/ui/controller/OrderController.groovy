@@ -3,6 +3,8 @@ package mx.lux.pos.ui.controller
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
 import mx.lux.pos.querys.NotaVentaQuery
+import mx.lux.pos.querys.RecetaQuery
+import mx.lux.pos.querys.TmpServiciosQuery
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.*
@@ -15,7 +17,6 @@ import mx.lux.pos.ui.view.dialog.AseguraNotaDialog
 import mx.lux.pos.ui.view.dialog.ContactClientDialog
 import mx.lux.pos.ui.view.dialog.ContactDialog
 import mx.lux.pos.ui.view.dialog.ManualPriceDialog
-import mx.lux.pos.ui.view.dialog.WarrantySelectionDialog
 import mx.lux.pos.ui.view.panel.OrderPanel
 import org.apache.commons.lang.NumberUtils
 import org.apache.commons.lang3.StringUtils
@@ -70,6 +71,8 @@ class OrderController {
     private static String idOrderEnsured
 
     private static NotaVentaService notaVentaService
+    private static RecetaServiceJava recetaServiceJava
+    private static NotaVentaServiceJava notaVentaServiceJava
     private static DetalleNotaVentaService detalleNotaVentaService
     private static PagoService pagoService
     private static TicketService ticketService
@@ -170,37 +173,40 @@ class OrderController {
         this.cuponMvRepository = cuponMvRepository
         this.notaVentaRepository = notaVentaRepository
         this.bancoDevRepository = bancoDevRepository
+        recetaServiceJava = new RecetaServiceJava()
+        notaVentaServiceJava = new NotaVentaServiceJava()
     }
 
     private static Boolean canceledWarranty
     private static String postEnsure
 
     static Order getOrder(String orderId) {
-        log.info("obteniendo orden id: ${orderId}")
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(orderId)
-        Order order = Order.toOrder(notaVenta)
-        if (StringUtils.isNotBlank(order?.id)) {
-            order.items?.clear()
-            List<DetalleNotaVenta> detalles = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(orderId)
-            detalles?.each { DetalleNotaVenta tmp ->
-                order.items?.add(OrderItem.toOrderItem(tmp))
-                order.due
-            }
-            order.payments?.clear()
-            List<Pago> pagos = pagoService.listarPagosPorIdFactura(orderId)
-            pagos?.each { Pago tmp ->
-                Payment paymentTmp = Payment.toPaymment(tmp)
-                if (tmp?.idBancoEmisor?.integer) {
-                    BancoEmisor banco = bancoService.obtenerBancoEmisor(tmp?.idBancoEmisor?.toInteger())
-                    paymentTmp.issuerBank = banco?.descripcion
-                }
-                order.payments?.add(paymentTmp)
-            }
-            return order
-        } else {
-            log.warn('no se obtiene orden, notaVenta no existe')
+      log.info("obteniendo orden id: ${orderId}")
+      //NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(orderId)
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( orderId )
+      Order order = Order.toOrder(notaVenta)
+      if (StringUtils.isNotBlank(order?.id)) {
+        order.items?.clear()
+        List<DetalleNotaVenta> detalles = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(orderId)
+        detalles?.each { DetalleNotaVenta tmp ->
+          order.items?.add(OrderItem.toOrderItem(tmp))
+          order.due
         }
-        return null
+        order.payments?.clear()
+        List<Pago> pagos = pagoService.listarPagosPorIdFactura(orderId)
+        pagos?.each { Pago tmp ->
+          Payment paymentTmp = Payment.toPaymment(tmp)
+          if (tmp?.idBancoEmisor?.integer) {
+            BancoEmisor banco = bancoService.obtenerBancoEmisor(tmp?.idBancoEmisor?.toInteger())
+            paymentTmp.issuerBank = banco?.descripcion
+          }
+          order.payments?.add(paymentTmp)
+        }
+        return order
+      } else {
+        log.warn('no se obtiene orden, notaVenta no existe')
+      }
+      return null
     }
 
     static Order openOrder(String clienteID, String empID) {
@@ -216,16 +222,18 @@ class OrderController {
         return Item.toItem(art)
     }
 
-    static Receta findRx(Order order, Customer customer) {
-        NotaVenta rxNotaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+    static RecetaJava findRx(Order order, Customer customer) {
+        //NotaVenta rxNotaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+        NotaVentaJava rxNotaVenta = NotaVentaQuery.busquedaNotaById( order.id )
         List<Rx> recetas = CustomerController.findAllPrescriptions(customer?.id)
-        Receta receta = new Receta()
+        RecetaJava receta = new RecetaJava()
         Iterator iterator = recetas.iterator();
         while (iterator.hasNext()) {
             Rx rx = iterator.next()
             if (rxNotaVenta.receta == rx?.id) {
                 rxNotaVenta.receta
-                receta = recetaService.findbyId(rxNotaVenta.receta)
+                //receta = recetaService.findbyId(rxNotaVenta.receta)
+                receta = RecetaQuery.buscaRecetaPorIdReceta( rxNotaVenta.receta )
             }
         }
         return receta
@@ -253,10 +261,11 @@ class OrderController {
     }
 
     static void saveRxOrder(String idNotaVenta, Integer receta) {
-        log.debug( "guardando receta ${receta}" )
-        println 'receta con error'+receta
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(idNotaVenta)
-        notaVentaService.saveRx(notaVenta, receta)
+      log.debug( "guardando receta ${receta}" )
+      //NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(idNotaVenta)
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( idNotaVenta )
+      //notaVentaService.saveRx(notaVenta, receta)
+      recetaServiceJava.saveRx( notaVenta, receta )
     }
 
     static Order saveFrame(String idNotaVenta, String opciones, String forma) {
@@ -271,9 +280,10 @@ class OrderController {
       //NotaVenta nota = notaVentaService.obtenerNotaVenta(order.id)
       NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(order.id)
       nota.setCodigoLente(dioptra)
-      nota = notaVentaService.registrarNotaVenta(nota)
-      Dioptra diop = generaDioptra(preDioptra(nota.codigo_lente))
-      println('Codigo Lente: ' + nota.codigo_lente)
+      //nota = notaVentaService.registrarNotaVenta(nota)
+      nota = notaVentaServiceJava.registrarNotaVenta( nota )
+      Dioptra diop = generaDioptra(preDioptra(nota.codigoLente))
+      println('Codigo Lente: ' + nota.codigoLente)
       return diop
     }
 
@@ -1522,20 +1532,24 @@ class OrderController {
 
 
     static void saveSuyo(Order order, User user, String dejo, String instrucciones, String condiciones, String serv) {
-        TmpServicios servicios = new TmpServicios()
-        servicios?.id_factura = order?.id
-        servicios?.fecha_prom = new Date()
-        servicios?.emp = user?.username
-        servicios?.id_cliente = order?.customer?.id
-        servicios?.cliente = order?.customer?.name + ' ' + order?.customer?.fathersName + ' ' + order?.customer?.mothersName
-        servicios?.condicion = condiciones
-        servicios?.dejo = dejo
-        servicios?.instruccion = instrucciones
-        servicios?.servicio = serv
-        tmpServiciosRepository.saveAndFlush(servicios)
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+        //TmpServicios servicios = new TmpServicios()
+        TmpServiciosJava servicios = new TmpServiciosJava()
+        servicios.idFactura = order?.id
+        servicios.fechaProm = new Date()
+        servicios.emp = user?.username
+        servicios.idCliente = order?.customer?.id
+        servicios.cliente = order?.customer?.name + ' ' + order?.customer?.fathersName + ' ' + order?.customer?.mothersName
+        servicios.condicion = condiciones
+        servicios.dejo = dejo
+        servicios.instruccion = instrucciones
+        servicios.servicio = serv
+        //tmpServiciosRepository.saveAndFlush(servicios)
+        TmpServiciosQuery.saveTmpServicio(servicios)
+        //NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+        NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( order.id )
         notaVenta?.observacionesNv = dejo
-        notaVentaService.saveOrder(notaVenta)
+        //notaVentaService.saveOrder(notaVenta)
+        NotaVentaQuery.updateNotaVenta( notaVenta )
     }
 
     static void printSuyo(Order order, User user) {

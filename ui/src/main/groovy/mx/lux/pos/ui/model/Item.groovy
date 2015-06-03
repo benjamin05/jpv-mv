@@ -6,6 +6,8 @@ import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.Articulo
 import mx.lux.pos.model.DetalleNotaVenta
+import mx.lux.pos.repository.ArticulosJava
+import mx.lux.pos.repository.DetalleNotaVentaJava
 import mx.lux.pos.ui.controller.ItemController
 
 @Slf4j
@@ -102,6 +104,37 @@ class Item {
     }
     return null
   }
+
+
+    static Item toItem( DetalleNotaVentaJava detalleNotaVenta ) {
+        try {
+            if ( detalleNotaVenta?.id ) {
+                ArticulosJava articulo = detalleNotaVenta.articulo
+                Item item = new Item(
+                        id: articulo?.idArticulo,
+                        price: detalleNotaVenta?.precioUnitFinal,
+                        listPrice: detalleNotaVenta?.precioUnitLista,
+                        name: articulo?.articulo,
+                        color: articulo?.colorCode,
+                        colorDesc: articulo?.colorDesc,
+                        reference: articulo?.descArticulo,
+                        type: articulo?.idGenerico,
+                        genericType: articulo?.idGenTipo,
+                        genericSubType: articulo?.idGenSubtipo,
+                        lensDesign: articulo?.idDisenoLente,
+                        operation: articulo?.operacion,
+                        priceType: articulo?.tipoPrecio,
+                        location: articulo?.ubicacion,
+                        surte: detalleNotaVenta?.surte != null ? detalleNotaVenta?.surte : ""
+                )
+                return item
+            }
+        } catch ( Exception e ) {
+            log.error( e.message, e )
+        }
+        return null
+    }
+
 
   boolean isManualPriceItem( ) {
     if ( manualPriceTypeList == null ) {

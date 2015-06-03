@@ -1,5 +1,7 @@
 package mx.lux.pos.repository;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
@@ -17,7 +19,7 @@ public class EmpleadoJava {
 	private Integer idSucursal;
 	private Integer idEmpresa;
 
-	public String getIdEmpleado() {
+    public String getIdEmpleado() {
 		return this.idEmpleado;
 	}
 
@@ -129,5 +131,8 @@ public class EmpleadoJava {
 		return emp;
 	}
 	
-	
+
+    String getNombreCompleto(){
+      return StringUtils.trimToEmpty(this.getNombreEmpleado())+" "+StringUtils.trimToEmpty(this.getApPatEmpleado())+" "+StringUtils.trimToEmpty(this.getApMatEmpleado());
+    }
 }

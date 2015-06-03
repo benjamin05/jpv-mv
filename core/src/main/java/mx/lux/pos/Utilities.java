@@ -5,6 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by Benjamin Ivan Martinez Mendoza.
@@ -28,6 +31,45 @@ public class Utilities {
       e.printStackTrace();
     }
     return new BigDecimal( valueTmp );
+  }
+
+  public static Integer toInteger(String strValue){
+    Integer valueTmp = 0;
+    try{
+      valueTmp = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(strValue)).intValue();
+    } catch (NumberFormatException e) {
+      e.printStackTrace();
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+    return valueTmp;
+  }
+
+  public static String toString( Date fecha, String format ){
+    String value = null;
+    SimpleDateFormat df = new SimpleDateFormat( format );
+    if( fecha != null ){
+      value = df.format( fecha );
+    }
+    return  value;
+  }
+
+  public static String toMoney( BigDecimal amount ){
+    String value = "'$0.00'";
+    NumberFormat nf = NumberFormat.getCurrencyInstance( Locale.US );
+    if( amount != null ){
+      value = "'"+StringUtils.trimToEmpty(nf.format( amount ))+"'";
+    }
+    return  value;
+  }
+
+
+  public static Integer trimtoNull( Integer amount ){
+    Integer value = null;
+    if( amount != null && amount > 0 ){
+      value = amount;
+    }
+    return  value;
   }
 
 

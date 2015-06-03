@@ -5,6 +5,7 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.NotaVenta
+import mx.lux.pos.repository.NotaVentaJava
 import mx.lux.pos.ui.controller.OrderController
 import org.apache.commons.lang.StringUtils
 
@@ -14,6 +15,7 @@ import org.apache.commons.lang.StringUtils
 class OrderDiscount implements IPromotion {
 
   NotaVenta notaVenta = new NotaVenta()
+  NotaVentaJava notaVentaJ = new NotaVentaJava()
   private OrderDiscount( ) { }
 
   private static final String DESCRIPCION = "%s%% descuento sobre venta"
@@ -22,6 +24,15 @@ class OrderDiscount implements IPromotion {
     if ( (notaVenta != null) && ( notaVenta.por100Descuento > 0 ) && ( notaVenta.montoDescuento > 0 ) ) {
       OrderDiscount promotion = new OrderDiscount()
       promotion.notaVenta = notaVenta
+      return promotion
+    }
+    return null
+  }
+
+  static IPromotion toPromotions( NotaVentaJava notaVenta ) {
+    if ( (notaVenta != null) && ( notaVenta.por100Descuento > 0 ) && ( notaVenta.montoDescuento > 0 ) ) {
+      OrderDiscount promotion = new OrderDiscount()
+      promotion.notaVentaJ = notaVenta
       return promotion
     }
     return null

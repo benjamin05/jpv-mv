@@ -6,6 +6,7 @@ import groovy.transform.ToString
 import mx.lux.pos.model.DetalleNotaVenta
 import mx.lux.pos.model.OrdenPromDet
 import mx.lux.pos.model.Promocion
+import mx.lux.pos.repository.OrdenPromDetJava
 import mx.lux.pos.ui.controller.OrderController
 
 @Bindable
@@ -14,6 +15,7 @@ import mx.lux.pos.ui.controller.OrderController
 class OrderLinePromotion implements IPromotion {
 
   private OrdenPromDet promotionItem
+  private OrdenPromDetJava promotionItemJ
   private DetalleNotaVenta item
   private Promocion promotion
 
@@ -25,6 +27,17 @@ class OrderLinePromotion implements IPromotion {
       promotion.promotionItem = ordenPromDet
       promotion.item = OrderController.getDetalleNotaVenta( promotion.promotionItem.idFactura, promotion.promotionItem.idArticulo )
       promotion.promotion = OrderController.getPromocion( ordenPromDet.idPromocion )
+      return promotion
+    }
+    return null
+  }
+
+  static IPromotion toPromotions( OrdenPromDetJava ordenPromDet ) {
+    if ( ordenPromDet?.idFactura ) {
+      OrderLinePromotion promotion = new OrderLinePromotion()
+      promotion.promotionItemJ = ordenPromDet
+      promotion.item = OrderController.getDetalleNotaVenta( promotion.promotionItemJ.idFactura, promotion.promotionItemJ.idArt )
+      promotion.promotion = OrderController.getPromocion( ordenPromDet.idProm )
       return promotion
     }
     return null
@@ -58,6 +71,8 @@ class OrderLinePromotion implements IPromotion {
     BigDecimal discount = BigDecimal.ZERO
     if ( promotionItem != null ) {
       discount = promotionItem.descuentoMonto
+    } else if( promotionItemJ != null ){
+      discount = promotionItemJ.descuentoMonto
     }
     return discount
   }
@@ -66,6 +81,8 @@ class OrderLinePromotion implements IPromotion {
     BigDecimal netPrice = BigDecimal.ZERO
     if ( item != null && promotionItem != null ) {
       netPrice = item.precioUnitLista.subtract( promotionItem.descuentoMonto )
+    } else if ( item != null && promotionItemJ != null ) {
+      netPrice = item.precioUnitLista.subtract( promotionItemJ.descuentoMonto )
     }
     return netPrice
   }

@@ -4,7 +4,9 @@ import groovy.beans.Bindable
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.NotaVenta
+import mx.lux.pos.repository.NotaVentaJava
 import mx.lux.pos.ui.controller.OrderController
+import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.math.NumberUtils
 
 import java.text.NumberFormat
@@ -115,6 +117,50 @@ class Order {
     }
     return null
   }
+
+
+  static Order toOrder( NotaVentaJava notaVenta ) {
+    if ( notaVenta?.idFactura ) {
+      Order order = new Order(
+            id: notaVenta.idFactura,
+            bill: notaVenta.factura,
+            date: notaVenta.fechaHoraFactura,
+            deliveryDate: notaVenta.fechaEntrega,
+            comments: notaVenta.observacionesNv,
+            status: notaVenta.sFactura,
+            branch: Branch.toBranch( notaVenta.sucursal ),
+            customer: Customer.toCustomer( notaVenta.cliente ),
+            items: notaVenta.detalles?.collect {OrderItem.toOrderItem( it )},
+            payments: notaVenta.pagos?.collect {Payment.toPaymment( it )},
+            total: notaVenta.ventaNeta ?: 0,
+            paid: notaVenta.sumaPagos ?: 0,
+            country:notaVenta.udf2 != null ? notaVenta.udf2: '',
+            employee: "${[StringUtils.trimToEmpty(notaVenta.idEmpleado)]}${notaVenta.empleado?.nombreCompleto}",
+            employeeDeliver: "${[StringUtils.trimToEmpty(notaVenta?.empEntrego)]}${StringUtils.trimToEmpty(notaVenta?.empleadoEntrego?.nombreCompleto)}",
+            dioptra: notaVenta.codigoLente,
+            udf2: notaVenta.udf2,
+            udf3: notaVenta.udf3,
+            fechaEntrega: notaVenta.fechaEntrega,
+            empEntrega: "[${StringUtils.trimToEmpty(notaVenta.empEntrego)}] ${notaVenta.empleadoEntrego != null ? notaVenta.empleadoEntrego.nombreCompleto : ""}",
+            rx: notaVenta.receta
+
+            )
+            order.deals = new ArrayList<IPromotion>()
+            if ( notaVenta.ordenPromDet != null ) {
+              order.deals.addAll( notaVenta.ordenPromDet?.collect {OrderLinePromotion.toPromotions( it )} )
+            }
+            IPromotion descuento = OrderDiscount.toPromotions( notaVenta )
+            if ( descuento != null ) {
+              order.deals.add( descuento )
+            }
+            order.round()
+            order.due = ((order.total.subtract( order.paid )).compareTo(new BigDecimal(0.05)) > 0 || (order.total.subtract( order.paid )).compareTo(new BigDecimal(-0.05)) < 0) ? order.total.subtract( order.paid ) : BigDecimal.ZERO
+            order.usdRate = OrderController.requestUsdRate()
+            return order
+    }
+    return null
+  }
+
 
   Double getAdvancePct( ) {
     Double pct = 0

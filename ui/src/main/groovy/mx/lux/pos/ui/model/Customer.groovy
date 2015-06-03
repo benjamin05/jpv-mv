@@ -9,6 +9,7 @@ import mx.lux.pos.model.Examen
 import mx.lux.pos.model.FormaContacto
 import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.model.Titulo
+import mx.lux.pos.repository.ClientesJava
 import mx.lux.pos.service.ExamenService
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.model.adapter.StringAdapter
@@ -100,6 +101,45 @@ class Customer {
         }
         return null
     }
+
+
+    static Customer toCustomer(ClientesJava cliente) {
+
+        if (cliente?.idCliente) {
+            Customer customer = new Customer(
+                    id: cliente.idCliente,
+                    name: cliente.nombreCli,
+                    fathersName: cliente.apellidoPatCli,
+                    mothersName: cliente.apellidoMatCli,
+                    title: cliente.titulo,
+                    rfc: cliente.rfcCli,
+                    dob: cliente.fechaNac,
+                    gender: GenderType.parse(cliente.sexoCli),
+                    address: Address.toAddress(cliente),
+                    age: parse(StringUtils.trimToEmpty(cliente.udf1)),
+                    fechaNacimiento: cliente.fechaNac
+
+            )
+            if (cliente.clientePais?.idCliente) {
+                customer.type = CustomerType.FOREIGN
+                customer.rfc = CustomerType.FOREIGN.rfc
+            }
+            if (StringUtils.isNotBlank(cliente.telCasaCli)) {
+                Contact phone = new Contact(type: ContactType.HOME_PHONE)
+                phone.setPhoneNumber(cliente.telCasaCli)
+                customer.contacts.add(phone)
+            }
+            if (StringUtils.isNotBlank(cliente.emailCli)) {
+                Contact mail = new Contact(type: ContactType.EMAIL)
+                mail.setEmail(cliente.emailCli)
+                customer.contacts.add(mail)
+            }
+
+            return customer
+        }
+        return null
+    }
+
 
     boolean equals(Object pObj) {
         boolean result = false;

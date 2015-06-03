@@ -5,6 +5,7 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.DetalleNotaVenta
+import mx.lux.pos.repository.DetalleNotaVentaJava
 import mx.lux.pos.ui.resources.ServiceManager
 
 @Slf4j
@@ -44,6 +45,22 @@ class OrderItem {
             quantity: detalleNotaVenta.cantidadFac,
             delivers: detalleNotaVenta.surte
 
+        )
+        return orderItem
+      }
+    } catch ( Exception e ) {
+      log.error( "Error en el DetalleNotaVenta ", e.toString() )
+    }
+    return null
+  }
+
+  static OrderItem toOrderItem( DetalleNotaVentaJava detalleNotaVenta ) {
+    try {
+      if ( detalleNotaVenta?.id ) {
+        OrderItem orderItem = new OrderItem(
+              item: Item.toItem( detalleNotaVenta ),
+              quantity: detalleNotaVenta.cantidadFac,
+              delivers: detalleNotaVenta.surte
         )
         return orderItem
       }

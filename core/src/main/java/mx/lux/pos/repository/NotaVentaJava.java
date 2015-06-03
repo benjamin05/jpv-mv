@@ -1,7 +1,16 @@
 package mx.lux.pos.repository;
 
+import mx.lux.pos.Utilities;
+import mx.lux.pos.querys.*;
+import org.apache.commons.lang.StringUtils;
+
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class NotaVentaJava {
 
@@ -51,6 +60,13 @@ public class NotaVentaJava {
     String tipoVenta;
     BigDecimal poliza;
     String codigoLente;
+    ClientesJava cliente;
+    SucursalesJava sucursal;
+    List<DetalleNotaVentaJava> detalles;
+    List<PagoJava> pagos;
+    List<OrdenPromDetJava> ordenPromDet;
+    EmpleadoJava empleado;
+    EmpleadoJava empleadoEntrego;
 
     public String getIdFactura() {
         return idFactura;
@@ -420,64 +436,168 @@ public class NotaVentaJava {
         this.codigoLente = codigoLente;
     }
 
-    public NotaVentaJava setValores( String idFactura, String idEmpleado, Integer idCliente, String idConvenio, Integer idRepVenta, String tipoNotaVenta,
-			Date fechaRecOrd, String tipoCli, Boolean fExpideFactura, BigDecimal ventaTotal, BigDecimal ventaNeta, BigDecimal sumaPagos,
-			Date fechaHoraFactura, Date fechaPrometida, Date fechaEntrega, Boolean fArmazonCli, Integer por100Descuento, BigDecimal montoDescuento,
-			String tipoDescuento, String idEmpleadoDescto, Boolean fResumenNotasMo, String sFactura, Integer numeroOrden, String tipoEntrega,
-			String observacionesNv, String idSync, Date fechaMod, String idMod, Integer idSucursal, String factura, String cantLente,
-            String udf2, String udf3, String udf4, String udf5, String sucDest, String tDeduc, Integer receta, String empEntrego, String lc,
-            Date horaEntrega, Boolean descuento, Boolean polEnt, String tipoVenta, BigDecimal poliza, String codigoLente ){
-		
-		NotaVentaJava notaVentaJava = new NotaVentaJava();
-		this.setIdFactura(idFactura);
-		this.setIdEmpleado(idEmpleado);
-		this.setIdCliente(idCliente);
-		this.setIdConvenio(idConvenio);
-		this.setIdRepVenta(idRepVenta);
-		this.setTipoNotaVenta(tipoNotaVenta);
-		this.setFechaRecOrd(fechaRecOrd);
-		this.setTipoCli(tipoCli);
-		this.setfExpideFactura(fExpideFactura);
-		this.setVentaTotal(ventaTotal);
-		this.setVentaNeta(ventaNeta);
-		this.setSumaPagos(sumaPagos);
-		this.setFechaHoraFactura(fechaHoraFactura);
-		this.setFechaPrometida(fechaPrometida);
-		this.setFechaEntrega(fechaEntrega);
-		this.setfArmazonCli(fArmazonCli);
-		this.setPor100Descuento(por100Descuento);
-		this.setMontoDescuento(montoDescuento);
-		this.setTipoDescuento(tipoDescuento);
-		this.setIdEmpleadoDescto(idEmpleadoDescto);
-		this.setfResumenNotasMo(fResumenNotasMo);
-		this.setsFactura(sFactura);
-		this.setNumeroOrden(numeroOrden);
-		this.setTipoEntrega(tipoEntrega);
-        this.setObservacionesNv(observacionesNv);
-        this.setIdSync(idSync);
-        this.setFechaMod(fechaMod);
-        this.setIdMod(idMod);
-        this.setIdSucursal(idSucursal);
-        this.setFactura(factura);
-        this.setCantLente(cantLente);
-        this.setUdf2(udf2);
-        this.setUdf3(udf3);
-        this.setUdf4(udf4);
-        this.setUdf5(udf5);
-        this.setSucDest(sucDest);
-        this.settDeduc(tDeduc);
-        this.setReceta(receta);
-        this.setEmpEntrego(empEntrego);
-        this.setLc(lc);
-        this.setHoraEntrega(horaEntrega);
-        this.setDescuento(descuento);
-        this.setPolEnt(polEnt);
-        this.setTipoVenta(tipoVenta);
-        this.setPoliza(poliza);
-        this.setCodigoLente(codigoLente);
-		
-		return notaVentaJava;
+    public ClientesJava getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(ClientesJava cliente) {
+        this.cliente = cliente;
+    }
+
+    public SucursalesJava getSucursal() {
+        return sucursal;
+    }
+
+    public void setSucursal(SucursalesJava sucursal) {
+        this.sucursal = sucursal;
+    }
+
+    public List<DetalleNotaVentaJava> getDetalles() {
+        return detalles;
+    }
+
+    public void setDetalles(List<DetalleNotaVentaJava> detalles) {
+        this.detalles = detalles;
+    }
+
+    public List<PagoJava> getPagos() {
+        return pagos;
+    }
+
+    public void setPagos(List<PagoJava> pagos) {
+        this.pagos = pagos;
+    }
+
+    public EmpleadoJava getEmpleado() {
+        return empleado;
+    }
+
+    public void setEmpleado(EmpleadoJava empleado) {
+        this.empleado = empleado;
+    }
+
+    public EmpleadoJava getEmpleadoEntrego() {
+        return empleadoEntrego;
+    }
+
+    public void setEmpleadoEntrego(EmpleadoJava empleadoEntrego) {
+        this.empleadoEntrego = empleadoEntrego;
+    }
+
+    public List<OrdenPromDetJava> getOrdenPromDet() {
+        return ordenPromDet;
+    }
+
+    public void setOrdenPromDet(List<OrdenPromDetJava> ordenPromDet) {
+        this.ordenPromDet = ordenPromDet;
+    }
+
+    public NotaVentaJava setValores( ResultSet rs ) {
+        try {
+            this.setIdFactura(rs.getString("id_factura"));
+            this.setIdEmpleado(rs.getString("id_empleado"));
+            this.setIdCliente(rs.getInt("id_cliente"));
+            this.setIdConvenio(rs.getString("id_convenio"));
+            this.setIdRepVenta(rs.getInt("id_rep_venta"));
+            this.setTipoNotaVenta(rs.getString("tipo_nota_venta"));
+            this.setFechaRecOrd(rs.getDate("fecha_rec_ord"));
+            this.setTipoCli(rs.getString("tipo_cli"));
+            this.setfExpideFactura(rs.getBoolean("f_expide_factura"));
+            this.setVentaTotal(Utilities.toBigDecimal(rs.getString("venta_total")));
+            this.setVentaNeta(Utilities.toBigDecimal(rs.getString("venta_neta")));
+            this.setSumaPagos(Utilities.toBigDecimal(rs.getString("suma_pagos")));
+            this.setFechaHoraFactura(rs.getDate("fecha_hora_factura"));
+            this.setFechaPrometida(rs.getDate("fecha_prometida"));
+            this.setFechaEntrega(rs.getDate("fecha_entrega"));
+            this.setfArmazonCli(rs.getBoolean("f_armazon_cli"));
+            this.setPor100Descuento(rs.getInt("por100_descuento"));
+            this.setMontoDescuento(Utilities.toBigDecimal(rs.getString("monto_descuento")));
+            this.setTipoDescuento(rs.getString("tipo_descuento"));
+            this.setIdEmpleadoDescto(rs.getString("id_empleado_descto"));
+            this.setfResumenNotasMo(rs.getBoolean("f_resumen_notas_mo"));
+            this.setsFactura(rs.getString("s_factura"));
+            this.setNumeroOrden(rs.getInt("numero_orden"));
+            this.setTipoEntrega(rs.getString("tipo_entrega"));
+            this.setObservacionesNv(rs.getString("observaciones_nv"));
+            this.setIdSync(rs.getString("id_sync"));
+            this.setFechaMod(rs.getDate("fecha_mod"));
+            this.setIdMod(rs.getString("id_mod"));
+            this.setIdSucursal(rs.getInt("id_sucursal"));
+            this.setFactura(rs.getString("factura"));
+            this.setCantLente(rs.getString("cant_lente"));
+            this.setUdf2(rs.getString("udf2"));
+            this.setUdf3(rs.getString("udf3"));
+            this.setUdf4(rs.getString("udf4"));
+            this.setUdf5(rs.getString("udf5"));
+            this.setSucDest(rs.getString("suc_dest"));
+            this.settDeduc(rs.getString("t_deduc"));
+            this.setReceta(rs.getInt("receta"));
+            this.setEmpEntrego(rs.getString("emp_entrego"));
+            this.setLc(rs.getString("lc"));
+            this.setHoraEntrega(rs.getDate("hora_entrega"));
+            this.setDescuento(rs.getBoolean("descuento"));
+            this.setPolEnt(rs.getBoolean("pol_ent"));
+            this.setTipoVenta(rs.getString("tipo_venta"));
+            this.setPoliza(Utilities.toBigDecimal(rs.getString("poliza")));
+            this.setCodigoLente(rs.getString("codigo_lente"));
+            this.setCliente(cliente());
+            this.setSucursal(sucursal());
+            this.setDetalles(detalles());
+            this.setPagos(pagos());
+            this.setEmpleado(empleado());
+            this.setOrdenPromDet(ordenPromDet());
+        } catch (SQLException e) {
+          System.out.println( e );
+          e.printStackTrace();
+        } catch (ParseException e) {
+          System.out.println( e );
+          e.printStackTrace();
+        }
+        return this;
 	}
-	
-	
+
+
+  private SucursalesJava sucursal( ) throws ParseException {
+    SucursalesJava sucursalesJava = new SucursalesJava();
+    sucursalesJava = SucursalesQuery.BuscaSucursalPorIdSuc( idSucursal );
+    return sucursalesJava;
+  }
+
+
+  private ClientesJava cliente( ) throws ParseException {
+    ClientesJava clientesJava = new ClientesJava();
+    clientesJava = ClientesQuery.busquedaClienteById( idCliente );
+    return clientesJava;
+  }
+
+  public EmpleadoJava empleado( ){
+    EmpleadoJava empleadoJava = new EmpleadoJava();
+    empleadoJava = EmpleadoQuery.BuscaEmpPorIdEmpleado(idEmpleado);
+    return empleadoJava;
+  }
+
+  public EmpleadoJava empleadoEntrego( ){
+    EmpleadoJava empleadoJava = new EmpleadoJava();
+    empleadoJava = EmpleadoQuery.BuscaEmpPorIdEmpleado(empEntrego);
+    return empleadoJava;
+  }
+
+  private List<DetalleNotaVentaJava> detalles( ) throws ParseException {
+    List<DetalleNotaVentaJava> lstDetalles = new ArrayList<DetalleNotaVentaJava>();
+    lstDetalles = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(StringUtils.trimToEmpty(idFactura) );
+    return lstDetalles;
+  }
+
+  private List<PagoJava> pagos( ) throws ParseException {
+    List<PagoJava> lstPagos = new ArrayList<PagoJava>();
+    lstPagos = PagoQuery.busquedaPagosPorIdFactura( StringUtils.trimToEmpty(idFactura) );
+    return lstPagos;
+  }
+
+  private List<OrdenPromDetJava> ordenPromDet( ) throws ParseException {
+    List<OrdenPromDetJava> lstOrdenPromDet = new ArrayList<OrdenPromDetJava>();
+    lstOrdenPromDet = OrdenPromDetQuery.BuscaOrdenPromDetPorIdFactura( StringUtils.trimToEmpty(idFactura) );
+    return lstOrdenPromDet;
+  }
+
 }
