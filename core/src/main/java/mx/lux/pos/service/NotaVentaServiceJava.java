@@ -1,8 +1,8 @@
 package mx.lux.pos.service;
 
 
+import mx.lux.pos.TipoParametro;
 import mx.lux.pos.Utilities;
-import mx.lux.pos.model.TipoParametro;
 import mx.lux.pos.querys.*;
 import mx.lux.pos.repository.*;
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +24,7 @@ public class NotaVentaServiceJava {
         if ( StringUtils.isNotBlank( notaVenta.getIdFactura() ) ) {
             String idNotaVenta = notaVenta.getIdFactura();
             if ( NotaVentaQuery.busquedaNotaById(idNotaVenta) != null ) {
-                notaVenta.setIdSucursal(Utilities.toInteger(ParametrosQuery.BuscaParametroPorId(TipoParametro.ID_SUCURSAL.getValue()).getValor()));
+                notaVenta.setIdSucursal(Utilities.toInteger(ParametrosQuery.BuscaParametroPorId(TipoParametro.ID_SUCURSAL.getValor()).getValor()));
                 BigDecimal total = BigDecimal.ZERO;
                 List<DetalleNotaVentaJava> detalles = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(idNotaVenta);
                 for(DetalleNotaVentaJava detalleNotaVenta : detalles){

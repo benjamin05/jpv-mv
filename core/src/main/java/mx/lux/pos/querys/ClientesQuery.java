@@ -1,19 +1,14 @@
 package mx.lux.pos.querys;
 
-import mx.lux.pos.Utilities;
-import mx.lux.pos.model.TipoParametro;
 import mx.lux.pos.repository.*;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
-import java.util.List;
 
 public class ClientesQuery {
 
