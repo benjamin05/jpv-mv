@@ -4,10 +4,7 @@ package mx.lux.pos.service;
 import mx.lux.pos.Utilities;
 import mx.lux.pos.model.TipoParametro;
 import mx.lux.pos.querys.*;
-import mx.lux.pos.repository.ArticulosJava;
-import mx.lux.pos.repository.DetalleNotaVentaJava;
-import mx.lux.pos.repository.NotaVentaJava;
-import mx.lux.pos.repository.PagoJava;
+import mx.lux.pos.repository.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,5 +81,17 @@ public class NotaVentaServiceJava {
             log.warn( "no se registra notaVenta, parametros invalidos" );
         }
         return notaVenta;
+    }
+
+
+    public EmpleadoJava obtenerEmpleadoDeNotaVenta(String pOrderId) throws ParseException {
+      EmpleadoJava employee = null;
+      if ( StringUtils.trimToNull( pOrderId ) != null ) {
+        NotaVentaJava order = NotaVentaQuery.busquedaNotaById(StringUtils.trimToEmpty(pOrderId));
+        if ( ( order != null ) && ( StringUtils.trimToNull( order.getIdEmpleado() ) != null ) ) {
+          employee = EmpleadoQuery.buscaEmpPorIdEmpleado(StringUtils.trimToEmpty(order.getIdEmpleado()));
+        }
+      }
+      return employee;
     }
 }

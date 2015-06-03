@@ -4,6 +4,8 @@ import groovy.beans.Bindable
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.Empleado
+import mx.lux.pos.repository.EmpleadoJava
+import org.apache.commons.lang.StringUtils
 
 @Bindable
 @ToString( excludes = 'password' )
@@ -30,6 +32,20 @@ public class User {
       user.username = empleado.id
       user.password = empleado.passwd
         user.idSucursal = empleado.idSucursal
+      return user
+    }
+    return null
+  }
+
+  static toUser( EmpleadoJava empleado ) {
+    if ( empleado?.idEmpleado ) {
+      def user = new User()
+      user.name = StringUtils.trimToEmpty(empleado.nombreEmpleado)
+      user.fathersName = StringUtils.trimToEmpty(empleado.apMatEmpleado)
+      user.mothersName = StringUtils.trimToEmpty(empleado.apMatEmpleado)
+      user.username = StringUtils.trimToEmpty(empleado.idEmpleado)
+      user.password = StringUtils.trimToEmpty(empleado.passwd)
+      user.idSucursal = empleado.idSucursal
       return user
     }
     return null

@@ -15,7 +15,7 @@ public class EmpleadoQuery {
 	private static ResultSet rs;
     private static Statement stmt;
 
-	public static EmpleadoJava BuscaEmpPorIdEmpleado( String idEmpleado ){
+	public static EmpleadoJava buscaEmpPorIdEmpleado(String idEmpleado){
 		EmpleadoJava emp = new EmpleadoJava();
 		try {
             Connection con = Connections.doConnect();

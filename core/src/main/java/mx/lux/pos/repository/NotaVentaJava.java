@@ -572,13 +572,13 @@ public class NotaVentaJava {
 
   public EmpleadoJava empleado( ){
     EmpleadoJava empleadoJava = new EmpleadoJava();
-    empleadoJava = EmpleadoQuery.BuscaEmpPorIdEmpleado(idEmpleado);
+    empleadoJava = EmpleadoQuery.buscaEmpPorIdEmpleado(idEmpleado);
     return empleadoJava;
   }
 
   public EmpleadoJava empleadoEntrego( ){
     EmpleadoJava empleadoJava = new EmpleadoJava();
-    empleadoJava = EmpleadoQuery.BuscaEmpPorIdEmpleado(empEntrego);
+    empleadoJava = EmpleadoQuery.buscaEmpPorIdEmpleado(empEntrego);
     return empleadoJava;
   }
 

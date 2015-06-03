@@ -463,7 +463,7 @@ public class RecetaJava {
 
   public EmpleadoJava empleado( ){
     EmpleadoJava empleadoJava = new EmpleadoJava();
-    empleadoJava = EmpleadoQuery.BuscaEmpPorIdEmpleado(idOptometrista);
+    empleadoJava = EmpleadoQuery.buscaEmpPorIdEmpleado(idOptometrista);
     return empleadoJava;
   }
 

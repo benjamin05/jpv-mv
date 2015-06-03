@@ -396,7 +396,7 @@ public class ConsultaTrabajoDialog extends JDialog {
                 tblDatosRx.setValueAt(jbTrack.getFecha() != null ? dfHora.format(jbTrack.getFecha()) : "", cont, 1);
                 tblDatosRx.setValueAt(JbQuery.buscarEstadoPorId( StringUtils.trimToEmpty(jbTrack.getEstado()) ).getDescr(), cont, 2);
                 tblDatosRx.setValueAt(jbTrack.getObs(), cont, 3);
-                tblDatosRx.setValueAt(EmpleadoQuery.BuscaEmpPorIdEmpleado( StringUtils.trimToEmpty(jbTrack.getEmp())).getNombreApellidos(), cont, 4);
+                tblDatosRx.setValueAt(EmpleadoQuery.buscaEmpPorIdEmpleado(StringUtils.trimToEmpty(jbTrack.getEmp())).getNombreApellidos(), cont, 4);
                 cont = cont+1;
             }
 

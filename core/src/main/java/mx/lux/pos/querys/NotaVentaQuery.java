@@ -28,13 +28,12 @@ public class NotaVentaQuery {
 
 	public static NotaVentaJava busquedaNotaById(String idNotaVenta) throws ParseException{
       NotaVentaJava notaVentaJava = null;
+      if( StringUtils.trimToEmpty(idNotaVenta).length() > 0 ){
       try {
         Connection con = Connections.doConnect();
         stmt = con.createStatement();
         String sql = "";
-        if( idNotaVenta.length() > 0 ){
-          sql = String.format("SELECT * FROM nota_venta WHERE id_factura = '%s';", StringUtils.trimToEmpty(idNotaVenta));
-        }
+        sql = String.format("SELECT * FROM nota_venta WHERE id_factura = '%s';", StringUtils.trimToEmpty(idNotaVenta));
         rs = stmt.executeQuery(sql);
         while (rs.next()) {
           notaVentaJava = new NotaVentaJava();
@@ -43,6 +42,7 @@ public class NotaVentaQuery {
         con.close();
       } catch (SQLException err) {
         System.out.println( err );
+      }
       }
   	  return notaVentaJava;
 	}

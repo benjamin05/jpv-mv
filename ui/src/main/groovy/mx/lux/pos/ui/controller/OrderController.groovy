@@ -2,7 +2,10 @@ package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
+import mx.lux.pos.querys.BancoEmisorQuery
+import mx.lux.pos.querys.DetalleNotaVentaQuery
 import mx.lux.pos.querys.NotaVentaQuery
+import mx.lux.pos.querys.PagoQuery
 import mx.lux.pos.querys.RecetaQuery
 import mx.lux.pos.querys.TmpServiciosQuery
 import mx.lux.pos.repository.*
@@ -187,17 +190,20 @@ class OrderController {
       Order order = Order.toOrder(notaVenta)
       if (StringUtils.isNotBlank(order?.id)) {
         order.items?.clear()
-        List<DetalleNotaVenta> detalles = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(orderId)
-        detalles?.each { DetalleNotaVenta tmp ->
+        //List<DetalleNotaVenta> detalles = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(orderId)
+        List<DetalleNotaVentaJava> detalles = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(orderId)
+        detalles?.each { DetalleNotaVentaJava tmp ->
           order.items?.add(OrderItem.toOrderItem(tmp))
           order.due
         }
         order.payments?.clear()
-        List<Pago> pagos = pagoService.listarPagosPorIdFactura(orderId)
-        pagos?.each { Pago tmp ->
+        //List<Pago> pagos = pagoService.listarPagosPorIdFactura(orderId)
+        List<PagoJava> pagos = PagoQuery.busquedaPagosPorIdFactura(orderId)
+        pagos?.each { PagoJava tmp ->
           Payment paymentTmp = Payment.toPaymment(tmp)
-          if (tmp?.idBancoEmisor?.integer) {
-            BancoEmisor banco = bancoService.obtenerBancoEmisor(tmp?.idBancoEmisor?.toInteger())
+          if (tmp?.idBancoEmi?.integer) {
+            //BancoEmisor banco = bancoService.obtenerBancoEmisor(tmp?.idBancoEmi?.toInteger())
+            BancoEmisorJava banco = BancoEmisorQuery.BuscaBancoEmisorPorId(tmp?.idBancoEmi?.toInteger())
             paymentTmp.issuerBank = banco?.descripcion
           }
           order.payments?.add(paymentTmp)
@@ -897,19 +903,19 @@ class OrderController {
     }
 
     static String requestEmployee(String pOrderId) {
-
-        String empName = ''
-        if (StringUtils.trimToNull(StringUtils.trimToEmpty(pOrderId)) != null) {
-            Empleado employee = notaVentaService.obtenerEmpleadoDeNotaVenta(pOrderId)
-            if (employee != null) {
-                if (((User) Session.get(SessionItem.USER)).equals(employee)) {
-                    empName = ((User) Session.get(SessionItem.USER)).toString()
-                } else {
-                    empName = User.toUser(employee).toString()
-                }
-            }
+      String empName = ''
+      if (StringUtils.trimToNull(StringUtils.trimToEmpty(pOrderId)) != null) {
+        //Empleado employee = notaVentaService.obtenerEmpleadoDeNotaVenta(pOrderId)
+        EmpleadoJava employee = notaVentaServiceJava.obtenerEmpleadoDeNotaVenta(pOrderId)
+        if (employee != null) {
+          if (((User) Session.get(SessionItem.USER)).equals(employee)) {
+            empName = ((User) Session.get(SessionItem.USER)).toString()
+          } else {
+            empName = User.toUser(employee).toString()
+          }
         }
-        return empName
+      }
+      return empName
     }
 
     static void saveCustomerForOrder(String pOrderNbr, Integer pCustomerId) {
