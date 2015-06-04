@@ -136,8 +136,10 @@ class AuthorizationCanDialog extends JDialog {
         JButton source = ev.source as JButton
         source.enabled = false
         if ( allowLateCancellation() ) {
-            boolean authorized = true
-            if ( authorized && hasValidData() ) {
+          boolean authorized = true
+          if ( authorized && hasValidData() ) {
+            String idReason = CancellationController.idReason( reasonField.selectedItem as String )
+            if( CancellationController.orderHasValidStatus(order.id, idReason) ){
                 if ( cancelOrder() ) {
                     CancellationController.reassignCoupons( StringUtils.trimToEmpty(order.id) )
                     CancellationController.refreshOrder( order )
@@ -189,7 +191,13 @@ class AuthorizationCanDialog extends JDialog {
                         }
                     dispose()
                 }
+            } else {
+              sb.optionPane(
+                    message: 'Verifique el estatus del trabajo',
+                    messageType: JOptionPane.ERROR_MESSAGE
+              ).createDialog( this, 'No se puede cancelar' ).show()
             }
+          }
         }
         source.enabled = true
     }

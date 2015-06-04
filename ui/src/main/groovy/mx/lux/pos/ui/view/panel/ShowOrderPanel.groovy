@@ -554,11 +554,12 @@ class ShowOrderPanel extends JPanel {
         }
     }
 
-    private void cancelToday(){
-      Integer question = JOptionPane.showConfirmDialog(new JDialog(), String.format(MSJ_CANCELAR, order.bill), TXT_CANCELAR,
-            JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
-      if( question == 0 ){
-        String causa = CancellationController.findCancellationReasonById( 5 )
+  private void cancelToday(){
+    Integer question = JOptionPane.showConfirmDialog(new JDialog(), String.format(MSJ_CANCELAR, order.bill), TXT_CANCELAR,
+          JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
+    if( question == 0 ){
+      String causa = CancellationController.findCancellationReasonById( 5 )
+      if( CancellationController.orderHasValidStatus( order.id, 5.toString() ) ){
         CancellationController.cancelOrder( order.id, causa, '', false )
         if( !StringUtils.trimToEmpty(causa).equalsIgnoreCase(TAG_RAZON_CAMBIO_FORMA_PAGO) ){
             CancellationController.sendCancellationOrderLc( StringUtils.trimToEmpty( order.bill ) )
@@ -585,8 +586,14 @@ class ShowOrderPanel extends JPanel {
         }
         CancellationController.refreshOrder( order )
         doBindings()
+      } else {
+        sb.optionPane(
+              message: 'Verifique el estatus de el trabajo',
+              messageType: JOptionPane.ERROR_MESSAGE
+        ).createDialog( this, 'No se puede cancelar' ).show()
       }
     }
+  }
 
 
     public void cleanAll( ){

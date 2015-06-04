@@ -176,6 +176,8 @@ class CancellationDialog extends JDialog {
   }
 
   private boolean cancelOrder( ) {
+    String idReason = CancellationController.idReason( reasonField.selectedItem as String )
+    if( CancellationController.orderHasValidStatus( order.id, idReason ) ){
       if ( CancellationController.cancelOrder( order.id, reasonField.selectedItem as String, commentsField.text, false ) ) {
           CancellationController.updateJb( order.id )
           CancellationController.generatedAcuses( order.id )
@@ -192,6 +194,12 @@ class CancellationDialog extends JDialog {
                   .show()
           return false
       }
+    } else {
+      sb.optionPane( message: "Verifique el estatus de el trabajo", optionType: JOptionPane.DEFAULT_OPTION )
+              .createDialog( this, "No se puede cancelar" )
+              .show()
+      return false
+    }
   }
 
   private def doTransfer = { ActionEvent ev ->
