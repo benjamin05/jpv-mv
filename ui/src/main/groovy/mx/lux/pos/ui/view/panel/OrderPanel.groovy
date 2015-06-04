@@ -331,13 +331,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       if(promoAgeActive){
         calculatedPromoAge()
       }
-
         sb.build {
             bean(customerName, text: bind { customer?.fullName })
             bean(folio, text: bind { order.id })
             bean(bill, text: bind { order.bill })
             bean(date, text: bind(source: order, sourceProperty: 'date', converter: dateConverter), alignmentX: CENTER_ALIGNMENT)
-            if( promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
+            if( promoAmount.compareTo(BigDecimal.ZERO) > 0 && !promoApplied() ){
                 BigDecimal amountParcial = BigDecimal.ZERO
                 BigDecimal amountEnsure = BigDecimal.ZERO
                 for(OrderItem orderItem : order.items){
@@ -520,7 +519,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         sb.doOutside {
                           Registry.getSolicitaGarbageColector()
                         }
-                        CustomerController.requestPayingCustomer(this)
+                        CustomerController.requestPayingCustomer(this, OperationType.PAYING)
                         isPaying = true
                       } else {
                           sb.optionPane(
@@ -544,7 +543,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       }
                     }
                     if( valid ){
-                      CustomerController.requestEditPayingCustomer(this)
+                      CustomerController.requestPayingCustomer(this, OperationType.EDIT_PAYING)
+                      isPaying = true
                     } else {
                       sb.optionPane(
                                   message: 'Opcion valida solo en caja',
@@ -1731,6 +1731,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         dioptra = new Dioptra()
         antDioptra = new Dioptra()
         order?.dioptra = null
+        promotionList.clear()
         doBindings()
         operationType.setSelectedItem(OperationType.DEFAULT)
     }
@@ -2378,43 +2379,63 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
   private void calculatedPromoAge( ){
-    Boolean promoApplied = false
-    for(IPromotionAvailable promo : promotionList){
+    promoAmount = BigDecimal.ZERO
+    Boolean promoApplied = promoApplied()
+    //BigDecimal promoAmount = BigDecimal.ZERO
+    /*for(IPromotionAvailable promo : promotionList){
       if( promo.applied ){
-         promoApplied = true
+        promoApplied = true
+        promoAmount = promo.discountAmount
       }
     }
+    if( promoAmount.compareTo(BigDecimal.ZERO) <= 0  ){
+      for(OrderLinePromotion promo : order.deals){
+        promoApplied = true
+        promoAmount = promo.promotionItem.descuentoMonto
+      }
+    }*/
 
     if( !promoApplied ){
       promoAmount = OrderController.amountPromoAge( order.id )
-      lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount)
-      String comments = ''
-      if( order.comments != null && order.comments != '' ){
-        comments = order.comments
+    }
+
+    lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount)
+    String comments = ''
+    if( order.comments != null && order.comments != '' ){
+      comments = order.comments
+    }
+    Order tmp = OrderController.getOrder(order.id)
+    if (tmp?.id) {
+      if( comments.length() > 0 ){
+        tmp?.comments = comments
       }
-      Order tmp = OrderController.getOrder(order.id)
-      if (tmp?.id) {
-        if( comments.length() > 0 ){
-          tmp?.comments = comments
+      order = tmp
+    }
+  }
+
+
+  private Boolean promoApplied (){
+    Boolean applied = false
+    for(int i=0;i<promotionList.size();i++){
+      if(promotionList.get(i) instanceof PromotionAvailable){
+        if( promotionList.get(i).applied ){
+          applied= true
+          promoAmount = promotionList.get(i).discountAmount
         }
-        order = tmp
-      }
-    } else {
-      PromotionModel promo = promotionDriver.model
-      promoAmount = BigDecimal.ZERO
-      lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount)
-      String comments = ''
-      if( order.comments != null && order.comments != '' ){
-            comments = order.comments
-      }
-      Order tmp = OrderController.getOrder(order.id)
-      if (tmp?.id) {
-            if( comments.length() > 0 ){
-                tmp?.comments = comments
-            }
-            order = tmp
+      } else if(promotionList.get(i) instanceof PromotionDiscount){
+        applied = true
+        promoAmount = promotionList.get(i).discountAmount
       }
     }
+
+    if( !applied  ){
+      for(OrderLinePromotion promo : order.deals){
+        applied = true
+        promoAmount = promo.promotionItem.descuentoMonto
+      }
+    }
+    println "Algo aplicado: "+applied
+    return applied
   }
 
 
