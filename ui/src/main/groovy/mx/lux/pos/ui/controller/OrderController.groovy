@@ -1536,6 +1536,20 @@ class OrderController {
         notaVentaService.saveOrder(notaVenta)
     }
 
+
+    static void deleteSuyo( Order order ){
+      QTmpServicios qTmpServicios = QTmpServicios.tmpServicios
+      List<TmpServicios> lstTmpServicio = tmpServiciosRepository.findAll( qTmpServicios.id_factura.eq(order.id) )
+      for(TmpServicios tmpServicios : lstTmpServicio){
+        tmpServiciosRepository.delete( tmpServicios.id_serv )
+        tmpServiciosRepository.flush()
+      }
+      NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+      notaVenta?.observacionesNv = ""
+      notaVentaService.saveOrder(notaVenta)
+    }
+
+
     static void printSuyo(Order order, User user) {
         TmpServicios servicios = tmpServiciosRepository.findOne( tmpServiciosRepository.tmpExiste(order?.id))
         JbNotas jbNotas = new JbNotas()

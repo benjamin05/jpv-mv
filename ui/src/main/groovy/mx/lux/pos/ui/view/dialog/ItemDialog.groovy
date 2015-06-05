@@ -119,6 +119,9 @@ class ItemDialog extends JDialog implements ItemListener{
       if(orderItem?.tipo.trim().equals('A')){
           op.armazonString = null
       }
+    if (StringUtils.trimToEmpty(orderItem?.item?.name).equals('MONTAJE')) {
+      OrderController.deleteSuyo( order )
+    }
     OrderController.removePedidoLc( order.id, orderItem.item.id )
     source.enabled = true
     this.setVisible(false)
