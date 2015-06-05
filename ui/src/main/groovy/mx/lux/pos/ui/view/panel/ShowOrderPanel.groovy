@@ -427,18 +427,16 @@ class ShowOrderPanel extends JPanel {
     }
     JButton source = ev.source as JButton
     source.enabled = false
-    if( validIp ){
-      if(ppButton.getText().equals('Pagar')){
-          doShowPayment()
-      } else{
-          doPrint()
+    if(ppButton.getText().equals('Pagar')){
+      if( validIp ){
+        doShowPayment()
+      } else {
+        sb.optionPane(message: 'Los pagos solo se pueden registrar en caja.',
+                      messageType: JOptionPane.ERROR_MESSAGE
+        ).createDialog(this, 'Pago en caja').show()
       }
-    } else {
-      sb.optionPane(
-         message: 'Los pagos solo se pueden registrar en caja.',
-         messageType: JOptionPane.ERROR_MESSAGE
-      ).createDialog(this, 'Pago en caja')
-         .show()
+    } else{
+      doPrint()
     }
     source.enabled = true
   }
