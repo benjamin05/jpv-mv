@@ -608,7 +608,7 @@ class CancelacionServiceImpl implements CancelacionService {
       NotaVenta nota = notaVentaRepository.findOne( idFactura.trim() )
       List<Modificacion> lstModificaciones = new ArrayList<Modificacion>()
       if( nota != null ){
-                lstModificaciones = modificacionRepository.findByIdFactura( nota.id )
+        lstModificaciones = modificacionRepository.findByIdFactura( nota.id )
       }
 
       JbTrack jbTrack = new JbTrack()
