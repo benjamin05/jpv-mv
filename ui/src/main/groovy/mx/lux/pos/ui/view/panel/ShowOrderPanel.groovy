@@ -588,7 +588,7 @@ class ShowOrderPanel extends JPanel {
         doBindings()
       } else {
         sb.optionPane(
-              message: 'Verifique el estatus de el trabajo',
+              message: 'Trabajo en Laboratorio, no se puede cancelar. Espere a recibirlo.',
               messageType: JOptionPane.ERROR_MESSAGE
         ).createDialog( this, 'No se puede cancelar' ).show()
       }

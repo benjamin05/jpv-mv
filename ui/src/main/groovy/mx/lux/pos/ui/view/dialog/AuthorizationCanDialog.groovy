@@ -193,7 +193,7 @@ class AuthorizationCanDialog extends JDialog {
                 }
             } else {
               sb.optionPane(
-                    message: 'Verifique el estatus del trabajo',
+                    message: 'Trabajo en Laboratorio, no se puede cancelar. Espere a recibirlo.',
                     messageType: JOptionPane.ERROR_MESSAGE
               ).createDialog( this, 'No se puede cancelar' ).show()
             }

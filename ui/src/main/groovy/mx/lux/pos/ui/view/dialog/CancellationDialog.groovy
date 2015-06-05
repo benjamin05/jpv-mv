@@ -195,7 +195,7 @@ class CancellationDialog extends JDialog {
           return false
       }
     } else {
-      sb.optionPane( message: "Verifique el estatus de el trabajo", optionType: JOptionPane.DEFAULT_OPTION )
+      sb.optionPane( message: "Trabajo en Laboratorio, no se puede cancelar. Espere a recibirlo.", optionType: JOptionPane.DEFAULT_OPTION )
               .createDialog( this, "No se puede cancelar" )
               .show()
       return false

@@ -122,6 +122,12 @@ class CancelacionServiceImpl implements CancelacionService {
     List<CausaCancelacion> listarCausasCancelacion() {
         log.info("listando causas de cancelacion")
         List<CausaCancelacion> causas = causaCancelacionRepository.findByDescripcionNotNullOrderByDescripcionAsc()
+        Collections.sort( causas, new Comparator<CausaCancelacion>() {
+            @Override
+            int compare(CausaCancelacion o1, CausaCancelacion o2) {
+                return o1.id.compareTo(o2.id)
+            }
+        })
         log.debug("obtiene causas: ${causas*.id}")
         return causas?.any() ? causas : []
     }
@@ -602,7 +608,7 @@ class CancelacionServiceImpl implements CancelacionService {
       NotaVenta nota = notaVentaRepository.findOne( idFactura.trim() )
       List<Modificacion> lstModificaciones = new ArrayList<Modificacion>()
       if( nota != null ){
-        lstModificaciones = modificacionRepository.findByIdFactura( nota.id )
+                lstModificaciones = modificacionRepository.findByIdFactura( nota.id )
       }
 
       JbTrack jbTrack = new JbTrack()
