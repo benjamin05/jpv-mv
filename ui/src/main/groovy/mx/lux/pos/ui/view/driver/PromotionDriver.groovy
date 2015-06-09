@@ -6,6 +6,7 @@ import mx.lux.pos.model.IPromotionAvailable
 import mx.lux.pos.model.PromotionAvailable
 import mx.lux.pos.model.PromotionDiscount
 import mx.lux.pos.model.PromotionModel
+import mx.lux.pos.service.PromotionServiceJava
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.OrderController
@@ -98,6 +99,10 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
 
   PromotionService getService( ) {
     return ServiceManager.promotionService
+  }
+
+  PromotionServiceJava getServiceJava( ) {
+    return ServiceManager.promotionServiceJava
   }
 
   Boolean isDiscountEnabled( ) {
@@ -343,6 +348,12 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     log.debug( "Request promotion persist" )
     service.saveTipoDescuento(idNotaVenta,this.model?.orderDiscount?.discountType?.idType)
     service.requestPersist( this.model, saveOrder )
+  }
+
+  void requestPromotionJavaSave(String idNotaVenta, Boolean saveOrder) {
+    log.debug( "Request promotion persist" )
+    serviceJava.saveTipoDescuento(idNotaVenta,this.model?.orderDiscount?.discountType?.idType)
+    serviceJava.requestPersist( this.model, saveOrder )
   }
 
   Boolean requestVerify( String pCorporateKey, Double pDiscountPct ) {

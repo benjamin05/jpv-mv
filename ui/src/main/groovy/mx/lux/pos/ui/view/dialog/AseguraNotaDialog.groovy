@@ -2,6 +2,7 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.NotaVenta
+import mx.lux.pos.repository.NotaVentaJava
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.Branch
@@ -21,7 +22,7 @@ class AseguraNotaDialog extends JDialog {
     private static Branch branch
     private static JTextField factura = new JTextField()
     private static JTextField sucursal = new JTextField()
-    static NotaVenta notaVenta = null
+    static NotaVentaJava notaVenta = null
 
     AseguraNotaDialog( ) {
       sb = new SwingBuilder()
@@ -53,22 +54,23 @@ class AseguraNotaDialog extends JDialog {
     }
 
 
-    NotaVenta getNotaVenta (){
+    NotaVentaJava getNotaVenta (){
       return notaVenta
     }
 
 
     private void doSave(){
      Boolean registro =  OrderController.validaAplicaGarantia(factura.text)
-     if(registro == false){
+     if(!registro){
        sb.optionPane(
           message: 'Ticket no valido',
           messageType: JOptionPane.ERROR_MESSAGE
        ).createDialog(this, 'No se puede registrar el seguro')
          .show()
      } else {
-       Order order = OrderController.findOrderByTicket(StringUtils.trimToEmpty(sucursal.text)+"-"+StringUtils.trimToEmpty(factura.text))
-       notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(order.id) )
+       //Order order = OrderController.findOrderByTicket(StringUtils.trimToEmpty(sucursal.text)+"-"+StringUtils.trimToEmpty(factura.text))
+       Order order = OrderController.findOrderByTicketJava(StringUtils.trimToEmpty(factura.text))
+       notaVenta = OrderController.findOrderJavaByidOrder( StringUtils.trimToEmpty(order.id) )
      }
      doCancel()
     }

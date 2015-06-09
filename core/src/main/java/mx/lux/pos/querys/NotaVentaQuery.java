@@ -136,4 +136,28 @@ public class NotaVentaQuery {
         }
         return factura;
     }
+
+
+    public static List<NotaVentaJava> busquedaNotaByIdClienteAndFacturaEmpty(Integer idCliente) throws ParseException{
+      List<NotaVentaJava> lstNotas = new ArrayList<NotaVentaJava>();
+      NotaVentaJava notaVentaJava = null;
+      if( idCliente != null ){
+        try {
+          Connection con = Connections.doConnect();
+          stmt = con.createStatement();
+          String sql = "";
+          sql = String.format("SELECT * FROM nota_venta WHERE id_cliente = %d AND factura != '' AND factura is null;", idCliente);
+          rs = stmt.executeQuery(sql);
+          while (rs.next()) {
+            notaVentaJava = new NotaVentaJava();
+            notaVentaJava.setValores( rs );
+            lstNotas.add( notaVentaJava );
+          }
+          con.close();
+        } catch (SQLException err) {
+          System.out.println( err );
+        }
+      }
+      return lstNotas;
+    }
 }

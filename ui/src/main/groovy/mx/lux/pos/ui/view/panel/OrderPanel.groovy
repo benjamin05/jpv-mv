@@ -3,6 +3,7 @@ package mx.lux.pos.ui.view.panel
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.*
+import mx.lux.pos.repository.NotaVentaJava
 import mx.lux.pos.repository.RecetaJava
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.MainWindow
@@ -1004,8 +1005,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         Boolean warranty = false
         if( true ){
-            NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, true )
+            NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, true )
         } else {
           warranty = true
         }
@@ -1721,9 +1722,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         String dio = OrderController.codigoDioptra(dioptra)
         List<Item> itemLc = OrderController.existeLenteContacto(order)
         if( itemLc.size() > 0 ) {
-            for(Item it : itemLc){
-                validaLC( it, true )
-            }
+          for(Item it : itemLc){
+            validaLC( it, true )
+          }
         }
       Boolean warranty = true
       if( hasOnlyEnsure ){
@@ -1733,8 +1734,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( !hasOnlyEnsure ){
         if( true ){
-          NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-          warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
+          NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+          warranty = OrderController.validWarranty( OrderController.findOrderJavaByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, false )
         } else {
           warranty = true
         }
@@ -1838,26 +1839,26 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void flujoContinuar() {
-        if (isPaymentListEmpty()) {
-            sb.doLater {
-                if( !validLenses() ){
-                  order.dioptra = null
-                }
-                Order newOrder = OrderController.saveOrder(order)
-                CustomerController.updateCustomerInSite(this.customer.id)
-                this.promotionDriver.requestPromotionSave(newOrder?.id, false)
-                for(IPromotionAvailable promo : promotionList){
-                  if( promo instanceof PromotionDiscount ){
-                    OrderController.updateCuponMvByClave(order.id, StringUtils.trimToEmpty(promo.discountType.description))
-                  }
-                }
-                this.reset()
+      if (isPaymentListEmpty()) {
+        sb.doLater {
+          if( !validLenses() ){
+            order.dioptra = null
+          }
+          Order newOrder = OrderController.saveOrderJava(order)
+          CustomerController.updateCustomerInSite(this.customer.id)
+          this.promotionDriver.requestPromotionJavaSave(newOrder?.id, false)
+          for(IPromotionAvailable promo : promotionList){
+            if( promo instanceof PromotionDiscount ){
+              OrderController.updateCuponMvByClave(order.id, StringUtils.trimToEmpty(promo.discountType.description))
             }
-        } else {
-            sb.doLater {
-                OrderController.notifyAlert(TXT_REQUEST_CONTINUE, TXT_PAYMENTS_PRESENT)
-            }
+          }
+          this.reset()
         }
+      } else {
+        sb.doLater {
+          OrderController.notifyAlert(TXT_REQUEST_CONTINUE, TXT_PAYMENTS_PRESENT)
+        }
+      }
     }
 
 
@@ -1915,8 +1916,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( !hasOnlyEnsure ){
         if( true ){
-          NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-          warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
+          NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+          warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, false )
         } else {
           warranty = true
         }

@@ -35,6 +35,7 @@ class CustomerController {
     private static NotaVentaService notaService
     private static ContactoService contactoService
     private static FormaContactoService formaContactoService
+    private static ClienteServiceJava clienteServiceJava
 
     @Autowired
     public CustomerController(
@@ -65,6 +66,7 @@ class CustomerController {
         this.notaService = notaService
         this.contactoService = contactoService
         this.formaContactoService = formaContactoService
+        clienteServiceJava = new ClienteServiceJava()
     }
 
 
@@ -387,7 +389,8 @@ class CustomerController {
     }
 
     static void updateCustomerInSite(Integer idCliente) {
-        clienteService.actualizarClienteEnProceso(idCliente)
+      //clienteService.actualizarClienteEnProceso(idCliente)
+      clienteServiceJava.actualizarClienteEnProceso( idCliente )
     }
 
     static List<Rx> findAllPrescriptions(Integer idCliente) {

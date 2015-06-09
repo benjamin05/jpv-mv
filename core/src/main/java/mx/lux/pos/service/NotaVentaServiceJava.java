@@ -3,6 +3,7 @@ package mx.lux.pos.service;
 
 import mx.lux.pos.TipoParametro;
 import mx.lux.pos.Utilities;
+import mx.lux.pos.model.*;
 import mx.lux.pos.querys.*;
 import mx.lux.pos.repository.*;
 import org.apache.commons.lang3.StringUtils;
@@ -11,11 +12,15 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NotaVentaServiceJava {
 
     private static final String TAG_TIPO_NOTA_VENTA = String.valueOf('F');
+    private static final String TAG_GENERICOS_LENTECONTACTO2 = "H";
+    private static final String TAG_GEN_TIPO_NC = "NC";
+    private static final String TAG_GEN_TIPO_C = "C";
     static final Logger log = LoggerFactory.getLogger(NotaVentaQuery.class);
 
     public static NotaVentaJava registrarNotaVenta(NotaVentaJava notaVenta) throws ParseException {
@@ -94,4 +99,56 @@ public class NotaVentaServiceJava {
       }
       return employee;
     }
+
+
+  public List<ArticulosJava> validaLentesContacto( String idFactura ) throws ParseException {
+    List<ArticulosJava> articulo = new ArrayList<ArticulosJava>();
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( StringUtils.trimToEmpty(idFactura) );
+    List<ModeloLcJava> modelosLc = ModeloLcQuery.buscaTodoModeloLc();
+    for(DetalleNotaVentaJava det : nota.getDetalles()){
+      if( StringUtils.trimToEmpty(det.getArticulo().getIdGenerico()).equalsIgnoreCase(TAG_GENERICOS_LENTECONTACTO2) ){
+        if( StringUtils.trimToEmpty(det.getArticulo().getIdGenTipo()).equalsIgnoreCase(TAG_GEN_TIPO_C) ){
+          if(StringUtils.trimToEmpty(det.getIdRepVenta()).length() <= 0 ){
+            articulo.add(det.getArticulo());
+          }
+          String[] lotes = StringUtils.trimToEmpty(det.getIdRepVenta()).split(",");
+          if( lotes.length < det.getCantidadFac() ){
+            Integer faltantes = det.getCantidadFac().intValue()-lotes.length;
+            for(int i=0; i < faltantes; i++){
+              articulo.add(det.getArticulo());
+            }
+          }
+        } else if( StringUtils.trimToEmpty(det.getArticulo().getIdGenTipo()).equalsIgnoreCase(TAG_GEN_TIPO_NC) ){
+          for(ModeloLcJava mod : modelosLc){
+            if( StringUtils.trimToEmpty(det.getArticulo().getArticulo()).equalsIgnoreCase(StringUtils.trimToEmpty(mod.getIdModelo())) ){
+              PedidoLcJava pedidoLc = PedidoLcQuery.buscaPedidoLcPorId( idFactura );
+              List<PedidoLcDetJava> pedidoDet = PedidoLcQuery.buscaPedidoLcDetPorIdYModelo(det.getIdFactura(), det.getArticulo().getArticulo());
+              if( pedidoLc != null ){
+                if(pedidoDet.size() <= 0){
+                  articulo.add(det.getArticulo());
+                }
+              } else {
+                articulo.add(det.getArticulo());
+              }
+            }
+          }
+        }
+      }
+    }
+    return articulo;
+  }
+
+
+
+  public Boolean validaLentes( String idFactura ) throws ParseException {
+    Boolean hasLente = false;
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(StringUtils.trimToEmpty(idFactura));
+    for(DetalleNotaVentaJava det : nota.getDetalles()){
+      if( det.getArticulo().getIndiceDioptra() != null && !StringUtils.trimToEmpty(det.getArticulo().getIndiceDioptra()).equalsIgnoreCase("")){
+        hasLente = true;
+      }
+    }
+    return hasLente;
+  }
+
 }

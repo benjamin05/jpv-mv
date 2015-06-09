@@ -142,4 +142,35 @@ class Item {
     }
     return manualPriceTypeList.contains( this.type )
   }
+
+
+
+  static Item toItem( ArticulosJava articulo ) {
+    if ( articulo?.idArticulo ) {
+      Item item = new Item(
+            id: articulo.idArticulo,
+            price: articulo.precio,
+            listPrice: articulo.precio,
+            name: articulo.articulo,
+            color: articulo.colorCode,
+            colorDesc: articulo.colorDesc,
+            reference: articulo.descArticulo,
+            type: articulo.idGenerico,
+            genericType: articulo.idGenTipo,
+            genericSubType: articulo.idGenSubtipo,
+            lensDesign: articulo.idDisenoLente,
+            operation: articulo.operacion,
+            priceType: articulo.tipoPrecio,
+            location: articulo.ubicacion,
+            brand: articulo.marca,
+            typ: articulo.tipo,
+            typeArticle: articulo.tipo,
+            subtype: articulo.subtipo,
+            stock: articulo.existencia,
+            indexDiotra: articulo.indiceDioptra
+      )
+      return item
+    }
+    return null
+  }
 }

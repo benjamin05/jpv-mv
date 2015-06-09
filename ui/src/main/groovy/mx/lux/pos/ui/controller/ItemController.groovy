@@ -10,7 +10,11 @@ import mx.lux.pos.model.PedidoLc
 import mx.lux.pos.model.PedidoLcDet
 import mx.lux.pos.model.Precio
 import mx.lux.pos.model.QArticulo
+import mx.lux.pos.querys.MontoGarantiaQuery
+import mx.lux.pos.repository.ArticulosJava
+import mx.lux.pos.repository.MontoGarantiaJava
 import mx.lux.pos.service.ArticuloService
+import mx.lux.pos.service.ArticulosServiceJava
 import mx.lux.pos.service.NotaVentaService
 import mx.lux.pos.service.TicketService
 import mx.lux.pos.service.business.Registry
@@ -34,6 +38,7 @@ class ItemController {
   private static final String TAG_GENERICO_H = 'H'
   private static final String TAG_GEN_TIPO_C = 'C'
   private static ArticuloService articuloService
+  private static ArticulosServiceJava articulosServiceJava
   private static TicketService ticketService
   private static NotaVentaService notaVentaService
 
@@ -42,6 +47,7 @@ class ItemController {
     this.articuloService = articuloService
     this.ticketService = ticketService
     this.notaVentaService = notaVentaService
+    this.articulosServiceJava = new ArticulosServiceJava()
   }
 
   static Item findItem( Integer id ) {
@@ -181,13 +187,14 @@ class ItemController {
 
 
   static Item findItemsById( Integer idItem ) {
-      log.debug( "buscando de articulos con id: $idItem" )
-      Articulo items = articuloService.obtenerArticulo( idItem )
-        if (items != null) {
-            log.debug( "Item: ${items?.dump()} " )
-            return Item.toItem( items )
-        }
-      return [ ]
+    log.debug( "buscando de articulos con id: $idItem" )
+    //Articulo items = articuloService.obtenerArticulo( idItem )
+    ArticulosJava items = articulosServiceJava.obtenerArticulo( idItem )
+    if (items != null) {
+      log.debug( "Item: ${items?.dump()} " )
+      return Item.toItem( items )
+    }
+    return [ ]
   }
 
 
@@ -358,6 +365,24 @@ class ItemController {
     Articulo warranty = articuloService.obtenerArticulo( idWarranty, true )
     if( warranty != null ){
       MontoGarantia montoGarantia = articuloService.obtenerMontoGarantia( warranty.precio )
+      if( montoGarantia != null ){
+        if( montoGarantia.montoGarantia.compareTo(BigDecimal.ZERO) == 0 ){
+          warrantyAmount = new BigDecimal(100)
+        } else if(montoGarantia.montoMinimo.compareTo(priceItem) <= 0
+                && montoGarantia.montoMaximo.compareTo(priceItem) >= 0 ){
+          warrantyAmount = montoGarantia.montoGarantia
+        }
+      }
+    }
+    return warrantyAmount
+  }
+
+
+  static BigDecimal warrantyValidJava( BigDecimal priceItem, Integer idWarranty ){
+    BigDecimal warrantyAmount = BigDecimal.ZERO
+    ArticulosJava warranty = articulosServiceJava.obtenerArticulo( idWarranty, true )
+    if( warranty != null ){
+      MontoGarantiaJava montoGarantia = MontoGarantiaQuery.buscaMontoGarantiaPorMontoGarantia( warranty.precio )
       if( montoGarantia != null ){
         if( montoGarantia.montoGarantia.compareTo(BigDecimal.ZERO) == 0 ){
           warrantyAmount = new BigDecimal(100)

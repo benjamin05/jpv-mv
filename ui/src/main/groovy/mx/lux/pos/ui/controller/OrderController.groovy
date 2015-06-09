@@ -2,6 +2,8 @@ package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
+import mx.lux.pos.querys.ArticulosQuery
+import mx.lux.pos.querys.AutorizaMovQuery
 import mx.lux.pos.querys.BancoEmisorQuery
 import mx.lux.pos.querys.DetalleNotaVentaQuery
 import mx.lux.pos.querys.NotaVentaQuery
@@ -88,6 +90,7 @@ class OrderController {
     private static RecetaService recetaService
     private static ExamenService examenService
     private static ArticuloService articuloService
+    private static ArticulosServiceJava articulosServiceJava
     private static CotizacionService cotizacionService
     private static JbService jbService
     private static FormaContactoService formaContactoService
@@ -178,6 +181,7 @@ class OrderController {
         this.bancoDevRepository = bancoDevRepository
         recetaServiceJava = new RecetaServiceJava()
         notaVentaServiceJava = new NotaVentaServiceJava()
+        articulosServiceJava = new ArticulosServiceJava()
     }
 
     private static Boolean canceledWarranty
@@ -799,6 +803,16 @@ class OrderController {
         return Order.toOrder(result)
     }
 
+    static Order findOrderByTicketJava(String factura) {
+      log.info("buscando orden por ticket: ${factura}")
+      NotaVentaJava result = NotaVentaQuery.busquedaNotaByFactura(factura)
+      if( result == null ){
+        factura = String.format("%06d",Integer.parseInt(factura))
+        result = NotaVentaQuery.busquedaNotaByFactura(factura)
+      }
+      return Order.toOrder(result)
+    }
+
     static Order findOrderByIdOrder(String idOrder) {
         log.info("buscando orden por ticket: ${idOrder}")
         NotaVenta result = notaVentaService.obtenerNotaVenta(idOrder)
@@ -963,6 +977,35 @@ class OrderController {
         }
         return null
     }
+
+
+
+    static Order saveOrderJava(Order order) {
+      log.info("registrando orden id: ${order?.id}, cliente: ${order?.customer?.id}")
+      if (StringUtils.isNotBlank(order?.id) && order?.customer?.id) {
+        NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
+        if (StringUtils.isNotBlank(notaVenta?.idFactura)) {
+          User user = Session.get(SessionItem.USER) as User
+          if (StringUtils.isBlank(notaVenta.idEmpleado)) {
+            notaVenta.idEmpleado = user?.username
+          }
+          if (notaVenta.idCliente != null) {
+            notaVenta.idCliente = order.customer.id
+          }
+          notaVenta.codigoLente = order?.dioptra
+          notaVenta.observacionesNv = order.comments
+          notaVenta = notaVentaServiceJava.registrarNotaVenta(notaVenta)
+          return Order.toOrder(notaVenta)
+        } else {
+          log.warn("no se registra orden, notaVenta no existe")
+        }
+      } else {
+        log.warn("no se registra orden, parametros invalidos")
+      }
+      return null
+    }
+
+
 
     static void notifyAlert(String pTitle, String pMessage) {
         JOptionPane.showMessageDialog(MainWindow.instance, pMessage, pTitle, JOptionPane.ERROR_MESSAGE)
@@ -1512,18 +1555,17 @@ class OrderController {
 
 
     static String armazonString(String idNotaVenta) {
-        String armazonString = ''
-        List<DetalleNotaVenta> detalleVenta = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(idNotaVenta)
-        Iterator iterator = detalleVenta.iterator();
-        while (iterator.hasNext()) {
-            DetalleNotaVenta detalle = iterator.next()
-
-            if (detalle?.articulo?.idGenerico.trim().equals('A')) {
-                armazonString = detalle?.articulo?.articulo.trim()
-            }
-
+      String armazonString = ''
+      //List<DetalleNotaVenta> detalleVenta = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(idNotaVenta)
+      List<DetalleNotaVentaJava> detalleVenta = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(idNotaVenta)
+      Iterator iterator = detalleVenta.iterator();
+      while (iterator.hasNext()) {
+        DetalleNotaVentaJava detalle = iterator.next()
+        if (StringUtils.trimToEmpty(detalle?.articulo?.idGenerico).equals('A')) {
+          armazonString = StringUtils.trimToEmpty(detalle?.articulo?.articulo)
         }
-        return armazonString
+      }
+      return armazonString
     }
 
     static void validaSurtePorGenerico( Order order ){
@@ -2075,14 +2117,16 @@ class OrderController {
 
 
     static Boolean validLenses( Order order ){
-        return notaVentaService.validaLentes( order.id )
+        //return notaVentaService.validaLentes( order.id )
+      return notaVentaServiceJava.validaLentes( order.id )
     }
 
 
     static List<Item> existeLenteContacto(Order order){
       List<Item> lstItems = new ArrayList<>()
-      List<Articulo> articulo = notaVentaService.validaLentesContacto( order.id )
-      for(Articulo art : articulo){
+      //List<Articulo> articulo = notaVentaService.validaLentesContacto( order.id )
+      List<ArticulosJava> articulo = notaVentaServiceJava.validaLentesContacto( StringUtils.trimToEmpty(order.id) )
+      for(ArticulosJava art : articulo){
         lstItems.add( Item.toItem(art) )
       }
       return lstItems
@@ -2352,6 +2396,11 @@ class OrderController {
 
     static NotaVenta findOrderByidOrder(String idOrder) {
       NotaVenta result = notaVentaService.obtenerNotaVenta( idOrder )
+      return result
+    }
+
+    static NotaVentaJava findOrderJavaByidOrder(String idOrder) {
+      NotaVentaJava result = NotaVentaQuery.busquedaNotaById( idOrder )
       return result
     }
 
@@ -2867,6 +2916,260 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
 
+  static Boolean validWarranty( NotaVentaJava nota, Boolean cleanWaranties, OrderPanel panel, String idOrderPostEnsure, Boolean addIdOrder ){
+    canceledWarranty = false
+    if( StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ){
+      postEnsure = StringUtils.trimToEmpty(idOrderPostEnsure)
+    }
+    NotaVentaJava oldNota = null
+    if( StringUtils.trimToEmpty(postEnsure).length() > 0 ){
+      oldNota = NotaVentaQuery.busquedaNotaById( postEnsure )
+      if( oldNota != null ){
+        nota.detalles.addAll( oldNota.detalles )
+      }
+    }
+    Boolean valid = true
+    Boolean applyValid = false
+    List<Integer> lstIdGar = new ArrayList<>()
+    List<Integer> lstIdArm = new ArrayList<>()
+    for(DetalleNotaVentaJava orderItem : nota.detalles){
+      if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
+        if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+          for(int i=0;i<orderItem.cantidadFac;i++){
+            lstIdGar.add(orderItem.idArticulo)
+          }
+        } else {
+          for(int i=0;i<orderItem.cantidadFac;i++){
+            lstIdArm.add(orderItem.idArticulo)
+          }
+        }
+      }
+    }
+    Boolean hasC1 = false
+    for(PagoJava pago : nota.pagos){
+      if(TAG_CUPON_SEGURO.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago))){
+        hasC1 = true
+      }
+    }
+    if( oldNota != null && StringUtils.trimToEmpty(oldNota.udf5).length() > 0 ){
+      valid = false
+    }
+    Boolean sunglass = false
+    Boolean lens = false
+    Boolean ophtglass = false
+    Boolean lensKid = false
+    Boolean frame = false
+    String typeEnsure = ""
+    for(Integer idArt : lstIdArm ){
+      ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( idArt )
+      if( articulo != null ){
+        String type = StringUtils.trimToEmpty(articulo.subtipo).length() > 0 ? StringUtils.trimToEmpty(articulo.subtipo) : StringUtils.trimToEmpty(articulo.idGenSubtipo)
+        if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) ){
+          lensKid = true
+        }
+        if( StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+          frame = true
+        }
+        if( StringUtils.trimToEmpty(articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO) ){
+          ophtglass = true
+        } else if( StringUtils.trimToEmpty(articulo.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){
+          sunglass = true
+        } else if( StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
+          lens = true
+        }
+      }
+    }
+
+    if( lstIdGar.size() > 0 ){
+      if( valid && !hasC1 ){
+        if( lstIdGar.size() == 1 ){
+          List<DetalleNotaVentaJava> lstDets = new ArrayList<>()
+          BigDecimal amount = BigDecimal.ZERO
+          ArticulosJava warnt = articulosServiceJava.obtenerArticulo( lstIdGar.first() )
+          String items = ""
+          for(DetalleNotaVentaJava orderItem : nota.detalles){
+            if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS)
+                    && !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
+              if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
+                if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                  amount = amount.add(orderItem.precioUnitLista)
+                  items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                  lstDets.add( orderItem )
+                }
+                typeEnsure = "S"
+              } else {
+                if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                  String type = StringUtils.trimToEmpty(orderItem.articulo.subtipo).length() > 0 ? StringUtils.trimToEmpty(orderItem.articulo.subtipo) : StringUtils.trimToEmpty(orderItem.articulo.idGenSubtipo)
+                  if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) ||
+                          !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
+                    amount = amount.add(orderItem.precioUnitLista)
+                    items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                    lstDets.add( orderItem )
+                  }
+                } else {
+                  if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ||
+                          (StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
+                                  StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO)) ){
+                    amount = amount.add(orderItem.precioUnitLista)
+                    items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                    lstDets.add( orderItem )
+                  }
+                }
+                if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                  typeEnsure = "N"
+                } else if( !StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) &&
+                        StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
+                  typeEnsure = "L"
+                }
+              }
+            }
+          }
+          BigDecimal warrantyAmount = ItemController.warrantyValidJava( amount, lstIdGar.first() )
+          if( warrantyAmount.compareTo(BigDecimal.ZERO) > 0 && segValid(lstIdGar.first(), lstIdArm) ){
+            amount = BigDecimal.ZERO
+            for(DetalleNotaVentaJava orderItem : lstDets){
+              if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS)
+                      && !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE)){
+                if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
+                  if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                    amount = amount.add( orderItem.precioUnitFinal )
+                  }
+                } else {
+                  amount = amount.add( orderItem.precioUnitFinal )
+                }
+              }
+            }
+            Warranty warranty = new Warranty()
+            warranty.amount = amount
+            warranty.idItem = items.replaceFirst(",","")
+            warranty.typeEnsure = typeEnsure
+            warranty.idOrder = addIdOrder ? nota.idFactura : ""
+            idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
+            println idOrderEnsured
+            lstWarranty.add( warranty )
+            lstIdGar.clear()
+          } else {
+            MSJ_ERROR_WARRANTY = "Seguro Invalido."
+            valid = false
+          }
+        } else if( lstIdGar.size() == 2 && frame && lens ) {
+          List<DetalleNotaVentaJava> lstDetsL = new ArrayList<>()
+          List<DetalleNotaVentaJava> lstDetsF = new ArrayList<>()
+          BigDecimal amountSegL = BigDecimal.ZERO
+          BigDecimal amountSegF = BigDecimal.ZERO
+          List<DetalleNotaVentaJava> lstLens = new ArrayList<>()
+          List<DetalleNotaVentaJava> lstFrames = new ArrayList<>()
+          ArticulosJava segFrame = new ArticulosJava()
+          ArticulosJava segLens = new ArticulosJava()
+          String typeEnsureO = ""
+          String typeEnsureF = ""
+          for(DetalleNotaVentaJava orderItem : nota.detalles){
+            if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
+              if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                  if( StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO) ){
+                    amountSegL = amountSegL.add(orderItem.precioUnitLista)
+                    lstLens.add( orderItem )
+                  } else {
+                    amountSegF = amountSegF.add(orderItem.precioUnitLista)
+                    lstFrames.add( orderItem )
+                  }
+                } else {
+                  amountSegL = amountSegL.add(orderItem.precioUnitLista)
+                  lstLens.add( orderItem )
+                }
+              } else {
+                if( StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
+                                    segFrame = orderItem.articulo
+                                    typeEnsureF = "S"
+                } else if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) &&
+                        StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
+                  segLens = orderItem.articulo
+                  typeEnsureO = "L"
+                  if( StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                    typeEnsureO = "N"
+                  }
+                }
+              }
+            }
+          }
+
+          BigDecimal warrantyAmountLens = ItemController.warrantyValidJava( amountSegL, segLens.idArticulo )
+          BigDecimal warrantyAmountFrame = ItemController.warrantyValidJava( amountSegF, segFrame.idArticulo )
+          List<Integer> lstIdFrames = new ArrayList<>()
+          List<Integer> lstIdLens = new ArrayList<>()
+          for(DetalleNotaVentaJava detFrames : lstFrames){
+            lstIdFrames.add(detFrames.idArticulo)
+          }
+          for(DetalleNotaVentaJava detLens : lstLens){
+            lstIdLens.add(detLens.idArticulo)
+          }
+          if( warrantyAmountLens.compareTo(BigDecimal.ZERO) > 0 && segValid(segLens.idArticulo, lstIdLens) ){
+            String items = ""
+            amountSegL = BigDecimal.ZERO
+            for(DetalleNotaVentaJava orderItem : lstLens){
+              if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                amountSegL = amountSegL.add( orderItem.precioUnitFinal )
+              }
+            }
+            Warranty warranty = new Warranty()
+            warranty.amount = amountSegL
+            warranty.idItem = items.replaceFirst(",","")
+            warranty.typeEnsure = typeEnsureO
+            warranty.idOrder = addIdOrder ? nota.idFactura : ""
+            idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
+            println idOrderEnsured
+            lstWarranty.add( warranty )
+            lstIdGar.clear()
+          } else {
+            MSJ_ERROR_WARRANTY = "Seguro Invalido."
+            valid = false
+          }
+
+          if( warrantyAmountFrame.compareTo(BigDecimal.ZERO) > 0 && segValid(segFrame.idArticulo, lstIdFrames) ){
+            String items = ""
+            amountSegF = BigDecimal.ZERO
+            for(DetalleNotaVentaJava orderItem : lstFrames){
+              if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                amountSegF = amountSegF.add( orderItem.precioUnitFinal )
+              }
+            }
+            Warranty warranty = new Warranty()
+            warranty.amount = amountSegF
+            warranty.idItem = items.replaceFirst(",","")
+            warranty.typeEnsure = typeEnsureF
+            warranty.idOrder = addIdOrder ? nota.idFactura : ""
+            idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
+            println idOrderEnsured
+            lstWarranty.add( warranty )
+            lstIdGar.clear()
+          } else {
+            MSJ_ERROR_WARRANTY = "Seguro Invalido."
+            valid = false
+          }
+        } else {
+          MSJ_ERROR_WARRANTY = "Seleccione solo un seguro."
+          valid = false
+        }
+      } else if( hasC1 ) {
+        MSJ_ERROR_WARRANTY = "No se puede asignar seguro a una redención."
+        valid = false
+      }
+    } else if( cleanWaranties && lensKid ){
+      insertSegKig = true
+    } else {
+            valid = true
+    }
+    if( cleanWaranties ){
+            lstWarranty.clear()
+    }
+    return valid
+    }
+
+
+
   private static Boolean segValid(Integer itemWarr, List<Integer> items ){
     Boolean valid = true
     Boolean frame = false
@@ -2875,9 +3178,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     Boolean lens = false
     Boolean lensKid = false
     if( itemWarr != null ){
-      Articulo itemWarranty = ItemController.findArticle( itemWarr )
+      ArticulosJava itemWarranty = ArticulosQuery.busquedaArticuloPorId( itemWarr )
       for(Integer id : items){
-        Articulo item = ItemController.findArticle( id )
+        ArticulosJava item = ArticulosQuery.busquedaArticuloPorId( id )
         if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
           frame = true
         }
@@ -2929,23 +3232,24 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
 
-  static NotaVenta ensureOrder( String idOrder ){
-    NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+  static NotaVentaJava ensureOrder( String idOrder ){
+    //NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( idOrder )
     if( notaVenta != null ){
       Boolean warranty = true
-      for( DetalleNotaVenta det : notaVenta.detalles ){
+      for( DetalleNotaVentaJava det : notaVenta.detalles ){
         if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
           warranty = false
         }
       }
-      if( warranty && notaVenta?.detalles.size() > 0 ){
+      if( warranty && notaVenta?.detalles?.size() > 0 ){
         AseguraNotaDialog dialog = new AseguraNotaDialog()
         dialog.show()
         if( dialog.notaVenta != null ){
           notaVenta = dialog.notaVenta
         }
       } else {
-        notaVenta = new NotaVenta()
+        notaVenta = new NotaVentaJava()
       }
     }
     return  notaVenta
@@ -2955,7 +3259,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
   static Boolean validaAplicaGarantia(String idFactura) {
     Boolean valid = true
-    NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket( StringUtils.trimToEmpty(Registry.currentSite.toString())+"-"+idFactura )
+    //NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket( StringUtils.trimToEmpty(Registry.currentSite.toString())+"-"+idFactura )
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(idFactura) )
     Boolean noDelivered = true
     Boolean noCancelled = true
     Boolean noEnsured = true
@@ -2967,7 +3272,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         if( StringUtils.trimToEmpty(notaVenta.sFactura).equalsIgnoreCase("T") ){
           noCancelled = false
         }
-        for(DetalleNotaVenta det : notaVenta.detalles){
+        for(DetalleNotaVentaJava det : notaVenta.detalles){
           if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("J") ){
             noEnsured = false
           }
@@ -3050,7 +3355,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
   static Boolean validOrderNotCancelled( String idOrder ){
-    return notaVentaService.validaNotaNoAnulada( idOrder )
+    //return notaVentaService.validaNotaNoAnulada( idOrder )
+    AutorizaMovJava autorizaMov = AutorizaMovQuery.buscaAutorizaMovPorFactura( idOrder )
+    if( autorizaMov != null ){
+      return false
+    } else{
+      return true
+    }
   }
 
 

@@ -1,6 +1,7 @@
 package mx.lux.pos.repository;
 
 import mx.lux.pos.Utilities;
+import org.apache.commons.lang.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -18,6 +19,7 @@ public class OrdenPromDetJava {
     BigDecimal descuentoMonto;
     Double descuentoPorcentaje;
     Date fechaMod;
+    BigDecimal precioBase;
 
     public Integer getIdOrdenPromDet() {
         return idOrdenPromDet;
@@ -91,6 +93,14 @@ public class OrdenPromDetJava {
         this.fechaMod = fechaMod;
     }
 
+    public BigDecimal getPrecioBase() {
+        return precioBase;
+    }
+
+    public void setPrecioBase(BigDecimal precioBase) {
+        this.precioBase = precioBase;
+    }
+
     public OrdenPromDetJava mapeoOrdenPromDet(ResultSet rs) throws SQLException{
 	  OrdenPromDetJava ordenPromDet = new OrdenPromDetJava();
 	  ordenPromDet.setIdOrdenPromDet(rs.getInt("id_orden_prom_det"));
@@ -104,6 +114,12 @@ public class OrdenPromDetJava {
       ordenPromDet.setFechaMod( rs.getDate("fecha_mod"));
 	  return ordenPromDet;
 	}
-	
-	
+
+
+
+    public boolean equals( String pIdFactura, Integer pSku ) {
+      Boolean result = ( ( this.getIdFactura().equalsIgnoreCase(StringUtils.trimToEmpty(pIdFactura) ) ) &&
+              ( this.getIdArt().equals(pSku) ) );
+      return result;
+    }
 }
