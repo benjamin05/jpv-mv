@@ -16,6 +16,7 @@ public class ClientesProcesoJava {
 	String idMod;
     Integer idSucursal;
     Collection<NotaVentaJava> notaVentas;
+    ClientesJava cliente;
 
     public Integer getIdCliente() {
         return idCliente;
@@ -71,6 +72,14 @@ public class ClientesProcesoJava {
 
     public void setNotaVentas(Collection<NotaVentaJava> notaVentas) {
         this.notaVentas = notaVentas;
+    }
+
+    public ClientesJava getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(ClientesJava cliente) {
+        this.cliente = cliente;
     }
 
     public ClientesProcesoJava mapeoClientesProceso(ResultSet rs) throws SQLException{

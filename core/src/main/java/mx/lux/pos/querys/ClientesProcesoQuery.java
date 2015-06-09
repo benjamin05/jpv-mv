@@ -65,5 +65,27 @@ public class ClientesProcesoQuery {
 
       return clientesProcesoJava;
     }
-	
+
+
+    public static List<ClientesProcesoJava> buscaClientesProcesoPorEtapa( String etapa ){
+      List<ClientesProcesoJava> lstClientes = new ArrayList<ClientesProcesoJava>();
+      ClientesProcesoJava clientesProcesoJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM clientes_proceso where etapa = '%s';", StringUtils.trimToEmpty(etapa));
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          clientesProcesoJava = new ClientesProcesoJava();
+          clientesProcesoJava = clientesProcesoJava.mapeoClientesProceso(rs);
+          lstClientes.add( clientesProcesoJava );
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstClientes;
+    }
+
+
 }

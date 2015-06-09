@@ -2,6 +2,7 @@ package mx.lux.pos.repository;
 
 import mx.lux.pos.querys.ClientePaisQuery;
 import mx.lux.pos.querys.MunicipioQuery;
+import org.apache.commons.lang.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -50,6 +51,7 @@ public class ClientesJava {
     private Integer principal;
     private MunicipioJava municipio;
     private ClientePaisJava clientePais;
+    private String nombreCompleto;
 
     public Integer getIdCliente() {
         return idCliente;
@@ -387,6 +389,14 @@ public class ClientesJava {
         this.clientePais = clientePais;
     }
 
+    public String getNombreCompleto() {
+        return StringUtils.trimToEmpty(getNombreCli())+" "+StringUtils.trimToEmpty(getApellidoPatCli())+" "+StringUtils.trimToEmpty(getApellidoMatCli());
+    }
+
+    public void setNombreCompleto(String nombreCompleto) {
+        this.nombreCompleto = nombreCompleto;
+    }
+
     public ClientesJava mapeoCliente( ResultSet rs ){
       try{
 		this.setIdCliente(rs.getInt("id_cliente"));
@@ -449,4 +459,6 @@ public class ClientesJava {
       clientePaisJava = ClientePaisQuery.BuscaClientePaisPoridCliente( idCliente );
       return clientePaisJava;
     }
+
+
 }

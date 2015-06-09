@@ -4,6 +4,8 @@ import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.ClienteProceso
 import mx.lux.pos.model.NotaVenta
+import mx.lux.pos.repository.ClientesProcesoJava
+import mx.lux.pos.repository.NotaVentaJava
 import mx.lux.pos.ui.model.OrderActive
 import mx.lux.pos.ui.resources.UI_Standards
 import org.slf4j.Logger
@@ -116,11 +118,11 @@ class OrderActiveSelectionDialog extends JDialog {
       return selection
   }
 
-  void setCustomerList( List<ClienteProceso> pCustomerList ) {
+  void setCustomerList( List<ClientesProcesoJava> pCustomerList ) {
     this.orderList.clear()
     SimpleDateFormat fecha = new SimpleDateFormat("dd/MM/yyyy")
-    for (ClienteProceso c : pCustomerList) {
-      for (NotaVenta o : c.notaVentas) {
+    for (ClientesProcesoJava c : pCustomerList) {
+      for (NotaVentaJava o : c.notaVentas) {
         String fechaFactura = fecha.format(o.fechaHoraFactura)
         String fechaActual = fecha.format(new Date())
         if (o.detalles.size() > 0 && fechaActual.trim().equalsIgnoreCase(fechaFactura)) {

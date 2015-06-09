@@ -151,4 +151,19 @@ public class NotaVentaServiceJava {
     return hasLente;
   }
 
+
+
+  public Boolean existePromoEnOrden( String idFactura, Integer idPromo ){
+    Boolean existPromo = false;
+    List<OrdenPromDetJava> lstOrdenPromDet = OrdenPromDetQuery.BuscaOrdenPromDetPorIdFactura( idFactura );
+    if( lstOrdenPromDet.size() > 0 ){
+      if( idPromo == lstOrdenPromDet.get(0).getIdProm() ){
+        existPromo = true;
+      }
+    }
+    return existPromo;
+  }
+
+
+
 }

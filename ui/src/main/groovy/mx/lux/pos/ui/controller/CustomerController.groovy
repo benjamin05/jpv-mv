@@ -3,6 +3,7 @@ package mx.lux.pos.ui.controller
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.*
 import mx.lux.pos.querys.RecetaQuery
+import mx.lux.pos.repository.ClientesProcesoJava
 import mx.lux.pos.repository.RecetaJava
 import mx.lux.pos.service.*
 import mx.lux.pos.service.business.Registry
@@ -200,6 +201,11 @@ class CustomerController {
         Customer.toCustomer(clienteService.obtenerClientePorDefecto())
     }
 
+    static Customer findDefaultCustomerJava() {
+      log.debug("obteniendo customer por default")
+      Customer.toCustomer(clienteServiceJava.obtenerClientePorDefecto())
+    }
+
     static List<LinkedHashMap<String, Object>> findAllCustomersTitles() {
         log.debug("obteniendo lista de titulos")
         def results = clienteService.listarTitulosClientes()
@@ -338,25 +344,26 @@ class CustomerController {
     }
 
     static void requestPayingCustomer(CustomerListener pListener) {
-        this.log.debug('Request Customer on Site ')
-        List<ClienteProceso> clientes = clienteService.obtenerClientesEnCaja(true)
-        OrderActiveSelectionDialog dialog = new OrderActiveSelectionDialog()
-        dialog.customerList = clientes
-        dialog.activate()
-        if (dialog.orderSelected != null) {
-            Order o = Order.toOrder(dialog.orderSelected.order)
-            Customer c = Customer.toCustomer(dialog.orderSelected.customer)
-            pListener.reset()
-            pListener.disableUI()
-            pListener.operationTypeSelected = OperationType.PAYING
-            pListener.setCustomer(c)
-            pListener.setOrder(o)
-            pListener.enableUI()
-            pListener.setPromotion(o)
-        } else {
-            pListener.operationTypeSelected = OperationType.DEFAULT
-        }
-        dialog.dispose()
+      log.debug('Request Customer on Site ')
+      //List<ClienteProceso> clientes = clienteService.obtenerClientesEnCaja(true)
+      List<ClientesProcesoJava> clientes = clienteServiceJava.obtenerClientesEnCaja(true)
+      OrderActiveSelectionDialog dialog = new OrderActiveSelectionDialog()
+      dialog.customerList = clientes
+      dialog.activate()
+      if (dialog.orderSelected != null) {
+        Order o = Order.toOrder(dialog.orderSelected.order)
+        Customer c = Customer.toCustomer(dialog.orderSelected.customer)
+        pListener.resetJava()
+        pListener.disableUI()
+        pListener.operationTypeSelected = OperationType.PAYING
+        pListener.setCustomer(c)
+        pListener.setOrder(o)
+        pListener.enableUI()
+        pListener.setPromotion(o)
+      } else {
+        pListener.operationTypeSelected = OperationType.DEFAULT
+      }
+      dialog.dispose()
     }
 
 

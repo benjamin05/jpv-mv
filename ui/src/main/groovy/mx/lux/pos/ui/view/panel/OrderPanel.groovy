@@ -323,38 +323,38 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void doBindings() {
-        sb.build {
-            bean(customerName, text: bind { customer?.fullName })
-            bean(folio, text: bind { order.id })
-            bean(bill, text: bind { order.bill })
-            bean(date, text: bind(source: order, sourceProperty: 'date', converter: dateConverter), alignmentX: CENTER_ALIGNMENT)
-            bean(total, text: bind(source: order, sourceProperty: 'total', converter: currencyConverter))
-            bean(paid, text: bind(source: order, sourceProperty: 'paid', converter: currencyConverter))
-            bean(due, text: bind(source: order, sourceProperty: 'dueString'))
-            bean(itemsModel.rowsModel, value: bind(source: order, sourceProperty: 'items', mutual: true))
-            bean(paymentsModel.rowsModel, value: bind(source: order, sourceProperty: 'payments', mutual: true))
-            bean(comments, text: bind(source: order, sourceProperty: 'comments', mutual: true))
-            bean(order, customer: bind { customer })
-        }
-        itemsModel.fireTableDataChanged()
-        paymentsModel.fireTableDataChanged()
+      sb.build {
+        bean(customerName, text: bind { customer?.fullName })
+        bean(folio, text: bind { order.id })
+        bean(bill, text: bind { order.bill })
+        bean(date, text: bind(source: order, sourceProperty: 'date', converter: dateConverter), alignmentX: CENTER_ALIGNMENT)
+        bean(total, text: bind(source: order, sourceProperty: 'total', converter: currencyConverter))
+        bean(paid, text: bind(source: order, sourceProperty: 'paid', converter: currencyConverter))
+        bean(due, text: bind(source: order, sourceProperty: 'dueString'))
+        bean(itemsModel.rowsModel, value: bind(source: order, sourceProperty: 'items', mutual: true))
+        bean(paymentsModel.rowsModel, value: bind(source: order, sourceProperty: 'payments', mutual: true))
+        bean(comments, text: bind(source: order, sourceProperty: 'comments', mutual: true))
+        bean(order, customer: bind { customer })
+      }
+      itemsModel.fireTableDataChanged()
+      paymentsModel.fireTableDataChanged()
 
-        if (order?.id != null) {
-          change.text = OrderController.requestEmployee(order?.id)
-        } else {
-            change.text = ''
-        }
-        if( isPaying ){
-          for(IPromotionAvailable prom : promotionList){
-            if( prom instanceof PromotionAvailable ){
-              if( OrderController.esPromocionValida( order.id, prom.promotion.idPromotion ) ){
-                println "Promocion activar: "+prom.promotion.dump()
-                prom.applied = true
-              }
+      if (order?.id != null) {
+        change.text = OrderController.requestEmployee(order?.id)
+      } else {
+        change.text = ''
+      }
+      if( isPaying ){
+        for(IPromotionAvailable prom : promotionList){
+          if( prom instanceof PromotionAvailable ){
+            if( OrderController.esPromocionValida( order.id, prom.promotion.idPromotion ) ){
+              println "Promocion activar: "+prom.promotion.dump()
+              prom.applied = true
             }
           }
-          isPaying = false
         }
+        isPaying = false
+      }
         currentOperationType = (OperationType) operationType.getSelectedItem()
         if( currentOperationType.equals(OperationType.PAYING) ){
           itemSearch.enabled = false
@@ -1663,6 +1663,19 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         doBindings()
         operationType.setSelectedItem(OperationType.DEFAULT)
     }
+
+
+    void resetJava() {
+      order = new Order()
+      customer = CustomerController.findDefaultCustomerJava()
+      this.getPromotionDriver().init(this)
+      dioptra = new Dioptra()
+      antDioptra = new Dioptra()
+      order?.dioptra = null
+      doBindings()
+      operationType.setSelectedItem(OperationType.DEFAULT)
+    }
+
 
     void setCustomer(Customer pCustomer) {
         this.logger.debug(String.format('Assign Customer: %s', pCustomer.toString()))

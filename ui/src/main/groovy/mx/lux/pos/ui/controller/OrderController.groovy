@@ -2331,7 +2331,8 @@ class OrderController {
 
 
     static Boolean esPromocionValida(String idOrder, Integer idPromo){
-      return notaVentaService.existePromoEnOrden( idOrder, idPromo )
+      //return notaVentaService.existePromoEnOrden( idOrder, idPromo )
+      return notaVentaServiceJava.existePromoEnOrden( idOrder, idPromo )
     }
 
 
