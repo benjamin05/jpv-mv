@@ -355,15 +355,15 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         isPaying = false
       }
-        currentOperationType = (OperationType) operationType.getSelectedItem()
-        if( currentOperationType.equals(OperationType.PAYING) ){
-          itemSearch.enabled = false
-        } else {
-          itemSearch.enabled = true
-        }
-        this.printButton.setVisible(!this.isPaymentListEmpty() ||
-                this.promotionDriver.model?.orderDiscount?.discountPercent == 1.0 ||
-                ( order.due.compareTo(BigDecimal.ZERO) <= 0 && this.promotionDriver.model?.isAnyApplied()) )
+      currentOperationType = (OperationType) operationType.getSelectedItem()
+      if( currentOperationType.equals(OperationType.PAYING) ){
+        itemSearch.enabled = false
+      } else {
+        itemSearch.enabled = true
+      }
+      this.printButton.setVisible(!this.isPaymentListEmpty() ||
+              this.promotionDriver.model?.orderDiscount?.discountPercent == 1.0 ||
+              ( order.due.compareTo(BigDecimal.ZERO) <= 0 && this.promotionDriver.model?.isAnyApplied()) )
         this.continueButton.setVisible( !this.printButton.visible )
         if( order.items.size() > 0 ){
           cancelOrderButton.visible = true
@@ -493,7 +493,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         }
                       }
                       if( valid ){
-                        CustomerController.requestPayingCustomer(this)
+                        CustomerController.requestPayingCustomer(this, OperationType.PAYING)
                         isPaying = true
                       } else {
                           sb.optionPane(
@@ -517,7 +517,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       }
                     }
                     if( valid ){
-                      CustomerController.requestEditPayingCustomer(this)
+                      CustomerController.requestPayingCustomer(this, OperationType.EDIT_PAYING)
+                      isPaying = true
                     } else {
                       sb.optionPane(
                                   message: 'Opcion valida solo en caja',

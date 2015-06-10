@@ -7,6 +7,7 @@ import groovy.util.logging.Slf4j
 import mx.lux.pos.model.DetalleNotaVenta
 import mx.lux.pos.repository.DetalleNotaVentaJava
 import mx.lux.pos.ui.resources.ServiceManager
+import org.apache.commons.lang.StringUtils
 
 @Slf4j
 @Bindable
@@ -20,7 +21,7 @@ class OrderItem {
   String getDescription( ) {
     String descripcion
     if ( ServiceManager.partService.useShortItemDescription() ) {
-      String desc = item?.description?.replaceFirst( item.name.trim() + "/", "" )
+      String desc = item?.description?.replaceFirst(StringUtils.trimToEmpty(item.name) + "/", "" )
       descripcion = "[${item?.id ?: ''}] ${desc ?: ''}"
     } else {
       descripcion = "${item?.description ?: ''}${delivers ? " (${delivers})" : ''}"

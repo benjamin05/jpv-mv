@@ -137,7 +137,7 @@ class OrderActiveSelectionDialog extends JDialog {
     private def doSelectOrderClick = { MouseEvent ev ->
       if ( SwingUtilities.isLeftMouseButton( ev ) ) {
         OrderActive  selection = ev.source.selectedElement as OrderActive
-        if ( ev.clickCount == 2 && selection?.order.id ) {
+        if ( ev.clickCount == 2 && selection?.order.idFactura ) {
           onSelection()
         }
       }

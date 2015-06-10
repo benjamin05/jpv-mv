@@ -157,7 +157,7 @@ public class NotaVentaServiceJava {
     Boolean existPromo = false;
     List<OrdenPromDetJava> lstOrdenPromDet = OrdenPromDetQuery.BuscaOrdenPromDetPorIdFactura( idFactura );
     if( lstOrdenPromDet.size() > 0 ){
-      if( idPromo == lstOrdenPromDet.get(0).getIdProm() ){
+      if(idPromo.equals(lstOrdenPromDet.get(0).getIdProm())){
         existPromo = true;
       }
     }

@@ -343,7 +343,7 @@ class CustomerController {
         return order
     }
 
-    static void requestPayingCustomer(CustomerListener pListener) {
+    static void requestPayingCustomer(CustomerListener pListener, OperationType type ) {
       log.debug('Request Customer on Site ')
       //List<ClienteProceso> clientes = clienteService.obtenerClientesEnCaja(true)
       List<ClientesProcesoJava> clientes = clienteServiceJava.obtenerClientesEnCaja(true)
@@ -355,7 +355,7 @@ class CustomerController {
         Customer c = Customer.toCustomer(dialog.orderSelected.customer)
         pListener.resetJava()
         pListener.disableUI()
-        pListener.operationTypeSelected = OperationType.PAYING
+        pListener.operationTypeSelected = type//OperationType.PAYING
         pListener.setCustomer(c)
         pListener.setOrder(o)
         pListener.enableUI()

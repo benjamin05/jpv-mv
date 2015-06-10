@@ -146,7 +146,7 @@ public class NotaVentaQuery {
           Connection con = Connections.doConnect();
           stmt = con.createStatement();
           String sql = "";
-          sql = String.format("SELECT * FROM nota_venta WHERE id_cliente = %d AND factura != '' AND factura is null;", idCliente);
+          sql = String.format("SELECT * FROM nota_venta WHERE id_cliente = %d AND factura = '' OR factura is null;", idCliente);
           rs = stmt.executeQuery(sql);
           while (rs.next()) {
             notaVentaJava = new NotaVentaJava();
