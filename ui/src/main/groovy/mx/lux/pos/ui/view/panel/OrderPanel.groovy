@@ -1404,6 +1404,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
             if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
               if( cuponMv != null ){
+                for(IPromotionAvailable promo : promotionList){
+                  if( promo instanceof PromotionDiscount ){
+                    OrderController.updateCuponMvByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
+                  }
+                }
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
                 OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
                 /*if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
