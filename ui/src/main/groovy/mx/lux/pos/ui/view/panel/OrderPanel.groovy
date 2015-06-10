@@ -1409,8 +1409,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     OrderController.updateCuponMvByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
                   }
                 }
-                Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
-                OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
+                if( Registry.tirdthPairValid() ){
+                  Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
+                  OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
+                }
                 /*if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
                   generatedCoupons( validClave, newOrder )
                 }*/
