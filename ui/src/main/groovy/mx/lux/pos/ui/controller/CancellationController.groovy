@@ -36,6 +36,7 @@ class CancellationController {
   private static final String TAG_CUPON = 'C'
   private static final String TAG_DESC_CANCELACION_1_PAR = "CANCELACION PRIMER PAR"
   private static final String TAG_RAZON_CAMBIO_FORMA_PAGO = 'CAMBIO DE FORMA DE PAGO'
+  private static final String TAG_GENERICO_LENTE = 'B'
 
   @Autowired CancellationController( CancelacionService cancelacionService, TicketService ticketService, NotaVentaService notaVentaService,
                                      IOService ioService, InventarioService inventarioService, JbService jbService, JbTrackService jbTrackService,
@@ -519,6 +520,53 @@ class CancellationController {
       reason = StringUtils.trimToEmpty(modificacion.causa)
     }
     return reason
+  }
+
+
+  static Boolean orderHasValidStatus( String idOrder, String idCausa ) {
+    Boolean valid = true
+    Boolean causToValid = false
+    Boolean hasLenses = false
+    String idCausas = Registry.geIdCausesCan()
+    String estados = Registry.geEdosNoCan()
+
+    String[] causa = idCausas.split(",")
+    String[] estado = estados.split(",")
+    for(String c : causa){
+      if( StringUtils.trimToEmpty(c).equalsIgnoreCase(StringUtils.trimToEmpty(idCausa)) ){
+        causToValid = true
+      }
+    }
+    NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+    for(DetalleNotaVenta det : notaVenta.detalles){
+      if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
+        hasLenses = true
+      }
+    }
+    if( hasLenses && causToValid ){
+      Jb jb = jbService.findJBbyRx( StringUtils.trimToEmpty(notaVenta.factura) )
+      if( jb != null){
+        for(String e : estado){
+          if( StringUtils.trimToEmpty(e).equalsIgnoreCase(StringUtils.trimToEmpty(jb.estado)) ){
+            valid = false
+          }
+        }
+      }
+    }
+
+    return  valid
+  }
+
+
+  static String idReason( String descripcionCan ){
+    String id = ""
+    List<CausaCancelacion> lstCausas = cancelacionService.listarCausasCancelacion()
+    for( CausaCancelacion causa : lstCausas ){
+      if( StringUtils.trimToEmpty(causa.descripcion).equalsIgnoreCase(StringUtils.trimToEmpty(descripcionCan)) ){
+        id = StringUtils.trimToEmpty(causa.id.toString())
+      }
+    }
+    return id
   }
 
 

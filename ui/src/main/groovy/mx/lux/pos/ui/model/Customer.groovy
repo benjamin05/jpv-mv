@@ -43,7 +43,7 @@ class Customer {
     private static final Integer EDAD_DEFAULT = 25
 
     String getFullName() {
-        "${title ? "${title} " : ''}${name ?: ''} ${fathersName ?: ''} ${mothersName ?: ''}"
+        "${title ? "${StringUtils.trimToEmpty(title)} " : ''}${StringUtils.trimToEmpty(name) ?: ''} ${StringUtils.trimToEmpty(fathersName) ?: ''} ${StringUtils.trimToEmpty(mothersName) ?: ''}"
     }
 
     String getOnlyFullName() {

@@ -220,6 +220,14 @@ class Registry {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
   }
 
+  static String geIdCausesCan( ) {
+    return asString( TipoParametro.ID_CAUSAS_CAN )
+  }
+
+  static String geEdosNoCan( ) {
+    return asString( TipoParametro.ESTADOS_NO_CAN )
+  }
+
   static String getCommandIp( ) {
     return asString( TipoParametro.COMANDO_IP )
   }
