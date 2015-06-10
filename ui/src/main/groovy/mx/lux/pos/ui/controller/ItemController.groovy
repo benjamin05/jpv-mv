@@ -9,12 +9,11 @@ import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.model.PedidoLc
 import mx.lux.pos.model.PedidoLcDet
 import mx.lux.pos.model.Precio
-import mx.lux.pos.model.QArticulo
-import mx.lux.pos.querys.MontoGarantiaQuery
-import mx.lux.pos.repository.ArticulosJava
-import mx.lux.pos.repository.MontoGarantiaJava
+import mx.lux.pos.java.querys.MontoGarantiaQuery
+import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.MontoGarantiaJava
 import mx.lux.pos.service.ArticuloService
-import mx.lux.pos.service.ArticulosServiceJava
+import mx.lux.pos.java.service.ArticulosServiceJava
 import mx.lux.pos.service.NotaVentaService
 import mx.lux.pos.service.TicketService
 import mx.lux.pos.service.business.Registry

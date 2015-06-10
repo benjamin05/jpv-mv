@@ -4,10 +4,9 @@ import groovy.beans.Bindable
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.NotaVenta
-import mx.lux.pos.repository.NotaVentaJava
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.ui.controller.OrderController
 import org.apache.commons.lang3.StringUtils
-import org.apache.commons.lang3.math.NumberUtils
 
 import java.text.NumberFormat
 

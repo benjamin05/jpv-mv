@@ -5,7 +5,7 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.DetalleNotaVenta
-import mx.lux.pos.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.ui.resources.ServiceManager
 import org.apache.commons.lang.StringUtils
 

@@ -1,5 +1,6 @@
 package mx.lux.pos.ui.resources
 
+import mx.lux.pos.java.service.PromotionServiceJava
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import mx.lux.pos.service.*

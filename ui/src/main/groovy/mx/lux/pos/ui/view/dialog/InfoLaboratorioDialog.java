@@ -12,18 +12,12 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dyno.visual.swing.layouts.Constraints;
 import org.dyno.visual.swing.layouts.GroupLayout;
 import org.dyno.visual.swing.layouts.Leading;
-import org.dyno.visual.swing.layouts.Trailing;
-
-import mx.lux.pos.querys.JbQuery;
-import mx.lux.pos.repository.JbJava;
 
 //VS4E -- DO NOT REMOVE THIS LINE!
 public class InfoLaboratorioDialog extends JDialog {

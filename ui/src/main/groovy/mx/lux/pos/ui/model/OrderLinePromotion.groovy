@@ -6,7 +6,7 @@ import groovy.transform.ToString
 import mx.lux.pos.model.DetalleNotaVenta
 import mx.lux.pos.model.OrdenPromDet
 import mx.lux.pos.model.Promocion
-import mx.lux.pos.repository.OrdenPromDetJava
+import mx.lux.pos.java.repository.OrdenPromDetJava
 import mx.lux.pos.ui.controller.OrderController
 
 @Bindable

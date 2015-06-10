@@ -2,10 +2,8 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
-import mx.lux.pos.model.ClienteProceso
-import mx.lux.pos.model.NotaVenta
-import mx.lux.pos.repository.ClientesProcesoJava
-import mx.lux.pos.repository.NotaVentaJava
+import mx.lux.pos.java.repository.ClientesProcesoJava
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.ui.model.OrderActive
 import mx.lux.pos.ui.resources.UI_Standards
 import org.slf4j.Logger

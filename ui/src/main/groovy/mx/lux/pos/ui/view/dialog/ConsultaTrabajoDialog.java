@@ -25,6 +25,9 @@ import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
+import mx.lux.pos.java.querys.EmpleadoQuery;
+import mx.lux.pos.java.querys.JbQuery;
+import mx.lux.pos.java.repository.JbTrack;
 import mx.lux.pos.model.Jb;
 import org.apache.commons.lang3.StringUtils;
 import org.dyno.visual.swing.layouts.Constraints;
@@ -32,8 +35,6 @@ import org.dyno.visual.swing.layouts.GroupLayout;
 import org.dyno.visual.swing.layouts.Leading;
 import org.dyno.visual.swing.layouts.Trailing;
 
-import mx.lux.pos.querys.*;
-import mx.lux.pos.repository.*;
 
 //VS4E -- DO NOT REMOVE THIS LINE!
 public class ConsultaTrabajoDialog extends JDialog {

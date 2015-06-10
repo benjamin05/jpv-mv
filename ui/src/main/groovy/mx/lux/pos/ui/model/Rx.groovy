@@ -5,8 +5,8 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.model.Receta
-import mx.lux.pos.repository.NotaVentaJava
-import mx.lux.pos.repository.RecetaJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.RecetaJava
 import org.apache.commons.lang.StringUtils
 
 //import sun.swing.StringUIClientPropertyKey

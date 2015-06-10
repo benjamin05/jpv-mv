@@ -6,8 +6,8 @@ import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.Articulo
 import mx.lux.pos.model.DetalleNotaVenta
-import mx.lux.pos.repository.ArticulosJava
-import mx.lux.pos.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.ui.controller.ItemController
 
 @Slf4j

@@ -4,7 +4,7 @@ import groovy.beans.Bindable
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.Sucursal
-import mx.lux.pos.repository.SucursalesJava
+import mx.lux.pos.java.repository.SucursalesJava
 
 @Bindable
 @ToString

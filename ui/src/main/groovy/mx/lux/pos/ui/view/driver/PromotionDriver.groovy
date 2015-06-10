@@ -6,14 +6,13 @@ import mx.lux.pos.model.IPromotionAvailable
 import mx.lux.pos.model.PromotionAvailable
 import mx.lux.pos.model.PromotionDiscount
 import mx.lux.pos.model.PromotionModel
-import mx.lux.pos.service.PromotionServiceJava
+import mx.lux.pos.java.service.PromotionServiceJava
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.model.Descuento
-import mx.lux.pos.ui.model.IPromotion
 import mx.lux.pos.service.PromotionService
 import mx.lux.pos.service.business.PromotionCommit
 import mx.lux.pos.ui.model.ICorporateKeyVerifier

@@ -3,8 +3,8 @@ package mx.lux.pos.ui.view.panel
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.*
-import mx.lux.pos.repository.NotaVentaJava
-import mx.lux.pos.repository.RecetaJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.controller.*
@@ -16,7 +16,6 @@ import mx.lux.pos.ui.view.driver.PromotionDriver
 import mx.lux.pos.ui.view.renderer.MoneyCellRenderer
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang3.StringUtils
-import org.codehaus.groovy.runtime.InvokerInvocationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

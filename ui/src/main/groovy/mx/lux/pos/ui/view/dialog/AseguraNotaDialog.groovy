@@ -1,8 +1,7 @@
 package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
-import mx.lux.pos.model.NotaVenta
-import mx.lux.pos.repository.NotaVentaJava
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.Branch

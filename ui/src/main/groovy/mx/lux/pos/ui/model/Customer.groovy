@@ -9,10 +9,8 @@ import mx.lux.pos.model.Examen
 import mx.lux.pos.model.FormaContacto
 import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.model.Titulo
-import mx.lux.pos.repository.ClientesJava
-import mx.lux.pos.service.ExamenService
+import mx.lux.pos.java.repository.ClientesJava
 import mx.lux.pos.ui.controller.CustomerController
-import mx.lux.pos.ui.model.adapter.StringAdapter
 import org.apache.commons.lang3.StringUtils
 
 import java.text.SimpleDateFormat

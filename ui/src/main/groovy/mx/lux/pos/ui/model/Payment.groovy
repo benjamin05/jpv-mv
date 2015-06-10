@@ -4,8 +4,7 @@ import groovy.beans.Bindable
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.Pago
-import mx.lux.pos.repository.PagoJava
-import org.apache.commons.lang3.math.NumberUtils
+import mx.lux.pos.java.repository.PagoJava
 
 import java.text.NumberFormat
 

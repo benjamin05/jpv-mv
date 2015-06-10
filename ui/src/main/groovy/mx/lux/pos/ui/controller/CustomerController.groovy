@@ -1,10 +1,11 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.service.ClienteServiceJava
 import mx.lux.pos.model.*
-import mx.lux.pos.querys.RecetaQuery
-import mx.lux.pos.repository.ClientesProcesoJava
-import mx.lux.pos.repository.RecetaJava
+import mx.lux.pos.java.querys.RecetaQuery
+import mx.lux.pos.java.repository.ClientesProcesoJava
+import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.service.*
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.impl.FormaContactoService

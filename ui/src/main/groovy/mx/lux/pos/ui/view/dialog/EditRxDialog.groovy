@@ -3,8 +3,7 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
-import mx.lux.pos.model.Receta
-import mx.lux.pos.repository.RecetaJava
+import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.model.Rx
 import mx.lux.pos.ui.model.UpperCaseDocument
