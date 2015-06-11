@@ -104,7 +104,7 @@ public class PedidoLcDetJava {
       this.setEsfera(rs.getString("esfera"));
       this.setCilindro(rs.getString("cilindro"));
       this.setModelo(rs.getString("modelo"));
-      this.setEje(rs.getString("eje "));
+      this.setEje(rs.getString("eje"));
       this.setColor(rs.getString("color"));
       this.setCantidad(rs.getInt("cantidad"));
 	  return this;

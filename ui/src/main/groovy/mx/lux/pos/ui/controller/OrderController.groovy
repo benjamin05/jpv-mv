@@ -1,6 +1,7 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.ParametrosQuery
 import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.java.repository.AutorizaMovJava
 import mx.lux.pos.java.repository.BancoEmisorJava
@@ -8,9 +9,11 @@ import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.java.repository.EmpleadoJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
+import mx.lux.pos.java.repository.Parametros
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.java.repository.TmpServiciosJava
 import mx.lux.pos.java.service.ArticulosServiceJava
+import mx.lux.pos.java.service.InventarioServiceJava
 import mx.lux.pos.java.service.NotaVentaServiceJava
 import mx.lux.pos.java.service.RecetaServiceJava
 import mx.lux.pos.model.*
@@ -95,6 +98,7 @@ class OrderController {
     private static TicketService ticketService
     private static BancoService bancoService
     private static InventarioService inventarioService
+    private static InventarioServiceJava inventarioServiceJava
     private static MonedaExtranjeraService fxService
     private static Boolean displayUsd
     private static PromotionService promotionService
@@ -194,6 +198,7 @@ class OrderController {
         recetaServiceJava = new RecetaServiceJava()
         notaVentaServiceJava = new NotaVentaServiceJava()
         articulosServiceJava = new ArticulosServiceJava()
+        inventarioServiceJava = new InventarioServiceJava()
     }
 
     private static Boolean canceledWarranty
@@ -277,9 +282,8 @@ class OrderController {
     }
 
     static void savePromisedDate(String idNotaVenta, Date fechaPrometida) {
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(idNotaVenta)
-        notaVentaService.saveProDate(notaVenta, fechaPrometida)
-
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(idNotaVenta)
+      notaVentaServiceJava.saveProDate(notaVenta, fechaPrometida)
     }
 
     static void saveRxOrder(String idNotaVenta, Integer receta) {
@@ -292,12 +296,10 @@ class OrderController {
       }
     }
 
-    static Order saveFrame(String idNotaVenta, String opciones, String forma) {
-
-        NotaVenta notaVenta = notaVentaService.saveFrame(idNotaVenta, opciones, forma)
-
-        return Order.toOrder(notaVenta)
-    }
+  static Order saveFrame(String idNotaVenta, String opciones, String forma) {
+    NotaVentaJava notaVenta = notaVentaServiceJava.saveFrame(idNotaVenta, opciones, forma)
+    return Order.toOrder(notaVenta)
+  }
 
     static Dioptra addDioptra(Order order, String dioptra) {
       log.debug( "addDioptra( )" )
@@ -446,35 +448,30 @@ class OrderController {
     }
 
     static Order removeOrderItemFromOrder(String orderId, OrderItem orderItem) {
-        log.info("eliminando orderItem, articulo id: ${orderItem?.item?.id} de orden id: ${orderId}")
-        if (StringUtils.isNotBlank(orderId) && orderItem?.item?.id) {
-            NotaVenta notaVenta = notaVentaService.eliminarDetalleNotaVentaEnNotaVenta(orderId, orderItem.item.id)
-            if (notaVenta?.id) {
-                NotaVenta nota = notaVentaService.obtenerNotaVenta(orderId)
-                Order o = new Order()
-                Articulo i = articuloService.obtenerArticulo(orderItem?.item?.id.toInteger())
-
-                if (!i?.indice_dioptra.equals(null)) {
-                    if(StringUtils.trimToEmpty(i?.idGenerico).equalsIgnoreCase(TAG_GENERICO_B)){
-                      nota.receta = null
-                      notaVentaRepository.save( nota )
-                    }
-                    Dioptra actDioptra = validaDioptra(generaDioptra(preDioptra(nota.codigo_lente)), generaDioptra(i.indice_dioptra))
-                    o = Order.toOrder(notaVenta)
-
-                    actDioptra = addDioptra(o, codigoDioptra(actDioptra))
-
-                }
-
-                return o
-
-            } else {
-                log.warn("no se elimina orderItem, notaVenta no existe")
+      log.info("eliminando orderItem, articulo id: ${orderItem?.item?.id} de orden id: ${orderId}")
+      if (StringUtils.isNotBlank(orderId) && orderItem?.item?.id) {
+        NotaVentaJava notaVenta = notaVentaServiceJava.eliminarDetalleNotaVentaEnNotaVenta(orderId, orderItem.item.id)
+        if (notaVenta?.idFactura) {
+          NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(orderId)
+          Order o = new Order()
+          ArticulosJava i = ArticulosQuery.busquedaArticuloPorId(orderItem?.item?.id?.toInteger())
+          if (!i?.indiceDioptra?.equals(null)) {
+            if(StringUtils.trimToEmpty(i?.idGenerico).equalsIgnoreCase(TAG_GENERICO_B)){
+              nota.receta = null
+              NotaVentaQuery.updateNotaVenta( nota )
             }
+            Dioptra actDioptra = validaDioptra(generaDioptra(preDioptra(nota.codigoLente)), generaDioptra(i.indiceDioptra))
+            o = Order.toOrder(notaVenta)
+            actDioptra = addDioptra(o, codigoDioptra(actDioptra))
+          }
+          return o
         } else {
-            log.warn("no se elimina orderItem, parametros invalidos")
+          log.warn("no se elimina orderItem, notaVenta no existe")
         }
-        return null
+      } else {
+        log.warn("no se elimina orderItem, parametros invalidos")
+      }
+      return null
     }
 
 
@@ -588,41 +585,39 @@ class OrderController {
     }
 
     static Order placeOrder(Order order, String idEmpleado, Boolean isMultypayment) {
-        log.info("registrando orden id: ${order?.id}, cliente: ${order?.customer?.id}")
-        if (StringUtils.isNotBlank(order?.id) && order?.customer?.id) {
-            NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order.id)
-            if (StringUtils.isNotBlank(notaVenta?.id)) {
-
-              if (StringUtils.trimToEmpty(notaVenta.idEmpleado).length() <= 0) {
-                notaVenta.idEmpleado = idEmpleado
-              }
-                if (notaVenta.idCliente != null) {
-                    notaVenta.idCliente = order.customer.id
-                }
-                if( StringUtils.trimToNull(order.dioptra) == null ){
-                    notaVenta.codigo_lente = null
-                }
-                notaVenta.observacionesNv = order.comments
-                //notaVenta.empEntrego = user?.username
-                notaVenta.udf4 = isMultypayment ? "M" : ""
-                notaVenta = notaVentaService.cerrarNotaVenta(notaVenta)
-                if (inventarioService.solicitarTransaccionVenta(notaVenta)) {
-                    log.debug("transaccion de inventario correcta")
-                    if( inventarioService.solicitarTransaccionEntradaSP(notaVenta) ){
-                      log.debug("transaccion entrada SP correcta")
-                      inventarioService.insertarRegistroRemesa( notaVenta )
-                    }
-                } else {
-                    log.warn("no se pudo procesar la transaccion de inventario")
-                }
-                ServiceManager.ioServices.logSalesNotification(notaVenta.id)
-                return Order.toOrder(notaVenta)
-            } else {
-                log.warn("no se registra orden, notaVenta no existe")
+      log.info("registrando orden id: ${order?.id}, cliente: ${order?.customer?.id}")
+      if (StringUtils.isNotBlank(order?.id) && order?.customer?.id) {
+        NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
+        if (StringUtils.isNotBlank(notaVenta?.idFactura)) {
+          if (StringUtils.trimToEmpty(notaVenta.idEmpleado).length() <= 0) {
+            notaVenta.idEmpleado = idEmpleado
+          }
+          if (notaVenta.idCliente != null) {
+            notaVenta.idCliente = order.customer.id
+          }
+          if( StringUtils.trimToNull(order.dioptra) == null ){
+            notaVenta.codigoLente = null
+          }
+          notaVenta.observacionesNv = order.comments
+          notaVenta.udf4 = isMultypayment ? "M" : ""
+          notaVenta = notaVentaServiceJava.cerrarNotaVenta(notaVenta)
+          if (inventarioServiceJava.solicitarTransaccionVenta(notaVenta)) {
+            log.debug("transaccion de inventario correcta")
+            if( inventarioServiceJava.solicitarTransaccionEntradaSP(notaVenta) ){
+              log.debug("transaccion entrada SP correcta")
+              inventarioServiceJava.insertarRegistroRemesa( notaVenta )
             }
+          } else {
+                    log.warn("no se pudo procesar la transaccion de inventario")
+          }
+          ServiceManager.ioServices.logSalesNotification(notaVenta.id)
+          return Order.toOrder(notaVenta)
         } else {
-            log.warn("no se registra orden, parametros invalidos")
+          log.warn("no se registra orden, notaVenta no existe")
         }
+      } else {
+        log.warn("no se registra orden, parametros invalidos")
+      }
         return null
     }
 
@@ -1708,9 +1703,9 @@ class OrderController {
     }
 
 
-    static Boolean validOnlyInventariable( Order order ){
-      return notaVentaService.validaSoloInventariables( order.id )
-    }
+  static Boolean validOnlyInventariable( Order order ){
+    return notaVentaServiceJava.validaSoloInventariables( order.id )
+  }
 
 
   static void creaJbAnticipoInventariables( String idFactura ) {
@@ -1744,37 +1739,37 @@ class OrderController {
 
   static Boolean requiereAuth( Order order ){
     Boolean autorizacion = false
-    Parametro p = parametroRepository.findOne( TipoParametro.ANTICIPO_MENOR_REQUIERE_AUTORIZACIN.value )
+    Parametros p = ParametrosQuery.BuscaParametroPorId( mx.lux.pos.java.TipoParametro.ANTICIPO_MENOR_REQUIERE_AUTORIZACIN.valor )
     if( p != null ){
       final String[] TRUE_VALUES = [ "si", "s", "yes", "y", "true", "t", "on" ]
       String value = StringUtils.trimToEmpty( p.valor ).toLowerCase()
       if ( value.length() > 0 ) {
-          for ( String trueValue : TRUE_VALUES ) {
-              autorizacion = autorizacion || trueValue.equals( value )
-              if ( autorizacion )
-                  break
-          }
+        for ( String trueValue : TRUE_VALUES ) {
+          autorizacion = autorizacion || trueValue.equals( value )
+          if ( autorizacion )
+            break
+        }
       }
     }
     return autorizacion
   }
 
-    static Boolean showValidEmployee( ){
-      Boolean autorizacion = false
-      Parametro p = parametroRepository.findOne( TipoParametro.VALIDA_EMPLEADO.value )
-      if( p != null ){
-          final String[] TRUE_VALUES = [ "si", "s", "yes", "y", "true", "t", "on" ]
-          String value = StringUtils.trimToEmpty( p.valor ).toLowerCase()
-          if ( value.length() > 0 ) {
-              for ( String trueValue : TRUE_VALUES ) {
-                  autorizacion = autorizacion || trueValue.equals( value )
-                  if ( autorizacion )
-                      break
-              }
-          }
+  static Boolean showValidEmployee( ){
+    Boolean autorizacion = false
+    Parametros p = ParametrosQuery.BuscaParametroPorId( mx.lux.pos.java.TipoParametro.VALIDA_EMPLEADO.valor )
+    if( p != null ){
+      final String[] TRUE_VALUES = [ "si", "s", "yes", "y", "true", "t", "on" ]
+      String value = StringUtils.trimToEmpty( p.valor ).toLowerCase()
+      if ( value.length() > 0 ) {
+        for ( String trueValue : TRUE_VALUES ) {
+          autorizacion = autorizacion || trueValue.equals( value )
+          if ( autorizacion )
+            break
+        }
       }
-      return autorizacion
     }
+    return autorizacion
+  }
 
 
     static Descuento findDiscount( Order order ) {
@@ -2170,7 +2165,8 @@ class OrderController {
 
     static void removePedidoLc( String orderId, Integer idArticulo ){
       log.debug( "Remover pedido de lentes de contacto" )
-      notaVentaService.removePedidoLc( orderId, idArticulo )
+      //notaVentaService.removePedidoLc( orderId, idArticulo )
+      notaVentaServiceJava.removePedidoLc( orderId, idArticulo )
     }
 
 
@@ -2185,82 +2181,81 @@ class OrderController {
 
 
     static void updateOrderLc( Order order ){
-      NotaVenta nota = notaVentaService.obtenerNotaVenta( order.id )
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( order.id )
       BigDecimal total = BigDecimal.ZERO
-      for(DetalleNotaVenta det : nota.detalles){
+      for(DetalleNotaVentaJava det : nota.detalles){
         total = total+(det.precioUnitFinal.multiply(det.cantidadFac))
       }
       nota.ventaNeta = total
       nota.ventaTotal = total
-      notaVentaService.registrarNotaVenta( nota )
+      notaVentaServiceJava.registrarNotaVenta( nota )
     }
 
     static void deliverOrderLc( String idPedido ){
       notaVentaService.entregaPedidoLc( StringUtils.trimToEmpty(idPedido) )
     }
 
-    static Boolean validGenericNoDelivered( String idOrder ){
-        NotaVenta nota = notaVentaService.obtenerNotaVenta( idOrder )
-        List<DetalleNotaVenta> detalleVenta = new ArrayList<>()
-        for(DetalleNotaVenta det : nota.detalles){
-          detalleVenta.add( det )
-        }
-        Boolean entregaBo = false
-        Boolean surte = false
-        Parametro genericoNoEntrega = parametroRepository.findOne(TipoParametro.GENERICOS_NO_ETREGABLES.value)
-        ArrayList<String> genericosNoEntregables = new ArrayList<String>()
-        String s = genericoNoEntrega?.valor
-        StringTokenizer st = new StringTokenizer(s.trim(), ",")
-        Iterator its = st.iterator()
-        while (its.hasNext()) {
-            genericosNoEntregables.add(its.next().toString())
-        }
-        Iterator iterator = detalleVenta.iterator();
-        while (iterator.hasNext()) {
-            DetalleNotaVenta detalle = iterator.next()
-
-            Articulo articulo = articuloService.obtenerArticulo(detalle?.idArticulo)
-            for (int a = 0; a < genericosNoEntregables.size(); a++) {
-                String[] values = genericosNoEntregables.get(a).trim().split(":")
-                String generico = StringUtils.trimToEmpty(values[0])
-                String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
-                String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
-                String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
-                Boolean genericoValid = false
-                Boolean tipoValid = false
-                Boolean subtipoValid = false
-                Boolean marcaValid = false
-                if (articulo?.idGenerico.trim().equalsIgnoreCase(generico.trim())) {
-                    genericoValid = true
-                }
-                if( tipo.length() > 0 ){
-                    if (articulo?.tipo.trim().equalsIgnoreCase(tipo.trim())) {
-                        tipoValid = true
-                    }
-                } else {
-                    tipoValid = true
-                }
-                if( subtipo.length() > 0 ){
-                    if (articulo?.subtipo.trim().equalsIgnoreCase(subtipo.trim())) {
-                        subtipoValid = true
-                    }
-                } else {
-                    subtipoValid = true
-                }
-                if( marca.length() > 0 ){
-                    if (articulo?.marca.trim().equalsIgnoreCase(marca.trim())) {
-                        marcaValid = true
-                    }
-                } else {
-                    marcaValid = true
-                }
-                if( genericoValid && tipoValid && subtipoValid && marcaValid ){
-                    entregaBo = true
-                }
-            }
-        }
-      return entregaBo
+  static Boolean validGenericNoDelivered( String idOrder ){
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( idOrder )
+    List<DetalleNotaVentaJava> detalleVenta = new ArrayList<>()
+    for(DetalleNotaVentaJava det : nota.detalles){
+      detalleVenta.add( det )
     }
+    Boolean entregaBo = false
+    Boolean surte = false
+    Parametros genericoNoEntrega = ParametrosQuery.BuscaParametroPorId(mx.lux.pos.java.TipoParametro.GENERICOS_NO_ETREGABLES.valor)
+    ArrayList<String> genericosNoEntregables = new ArrayList<String>()
+    String s = genericoNoEntrega?.valor
+    StringTokenizer st = new StringTokenizer(s.trim(), ",")
+    Iterator its = st.iterator()
+    while (its.hasNext()) {
+      genericosNoEntregables.add(its.next().toString())
+    }
+    Iterator iterator = detalleVenta.iterator();
+    while (iterator.hasNext()) {
+      DetalleNotaVentaJava detalle = iterator.next()
+      ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(detalle?.idArticulo)
+      for (int a = 0; a < genericosNoEntregables.size(); a++) {
+        String[] values = genericosNoEntregables.get(a).trim().split(":")
+        String generico = StringUtils.trimToEmpty(values[0])
+        String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
+        String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
+        String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
+        Boolean genericoValid = false
+        Boolean tipoValid = false
+        Boolean subtipoValid = false
+        Boolean marcaValid = false
+        if (StringUtils.trimToEmpty(articulo?.idGenerico).equalsIgnoreCase(generico.trim())) {
+          genericoValid = true
+        }
+        if( tipo.length() > 0 ){
+          if (StringUtils.trimToEmpty(articulo?.tipo).equalsIgnoreCase(tipo.trim())) {
+            tipoValid = true
+          }
+        } else {
+          tipoValid = true
+        }
+        if( subtipo.length() > 0 ){
+          if (StringUtils.trimToEmpty(articulo?.subtipo).equalsIgnoreCase(subtipo.trim())) {
+            subtipoValid = true
+          }
+        } else {
+          subtipoValid = true
+        }
+        if( marca.length() > 0 ){
+          if (StringUtils.trimToEmpty(articulo?.marca).equalsIgnoreCase(marca.trim())) {
+            marcaValid = true
+          }
+        } else {
+          marcaValid = true
+        }
+        if( genericoValid && tipoValid && subtipoValid && marcaValid ){
+          entregaBo = true
+        }
+      }
+    }
+    return entregaBo
+  }
 
 
     static void creaJbLc( String idFactura ) {
@@ -2326,7 +2321,7 @@ class OrderController {
 
 
     static void saveBatch( String idFactura, Integer idArticulo, String lote ) {
-      notaVentaService.saveBatch( idFactura, idArticulo, lote )
+      notaVentaServiceJava.saveBatch( idFactura, idArticulo, lote )
     }
 
 
@@ -2592,9 +2587,9 @@ class OrderController {
 
     static Boolean validDioptra( String idOrder ){
       Boolean valid = false
-      NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( idOrder )
       if( notaVenta != null ){
-        valid = articuloService.validaCodigoDioptra( StringUtils.trimToEmpty(notaVenta.codigo_lente) )
+        valid = articulosServiceJava.validaCodigoDioptra( StringUtils.trimToEmpty(notaVenta.codigoLente) )
       }
       return valid
     }

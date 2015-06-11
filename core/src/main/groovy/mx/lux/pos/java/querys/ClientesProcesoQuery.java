@@ -48,7 +48,7 @@ public class ClientesProcesoQuery {
         clientesProcesoJava = buscaClientesProcesoPorIdCliente( clientesProceso.getIdCliente() );
       }
       if( clientesProcesoJava != null ){
-        sql = String.format("UPDATE clientes_proceso SET id_cliente = %d, etapa = '%s', id_sync = '%s', fecha_mod = '%s'," +
+        sql = String.format("UPDATE clientes_proceso SET id_cliente = %d, etapa = '%s', id_sync = '%s', fecha_mod = %s," +
                 "id_mod = '%s', id_sucursal = %d WHERE id_cliente = %d;",
                 clientesProceso.getIdCliente(), clientesProceso.getEtapa(), clientesProceso.getIdSync(),
                 Utilities.toString(clientesProceso.getFechaMod(), formatTimeStamp),clientesProceso.getIdMod(),

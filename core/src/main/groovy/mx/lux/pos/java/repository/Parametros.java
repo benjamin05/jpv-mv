@@ -30,11 +30,10 @@ public class Parametros {
 	}
 	
 	public Parametros mapeoParametro(ResultSet rs) throws SQLException{
-		Parametros parametro = new Parametros();
-		parametro.setIdParametro(rs.getString("id_parametro"));
-		parametro.setDescr(rs.getString("descr"));
-		parametro.setValor(rs.getString("valor"));
-		return parametro;
+		this.setIdParametro(rs.getString("id_parametro"));
+		this.setDescr(rs.getString("descr"));
+		this.setValor(rs.getString("valor"));
+		return this;
 	}
 	
 	

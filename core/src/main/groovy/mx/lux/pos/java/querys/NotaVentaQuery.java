@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -43,6 +44,11 @@ public class NotaVentaQuery {
       }
   	  return notaVentaJava;
 	}
+
+
+    public static Boolean exists(String idFactura) throws ParseException {
+      return busquedaNotaById(idFactura) != null;
+    }
 
 
     public static NotaVentaJava busquedaNotaByFactura(String factura) throws ParseException{
@@ -157,4 +163,25 @@ public class NotaVentaQuery {
       }
       return lstNotas;
     }
+
+
+    public static Integer getFacturaSequence(){
+      BigDecimal id = BigDecimal.ZERO;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "";
+        sql = String.format("SELECT NEXTVAL('factura_seq');");
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          id = rs.getBigDecimal("nextval");
+        }
+        con.close();
+      } catch (SQLException err) {
+           System.out.println( err );
+      }
+      return id != null ? id.intValue() : 0;
+    }
+
+
 }

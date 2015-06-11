@@ -1,6 +1,11 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.Utilities;
+import org.apache.commons.lang.StringUtils;
+
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 
 public class ArticulosJava {
@@ -41,7 +46,7 @@ public class ArticulosJava {
     }
 
     public String getArticulo() {
-        return articulo;
+        return StringUtils.trimToEmpty(articulo);
     }
 
     public void setArticulo(String articulo) {
@@ -49,7 +54,7 @@ public class ArticulosJava {
     }
 
     public String getColorCode() {
-        return colorCode;
+        return StringUtils.trimToEmpty(colorCode);
     }
 
     public void setColorCode(String colorCode) {
@@ -57,7 +62,7 @@ public class ArticulosJava {
     }
 
     public String getDescArticulo() {
-        return descArticulo;
+        return StringUtils.trimToEmpty(descArticulo);
     }
 
     public void setDescArticulo(String descArticulo) {
@@ -65,7 +70,7 @@ public class ArticulosJava {
     }
 
     public String getIdGenerico() {
-        return idGenerico;
+        return StringUtils.trimToEmpty(idGenerico);
     }
 
     public void setIdGenerico(String idGenerico) {
@@ -73,7 +78,7 @@ public class ArticulosJava {
     }
 
     public String getIdGenTipo() {
-        return idGenTipo;
+        return StringUtils.trimToEmpty(idGenTipo);
     }
 
     public void setIdGenTipo(String idGenTipo) {
@@ -81,7 +86,7 @@ public class ArticulosJava {
     }
 
     public String getIdGenSubtipo() {
-        return idGenSubtipo;
+        return StringUtils.trimToEmpty(idGenSubtipo);
     }
 
     public void setIdGenSubtipo(String idGenSubtipo) {
@@ -105,7 +110,7 @@ public class ArticulosJava {
     }
 
     public String getsArticulo() {
-        return sArticulo;
+        return StringUtils.trimToEmpty(sArticulo);
     }
 
     public void setsArticulo(String sArticulo) {
@@ -113,7 +118,7 @@ public class ArticulosJava {
     }
 
     public String getIdSync() {
-        return idSync;
+        return StringUtils.trimToEmpty(idSync);
     }
 
     public void setIdSync(String idSync) {
@@ -129,7 +134,7 @@ public class ArticulosJava {
     }
 
     public String getIdMod() {
-        return idMod;
+        return StringUtils.trimToEmpty(idMod);
     }
 
     public void setIdMod(String idMod) {
@@ -145,7 +150,7 @@ public class ArticulosJava {
     }
 
     public String getColorDesc() {
-        return colorDesc;
+        return StringUtils.trimToEmpty(colorDesc);
     }
 
     public void setColorDesc(String colorDesc) {
@@ -153,7 +158,7 @@ public class ArticulosJava {
     }
 
     public String getIdCb() {
-        return idCb;
+        return StringUtils.trimToEmpty(idCb);
     }
 
     public void setIdCb(String idCb) {
@@ -161,7 +166,7 @@ public class ArticulosJava {
     }
 
     public String getIdDisenoLente() {
-        return idDisenoLente;
+        return StringUtils.trimToEmpty(idDisenoLente);
     }
 
     public void setIdDisenoLente(String idDisenoLente) {
@@ -177,7 +182,7 @@ public class ArticulosJava {
     }
 
     public String getTipo() {
-        return tipo;
+        return StringUtils.trimToEmpty(tipo);
     }
 
     public void setTipo(String tipo) {
@@ -185,7 +190,7 @@ public class ArticulosJava {
     }
 
     public String getSubtipo() {
-        return subtipo;
+        return StringUtils.trimToEmpty(subtipo);
     }
 
     public void setSubtipo(String subtipo) {
@@ -193,7 +198,7 @@ public class ArticulosJava {
     }
 
     public String getMarca() {
-        return marca;
+        return StringUtils.trimToEmpty(marca);
     }
 
     public void setMarca(String marca) {
@@ -201,7 +206,7 @@ public class ArticulosJava {
     }
 
     public String getProveedor() {
-        return proveedor;
+        return StringUtils.trimToEmpty(proveedor);
     }
 
     public void setProveedor(String proveedor) {
@@ -209,7 +214,7 @@ public class ArticulosJava {
     }
 
     public String getIndiceDioptra() {
-        return indiceDioptra;
+        return StringUtils.trimToEmpty(indiceDioptra);
     }
 
     public void setIndiceDioptra(String indiceDioptra) {
@@ -217,7 +222,7 @@ public class ArticulosJava {
     }
 
     public String getOperacion() {
-        return operacion;
+        return StringUtils.trimToEmpty(operacion);
     }
 
     public void setOperacion(String operacion) {
@@ -225,7 +230,7 @@ public class ArticulosJava {
     }
 
     public String getTipoPrecio() {
-        return tipoPrecio;
+        return StringUtils.trimToEmpty(tipoPrecio);
     }
 
     public void setTipoPrecio(String tipoPrecio) {
@@ -233,44 +238,39 @@ public class ArticulosJava {
     }
 
     public String getUbicacion() {
-        return ubicacion;
+        return StringUtils.trimToEmpty(ubicacion);
     }
 
     public void setUbicacion(String ubicacion) {
         this.ubicacion = ubicacion;
     }
 
-    public ArticulosJava setValores( Integer idArticulo, String articulo, String colorCode, String descArticulo, String idGenerico,
-            String idGenTipo, String idGenSubtipo, BigDecimal precio, BigDecimal precioO, String sArticulo, String idSync, Date fechaMod,
-			String idMod, Integer idSucursal, String colorDesc, String idCb, String idDisenoLente, Integer existencia, String tipo,
-            String subtipo, String marca, String proveedor, String indiceDioptra){
-
-		ArticulosJava articulosJava = new ArticulosJava();
-		this.setIdArticulo(idArticulo);
-		this.setArticulo(articulo);
-		this.setColorCode(colorCode);
-		this.setDescArticulo(descArticulo);
-		this.setIdGenerico(idGenerico);
-		this.setIdGenTipo(idGenTipo);
-		this.setIdGenSubtipo(idGenSubtipo);
-        this.setPrecio(precio);
-        this.setPrecioO(precioO);
-        this.setsArticulo(sArticulo);
-        this.setIdSync(idSync);
-        this.setFechaMod(fechaMod);
-        this.setIdMod(idMod);
-        this.setIdSucursal(idSucursal);
-        this.setColorDesc(colorDesc);
-        this.setIdCb(idCb);
-        this.setIdDisenoLente(idDisenoLente);
-        this.setExistencia(existencia);
-        this.setTipo(tipo);
-        this.setSubtipo(subtipo);
-        this.setMarca(marca);
-        this.setProveedor(proveedor);
-        this.setIndiceDioptra(indiceDioptra);
+    public ArticulosJava setValores( ResultSet rs ) throws SQLException {
+		this.setIdArticulo(rs.getInt("id_articulo"));
+		this.setArticulo(rs.getString("articulo"));
+		this.setColorCode(rs.getString("color_code"));
+		this.setDescArticulo(rs.getString("desc_articulo"));
+		this.setIdGenerico(rs.getString("id_generico"));
+		this.setIdGenTipo(rs.getString("id_gen_subtipo"));
+		this.setIdGenSubtipo(rs.getString("id_gen_subtipo"));
+        this.setPrecio(Utilities.toBigDecimal(rs.getString("precio")));
+        this.setPrecioO(Utilities.toBigDecimal(rs.getString("precio_o")));
+        this.setsArticulo(rs.getString("s_articulo"));
+        this.setIdSync(rs.getString("id_sync"));
+        this.setFechaMod(rs.getDate("fecha_mod"));
+        this.setIdMod(rs.getString("id_mod"));
+        this.setIdSucursal(rs.getInt("id_sucursal"));
+        this.setColorDesc(rs.getString("color_desc"));
+        this.setIdCb(rs.getString("id_cb"));
+        this.setIdDisenoLente(rs.getString("id_diseno_lente"));
+        this.setExistencia(rs.getInt("existencia"));
+        this.setTipo(rs.getString("tipo"));
+        this.setSubtipo(rs.getString("subtipo"));
+        this.setMarca(rs.getString("marca"));
+        this.setProveedor(rs.getString("proveedor"));
+        this.setIndiceDioptra(rs.getString("indice_dioptra"));
 		
-		return articulosJava;
+		return this;
 	}
 	
 	

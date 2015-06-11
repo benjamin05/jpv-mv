@@ -4,6 +4,7 @@ import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.*
 import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.Parametros
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.MainWindow
@@ -1006,7 +1007,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         Boolean warranty = false
         if( true ){
             NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, true )
+            warranty = OrderController.validWarranty( OrderController.findOrderJavaByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, true )
         } else {
           warranty = true
         }
@@ -1152,30 +1153,28 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void flujoImprimir(int artCount) {
-        armazonString = null
-        Boolean validOrder = isValidOrder()
-        if (artCount != 0) {
-            Parametro diaIntervalo = Registry.find(TipoParametro.DIA_PRO)
-            Date diaPrometido = new Date() + diaIntervalo?.valor.toInteger()
-            OrderController.savePromisedDate(order?.id, diaPrometido)
-            Double pAnticipo = Registry.getAdvancePct()
-
-            Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
-            if( onlyInventariable && order?.paid < order?.total ){
-              AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo requiere autorizaci\u00f3n")
-              authDialog.show()
-              if (authDialog.authorized) {
-                  advanceOnlyInventariable = true
-                  validOrder = isValidOrder()
-              } else {
-                  validOrder = false
-                  sb.optionPane(
-                          message: 'Datos no validos',
-                          messageType: JOptionPane.ERROR_MESSAGE
-                  ).createDialog(this, 'No se puede registrar la venta')
-                          .show()
-              }
-            } else if (order?.paid < (order?.total * pAnticipo)) {
+      armazonString = null
+      Boolean validOrder = isValidOrder()
+      if (artCount != 0) {
+        Parametros diaIntervalo = Registry.find(mx.lux.pos.java.TipoParametro.DIA_PRO)
+        Date diaPrometido = new Date() + (diaIntervalo != null ? diaIntervalo?.valor?.toInteger() : 0)
+        OrderController.savePromisedDate(order?.id, diaPrometido)
+        Double pAnticipo = Registry.getAdvancePct()
+        Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
+        if( onlyInventariable && order?.paid < order?.total ){
+          AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo requiere autorizaci\u00f3n")
+          authDialog.show()
+          if (authDialog.authorized) {
+            advanceOnlyInventariable = true
+            validOrder = isValidOrder()
+          } else {
+            validOrder = false
+            sb.optionPane(
+                    message: 'Datos no validos',
+                    messageType: JOptionPane.ERROR_MESSAGE
+            ).createDialog(this, 'No se puede registrar la venta').show()
+          }
+        } else if (order?.paid < (order?.total * pAnticipo)) {
                 Boolean requierAuth = OrderController.requiereAuth( order )
                 if( requierAuth ){
                   AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo menor al permitido, esta operacion requiere autorizaci\u00f3n")
@@ -1198,105 +1197,105 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     ).createDialog(this, 'No se puede registrar la venta')
                             .show()
                 }
-              } else {
-                validOrder = isValidOrder()
-              }
         } else {
+          validOrder = isValidOrder()
+        }
+      } else {
             if( OrderController.validGenericNoDelivered( order.id ) ){
-                Double pAnticipo = Registry.getAdvancePct()
-                Boolean requierAuth = OrderController.requiereAuth( order )
-                if(order?.paid < (order?.total * pAnticipo)){
-                    if( requierAuth ){
-                        AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo menor al permitido, esta operacion requiere autorizaci\u00f3n")
-                        authDialog.show()
-                        if (authDialog.authorized) {
-                            validOrder = isValidOrder()
-                        } else {
-                            validOrder = false
-                            sb.optionPane(
-                                    message: 'El monto del anticipo tiene que ser minimo de: $' + (order?.total * pAnticipo),
-                                    messageType: JOptionPane.ERROR_MESSAGE
-                            ).createDialog(this, 'No se puede registrar la venta')
-                                    .show()
-                        }
-                    } else {
-                        validOrder = false
-                        sb.optionPane(
-                                message: 'El monto del anticipo tiene que ser minimo de: $' + (order?.total * pAnticipo),
-                                messageType: JOptionPane.ERROR_MESSAGE
-                        ).createDialog(this, 'No se puede registrar la venta')
-                                .show()
-                    }
-                } else {
+              Double pAnticipo = Registry.getAdvancePct()
+              Boolean requierAuth = OrderController.requiereAuth( order )
+              if(order?.paid < (order?.total * pAnticipo)){
+                if( requierAuth ){
+                  AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo menor al permitido, esta operacion requiere autorizaci\u00f3n")
+                  authDialog.show()
+                  if (authDialog.authorized) {
                     validOrder = isValidOrder()
-                }
-            } else {
-              validOrder = isValidOrder()
-            }
-        }
-        if( !validLenses() ){
-            order.dioptra = null
-        }
-        if (validOrder) {
-            Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
-            Boolean noDelivered = OrderController.validGenericNoDelivered( order.id )
-            if( onlyInventariable && order?.paid < order?.total && !noDelivered ){
-                AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo requiere autorizaci\u00f3n")
-                authDialog.show()
-                if (authDialog.authorized) {
-                    advanceOnlyInventariable = true
-                    doBindings()
-                    refreshDioptra()
-                    if( dioptra != null ){
-                      if( OrderController.validDioptra( StringUtils.trimToEmpty(order.id) ) ){
-                        saveOrder()
-                      } else {
-                        refreshDioptra()
-                        saveOrder()
-                      }
-                    } else {
-                      saveOrder()
-                    }
-                } else {
+                  } else {
                     validOrder = false
                     sb.optionPane(
-                            message: 'Datos no validos',
+                            message: 'El monto del anticipo tiene que ser minimo de: $' + (order?.total * pAnticipo),
                             messageType: JOptionPane.ERROR_MESSAGE
                     ).createDialog(this, 'No se puede registrar la venta')
                             .show()
-                }
-            } else {
-              doBindings()
-              if( dioptra.material != null || dioptra.lente != null || dioptra.tipo != null || dioptra.especial != null ||
-                      dioptra.tratamiento != null || dioptra.color != null ){
-                if( OrderController.validDioptra( StringUtils.trimToEmpty(order.id) ) ){
-                  saveOrder()
+                  }
                 } else {
-                  refreshDioptra()
-                  saveOrder()
+                  validOrder = false
+                  sb.optionPane(
+                          message: 'El monto del anticipo tiene que ser minimo de: $' + (order?.total * pAnticipo),
+                          messageType: JOptionPane.ERROR_MESSAGE
+                  ).createDialog(this, 'No se puede registrar la venta')
+                          .show()
                 }
               } else {
-                  saveOrder()
+                validOrder = isValidOrder()
               }
+            } else {
+              validOrder = isValidOrder()
             }
+      }
+      if( !validLenses() ){
+        order.dioptra = null
+      }
+      if (validOrder) {
+        Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
+        Boolean noDelivered = OrderController.validGenericNoDelivered( order.id )
+        if( onlyInventariable && order?.paid < order?.total && !noDelivered ){
+          AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo requiere autorizaci\u00f3n")
+          authDialog.show()
+          if (authDialog.authorized) {
+            advanceOnlyInventariable = true
+            doBindings()
+            refreshDioptra()
+            if( dioptra != null ){
+              if( OrderController.validDioptra( StringUtils.trimToEmpty(order.id) ) ){
+                saveOrder()
+              } else {
+                refreshDioptra()
+                saveOrder()
+              }
+            } else {
+              saveOrder()
+            }
+          } else {
+            validOrder = false
+            sb.optionPane(
+                    message: 'Datos no validos',
+                    messageType: JOptionPane.ERROR_MESSAGE
+            ).createDialog(this, 'No se puede registrar la venta')
+                    .show()
+          }
+        } else {
+          doBindings()
+          if( dioptra.material != null || dioptra.lente != null || dioptra.tipo != null || dioptra.especial != null ||
+                  dioptra.tratamiento != null || dioptra.color != null ){
+            if( OrderController.validDioptra( StringUtils.trimToEmpty(order.id) ) ){
+              saveOrder()
+            } else {
+              refreshDioptra()
+              saveOrder()
+            }
+          } else {
+            saveOrder()
+          }
         }
+      }
     }
 
     private void saveOrder() {
-        User user = Session.get(SessionItem.USER) as User
-        String vendedor = user.username
-        if( OrderController.showValidEmployee() ){
-          CambiaVendedorDialog cambiaVendedor = new CambiaVendedorDialog(this,user?.username)
-          cambiaVendedor.show()
-          vendedor = cambiaVendedor?.vendedor
-        }
+      User user = Session.get(SessionItem.USER) as User
+      String vendedor = user.username
+      if( OrderController.showValidEmployee() ){
+        CambiaVendedorDialog cambiaVendedor = new CambiaVendedorDialog(this,user?.username)
+        cambiaVendedor.show()
+        vendedor = cambiaVendedor?.vendedor
+      }
 
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
-        Order newOrder = OrderController.placeOrder(order, vendedor, false)
-        OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
-        if( newOrder.rx != null ){
-          OrderController.updateExam( newOrder )
-        }
+      Order newOrder = OrderController.placeOrder(order, vendedor, false)
+      OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
+      if( newOrder.rx != null ){
+        OrderController.updateExam( newOrder )
+      }
 
         if(numQuote > 0){
           OrderController.updateQuote( newOrder, numQuote )

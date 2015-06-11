@@ -5,6 +5,7 @@ import mx.lux.pos.java.TipoParametro;
 import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.querys.*;
 import mx.lux.pos.java.repository.*;
+import mx.lux.pos.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class NotaVentaServiceJava {
@@ -20,6 +22,8 @@ public class NotaVentaServiceJava {
     private static final String TAG_GENERICOS_LENTECONTACTO2 = "H";
     private static final String TAG_GEN_TIPO_NC = "NC";
     private static final String TAG_GEN_TIPO_C = "C";
+    private static final String TAG_GENERICOS_B = "B";
+    private static final String TAG_ARTICULO_COLOR = "COG";
     static final Logger log = LoggerFactory.getLogger(NotaVentaQuery.class);
 
     public static NotaVentaJava registrarNotaVenta(NotaVentaJava notaVenta) throws ParseException {
@@ -161,6 +165,140 @@ public class NotaVentaServiceJava {
       }
     }
     return existPromo;
+  }
+
+
+
+  public NotaVentaJava eliminarDetalleNotaVentaEnNotaVenta( String idNotaVenta, Integer idArticulo ) throws ParseException {
+    log.info( String.format("eliminando detalleNotaVenta idArticulo: %d de notaVenta id: %s", idArticulo, idNotaVenta) );
+    if ( idArticulo != null && StringUtils.isNotBlank( idNotaVenta ) ) {
+      DetalleNotaVentaJava detalle = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFacturaEIdArticulo(idNotaVenta, idArticulo);
+      if ( detalle.getId() != null ) {
+        log.debug( String.format("obtiene detalleNotaVenta id: %d", detalle.getId()) );
+        NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( idNotaVenta );
+        if ( StringUtils.isNotBlank( notaVenta.getIdFactura() ) ) {
+          DetalleNotaVentaQuery.eliminaDetalleNotaVenta( detalle );
+          log.debug( "detalleNotaVenta eliminado" );
+          return registrarNotaVenta( notaVenta );
+        } else {
+          log.warn( String.format("no se elimina detalleNotaVenta, no existe notaVenta id: %s", idNotaVenta) );
+        }
+      } else {
+        log.warn( String.format("no se elimina detalleNotaVenta, no existe con idNotaVenta: %s idArticulo: %d", idNotaVenta, idArticulo) );
+      }
+    } else {
+      log.warn( "no se elimina detalleNotaVenta, parametros invalidos" );
+    }
+    return null;
+  }
+
+
+  public void removePedidoLc( String orderId, Integer idArticulo ) throws ParseException {
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(idArticulo);
+    List<PedidoLcDetJava> pedidoLcDet = PedidoLcQuery.buscaPedidoLcDetPorIdYModelo(orderId, articulo.getArticulo());
+    for(PedidoLcDetJava det : pedidoLcDet){
+      PedidoLcQuery.eliminaPedidoLcDet( det );
+    }
+    PedidoLcJava pedidoLc = PedidoLcQuery.buscaPedidoLcPorId(orderId);
+    if(pedidoLc != null && pedidoLc.getPedidoLcDets().size() <= 0){
+      PedidoLcQuery.eliminaPedidoLc( pedidoLc );
+    }
+  }
+
+
+
+  public void saveBatch( String idFactura, Integer idArticulo, String lote ) throws ParseException {
+    DetalleNotaVentaJava detalleNota = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFacturaEIdArticulo(idFactura, idArticulo);
+    if( detalleNota != null ){
+      detalleNota.setIdRepVenta(StringUtils.trimToEmpty(detalleNota.getIdRepVenta()) + "," + StringUtils.trimToEmpty(lote));
+      if( detalleNota.getIdRepVenta().startsWith(",") ){
+        detalleNota.setIdRepVenta(detalleNota.getIdRepVenta().replaceFirst( ",","" ));
+      }
+      DetalleNotaVentaQuery.updateDetalleNotaVenta(detalleNota);
+    }
+  }
+
+
+  public NotaVentaJava saveFrame(String idNotaVenta, String opciones, String forma) throws ParseException {
+    NotaVentaJava rNotaVenta = NotaVentaQuery.busquedaNotaById(idNotaVenta);
+    rNotaVenta.setUdf2(opciones);
+    rNotaVenta.setUdf3(forma);
+    try{
+      rNotaVenta =  NotaVentaQuery.updateNotaVenta( rNotaVenta );
+    } catch ( Exception e ){
+      System.out.println(e);
+    }
+    return rNotaVenta;
+  }
+
+
+  public void saveProDate(NotaVentaJava rNotaVenta, Date fechaPrometida) throws ParseException {
+    if ( StringUtils.isNotBlank( rNotaVenta.getIdFactura()) ) {
+      if ( NotaVentaQuery.exists( rNotaVenta.getIdFactura() ) ) {
+        rNotaVenta.setFechaPrometida(fechaPrometida);
+        registrarNotaVenta( rNotaVenta );
+      } else {
+        log.warn( "id no existe" );
+      }
+    } else {
+      log.warn( "No hay receta" );
+    }
+  }
+
+
+  public Boolean validaSoloInventariables( String idFactura ) throws ParseException {
+    log.debug( "validaSoloInventariables( )" );
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(idFactura);
+    Boolean esInventariable = true;
+    for(DetalleNotaVentaJava det : nota.getDetalles()){
+      if( TAG_GENERICOS_B.contains(det.getArticulo().getIdGenerico().trim()) ){
+        esInventariable = false;
+      }
+    }
+    return esInventariable;
+  }
+
+
+  public NotaVentaJava cerrarNotaVenta( NotaVentaJava notaVenta ) throws ParseException {
+    log.info( String.format("cerrando notaVenta id: %s", notaVenta.getIdFactura()) );
+    if ( StringUtils.isNotBlank( notaVenta.getIdFactura() ) ) {
+      String idNotaVenta = notaVenta.getIdFactura();
+      if ( NotaVentaQuery.exists( idNotaVenta ) ) {
+        Boolean agregarColor = false;
+        for(DetalleNotaVentaJava det : notaVenta.getDetalles()){
+          if( StringUtils.trimToEmpty(det.getArticulo().getArticulo()).equalsIgnoreCase(TAG_ARTICULO_COLOR) ){
+            agregarColor = true;
+          }
+        }
+        if( agregarColor && StringUtils.trimToEmpty(notaVenta.getCodigoLente()).length() > 0 ){
+          String dioptra = notaVenta.getCodigoLente();
+          String dioptraTmp = dioptra.substring( 0, dioptra.length()-1 );
+          dioptra = dioptraTmp+"T";
+          ArticulosServiceJava articulosServiceJava = new ArticulosServiceJava();
+          if( articulosServiceJava.validaCodigoDioptra( StringUtils.trimToEmpty(dioptra) ) ){
+            notaVenta.setCodigoLente(dioptra);
+          }
+          articulosServiceJava = null;
+        }
+        Date fecha = new Date();
+        String factura = StringUtils.trimToEmpty( notaVenta.getFactura() );
+        if( factura.length() <= 0 ){
+          factura = String.format( "%06d", NotaVentaQuery.getFacturaSequence() );
+        }
+        notaVenta.setFactura(factura);
+        notaVenta.setTipoNotaVenta("F");
+        notaVenta.setTipoDescuento("N");
+        notaVenta.setTipoEntrega("S");
+        notaVenta.setfExpideFactura( true );
+        notaVenta.setFechaPrometida(notaVenta.getFechaPrometida() != null ? notaVenta.getFechaPrometida() : fecha);
+        return registrarNotaVenta( notaVenta );
+      } else {
+        log.warn( "no se cierra notaVenta, id no existe" );
+      }
+    } else {
+      log.warn( "no se cierra notaVenta, parametros invalidos" );
+    }
+    return null;
   }
 
 

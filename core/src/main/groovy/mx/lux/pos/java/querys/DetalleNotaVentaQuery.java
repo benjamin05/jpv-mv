@@ -1,5 +1,7 @@
 package mx.lux.pos.java.querys;
 
+import mx.lux.pos.java.Utilities;
+import mx.lux.pos.java.repository.DescuentosJava;
 import mx.lux.pos.java.repository.DetalleNotaVentaJava;
 import mx.lux.pos.model.Jb;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +33,7 @@ public class DetalleNotaVentaQuery {
           while (rs.next()) {
             DetalleNotaVentaJava detalleNotaVentaJava = new DetalleNotaVentaJava();
             detalleNotaVentaJava.setValores( rs );
-            	lstDetalleNotaVen.add(detalleNotaVentaJava);
+            lstDetalleNotaVen.add(detalleNotaVentaJava);
           }
           con.close();
         } else {
@@ -44,15 +46,55 @@ public class DetalleNotaVentaQuery {
 	}
 
 
+    public static DetalleNotaVentaJava busquedaDetallesNotaVenPorIdFacturaEIdArticulo(String idFactura, Integer idArticulo) throws ParseException{
+      DetalleNotaVentaJava detalleNotaVentaJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "";
+        if(StringUtils.trimToEmpty(idFactura).length() > 0){
+          sql = String.format("SELECT * FROM detalle_nota_ven WHERE id_factura = '%s' AND id_articulo = %d;",
+                  StringUtils.trimToEmpty(idFactura), idArticulo);
+          rs = stmt.executeQuery(sql);
+          while (rs.next()) {
+            detalleNotaVentaJava = new DetalleNotaVentaJava();
+            detalleNotaVentaJava.setValores( rs );
+          }
+          con.close();
+        } else {
+                System.out.println( "No existen la nota: "+idFactura );
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return detalleNotaVentaJava;
+    }
+
+
     public static void updateDetalleNotaVenta (DetalleNotaVentaJava detalleNotaVentaJava) {
-      String sql = String.format("update detalle_nota_ven set id_articulo = %d, id_tipo_detalle = '%s', cantidad_fac = %d, precio_unit_lista = %d," +
-              "precio_unit_final = %d, fecha_mod = NOW(), surte = '%s', precio_calc_lista = %d, precio_calc_oferta = %d, precio_factura = %d, precio_conv = %d",
+      String sql = String.format("UPDATE detalle_nota_ven SET id_articulo = %d, id_tipo_detalle = '%s', cantidad_fac = %f, precio_unit_lista = %s," +
+              "precio_unit_final = %s, fecha_mod = NOW(), surte = '%s', precio_calc_lista = %s, precio_calc_oferta = %s, precio_factura = %s," +
+              "precio_conv = %s, id_rep_venta = '%s' WHERE id_factura = '%s' AND id_articulo = %d",
               detalleNotaVentaJava.getIdArticulo(), detalleNotaVentaJava.getIdTipoDetalle(), detalleNotaVentaJava.getCantidadFac(),
-              detalleNotaVentaJava.getPrecioUnitLista(), detalleNotaVentaJava.getPrecioUnitFinal(), detalleNotaVentaJava.getSurte(),
-              detalleNotaVentaJava.getPrecioCalcLista(), detalleNotaVentaJava.getPrecioCalcOferta(), detalleNotaVentaJava.getPrecioFactura(),
-              detalleNotaVentaJava.getPrecioConv());
+              Utilities.toMoney(detalleNotaVentaJava.getPrecioUnitLista()), Utilities.toMoney(detalleNotaVentaJava.getPrecioUnitFinal()),
+              detalleNotaVentaJava.getSurte(),Utilities.toMoney(detalleNotaVentaJava.getPrecioCalcLista()), Utilities.toMoney(detalleNotaVentaJava.getPrecioCalcOferta()),
+              Utilities.toMoney(detalleNotaVentaJava.getPrecioFactura()),Utilities.toMoney(detalleNotaVentaJava.getPrecioConv()),
+              StringUtils.trimToEmpty(detalleNotaVentaJava.getIdRepVenta()), StringUtils.trimToEmpty(detalleNotaVentaJava.getIdFactura()), detalleNotaVentaJava.getIdArticulo());
       Connections db = new Connections();
       db.updateQuery(sql);
       db.close();
+    }
+
+
+    public static void eliminaDetalleNotaVenta( DetalleNotaVentaJava detalleNotaVentaJava ){
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("DELETE FROM detalle_nota_ven WHERE id = %d;", detalleNotaVentaJava.getId());
+        stmt.executeUpdate(sql);
+        con.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
     }
 }

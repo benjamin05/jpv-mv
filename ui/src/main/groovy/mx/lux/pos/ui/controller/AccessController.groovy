@@ -1,6 +1,8 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.repository.EmpleadoJava
+import mx.lux.pos.java.service.EmpleadoServiceJava
 import mx.lux.pos.model.Empleado
 import mx.lux.pos.service.EmpleadoService
 import mx.lux.pos.service.ListaPreciosService
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Component
 class AccessController {
 
   private static EmpleadoService empleadoService
+  private static EmpleadoServiceJava empleadoServiceJava
   private static SucursalService sucursalService
   private static ListaPreciosService listaPreciosService
 
@@ -27,11 +30,12 @@ class AccessController {
     this.empleadoService = empleadoService
     this.sucursalService = sucursalService
     this.listaPreciosService = listaPreciosService
+    empleadoServiceJava = new EmpleadoServiceJava()
   }
 
   static User getUser( String username ) {
     log.info( "solicitando usuario: ${username}" )
-    return User.toUser( empleadoService.obtenerEmpleado( username ) )
+    return User.toUser( empleadoServiceJava.obtenerEmpleado( username ) )
   }
 
   static boolean checkCredentials( String username, String password ) {
@@ -75,9 +79,9 @@ class AccessController {
     log.info( "log out" )
   }
 
-  private static boolean isAuthorizer( Empleado empleado ) {
+  private static boolean isAuthorizer( EmpleadoJava empleado ) {
     log.info( "verificando si empleado es autorizador: ${empleado?.id}" )
-    if ( empleado?.id ) {
+    if ( empleado?.idEmpleado ) {
       if ( ( 1..2 ).contains( empleado.idPuesto ) ) {
         log.info( "usuario es autorizador" )
         return true
@@ -111,7 +115,7 @@ class AccessController {
   static boolean canAuthorize( String username, String password ) {
     log.info( "solicitando autorizacion por usuario: $username" )
     if ( checkCredentials( username, password ) ) {
-      Empleado empleado = empleadoService.obtenerEmpleado( username )
+      EmpleadoJava empleado = empleadoServiceJava.obtenerEmpleado( username )
       if ( isAuthorizer( empleado ) ) {
         log.info( "autorizacion realizada: $username" )
         return true

@@ -14,7 +14,7 @@ public class TmpServiciosQuery {
     public static void saveTmpServicio (TmpServiciosJava tmpServiciosJava) {
       String format = "yyyy-MM-dd HH:mm:ss.SSS";
       String sql = String.format("INSERT INTO tmp_servicios (id_factura,id_cliente,cliente,dejo,instruccion,emp,servicio,condicion,fecha_prom)" +
-              "VALUES('%s','%s','%s','%s','%s','%s','%s','%s','%s');",
+              "VALUES('%s','%s','%s','%s','%s','%s','%s','%s',%s);",
               tmpServiciosJava.getIdFactura(),tmpServiciosJava.getIdCliente(),tmpServiciosJava.getCliente(),
               tmpServiciosJava.getDejo(),tmpServiciosJava.getInstruccion(),tmpServiciosJava.getEmp(),
               tmpServiciosJava.getServicio(),tmpServiciosJava.getCondicion(),

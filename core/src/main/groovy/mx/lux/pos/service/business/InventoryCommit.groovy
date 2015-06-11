@@ -1,5 +1,11 @@
 package mx.lux.pos.service.business
 
+import mx.lux.pos.java.querys.TransInvDetQuery
+import mx.lux.pos.java.querys.TransInvQuery
+import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.TransInvDetJava
+import mx.lux.pos.java.repository.TransInvJava
+import mx.lux.pos.java.service.ArticulosServiceJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.impl.ServiceFactory
@@ -35,6 +41,20 @@ class InventoryCommit {
       file.write( pTransInv )
     }
   }
+
+
+  static void exportarTransaccion( TransInvJava pTransInv ) {
+    println('Tipo transaccion: '+pTransInv.idTipoTrans )
+    if ( Registry.isExportEnabledForInventory( pTransInv.idTipoTrans ) ) {
+      InvTrFile file = ResourceManager.getInvTrFile()
+      file.write( pTransInv )
+    }
+    if ( InvTrType.ISSUE.equals( pTransInv ) && Registry.isExchangeDataFileRequired() ) {
+      ShippingNoticeFile file = ResourceManager.getShippingNoticeFile()
+      file.write( pTransInv )
+    }
+  }
+
 
   static Integer registrarTransaccion( TransInv pTrMstr ) {
     Integer trnbr = null
@@ -79,6 +99,50 @@ class InventoryCommit {
       }
     return trnbr
   }
+
+
+
+  static Integer registrarTransaccion( TransInvJava pTrMstr ) {
+    Integer trnbr = null
+    log.debug( "[Service] Registrar Trans Inventario" )
+    log.debug( "Antes de registrar ${ pTrMstr.toString() }" )
+    if ( pTrMstr.trDet.size() > 0 )
+    try {
+      // Fill auto data
+      pTrMstr.folio = ServiceFactory.inventoryJava.obtenerSiguienteFolio( pTrMstr.idTipoTrans )
+      // Update Existencia
+      List<ArticulosJava> list = new ArrayList<ArticulosJava>()
+      for ( TransInvDetJava trDet in pTrMstr.trDet ) {
+        TipoMov mov = TipoMov.parse( trDet.tipoMov )
+        ArticulosJava part = ServiceFactory.partsJava.obtenerArticulo( trDet.sku, false )
+        part.existencia += mov.factor * trDet.cantidad
+      }
+      ServiceFactory.partsJava.registrarListaArticulos( list )
+      println('Transaccion Folio: '+ pTrMstr?.folio)
+      // Register Transactions
+      if(TAG_DEVOLUCION.equalsIgnoreCase(pTrMstr.idTipoTrans)){
+        if( pTrMstr.trDet.size() > 0 ){
+          TransInvQuery.saveOrUpdateTransInv( pTrMstr )
+        }
+      } else {
+        TransInvQuery.saveOrUpdateTransInv( pTrMstr )
+      }
+      for ( TransInvDetJava det in pTrMstr.trDet ) {
+        TransInvDetQuery.saveOrUpdateTransInvDet( det )
+      }
+      trnbr = pTrMstr.folio
+      TransInvJava tr = InventorySearch.obtenerTransaccionJava( pTrMstr.idTipoTrans, trnbr )
+      if ( tr != null ) {
+        pTrMstr = tr
+      }
+      log.debug( "Después de registrar: ${ pTrMstr.toString() }" )
+    } catch ( Exception pException ) {
+      log.error( "Error al registrar transaccion", pException )
+    }
+    return trnbr
+  }
+
+
 
   static TipoTransInv createTrType( TipoParametro pTrTypeId, String pType ) {
     TipoTransInv trType = InventorySearch.findTrType( pType )

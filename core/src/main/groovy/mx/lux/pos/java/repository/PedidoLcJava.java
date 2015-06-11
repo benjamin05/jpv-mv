@@ -1,8 +1,15 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.querys.OrdenPromDetQuery;
+import mx.lux.pos.java.querys.PedidoLcQuery;
+import org.apache.commons.lang.StringUtils;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class PedidoLcJava {
 
@@ -15,6 +22,7 @@ public class PedidoLcJava {
     Date fechaRecepcion;
     Date fechaEntrega;
     Date fechaEnvio;
+    List<PedidoLcDetJava> pedidoLcDets;
 
     public String getIdPedido() {
         return idPedido;
@@ -88,7 +96,15 @@ public class PedidoLcJava {
         this.fechaEnvio = fechaEnvio;
     }
 
-    public PedidoLcJava mapeoPedidoLc(ResultSet rs) throws SQLException{
+    public List<PedidoLcDetJava> getPedidoLcDets() {
+        return pedidoLcDets;
+    }
+
+    public void setPedidoLcDets(List<PedidoLcDetJava> pedidoLcDets) {
+        this.pedidoLcDets = pedidoLcDets;
+    }
+
+    public PedidoLcJava mapeoPedidoLc(ResultSet rs) throws SQLException, ParseException {
 	  this.setIdPedido(rs.getString("id_pedido"));
       this.setFolio(rs.getString("folio"));
       this.setCliente(rs.getString("cliente"));
@@ -98,8 +114,16 @@ public class PedidoLcJava {
       this.setFechaRecepcion(rs.getDate("fecha_recepcion"));
       this.setFechaEntrega(rs.getDate("fecha_entrega"));
       this.setFechaEnvio(rs.getDate("fecha_envio"));
+      this.setPedidoLcDets( pedidoLcDet() );
 	  return this;
 	}
-	
-	
+
+
+    private List<PedidoLcDetJava> pedidoLcDet( ) throws ParseException {
+      List<PedidoLcDetJava> lstPedidoLcDet = new ArrayList<PedidoLcDetJava>();
+      lstPedidoLcDet = PedidoLcQuery.buscaPedidoLcDetPorIdPedido( idPedido );
+      return lstPedidoLcDet;
+    }
+
+
 }

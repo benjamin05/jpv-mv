@@ -1,6 +1,7 @@
 package mx.lux.pos.java.querys;
 
 import mx.lux.pos.java.repository.ModeloLcJava;
+import org.apache.commons.lang.StringUtils;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -33,5 +34,25 @@ public class ModeloLcQuery {
       }
 	  return lstModelosLc;
 	}
-	
+
+
+    public static ModeloLcJava buscaModeloLcPorIdModelo( String modelo ){
+      ModeloLcJava modeloLcJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from modelo_lc WHERE id_modelo = '%s'", StringUtils.trimToEmpty(modelo));
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          modeloLcJava = new ModeloLcJava();
+          modeloLcJava = modeloLcJava.mapeoModeloLc(rs);
+        }
+        con.close();
+      } catch (SQLException err) {
+            System.out.println( err );
+      }
+      return modeloLcJava;
+    }
+
+
 }

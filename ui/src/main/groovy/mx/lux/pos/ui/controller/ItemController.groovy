@@ -1,6 +1,12 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.querys.PedidoLcQuery
+import mx.lux.pos.java.repository.ModeloLcJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.PedidoLcDetJava
+import mx.lux.pos.java.repository.PedidoLcJava
 import mx.lux.pos.model.Articulo
 import mx.lux.pos.model.Generico
 import mx.lux.pos.model.ModeloLc
@@ -203,13 +209,13 @@ class ItemController {
   }
 
   static Boolean esLenteContacto( Integer idArticulo ){
-    Boolean esLenteContacto = articuloService.esLenteContacto( idArticulo )
+    Boolean esLenteContacto = articulosServiceJava.esLenteContacto( idArticulo )
     return esLenteContacto
   }
 
   static ModelLc findLenteContacto( Integer idArticulo ){
-    ModeloLc model = articuloService.findLenteContacto( idArticulo )
-    if( model != null && model.id != null ){
+    ModeloLcJava model = articulosServiceJava.findLenteContacto( idArticulo )
+    if( model != null && model.idModelo != null ){
       return ModelLc.toModelLc( model )
     } else {
       return null
@@ -259,23 +265,23 @@ class ItemController {
 
     static Order saveRequest( String idOrder, String curva, String diametro, String esfera, String cilindro, String modelo,
                            String eje, String color, String quantity, Integer idCliente){
-    PedidoLc pedido = articuloService.buscaPedidoLc( idOrder )
+    PedidoLcJava pedido = articulosServiceJava.buscaPedidoLc( idOrder )
     if( pedido == null ){
-      pedido = new PedidoLc()
-      pedido.id = idOrder
+      pedido = new PedidoLcJava()
+      pedido.idPedido = idOrder
       //pedido.folio = respuesta de liga
       pedido.cliente = idCliente.toString()
       pedido.sucursal = Registry.currentSite
       pedido.fechaAlta = new Date()
-      articuloService.guardarPedidoLc( pedido )
+      PedidoLcQuery.savePedidoLc( pedido )
     }
 
     Integer cantidad = 0
     try{
       cantidad = NumberFormat.getInstance().parse( quantity )
     } catch ( NumberFormatException e ){ println e }
-    PedidoLcDet pedidoDet = new PedidoLcDet()
-    pedidoDet.id = idOrder
+    PedidoLcDetJava pedidoDet = new PedidoLcDetJava()
+    pedidoDet.idPedido = idOrder
     pedidoDet.curvaBase = curva
     pedidoDet.diametro = diametro
     pedidoDet.esfera = esfera
@@ -284,25 +290,25 @@ class ItemController {
     pedidoDet.eje = eje
     pedidoDet.color = StringUtils.trimToEmpty(color).equalsIgnoreCase("null") ? "" : StringUtils.trimToEmpty(color)
     pedidoDet.cantidad = cantidad
-    articuloService.guardarPedidoLcDet( pedidoDet )
+    PedidoLcQuery.savePedidoLcDet( pedidoDet )
 
-    pedido = articuloService.buscaPedidoLc(idOrder)
+    pedido = articulosServiceJava.buscaPedidoLc(idOrder)
     Integer quant = 0
-    for(PedidoLcDet pedLcDet : pedido.pedidoLcDets){
+    for(PedidoLcDetJava pedLcDet : pedido.pedidoLcDets){
       if(StringUtils.trimToEmpty(pedLcDet.modelo).equalsIgnoreCase(modelo)){
         quant = quant+pedLcDet.cantidad
       }
     }
-    NotaVenta nota = new NotaVenta()
+    NotaVentaJava nota = new NotaVentaJava()
     if( quant > 0 ){
-      nota = articuloService.actualizaCantidadLc( quant, modelo, idOrder )
+      nota = articulosServiceJava.actualizaCantidadLc( quant, modelo, idOrder )
     }
-    return Order.toOrder( nota != null ? nota : new NotaVenta() )
+    return Order.toOrder( nota != null ? nota : new NotaVentaJava() )
   }
 
     static void updateRequest( String idOrder, String curva, String diametro, String esfera, String cilindro, String modelo,
                               String eje, String color, String quantity, Integer idCliente, Integer idRegistroPedido){
-      PedidoLcDet pedidoLcDet = articuloService.buscaPedidoLcDet( idRegistroPedido )
+      PedidoLcDetJava pedidoLcDet = PedidoLcQuery.buscaPedidoLcDetPorId( idRegistroPedido )
       if( pedidoLcDet != null ){
         pedidoLcDet.curvaBase = curva
         pedidoLcDet.diametro = diametro
@@ -310,7 +316,7 @@ class ItemController {
         pedidoLcDet.cilindro = cilindro
         pedidoLcDet.eje = eje
         pedidoLcDet.color = color
-        articuloService.guardarPedidoLcDet( pedidoLcDet )
+        PedidoLcQuery.updatePedidoLcDet( pedidoLcDet )
       }
     }
 
@@ -326,15 +332,15 @@ class ItemController {
 
 
 
-    static Boolean findLenteContactoStock( Integer idArticulo ){
-       Articulo articulo = articuloService.obtenerArticulo( idArticulo )
-        if( articulo != null ){
-            return (StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_H)
-            && StringUtils.trimToEmpty(articulo.tipo).equalsIgnoreCase(TAG_GEN_TIPO_C))
-        } else {
-            return null
-        }
+  static Boolean findLenteContactoStock( Integer idArticulo ){
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( idArticulo )
+    if( articulo != null ){
+      return (StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_H)
+      && StringUtils.trimToEmpty(articulo.tipo).equalsIgnoreCase(TAG_GEN_TIPO_C))
+    } else {
+      return null
     }
+  }
 
 
 

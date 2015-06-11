@@ -1,10 +1,9 @@
 package mx.lux.pos.java.service;
 
 
-import mx.lux.pos.java.repository.ArticulosJava;
-import mx.lux.pos.java.repository.PreciosJava;
-import mx.lux.pos.java.querys.ArticulosQuery;
-import mx.lux.pos.java.querys.PreciosQuery;
+import mx.lux.pos.java.querys.*;
+import mx.lux.pos.java.repository.*;
+import mx.lux.pos.model.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +15,8 @@ import java.util.List;
 public class ArticulosServiceJava {
 
   static final Logger log = LoggerFactory.getLogger(ArticulosServiceJava.class);
+
+  private static final String TAG_GENERICO_H = "H";
 
   public ArticulosJava obtenerArticulo(Integer id) throws ParseException {
     return obtenerArticulo( id, true );
@@ -70,5 +71,73 @@ public class ArticulosServiceJava {
     return articulo;
   }
 
+
+  public Boolean esLenteContacto( Integer id ) throws ParseException {
+    Boolean esLc = false;
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(id);
+    if( StringUtils.trimToEmpty(articulo.getIdGenerico()).equalsIgnoreCase(TAG_GENERICO_H) ){
+      esLc = true;
+    }
+    return esLc;
+  }
+
+
+  public ModeloLcJava findLenteContacto( Integer id ) throws ParseException {
+    ModeloLcJava modeloLc = new ModeloLcJava();
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(id);
+    if( articulo != null ){
+      modeloLc = ModeloLcQuery.buscaModeloLcPorIdModelo(StringUtils.trimToEmpty(articulo.getArticulo()));
+    }
+    return (modeloLc != null && modeloLc.getIdModelo() != null) ? modeloLc : null;
+  }
+
+
+  public PedidoLcJava buscaPedidoLc( String idPedido ){
+    return PedidoLcQuery.buscaPedidoLcPorId( idPedido );
+  }
+
+
+  public NotaVentaJava actualizaCantidadLc( Integer cantidad, String modelo, String idFactura ) throws ParseException {
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(idFactura);
+    if(notaVenta != null){
+      for(DetalleNotaVentaJava det : notaVenta.getDetalles()){
+        if(StringUtils.trimToEmpty(det.getArticulo().getArticulo()).equalsIgnoreCase(modelo)){
+          det.setCantidadFac( cantidad.doubleValue());
+          DetalleNotaVentaQuery.updateDetalleNotaVenta( det );
+        }
+      }
+      return notaVenta;
+    } else {
+      return null;
+    }
+  }
+
+
+  public Boolean validaCodigoDioptra( String codigo ) throws ParseException {
+    Boolean valido = true;
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorArticulo(codigo);
+    if( articulo == null ){
+      valido = false;
+    }
+    return valido;
+  }
+
+
+  public Boolean validarArticulo( Integer id ) throws ParseException {
+    return ArticulosQuery.busquedaArticuloPorId(id) != null;
+  }
+
+
+
+  public Boolean registrarListaArticulos( List<ArticulosJava> pListaArticulo ) throws ParseException {
+    boolean registrado = false;
+    if ( ( pListaArticulo != null ) && ( pListaArticulo.size() > 0 ) ) {
+      for(ArticulosJava articulosJava : pListaArticulo){
+        ArticulosQuery.saveOrUpdateArticulos( articulosJava );
+      }
+      registrado = true;
+    }
+    return registrado;
+  }
 
 }

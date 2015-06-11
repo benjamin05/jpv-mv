@@ -1,5 +1,7 @@
 package mx.lux.pos.service.business
 
+import mx.lux.pos.java.querys.ParametrosQuery
+import mx.lux.pos.java.repository.Parametros
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.impl.RepositoryFactory
 import org.apache.commons.lang3.StringUtils
@@ -20,6 +22,11 @@ class Registry {
       p.valor = pParametro.getDefaultValue()
       RepositoryFactory.getRegistry().saveAndFlush( p )
     }
+    return p
+  }
+
+  static Parametros find( mx.lux.pos.java.TipoParametro pParametro ) {
+    Parametros p = ParametrosQuery.BuscaParametroPorId( pParametro.getValor() )
     return p
   }
 
@@ -49,15 +56,15 @@ class Registry {
     return num
   }
 
-  static Double asDouble( TipoParametro pParametro ) {
+  static Double asDouble( mx.lux.pos.java.TipoParametro pParametro ) {
     Double d = 0
-    Parametro p = find( pParametro )
-    String value = StringUtils.trimToEmpty( p.valor )
-    if ( value.length() > 0 ) {
-      if ( NumberUtils.isNumber( p.valor ) ) {
-        d = NumberUtils.createDouble( p.valor )
-      } else if ( NumberUtils.isNumber( pParametro.defaultValue ) ) {
-        d = NumberUtils.createDouble( pParametro.defaultValue )
+    Parametros p = find( pParametro )
+    if( p != null ){
+      String value = StringUtils.trimToEmpty( p.valor )
+      if ( value.length() > 0 ) {
+        if ( NumberUtils.isNumber( p.valor ) ) {
+          d = NumberUtils.createDouble( p.valor )
+        }
       }
     }
     return d
@@ -92,6 +99,22 @@ class Registry {
     final String[] TRUE_VALUES = [ "si", "s", "yes", "y", "true", "t", "on" ]
     Boolean b = false
     Parametro p = find( pParametro )
+    String value = StringUtils.trimToEmpty( p.valor ).toLowerCase()
+    if ( value.length() > 0 ) {
+      for ( String trueValue : TRUE_VALUES ) {
+        b = b || trueValue.equals( value )
+        if ( b )
+          break
+      }
+    }
+    return b
+  }
+
+
+  static Boolean isTrue( mx.lux.pos.java.TipoParametro pParametro ) {
+    final String[] TRUE_VALUES = [ "si", "s", "yes", "y", "true", "t", "on" ]
+    Boolean b = false
+    Parametros p = find( pParametro )
     String value = StringUtils.trimToEmpty( p.valor ).toLowerCase()
     if ( value.length() > 0 ) {
       for ( String trueValue : TRUE_VALUES ) {
@@ -516,7 +539,7 @@ class Registry {
     }
 
     static Boolean getValidSPToStore( ) {
-        return isTrue( TipoParametro.SALIDA_VENTA_SP )
+        return isTrue( mx.lux.pos.java.TipoParametro.SALIDA_VENTA_SP )
     }
 
     static Integer getDiasVigenciaCupon() {
@@ -609,7 +632,7 @@ class Registry {
   }
 
   static Double getAdvancePct() {
-    return asDouble( TipoParametro.PORCENTAJE_ANTICIPO ) / 100.0
+    return asDouble( mx.lux.pos.java.TipoParametro.PORCENTAJE_ANTICIPO ) / 100.0
   }
 
   static Boolean isCardPaymentInDollars( String paymentType ){

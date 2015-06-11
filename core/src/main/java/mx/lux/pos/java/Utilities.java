@@ -49,7 +49,7 @@ public class Utilities {
     String value = null;
     SimpleDateFormat df = new SimpleDateFormat( format );
     if( fecha != null ){
-      value = df.format( fecha );
+      value = "'"+StringUtils.trimToEmpty(df.format( fecha ))+"'";
     }
     return  value;
   }
