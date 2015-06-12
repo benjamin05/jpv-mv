@@ -212,7 +212,7 @@ class PrepareInvTrBusiness {
           }
         } )
         for ( InvTrDetRequest detReq in pRequest.skuList ) {
-          if ( parts.esInventariable( detReq.sku ) ) {
+          if ( partsJava.esInventariable( detReq.sku ) ) {
             if( trMstr.trDet.size() <= 0 ){
               TransInvDetJava det = new TransInvDetJava()
               det.linea = ++iDet

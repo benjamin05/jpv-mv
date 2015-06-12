@@ -2,6 +2,7 @@ package mx.lux.pos.java.service;
 
 
 import mx.lux.pos.java.querys.EmpleadoQuery;
+import mx.lux.pos.java.querys.RemesasQuery;
 import mx.lux.pos.java.querys.TipoTransInvQuery;
 import mx.lux.pos.java.querys.TransInvQuery;
 import mx.lux.pos.java.repository.*;
@@ -12,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
@@ -85,7 +87,7 @@ public class InventarioServiceJava {
 
 
 
-  public void insertarRegistroRemesa( NotaVentaJava pNotaVenta ){
+  public void insertarRegistroRemesa( NotaVentaJava pNotaVenta ) throws ParseException {
     RemesasJava remesa = new RemesasJava();
     Integer articulos = 0;
     for( DetalleNotaVentaJava det : pNotaVenta.getDetalles() ){
@@ -93,7 +95,8 @@ public class InventarioServiceJava {
         articulos = articulos+det.getCantidadFac().intValue();
       }
     }
-    TransInvJava transInv = TransInvQuery.BuscaTransInvPorTipoYReferencia(TR_TYPE_RECEIPT_SP, StringUtils.trimToEmpty(pNotaVenta.id) );
+    List<TransInvJava> lstTrans = TransInvQuery.BuscaTransInvPorTipoYReferencia(TR_TYPE_RECEIPT_SP, StringUtils.trimToEmpty(pNotaVenta.getIdFactura()) );
+    TransInvJava transInv = lstTrans.size() > 0 ? lstTrans.get(0) : null;
     if( transInv != null ){
       remesa.setIdTipoDocto("RS");
       remesa.setIdDocto(StringUtils.trimToEmpty(transInv.getFolio().toString()));
@@ -104,10 +107,10 @@ public class InventarioServiceJava {
       remesa.setArticulos(articulos);
       remesa.setEstado("cargado");
       remesa.setSistema("A");
-      remesa.setFecha_mod(new Date());
-      remesa.fecha_recibido = new Date()
-      remesa.fecha_carga = new Date()
-      remesasRepository.saveAndFlush( remesa )
+      remesa.setFechaMod(new Date());
+      remesa.setFechaRecibido(new Date());
+      remesa.setFechaCarga(new Date());
+      RemesasQuery.saveOrUpdateRemesas(remesa);
     }
   }
 

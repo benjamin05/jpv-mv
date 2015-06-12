@@ -48,7 +48,7 @@ public class PromotionCommitJava {
           }
           opdl.setRelation( commited );
           for(OrdenPromDetJava det : opdl.getList()){
-            det.setDescuentoPorcentaje( det.getDescuentoPorcentaje() );
+            det.setDescuentoPorcentaje( new BigDecimal(det.getDescuentoPorcentaje()).setScale(2, BigDecimal.ROUND_CEILING).doubleValue() );
             OrdenPromDetQuery.saveOrUpdateOrdenPromDet( det );
           }
         }

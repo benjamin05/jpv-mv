@@ -4,6 +4,7 @@ package mx.lux.pos.java.service;
 import mx.lux.pos.java.querys.*;
 import mx.lux.pos.java.repository.*;
 import mx.lux.pos.model.*;
+import mx.lux.pos.repository.impl.RepositoryFactory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,5 +140,17 @@ public class ArticulosServiceJava {
     }
     return registrado;
   }
+
+
+  public Boolean esInventariable( Integer id ) throws ParseException {
+    boolean inventariable = false;
+    ArticulosJava articulo = obtenerArticulo(id, false);
+    if ( articulo != null ) {
+      GenericosJava genre = GenericosQuery.buscaGenericosPorId( articulo.getIdGenerico() );
+      inventariable = genre.getInventariable();
+    }
+    return inventariable;
+  }
+
 
 }

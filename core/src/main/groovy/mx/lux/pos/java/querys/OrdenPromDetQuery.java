@@ -63,9 +63,10 @@ public class OrdenPromDetQuery {
       if( ordenPromDetJava != null && ordenPromDetJava.getIdOrdenPromDet() != null ){
         sql = String.format("UPDATE orden_prom_det SET id = %d, id_factura = '%s', id_prom = %d, id_suc = %d," +
                 "id_art = %d, descuento_monto = %s, descuento_porcentaje = %f WHERE id_orden_prom_det = %d;",
-                ordenPromDetJava.getId(), ordenPromDetJava.getIdFactura(), ordenPromDetJava.getIdSuc(),
-                ordenPromDetJava.getIdArt(), Utilities.toMoney(ordenPromDetJava.getDescuentoMonto()),+
-                ordenPromDetJava.getDescuentoPorcentaje(), ordenPromDetJava.getIdOrdenPromDet() );
+                ordenPromDetJava.getId(), ordenPromDetJava.getIdFactura(), ordenPromDetJava.getIdProm(),
+                ordenPromDetJava.getIdSuc(), ordenPromDetJava.getIdArt(),
+                Utilities.toMoney(ordenPromDetJava.getDescuentoMonto()), ordenPromDetJava.getDescuentoPorcentaje(),
+                ordenPromDetJava.getIdOrdenPromDet() );
         db.updateQuery(sql);
       } else {
         sql = String.format("INSERT INTO orden_prom_det (id,id_factura,id_prom,id_suc,id_art,descuento_monto,descuento_porcentaje)" +

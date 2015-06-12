@@ -610,7 +610,7 @@ class OrderController {
           } else {
                     log.warn("no se pudo procesar la transaccion de inventario")
           }
-          ServiceManager.ioServices.logSalesNotification(notaVenta.id)
+          ServiceManager.ioServices.logSalesNotification(notaVenta.idFactura)
           return Order.toOrder(notaVenta)
         } else {
           log.warn("no se registra orden, notaVenta no existe")

@@ -104,6 +104,7 @@ class InventoryCommit {
 
   static Integer registrarTransaccion( TransInvJava pTrMstr ) {
     Integer trnbr = null
+    TransInvJava pTrMstrTmp = new TransInvJava();
     log.debug( "[Service] Registrar Trans Inventario" )
     log.debug( "Antes de registrar ${ pTrMstr.toString() }" )
     if ( pTrMstr.trDet.size() > 0 )
@@ -122,12 +123,18 @@ class InventoryCommit {
       // Register Transactions
       if(TAG_DEVOLUCION.equalsIgnoreCase(pTrMstr.idTipoTrans)){
         if( pTrMstr.trDet.size() > 0 ){
-          TransInvQuery.saveOrUpdateTransInv( pTrMstr )
+          pTrMstrTmp = TransInvQuery.saveOrUpdateTransInv( pTrMstr )
         }
       } else {
-        TransInvQuery.saveOrUpdateTransInv( pTrMstr )
+        pTrMstrTmp = TransInvQuery.saveOrUpdateTransInv( pTrMstr )
       }
       for ( TransInvDetJava det in pTrMstr.trDet ) {
+        if( det.idTipoTrans == null && pTrMstrTmp != null ){
+          det.setIdTipoTrans( StringUtils.trimToEmpty(pTrMstrTmp.getIdTipoTrans()) );
+        }
+        if( det.folio == null && pTrMstrTmp != null ){
+          det.setFolio( pTrMstrTmp.getFolio() );
+        }
         TransInvDetQuery.saveOrUpdateTransInvDet( det )
       }
       trnbr = pTrMstr.folio

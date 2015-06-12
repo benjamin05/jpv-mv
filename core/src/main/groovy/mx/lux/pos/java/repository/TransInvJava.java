@@ -22,7 +22,7 @@ public class TransInvJava {
 	String observaciones;
     String idEmpleado;
     Date fechaMod;
-    List<TransInvDetJava> trDet;
+    List<TransInvDetJava> trDet = new ArrayList<TransInvDetJava>();
 
     public Integer getNumReg() {
         return numReg;
@@ -136,6 +136,8 @@ public class TransInvJava {
 
 
     public void add( TransInvDetJava pTrDet ) {
-        this.trDet.add( pTrDet );
+      pTrDet.setIdTipoTrans(this.idTipoTrans);
+      pTrDet.setFolio(this.folio);
+      this.trDet.add( pTrDet );
     }
 }

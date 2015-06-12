@@ -46,7 +46,7 @@ public class TipoTransInvJava {
     }
 
     public TipoMov getTipoMovObj() {
-        return tipoMovObj;
+        return TipoMov.parse( tipoMov );
     }
 
     public void setTipoMovObj(TipoMov tipoMovObj) {

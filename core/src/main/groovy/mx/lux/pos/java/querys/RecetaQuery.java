@@ -68,7 +68,7 @@ public class RecetaQuery {
                 receta.getDiCercaR(), receta.getOdAvR(), receta.getOiAvR(), receta.getAltOblR(), receta.getObservacionesR(), receta.getfImpresa(),
                 receta.getIdSync(), Utilities.toString(receta.getFechaMod(), formatTimeStamp), receta.getIdMod(), receta.getIdSucursal(),
                 receta.getDiOd(), receta.getDiOi(), receta.getMaterialArm(), receta.getOdPrismaV(), receta.getOiPrismaV(), receta.getTratamientos(),
-                receta.getUdf5(), receta.getUdf6(), receta.getIdRxOri(), receta.getFolio());
+                receta.getUdf5(), receta.getUdf6(), receta.getIdRxOri(), receta.getFolio(), receta.getIdReceta());
         db.updateQuery(sql);
       } else {
         sql = String.format("INSERT INTO receta (examen,id_cliente,fecha_receta,s_uso_anteojos,id_optometrista,tipo_opt,od_esf_r,od_cil_r,od_eje_r," +

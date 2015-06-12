@@ -5,6 +5,7 @@ import mx.lux.pos.java.repository.Parametros;
 import mx.lux.pos.java.repository.TransInvJava;
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -64,8 +65,9 @@ public class TransInvQuery {
 
 
 
-    public static void saveOrUpdateTransInv(TransInvJava transInvJava) throws ParseException {
+    public static TransInvJava saveOrUpdateTransInv(TransInvJava transInvJava) throws ParseException {
       Connections db = new Connections();
+      TransInvJava transInv = null;
       String sql = "";
       String formatDate = "yyyy-MM-dd";
       String formatTime = "HH:mm:ss.SSS";
@@ -86,6 +88,11 @@ public class TransInvQuery {
 
         db.insertQuery( sql );
         db.close();
+        List<TransInvJava> lstTrans = BuscaTransInvPorTipoYReferencia( transInvJava.getIdTipoTrans(), transInvJava.getReferencia() );
+        if( lstTrans.size() > 0 ){
+          transInv = lstTrans.get(0);
+        }
+        return transInv;
     }
 
 }

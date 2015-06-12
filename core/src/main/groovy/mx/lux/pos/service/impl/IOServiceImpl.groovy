@@ -1,5 +1,11 @@
 package mx.lux.pos.service.impl
 
+import mx.lux.pos.java.querys.AcusesQuery
+import mx.lux.pos.java.querys.NotaVentaQuery
+import mx.lux.pos.java.repository.AcusesJava
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
@@ -167,25 +173,24 @@ class IOServiceImpl implements IOService {
 
   @Transactional
   void logSalesNotification( String pIdFactura ) {
-    NotaVentaRepository orders = RepositoryFactory.orders
-    NotaVenta order = orders.findOne( pIdFactura )
+    NotaVentaJava order = NotaVentaQuery.busquedaNotaById( pIdFactura )
     if ( order != null ) {
-      logger.debug( String.format( 'Notify Sales[Order:%s  Date:%s  Amount:%,.2f', order.id,
+      logger.debug( String.format( 'Notify Sales[Order:%s  Date:%s  Amount:%,.2f', order.idFactura,
           CustomDateUtils.format( order.fechaHoraFactura ), order.ventaTotal ) )
       String strItemList = ''
-      for ( DetalleNotaVenta det : order.detalles ) {
-        strItemList += String.format( "%s,%s~", det?.articulo?.articulo?.trim(), det?.articulo?.codigoColor?.trim() )
+      for ( DetalleNotaVentaJava det : order.detalles ) {
+        strItemList += String.format( "%s,%s~", det?.articulo?.articulo?.trim(), det?.articulo?.colorCode?.trim() )
       }
       String strPaymentList = ''
-      for ( Pago p : order.pagos ) {
-        strPaymentList += StringUtils.trimToEmpty( p.idFPago ) + ',' + String.format( '%.2f', p.monto ) + '~'
+      for ( PagoJava p : order.pagos ) {
+        strPaymentList += StringUtils.trimToEmpty( p.idFPago ) + ',' + String.format( '%.2f', p.montoPago ) + '~'
       }
-      AcuseRepository acuses = RepositoryFactory.acknowledgements
-      Acuse acuse = new Acuse()
+      AcusesJava acuse = new AcusesJava()
       acuse.idTipo = TAG_ACK_SALES
+      acuse.fechaCarga = new Date()
       try {
-        acuse = acuses.saveAndFlush( acuse )
-        logger.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )
+        acuse = AcusesQuery.saveAcuses( acuse )
+        logger.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.idAcuse, acuse.idTipo, acuse.contenido ) )
       } catch ( Exception e ) {
         logger.error( e.getMessage() )
       }
@@ -193,16 +198,16 @@ class IOServiceImpl implements IOService {
       acuse.contenido = String.format( 'ImporteVal=%s|', String.format( '%.2f', order.ventaNeta ) )
       acuse.contenido += String.format( 'articulosVal=%s|', strItemList )
       acuse.contenido += String.format( 'fechaVal=%s|', CustomDateUtils.format(order.fechaHoraFactura, 'ddMMyyyy') )
-      acuse.contenido += String.format( 'id_acuseVal=%s|', String.format( '%d', acuse.id ) )
+      acuse.contenido += String.format( 'id_acuseVal=%s|', String.format( '%d', acuse.idAcuse ) )
       acuse.contenido += String.format( 'id_clienteVal=%s|', String.format( '%d', order.idCliente ) )
       acuse.contenido += String.format( 'id_facturaVal=%s|', order.factura.trim() )
       acuse.contenido += String.format( 'id_sucVal=%s|', String.format( '%d', order.idSucursal ) )
-      acuse.contenido += String.format( 'no_soiVal=%s|', order.id.trim() )
+      acuse.contenido += String.format( 'no_soiVal=%s|', order.idFactura.trim() )
       acuse.contenido += String.format( 'pagosVal=%s|', strPaymentList )
       acuse.fechaCarga = new Date()
       try {
-        acuse = acuses.saveAndFlush( acuse )
-        logger.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )
+        acuse = AcusesQuery.saveAcuses( acuse )
+        logger.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.idAcuse, acuse.idTipo, acuse.contenido ) )
       } catch ( Exception e ) {
         logger.error( e.getMessage() )
       }
