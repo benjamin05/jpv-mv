@@ -7,12 +7,14 @@ import mx.lux.pos.java.repository.AutorizaMovJava
 import mx.lux.pos.java.repository.BancoEmisorJava
 import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.java.repository.EmpleadoJava
+import mx.lux.pos.java.repository.ExamenJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.Parametros
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.java.repository.TmpServiciosJava
 import mx.lux.pos.java.service.ArticulosServiceJava
+import mx.lux.pos.java.service.ExamenServiceJava
 import mx.lux.pos.java.service.InventarioServiceJava
 import mx.lux.pos.java.service.NotaVentaServiceJava
 import mx.lux.pos.java.service.RecetaServiceJava
@@ -105,6 +107,7 @@ class OrderController {
     private static CancelacionService cancelacionService
     private static RecetaService recetaService
     private static ExamenService examenService
+    private static ExamenServiceJava examenServiceJava
     private static ArticuloService articuloService
     private static ArticulosServiceJava articulosServiceJava
     private static CotizacionService cotizacionService
@@ -199,6 +202,7 @@ class OrderController {
         notaVentaServiceJava = new NotaVentaServiceJava()
         articulosServiceJava = new ArticulosServiceJava()
         inventarioServiceJava = new InventarioServiceJava()
+        examenServiceJava = new ExamenServiceJava()
     }
 
     private static Boolean canceledWarranty
@@ -1782,10 +1786,10 @@ class OrderController {
 
 
     static void updateExam( Order order ){
-      Examen examen = examenService.obtenerExamenPorIdCliente( order.customer.id )
+      ExamenJava examen = examenServiceJava.obtenerExamenPorIdCliente( order.customer.id )
       if( examen != null && (examen.factura = null || examen.factura.trim().length() <= 0) ){
         examen.factura = order.bill
-        examenService.guardarExamen( examen )
+        examenServiceJava.guardarExamen( examen )
       }
     }
 
