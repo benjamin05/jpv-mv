@@ -86,7 +86,7 @@ public class InventarioServiceJava {
 
 
   public void insertarRegistroRemesa( NotaVentaJava pNotaVenta ){
-    Remesas remesa = new Remesas();
+    RemesasJava remesa = new RemesasJava();
     Integer articulos = 0;
     for( DetalleNotaVentaJava det : pNotaVenta.getDetalles() ){
       if( StringUtils.trimToEmpty(det.getSurte()).equalsIgnoreCase("P") ){
