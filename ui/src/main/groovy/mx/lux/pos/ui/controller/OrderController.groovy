@@ -14,6 +14,7 @@ import mx.lux.pos.java.repository.Parametros
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.java.repository.TmpServiciosJava
 import mx.lux.pos.java.service.ArticulosServiceJava
+import mx.lux.pos.java.service.CotizaServiceJava
 import mx.lux.pos.java.service.ExamenServiceJava
 import mx.lux.pos.java.service.InventarioServiceJava
 import mx.lux.pos.java.service.NotaVentaServiceJava
@@ -111,6 +112,7 @@ class OrderController {
     private static ArticuloService articuloService
     private static ArticulosServiceJava articulosServiceJava
     private static CotizacionService cotizacionService
+    private static CotizaServiceJava cotizacionServiceJava
     private static JbService jbService
     private static FormaContactoService formaContactoService
     private static JbRepository jbRepository
@@ -203,6 +205,7 @@ class OrderController {
         articulosServiceJava = new ArticulosServiceJava()
         inventarioServiceJava = new InventarioServiceJava()
         examenServiceJava = new ExamenServiceJava()
+        cotizacionServiceJava = new CotizaServiceJava()
     }
 
     private static Boolean canceledWarranty
@@ -1787,16 +1790,16 @@ class OrderController {
 
     static void updateExam( Order order ){
       ExamenJava examen = examenServiceJava.obtenerExamenPorIdCliente( order.customer.id )
-      if( examen != null && (examen.factura = null || examen.factura.trim().length() <= 0) ){
+      if( examen != null && (examen.factura = null || StringUtils.trimToEmpty(examen.factura).length() <= 0) ){
         examen.factura = order.bill
         examenServiceJava.guardarExamen( examen )
       }
     }
 
 
-    static void updateQuote( Order order, Integer numQuote ){
-       cotizacionService.updateQuote( order.id, numQuote )
-    }
+  static void updateQuote( Order order, Integer numQuote ){
+    cotizacionServiceJava.updateQuote( order.id, numQuote )
+  }
 
 
 

@@ -88,6 +88,7 @@ public class TransInvQuery {
 
         db.insertQuery( sql );
         db.close();
+
         List<TransInvJava> lstTrans = BuscaTransInvPorTipoYReferencia( transInvJava.getIdTipoTrans(), transInvJava.getReferencia() );
         if( lstTrans.size() > 0 ){
           transInv = lstTrans.get(0);

@@ -2,6 +2,7 @@ package mx.lux.pos.java.querys;
 
 import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.repository.AcusesJava;
+import mx.lux.pos.java.repository.CotizaJava;
 import mx.lux.pos.java.repository.Parametros;
 import mx.lux.pos.java.repository.TransInvDetJava;
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +20,26 @@ public class AcusesQuery {
 
 	private static ResultSet rs;
     private static Statement stmt;
+
+
+    public static AcusesJava buscaAcusePorIdAcuse( Integer idAcuse ){
+      AcusesJava acusesJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from acuses where id_acuse = %d;", idAcuse);
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          acusesJava = new AcusesJava();
+          acusesJava = acusesJava.mapeoAcuses(rs);
+        }
+        con.close();
+      } catch (SQLException err) {
+            System.out.println( err );
+      }
+      return acusesJava;
+    }
+
 
     public static AcusesJava saveAcuses(AcusesJava acusesJava) {
       Connections db = new Connections();
@@ -42,31 +63,35 @@ public class AcusesQuery {
       }
       db.insertQuery( sql );
       db.close();
-      BigDecimal id = BigDecimal.ZERO;
-      try {
-        Connection con = Connections.doConnect();
-        stmt = con.createStatement();
-        sql = "";
-        sql = String.format("SELECT last_value FROM acuses_id_acuse_seq;");
-        rs = stmt.executeQuery(sql);
-        while (rs.next()) {
-          id = rs.getBigDecimal("last_value");
-        }
-        con.close();
-        if( id.compareTo(BigDecimal.ZERO) > 0 ){
-          con = Connections.doConnect();
+      if( acusesJava.getIdAcuse() != null ){
+        acuses = buscaAcusePorIdAcuse(acusesJava.getIdAcuse());
+      } else {
+        BigDecimal id = BigDecimal.ZERO;
+        try {
+          Connection con = Connections.doConnect();
           stmt = con.createStatement();
           sql = "";
-          sql = String.format("SELECT * FROM acuses WHERE id_acuse = %d;", id.intValue());
+          sql = String.format("SELECT last_value FROM acuses_id_acuse_seq;");
           rs = stmt.executeQuery(sql);
           while (rs.next()) {
-            acuses = new AcusesJava();
-            acuses.mapeoAcuses(rs);
+            id = rs.getBigDecimal("last_value");
           }
           con.close();
+          if( id.compareTo(BigDecimal.ZERO) > 0 ){
+            con = Connections.doConnect();
+            stmt = con.createStatement();
+            sql = "";
+            sql = String.format("SELECT * FROM acuses WHERE id_acuse = %d;", id.intValue());
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+              acuses = new AcusesJava();
+              acuses.mapeoAcuses(rs);
+            }
+            con.close();
+          }
+        } catch (SQLException err) {
+          System.out.println( err );
         }
-      } catch (SQLException err) {
-            System.out.println( err );
       }
       return acuses;
     }

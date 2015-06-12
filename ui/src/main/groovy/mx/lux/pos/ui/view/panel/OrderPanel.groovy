@@ -1297,14 +1297,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         OrderController.updateExam( newOrder )
       }
 
-        if(numQuote > 0){
-          OrderController.updateQuote( newOrder, numQuote )
-          numQuote = 0
-        }
-        this.promotionDriver.requestPromotionSave(newOrder?.id, true)
-        Boolean cSaldo = false
-        OrderController.validaEntrega(StringUtils.trimToEmpty(newOrder?.bill),newOrder?.branch?.id?.toString(), true)
-        Boolean needJb = OrderController.creaJb(StringUtils.trimToEmpty(newOrder?.ticket), cSaldo)
+      if(numQuote > 0){
+        OrderController.updateQuote( newOrder, numQuote )
+        numQuote = 0
+      }
+      this.promotionDriver.requestPromotionJavaSave(newOrder?.id, true)
+      Boolean cSaldo = false
+      OrderController.validaEntrega(StringUtils.trimToEmpty(newOrder?.bill),newOrder?.branch?.id?.toString(), true)
+      Boolean needJb = OrderController.creaJb(StringUtils.trimToEmpty(newOrder?.ticket), cSaldo)
 
         ItemController.updateLenteContacto( newOrder.id )
         if(isLc(newOrder)){

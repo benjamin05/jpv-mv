@@ -87,32 +87,36 @@ public class RecetaQuery {
         db.insertQuery( sql );
       }
       db.close();
-      BigDecimal id = BigDecimal.ZERO;
-      try {
-        Connection con = Connections.doConnect();
-        stmt = con.createStatement();
-        sql = "";
-        sql = String.format("SELECT last_value FROM receta_seq;");
-        rs = stmt.executeQuery(sql);
-        while (rs.next()) {
-          id = rs.getBigDecimal("last_value");
-        }
-        con.close();
-        if( id.compareTo(BigDecimal.ZERO) > 0 ){
-          con = Connections.doConnect();
+      if( receta.getIdReceta() != null ){
+        recetaJava = buscaRecetaPorIdReceta( receta.getIdReceta() );
+      } else {
+        BigDecimal id = BigDecimal.ZERO;
+        try {
+          Connection con = Connections.doConnect();
           stmt = con.createStatement();
           sql = "";
-          sql = String.format("SELECT * FROM receta WHERE id_receta = %d;", id.intValue());
+          sql = String.format("SELECT last_value FROM receta_seq;");
           rs = stmt.executeQuery(sql);
           while (rs.next()) {
-            recetaJava = recetaJava.setValores( rs );
+            id = rs.getBigDecimal("last_value");
           }
           con.close();
-        }
-      } catch (SQLException err) {
-        System.out.println( err );
-      } catch (ParseException e) {
+          if( id.compareTo(BigDecimal.ZERO) > 0 ){
+            con = Connections.doConnect();
+            stmt = con.createStatement();
+            sql = "";
+            sql = String.format("SELECT * FROM receta WHERE id_receta = %d;", id.intValue());
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+              recetaJava = recetaJava.setValores( rs );
+            }
+            con.close();
+          }
+        } catch (SQLException err) {
+          System.out.println( err );
+        } catch (ParseException e) {
           e.printStackTrace();
+        }
       }
 
         return recetaJava;

@@ -38,6 +38,26 @@ public class OrdenPromDetQuery {
 	}
 
 
+    public static OrdenPromDetJava buscaOrdenPromDetPorId( Integer id ){
+      OrdenPromDetJava ordenPromDetJava = new OrdenPromDetJava();
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from orden_prom_det where id_orden_prom_det = %d;", id);
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          ordenPromDetJava = new OrdenPromDetJava();
+          ordenPromDetJava = ordenPromDetJava.mapeoOrdenPromDet(rs);
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return ordenPromDetJava;
+    }
+
+
+
     public static void eliminaListaOrdenPromDet( List<OrdenPromDetJava> lstOrdenPromDetJava ){
       for(OrdenPromDetJava ordenPromDetJava : lstOrdenPromDetJava){
         try {
@@ -76,31 +96,35 @@ public class OrdenPromDetQuery {
         db.insertQuery( sql );
       }
       db.close();
-      BigDecimal id = BigDecimal.ZERO;
-      try {
-        Connection con = Connections.doConnect();
-        stmt = con.createStatement();
-        sql = "";
-        sql = String.format("SELECT last_value FROM orden_prom_det_id_orden_prom_det_seq;");
-        rs = stmt.executeQuery(sql);
-        while (rs.next()) {
-          id = rs.getBigDecimal("last_value");
+      if(ordenPromDetJava.getIdOrdenPromDet() != null ){
+        ordenPromDet = buscaOrdenPromDetPorId( ordenPromDetJava.getId() );
+      } else {
+        BigDecimal id = BigDecimal.ZERO;
+        try {
+              Connection con = Connections.doConnect();
+              stmt = con.createStatement();
+              sql = "";
+              sql = String.format("SELECT last_value FROM orden_prom_det_id_orden_prom_det_seq;");
+              rs = stmt.executeQuery(sql);
+              while (rs.next()) {
+                  id = rs.getBigDecimal("last_value");
+              }
+              con.close();
+              if( id.compareTo(BigDecimal.ZERO) > 0 ){
+                  con = Connections.doConnect();
+                  stmt = con.createStatement();
+                  sql = "";
+                  sql = String.format("SELECT * FROM orden_prom WHERE id = %d;", id.intValue());
+                  rs = stmt.executeQuery(sql);
+                  while (rs.next()) {
+                      ordenPromDet = new OrdenPromDetJava();
+                      ordenPromDet = ordenPromDet.mapeoOrdenPromDet( rs );
+                  }
+                  con.close();
+              }
+        } catch (SQLException err) {
+          System.out.println( err );
         }
-        con.close();
-        if( id.compareTo(BigDecimal.ZERO) > 0 ){
-          con = Connections.doConnect();
-          stmt = con.createStatement();
-          sql = "";
-          sql = String.format("SELECT * FROM orden_prom WHERE id = %d;", id.intValue());
-          rs = stmt.executeQuery(sql);
-          while (rs.next()) {
-            ordenPromDet = new OrdenPromDetJava();
-            ordenPromDet = ordenPromDet.mapeoOrdenPromDet( rs );
-          }
-          con.close();
-        }
-      } catch (SQLException err) {
-            System.out.println( err );
       }
 
       return ordenPromDet;

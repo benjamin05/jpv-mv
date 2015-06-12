@@ -41,6 +41,24 @@ public class ExamenQuery {
 	}
 
 
+    public static ExamenJava buscaExamenesPorIdExamen( Integer idExamen ){
+      ExamenJava examenJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM examen where id_examen = %d ;", idExamen);
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          examenJava = new ExamenJava();
+          examenJava = examenJava.mapeoParametro(rs);
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return examenJava;
+    }
+
 
     public static ExamenJava saveOrUpdateExamen(ExamenJava examenJava) throws ParseException {
       Connections db = new Connections();
@@ -88,31 +106,35 @@ public class ExamenQuery {
             db.insertQuery( sql );
       }
       db.close();
-      BigDecimal id = BigDecimal.ZERO;
-      try {
-        Connection con = Connections.doConnect();
-        stmt = con.createStatement();
-        sql = "";
-        sql = String.format("SELECT last_value FROM examen_seq;");
-        rs = stmt.executeQuery(sql);
-        while (rs.next()) {
-                id = rs.getBigDecimal("last_value");
-        }
-        con.close();
-        if( id.compareTo(BigDecimal.ZERO) > 0 ){
-          con = Connections.doConnect();
+      if( examenJava.getIdExamen() != null ){
+        examen = buscaExamenesPorIdExamen( examenJava.getIdExamen() );
+      } else {
+        BigDecimal id = BigDecimal.ZERO;
+        try {
+          Connection con = Connections.doConnect();
           stmt = con.createStatement();
           sql = "";
-          sql = String.format("SELECT * FROM examen WHERE id_examen = %d;", id.intValue());
+          sql = String.format("SELECT last_value FROM examen_seq;");
           rs = stmt.executeQuery(sql);
           while (rs.next()) {
-            examen = new ExamenJava();
-            examen = examen.mapeoParametro(rs);
+            id = rs.getBigDecimal("last_value");
           }
           con.close();
+          if( id.compareTo(BigDecimal.ZERO) > 0 ){
+            con = Connections.doConnect();
+            stmt = con.createStatement();
+            sql = "";
+            sql = String.format("SELECT * FROM examen WHERE id_examen = %d;", id.intValue());
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+              examen = new ExamenJava();
+              examen = examen.mapeoParametro(rs);
+            }
+            con.close();
+          }
+        } catch (SQLException err) {
+          System.out.println( err );
         }
-      } catch (SQLException err) {
-        System.out.println( err );
       }
 
       return examen;

@@ -38,6 +38,25 @@ public class DescuentosQuery {
 	}
 
 
+    public static DescuentosJava buscaDescuentosPorId( Integer id ){
+      DescuentosJava descuentosJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from descuentos where id = %d;", id);
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          descuentosJava = new DescuentosJava();
+          descuentosJava = descuentosJava.mapeoDescuentos(rs);
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return descuentosJava;
+    }
+
+
     public static void eliminaDescuento( DescuentosJava descuentosJava ){
       try {
         Connection con = Connections.doConnect();
@@ -73,31 +92,35 @@ public class DescuentosQuery {
         db.insertQuery( sql );
       }
       db.close();
-      BigDecimal id = BigDecimal.ZERO;
-      try {
-        Connection con = Connections.doConnect();
-        stmt = con.createStatement();
-        sql = "";
-        sql = String.format("SELECT last_value FROM descuentos_id_seq;");
-        rs = stmt.executeQuery(sql);
-        while (rs.next()) {
-          id = rs.getBigDecimal("last_value");
-        }
-        con.close();
-        if( id.compareTo(BigDecimal.ZERO) > 0 ){
-          con = Connections.doConnect();
+      if( descuentosJava.getId() != null ){
+        descuentos = buscaDescuentosPorId( descuentosJava.getId() );
+      } else {
+        BigDecimal id = BigDecimal.ZERO;
+        try {
+          Connection con = Connections.doConnect();
           stmt = con.createStatement();
           sql = "";
-          sql = String.format("SELECT * FROM descuentos WHERE id = %d;", id.intValue());
+          sql = String.format("SELECT last_value FROM descuentos_id_seq;");
           rs = stmt.executeQuery(sql);
           while (rs.next()) {
-            descuentos = new DescuentosJava();
-            descuentos = descuentos.mapeoDescuentos( rs );
+            id = rs.getBigDecimal("last_value");
           }
           con.close();
+          if( id.compareTo(BigDecimal.ZERO) > 0 ){
+            con = Connections.doConnect();
+            stmt = con.createStatement();
+            sql = "";
+            sql = String.format("SELECT * FROM descuentos WHERE id = %d;", id.intValue());
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+              descuentos = new DescuentosJava();
+              descuentos = descuentos.mapeoDescuentos( rs );
+            }
+            con.close();
+          }
+        } catch (SQLException err) {
+          System.out.println( err );
         }
-      } catch (SQLException err) {
-        System.out.println( err );
       }
 
       return descuentos;
