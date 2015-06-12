@@ -2429,9 +2429,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     if( !applied  ){
-      for(OrderLinePromotion promo : order.deals){
-        applied = true
-        promoAmount = promo.promotionItem.descuentoMonto
+      for(int i = 0;i< order.deals.size();i++){
+        if( order.deals.get(i) instanceof OrderLinePromotion ){
+          applied = true
+          promoAmount = order.deals.get(i).promotionItem.descuentoMonto
+        } else if( order.deals.get(i) instanceof OrderDiscount ){
+          applied = true
+          promoAmount = order.deals.get(i).getDescuento()
+        }
       }
     }
     println "Algo aplicado: "+applied
