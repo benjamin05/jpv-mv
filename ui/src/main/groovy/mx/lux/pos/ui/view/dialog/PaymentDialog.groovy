@@ -58,7 +58,7 @@ class PaymentDialog extends JDialog {
   private OrderPanel orderPanel
   private CuponMvView cuponMvView
 
-  private BigDecimal promoAmount
+  private BigDecimal promoAmount = BigDecimal.ZERO
 
   private Boolean hasDiscount
 
@@ -97,13 +97,16 @@ class PaymentDialog extends JDialog {
       doBindings()
   }
 
-  PaymentDialog( Component parent, Order order, final Payment payment, CuponMvView cuponMvView, OrderPanel orderPanel, Boolean hasDiscount, BigDecimal promoAmount ) {
+  PaymentDialog( Component parent, Order order, final Payment payment, CuponMvView cuponMvView, OrderPanel orderPanel,
+                 Boolean hasDiscount, BigDecimal promoAmount, Boolean  discountAgeApplied) {
     this.order = order
     this.payment = payment
     this.orderPanel = orderPanel
     this.cuponMvView = cuponMvView
     this.hasDiscount = hasDiscount
-    this.promoAmount = promoAmount
+    if( discountAgeApplied ){
+      this.promoAmount = promoAmount
+    }
     sb = new SwingBuilder()
     defaultPaymentType = PaymentController.findDefaultPaymentType()
     paymentTypes = PaymentController.findActivePaymentTypes( cuponMvView.amount, order.id, order.customer.id )

@@ -119,6 +119,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private Boolean activeDialogBusquedaCliente = true
     private Boolean advanceOnlyInventariable
     private Boolean canceledWarranty
+    private Boolean discountAgeApplied
     private String sComments = ''
     private static final String ip = Registry.ipCurrentMachine()
     private HelpItemSearchDialog helpItemSearchDialog
@@ -757,7 +758,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     }
                   }
                     CuponMvView cuponMvView = OrderController.cuponValid( order.customer.id )
-                    new PaymentDialog(ev.component, order, null, cuponMvView, this, hasDiscount, promoAmount).show()
+                    println "PromoAmount: "+promoAmount
+                    new PaymentDialog(ev.component, order, null, cuponMvView, this, hasDiscount, promoAmount, discountAgeApplied).show()
                     updateOrder(order?.id)
                     //validTransferCuponMv()
                     doBindings()
@@ -786,7 +788,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
             if (ev.clickCount == 2 && valid && (!operationType1.equals(OperationType.PENDING) &&
                     !operationType1.equals(OperationType.EDIT_PAYING) && !operationType1.equals(OperationType.QUOTE))) {
-                new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false, promoAmount).show()
+                new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false, promoAmount, discountAgeApplied).show()
                 updateOrder(order?.id)
             }
         }
@@ -2397,6 +2399,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     if( !promoApplied ){
       promoAmount = OrderController.amountPromoAge( order.id )
+      discountAgeApplied = true
+    } else {
+      discountAgeApplied = false
     }
 
     lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount)
