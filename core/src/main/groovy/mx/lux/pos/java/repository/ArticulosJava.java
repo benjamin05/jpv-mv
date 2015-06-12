@@ -1,11 +1,14 @@
 package mx.lux.pos.java.repository;
 
 import mx.lux.pos.java.Utilities;
+import mx.lux.pos.java.querys.ArticulosQuery;
+import mx.lux.pos.java.querys.GenericosQuery;
 import org.apache.commons.lang.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.Date;
 
 public class ArticulosJava {
@@ -36,6 +39,7 @@ public class ArticulosJava {
     String operacion;
     String tipoPrecio;
     String ubicacion;
+    GenericosJava generico;
 
     public Integer getIdArticulo() {
         return idArticulo;
@@ -245,7 +249,15 @@ public class ArticulosJava {
         this.ubicacion = ubicacion;
     }
 
-    public ArticulosJava setValores( ResultSet rs ) throws SQLException {
+    public GenericosJava getGenerico() {
+        return generico;
+    }
+
+    public void setGenerico(GenericosJava generico) {
+        this.generico = generico;
+    }
+
+    public ArticulosJava setValores( ResultSet rs ) throws SQLException, ParseException {
 		this.setIdArticulo(rs.getInt("id_articulo"));
 		this.setArticulo(rs.getString("articulo"));
 		this.setColorCode(rs.getString("color_code"));
@@ -269,9 +281,15 @@ public class ArticulosJava {
         this.setMarca(rs.getString("marca"));
         this.setProveedor(rs.getString("proveedor"));
         this.setIndiceDioptra(rs.getString("indice_dioptra"));
+        this.setGenerico( generico() );
 		
 		return this;
 	}
-	
-	
+
+
+    private GenericosJava generico( ) throws ParseException {
+      GenericosJava genericosJava = new GenericosJava();
+      genericosJava = GenericosQuery.buscaGenericosPorId(idGenerico);
+      return genericosJava;
+    }
 }

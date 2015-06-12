@@ -1067,82 +1067,81 @@ class OrderController {
 
 
     static Boolean validaEntrega(String idFactura, String idSucursal, Boolean entregaInstante) {
-        String ticket = idSucursal + '-' + idFactura
-        Boolean registro = true
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket(ticket)
-        if(notaVenta == null){
-          if(idFactura.length()< 6){
-            idFactura = String.format( "%06d", Integer.parseInt(idFactura) )
-            ticket = idSucursal + '-' + idFactura
-            notaVenta = notaVentaService.obtenerNotaVentaPorTicket(ticket)
-          }
+      String ticket = idSucursal + '-' + idFactura
+      Boolean registro = true
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura(idFactura)
+      if(notaVenta == null){
+        if(idFactura.length()< 6){
+          idFactura = String.format( "%06d", Integer.parseInt(idFactura) )
+          ticket = idSucursal + '-' + idFactura
+          notaVenta = NotaVentaQuery.busquedaNotaByFactura(idFactura)
         }
-        if(notaVenta != null){
+      }
+      if(notaVenta != null){
         Order order = Order.toOrder(notaVenta)
-        List<DetalleNotaVenta> detalleVenta = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(notaVenta?.id)
+        List<DetalleNotaVentaJava> detalleVenta = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(notaVenta?.idFactura)
         Boolean entregaBo = true
         Boolean surte = false
         if (entregaInstante) {
-            Parametro genericoNoEntrega = parametroRepository.findOne(TipoParametro.GENERICOS_NO_ETREGABLES.value)
-            ArrayList<String> genericosNoEntregables = new ArrayList<String>()
-            String s = genericoNoEntrega?.valor
-            StringTokenizer st = new StringTokenizer(s.trim(), ",")
-            Iterator its = st.iterator()
-            while (its.hasNext()) {
-                genericosNoEntregables.add(its.next().toString())
-            }
-            Iterator iterator = detalleVenta.iterator();
-            while (iterator.hasNext()) {
-                DetalleNotaVenta detalle = iterator.next()
-
-                Articulo articulo = articuloService.obtenerArticulo(detalle?.idArticulo)
-                for (int a = 0; a < genericosNoEntregables.size(); a++) {
-                    String[] values = genericosNoEntregables.get(a).trim().split(":")
-                    String generico = StringUtils.trimToEmpty(values[0])
-                    String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
-                    String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
-                    String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
-                    Boolean genericoValid = false
-                    Boolean tipoValid = false
-                    Boolean subtipoValid = false
-                    Boolean marcaValid = false
-                    if (StringUtils.trimToEmpty(articulo?.idGenerico).equalsIgnoreCase(generico.trim())) {
-                      genericoValid = true
-                    }
-                    if( tipo.length() > 0 ){
-                      if (StringUtils.trimToEmpty(articulo?.tipo).equalsIgnoreCase(tipo.trim())) {
-                        tipoValid = true
-                      }
-                    } else {
-                        tipoValid = true
-                    }
-                    if( subtipo.length() > 0 ){
-                        if (StringUtils.trimToEmpty(articulo?.subtipo).equalsIgnoreCase(subtipo.trim())) {
-                            subtipoValid = true
-                        }
-                    } else {
-                        subtipoValid = true
-                    }
-                    if( marca.length() > 0 ){
-                        if (StringUtils.trimToEmpty(articulo?.marca).equalsIgnoreCase(marca.trim())) {
-                            marcaValid = true
-                        }
-                    } else {
-                        marcaValid = true
-                    }
-                    if( genericoValid && tipoValid && subtipoValid && marcaValid ){
-                      entregaBo = false
-                      Parametro diaIntervalo = Registry.find(TipoParametro.DIA_PRO)
-                      Date diaPrometido = new Date() + diaIntervalo?.valor?.toInteger()
-                      savePromisedDate(notaVenta?.id, diaPrometido)
-                    }
+          Parametros genericoNoEntrega = ParametrosQuery.BuscaParametroPorId(TipoParametro.GENERICOS_NO_ETREGABLES.value)
+          ArrayList<String> genericosNoEntregables = new ArrayList<String>()
+          String s = genericoNoEntrega?.valor
+          StringTokenizer st = new StringTokenizer(s.trim(), ",")
+          Iterator its = st.iterator()
+          while (its.hasNext()) {
+            genericosNoEntregables.add(its.next().toString())
+          }
+          Iterator iterator = detalleVenta.iterator();
+          while (iterator.hasNext()) {
+            DetalleNotaVentaJava detalle = iterator.next()
+            ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(detalle?.idArticulo)
+            for (int a = 0; a < genericosNoEntregables.size(); a++) {
+              String[] values = genericosNoEntregables.get(a).trim().split(":")
+              String generico = StringUtils.trimToEmpty(values[0])
+              String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
+              String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
+              String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
+              Boolean genericoValid = false
+              Boolean tipoValid = false
+              Boolean subtipoValid = false
+              Boolean marcaValid = false
+              if (StringUtils.trimToEmpty(articulo?.idGenerico).equalsIgnoreCase(generico.trim())) {
+                genericoValid = true
+              }
+              if( tipo.length() > 0 ){
+                if (StringUtils.trimToEmpty(articulo?.tipo).equalsIgnoreCase(tipo.trim())) {
+                  tipoValid = true
                 }
-                if (StringUtils.trimToEmpty(detalle?.surte).equals('P') && !detalle?.articulo?.generico?.inventariable) {
-                    surte = true
+              } else {
+                tipoValid = true
+              }
+              if( subtipo.length() > 0 ){
+                if (StringUtils.trimToEmpty(articulo?.subtipo).equalsIgnoreCase(subtipo.trim())) {
+                  subtipoValid = true
                 }
+              } else {
+                subtipoValid = true
+              }
+              if( marca.length() > 0 ){
+                if (StringUtils.trimToEmpty(articulo?.marca).equalsIgnoreCase(marca.trim())) {
+                  marcaValid = true
+                }
+              } else {
+                marcaValid = true
+              }
+              if( genericoValid && tipoValid && subtipoValid && marcaValid ){
+                entregaBo = false
+                Parametros diaIntervalo = Registry.find(mx.lux.pos.java.TipoParametro.DIA_PRO)
+                Date diaPrometido = new Date() + diaIntervalo?.valor?.toInteger()
+                savePromisedDate(notaVenta?.idFactura, diaPrometido)
+              }
             }
+            if (StringUtils.trimToEmpty(detalle?.surte).equals('P') && !detalle?.articulo?.generico?.inventariable) {
+              surte = true
+            }
+          }
         }
-
+          #$%
         TmpServicios tmpServicios = tmpServiciosRepository.findbyIdFactura(notaVenta?.id)
         Boolean temp = false
         if (tmpServicios?.id_serv != null) {
@@ -1205,7 +1204,7 @@ class OrderController {
                 JOptionPane.showMessageDialog(null, "La nota tiene saldo pendiente por cubrir. No se puede entregar trabajo")
             }
         }
-    }else{
+      }else{
             registro = false
         }
         return registro
