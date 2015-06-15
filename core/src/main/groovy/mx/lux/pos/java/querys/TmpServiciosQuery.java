@@ -1,9 +1,13 @@
 package mx.lux.pos.java.querys;
 
 import mx.lux.pos.java.Utilities;
+import mx.lux.pos.java.repository.AcusesJava;
 import mx.lux.pos.java.repository.TmpServiciosJava;
+import org.apache.commons.lang.StringUtils;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 public class TmpServiciosQuery {
@@ -22,6 +26,25 @@ public class TmpServiciosQuery {
       Connections db = new Connections();
       db.updateQuery(sql);
       db.close();
+    }
+
+
+    public static TmpServiciosJava buscaTmpServiciosPorIdFactura( String idFactura ){
+      TmpServiciosJava tmpServiciosJava = new TmpServiciosJava();
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM tmp_servicios where id_factura = '%s';", StringUtils.trimToEmpty(idFactura));
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          tmpServiciosJava = new TmpServiciosJava();
+          tmpServiciosJava = tmpServiciosJava.setValores( rs );
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return tmpServiciosJava;
     }
 
 }

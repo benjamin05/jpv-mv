@@ -3,6 +3,7 @@ package mx.lux.pos.service.impl
 import com.ibm.icu.text.RuleBasedNumberFormat
 import com.mysema.query.BooleanBuilder
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.repository.CuponMvJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
@@ -2551,6 +2552,48 @@ class TicketServiceImpl implements TicketService {
     } else {
           log.debug( String.format( 'Cupon (%s) not found.', cuponMv.claveDescuento ) )
     }
+  }
+
+
+  void imprimeCupon( CuponMvJava cuponMv, String titulo, BigDecimal monto ){
+        log.debug( "imprimeCupon( )" )
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
+        String restrictions = ""
+        String restrictions1 = ""
+        String titulo2 = ""
+        if( cuponMv != null ){
+            if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+                restrictions = 'APLICA EN LA COMPRA MINIMA DE $1000.00'
+                restrictions1 = 'CONSULTA CONDICIONES EN TIENDA.'
+            } else if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
+                restrictions = 'APLICAN RESTRICCIONES'
+            }
+        }
+        if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
+            NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket( "${StringUtils.trimToEmpty(Registry.currentSite.toString())}-${StringUtils.trimToEmpty(cuponMv.facturaOrigen)}" );
+            if( notaVenta != null ){
+                Integer contador = 0
+                for(DetalleNotaVenta det : notaVenta.detalles){
+                    if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") ){
+                        titulo2 = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
+                    }
+                }
+            }
+        }
+        if( cuponMv != null ){
+            def datos = [
+                    titulo: titulo,
+                    titulo2: titulo2,
+                    monto: String.format('$%s', monto),
+                    clave: cuponMv.claveDescuento,
+                    fecha_vigencia: df.format(cuponMv.fechaVigencia),
+                    restrictions: restrictions,
+                    restrictions1: restrictions1
+            ]
+            this.imprimeTicket( 'template/ticket-cupon.vm', datos )
+        } else {
+            log.debug( String.format( 'Cupon (%s) not found.', cuponMv.claveDescuento ) )
+        }
   }
 
 

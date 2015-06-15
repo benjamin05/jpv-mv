@@ -1,13 +1,18 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.DescuentosQuery
+import mx.lux.pos.java.querys.FormaContactoQuery
 import mx.lux.pos.java.querys.ParametrosQuery
 import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.java.repository.AutorizaMovJava
 import mx.lux.pos.java.repository.BancoEmisorJava
+import mx.lux.pos.java.repository.CuponMvJava
+import mx.lux.pos.java.repository.DescuentosJava
 import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.java.repository.EmpleadoJava
 import mx.lux.pos.java.repository.ExamenJava
+import mx.lux.pos.java.repository.FormaContactoJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.Parametros
@@ -19,6 +24,7 @@ import mx.lux.pos.java.service.ExamenServiceJava
 import mx.lux.pos.java.service.InventarioServiceJava
 import mx.lux.pos.java.service.NotaVentaServiceJava
 import mx.lux.pos.java.service.RecetaServiceJava
+import mx.lux.pos.java.service.TicketServiceJava
 import mx.lux.pos.model.*
 import mx.lux.pos.java.querys.ArticulosQuery
 import mx.lux.pos.java.querys.AutorizaMovQuery
@@ -99,6 +105,7 @@ class OrderController {
     private static DetalleNotaVentaService detalleNotaVentaService
     private static PagoService pagoService
     private static TicketService ticketService
+    private static TicketServiceJava ticketServiceJava
     private static BancoService bancoService
     private static InventarioService inventarioService
     private static InventarioServiceJava inventarioServiceJava
@@ -206,6 +213,7 @@ class OrderController {
         inventarioServiceJava = new InventarioServiceJava()
         examenServiceJava = new ExamenServiceJava()
         cotizacionServiceJava = new CotizaServiceJava()
+        ticketServiceJava = new TicketServiceJava()
     }
 
     private static Boolean canceledWarranty
@@ -664,45 +672,45 @@ class OrderController {
         return jbRepository.findOne(rx)
     }
 
-    static void insertaEntrega(Order order, Boolean entregaInstante) {
-        println('Order ID: ' + order?.id)
-        Boolean alreadyDelivered = false
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
-        User user = Session.get(SessionItem.USER) as User
-        notaVenta.setEmpEntrego(user?.username)
-        notaVenta.setHoraEntrega(new Date())
-        if (notaVenta?.fechaEntrega == null) {
-            notaVenta.setFechaEntrega(new Date())
-        } else {
-          alreadyDelivered = true
-        }
-
-        println('Factura: ' + notaVenta?.getFactura())
-        String idFactura = notaVenta.getFactura()
-        notaVentaService.saveOrder(notaVenta)
-        if( notaVenta.fechaEntrega != null ){
-          if( Registry.isCouponFFActivated() && !alreadyDelivered ){
-            if( !Registry.couponFFOtherDiscount() ){
-              if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null ){
-                generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
-              }
-            } else {
-              generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
-            }
+  static void insertaEntrega(Order order, Boolean entregaInstante) {
+    println('Order ID: ' + order?.id)
+    Boolean alreadyDelivered = false
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order?.id)
+    User user = Session.get(SessionItem.USER) as User
+    notaVenta.setEmpEntrego(user?.username)
+    notaVenta.setHoraEntrega(new Date())
+    if (notaVenta?.fechaEntrega == null) {
+      notaVenta.setFechaEntrega(new Date())
+    } else {
+      alreadyDelivered = true
+    }
+    println('Factura: ' + notaVenta?.getFactura())
+    String idFactura = notaVenta.getFactura()
+    notaVentaServiceJava.saveOrder(notaVenta)
+    if( notaVenta.fechaEntrega != null ){
+      if( Registry.isCouponFFActivated() && !alreadyDelivered ){
+        if( !Registry.couponFFOtherDiscount() ){
+          if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null ){
+            generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
           }
-          Boolean orderToday = StringUtils.trimToEmpty(notaVenta.fechaHoraFactura.format("dd/MM/yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd/MM/yyyy")))
-          Boolean validDateEnsure = orderToday ? true : validEnsureDateAplication(notaVenta)
-        if( !alreadyDelivered ){
-          if( validDateEnsure ){
-            if( validWarranty( notaVenta, false, null, "", false ) ){
-              Boolean doubleEnsure = lstWarranty.size() > 1 ? true : false
-              for(Warranty warranty : lstWarranty){
-                String idFac = StringUtils.trimToEmpty(idOrderEnsured).length() > 0 ? StringUtils.trimToEmpty(idOrderEnsured) : notaVenta.id
-                ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, idFac, doubleEnsure )
-              }
-              idOrderEnsured = ""
-              lstWarranty.clear()
-            } else {
+        } else {
+          generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
+        }
+      }
+      Boolean orderToday = StringUtils.trimToEmpty(notaVenta.fechaHoraFactura.format("dd/MM/yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd/MM/yyyy")))
+      Boolean validDateEnsure = orderToday ? true : validEnsureDateAplication(notaVenta)
+      if( !alreadyDelivered ){
+        if( validDateEnsure ){
+          if( validWarranty( notaVenta, false, null, "", false ) ){
+            Boolean doubleEnsure = lstWarranty.size() > 1 ? true : false
+            for(Warranty warranty : lstWarranty){
+              String idFac = StringUtils.trimToEmpty(idOrderEnsured).length() > 0 ? StringUtils.trimToEmpty(idOrderEnsured) : notaVenta.id
+              #$%
+              ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, idFac, doubleEnsure )
+            }
+            idOrderEnsured = ""
+            lstWarranty.clear()
+          } else {
               lstWarranty.clear()
               if( !canceledWarranty ){
                 TXT_ERROR_WARRANTY = "No se puede registrar la venta"
@@ -712,9 +720,9 @@ class OrderController {
                 JOptionPane.showMessageDialog( null, MSJ_ERROR_WARRANTY,
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
               }
-            }
+          }
             postEnsure = ""
-          } else {
+        } else {
             lstWarranty.clear()
             Boolean validWarranty = false
             Warranty warranty = new Warranty()
@@ -747,9 +755,9 @@ class OrderController {
               }
               lstWarranty.clear()
             }
-          }
         }
-        }
+      }
+    }
 
         if (entregaInstante == false) {
             Jb trabajo = jbRepository.findOne(idFactura)
@@ -776,7 +784,7 @@ class OrderController {
             jbLlamadaRepository.deleteByJbLlamada(order?.bill)
             cancelacionService.actualizaGrupo( notaVenta.id, 'E' )
         }
-    }
+  }
 
     static void printOrder(String orderId) {
         printOrder(orderId, true)
@@ -1141,64 +1149,60 @@ class OrderController {
             }
           }
         }
-          #$%
-        TmpServicios tmpServicios = tmpServiciosRepository.findbyIdFactura(notaVenta?.id)
+        TmpServiciosJava tmpServicios = TmpServiciosQuery.buscaTmpServiciosPorIdFactura(notaVenta?.idFactura)
         Boolean temp = false
-        if (tmpServicios?.id_serv != null) {
-            temp = true
+        if (tmpServicios?.idServ != null) {
+          temp = true
         }
-        /*println(surte == true)
-        println(temp == true)
-        println(entregaBo == true)*/
-        //*Contacto
         if(entregaInstante){
-            if (surte || temp || !entregaBo) {
-                List<FormaContacto> result = ContactController.findByIdCliente(notaVenta?.idCliente.toInteger())
-                if (result.size() == 0) {
-                    ContactDialog contacto = new ContactDialog(notaVenta)
-                    contacto.activate()
-                } else {
-                    ContactClientDialog contactoCliente = new ContactClientDialog(notaVenta)
-                    contactoCliente.activate()
-                    if (contactoCliente.formaContactoSeleted != null) {
-                        FormaContacto formaContacto = contactoCliente.formaContactoSeleted
-                        formaContacto?.rx = notaVenta?.factura
-                        formaContacto?.fecha_mod = new Date()
-                        formaContacto?.id_cliente = notaVenta?.idCliente
-                        formaContacto?.id_sucursal = notaVenta?.idSucursal
-                        formaContacto?.observaciones =  contactoCliente.formaContactoSeleted?.observaciones != '' ? contactoCliente.formaContactoSeleted?.observaciones : ' '
-                        formaContacto?.id_tipo_contacto = contactoCliente.formaContactoSeleted?.tipoContacto?.id_tipo_contacto
-                        ContactController.saveFormaContacto(formaContacto)
-                    }
+          if (surte || temp || !entregaBo) {
+            List<FormaContactoJava> result = FormaContactoQuery.buscaFormaContactoPorIdCliente(notaVenta?.idCliente)
+              if (result.size() == 0) {
+                ContactDialog contacto = new ContactDialog(notaVenta)
+                contacto.activate()
+              } else {
+                ContactClientDialog contactoCliente = new ContactClientDialog(notaVenta)
+                contactoCliente.activate()
+                if (contactoCliente.formaContactoSeleted != null) {
+                  FormaContactoJava formaContacto = contactoCliente.formaContactoSeleted
+                  formaContacto?.rx = notaVenta?.factura
+                  formaContacto?.fechaMod = new Date()
+                  formaContacto?.idCliente = notaVenta?.idCliente
+                  formaContacto?.idSucursal = notaVenta?.idSucursal
+                  formaContacto?.observaciones =  contactoCliente.formaContactoSeleted?.observaciones != '' ? contactoCliente.formaContactoSeleted?.observaciones : ' '
+                  formaContacto?.idTipoContacto = contactoCliente.formaContactoSeleted?.tipoContacto?.idTipoContacto
+                  ContactController.saveFormaContacto(formaContacto)
                 }
-            }
+              }
+          }
         }
         //*Contacto
         if ((order?.total - order?.paid) == 0 && entregaBo) {
-            Boolean fechaC = true
-            if (!entregaInstante) {
-                SimpleDateFormat fecha = new SimpleDateFormat("dd/MMMM/yyyy")
-                String fechaVenta = fecha.format(notaVenta?.fechaHoraFactura).toString()
-                String ahora = fecha.format(new Date())
-                if (fechaVenta.equals(ahora)) {
-                    fechaC = false
-                }
+          Boolean fechaC = true
+          if (!entregaInstante) {
+            SimpleDateFormat fecha = new SimpleDateFormat("dd/MMMM/yyyy")
+            String fechaVenta = fecha.format(notaVenta?.fechaHoraFactura).toString()
+            String ahora = fecha.format(new Date())
+            if (fechaVenta.equals(ahora)) {
+              fechaC = false
             }
-            if (fechaC) {
-                if( validaEntregaSegundaVenta( order ) ){
-                  insertaEntrega(order, entregaInstante)
-                  deliverOrderLc( notaVenta.factura )
-                } else {
-                  retenerEntrega( order.id )
-                }
-                try{
-                runScriptBckpOrder( order )
-                } catch( Exception e){
-                  println e
-                }
+          }
+          if (fechaC) {
+            if( validaEntregaSegundaVenta( order ) ){
+              $%
+              insertaEntrega(order, entregaInstante)
+              deliverOrderLc( notaVenta.factura )
             } else {
-                JOptionPane.showMessageDialog(null, "No se puede entregar trabajo hoy mismo")
+                  retenerEntrega( order.id )
             }
+            try{
+                runScriptBckpOrder( order )
+            } catch( Exception e){
+                  println e
+            }
+          } else {
+                JOptionPane.showMessageDialog(null, "No se puede entregar trabajo hoy mismo")
+          }
         } else {
             if (!entregaInstante) {
                 JOptionPane.showMessageDialog(null, "La nota tiene saldo pendiente por cubrir. No se puede entregar trabajo")
@@ -1802,45 +1806,42 @@ class OrderController {
 
 
 
-    static Boolean validaEntregaSegundaVenta(Order order) {
-      Boolean valid = true
-      Boolean isGoogle = false
-      Boolean hasCupon = false
-      Boolean hasGenericB = false
-      Boolean hasGenericC = false
-      NotaVenta notaAnterior = notaVentaService.buscarNotaInicial( order.customer.id, order.id )
-      for(OrderItem item : order.items){
-        Articulo articulo = articuloService.obtenerArticulo( item.item.id )
-        if( articulo.idGenerico.equalsIgnoreCase(TAG_GENERICO_B) ){
-          hasGenericB = true
+  static Boolean validaEntregaSegundaVenta(Order order) {
+    Boolean valid = true
+    Boolean isGoogle = false
+    Boolean hasCupon = false
+    Boolean hasGenericB = false
+    Boolean hasGenericC = false
+    NotaVentaJava notaAnterior = notaVentaServiceJava.buscarNotaInicial( order.customer.id, order.id )
+    for(OrderItem item : order.items){
+      ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( item.item.id )
+      if( articulo.idGenerico.equalsIgnoreCase(TAG_GENERICO_B) ){
+        hasGenericB = true
+      }
+    }
+    if( !hasGenericB ){
+      for(Payment pago : order.payments){
+        if(pago.paymentTypeId.startsWith(TAG_CUPON) && !pago.paymentTypeId.equalsIgnoreCase(TAG_CUPON_SEGURO)){
+          hasCupon = true
         }
       }
-      if( !hasGenericB ){
-          for(Payment pago : order.payments){
-            if(pago.paymentTypeId.startsWith(TAG_CUPON) && !pago.paymentTypeId.equalsIgnoreCase(TAG_CUPON_SEGURO)){
-              hasCupon = true
-            }
-          }
-          if( hasCupon ){
-              SimpleDateFormat fecha = new SimpleDateFormat("dd/MMMM/yyyy")
-              String fechaVenta = fecha.format(order?.date).toString()
-              String ahora = fecha.format(new Date())
-              if (fechaVenta.equals(ahora)) {
-                  valid = false
-              } else {
-                  valid = true
-              }
-          } else {
-            valid = true
-          }
+      if( hasCupon ){
+        SimpleDateFormat fecha = new SimpleDateFormat("dd/MMMM/yyyy")
+        String fechaVenta = fecha.format(order?.date).toString()
+        String ahora = fecha.format(new Date())
+        if (fechaVenta.equals(ahora)) {
+          valid = false
         } else {
           valid = true
         }
-      /*} else {
+      } else {
         valid = true
-      }*/
-      return valid
+      }
+    } else {
+          valid = true
     }
+    return valid
+  }
 
 
     static void retenerEntrega(String orderId){
@@ -2424,6 +2425,11 @@ class OrderController {
               StringUtils.trimToEmpty(idFacturaDestino), montoCupon, numeroCupon, ffCoupon )
     }
 
+    static CuponMvJava updateCuponMvJava( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon, Boolean ffCoupon ){
+      return notaVentaServiceJava.actualizarCuponMv( StringUtils.trimToEmpty(idFacturaOrigen),
+              StringUtils.trimToEmpty(idFacturaDestino), montoCupon, numeroCupon, ffCoupon )
+    }
+
     static NotaVenta findOrderByidOrder(String idOrder) {
       NotaVenta result = notaVentaService.obtenerNotaVenta( idOrder )
       return result
@@ -2441,6 +2447,10 @@ class OrderController {
     }
 
     static void printCuponTicket( CuponMv cuponMv, String titulo, BigDecimal monto ){
+      ticketService.imprimeCupon( cuponMv,titulo, monto )
+    }
+
+    static void printCuponTicket( CuponMvJava cuponMv, String titulo, BigDecimal monto ){
       ticketService.imprimeCupon( cuponMv,titulo, monto )
     }
 
@@ -2607,34 +2617,33 @@ class OrderController {
       Boolean hasLenses = false
       Date fechaInicio = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH );
       Date fechaFin = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 );
-      QDescuento qDescuento = QDescuento.descuento
-      NotaVenta nota = notaVentaService.obtenerNotaVenta( idOrder )
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( idOrder )
       if( nota!= null && nota.fechaEntrega != null ){
-        List<NotaVenta> lstNotasCliente = notaVentaService.obtenerNotaVentaPorClienteFF( nota.idCliente )
-        for(NotaVenta notaVenta : lstNotasCliente){
-          List<CuponMv> cuponMv = notaVentaService.obtenerCuponMvFacturaOriFF( StringUtils.trimToEmpty(notaVenta.factura) )
+        List<NotaVentaJava> lstNotasCliente = notaVentaServiceJava.obtenerNotaVentaPorClienteFF( nota.idCliente )
+        for(NotaVentaJava notaVenta : lstNotasCliente){
+          List<CuponMvJava> cuponMv = notaVentaServiceJava.obtenerCuponMvFacturaOriFF( StringUtils.trimToEmpty(notaVenta.factura) )
           if( cuponMv.size() > 0 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith("F") ){
             hasNoCouponApply = false
           }
         }
         if( hasNoCouponApply ){
           Integer appliedCoup = 0
-          List<CuponMv> lstCupones = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
+          List<CuponMvJava> lstCupones = notaVentaServiceJava.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
           if( lstCupones.size() <= 0 ){
-            lstCupones = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.id) )
+            lstCupones = notaVentaServiceJava.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.idFactura) )
           }
-          for(CuponMv c : lstCupones){
+          for(CuponMvJava c : lstCupones){
             if( StringUtils.trimToEmpty(c.fechaAplicacion.format("dd-MM-yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd-MM-yyyy"))) ){
               appliedCoup = appliedCoup+1
             }
           }
-          List<Descuento> lstDesc = descuentoRepository.findAll(qDescuento.clave.eq("AF200").and(qDescuento.idFactura.eq(nota.id))) as List<Descuento>
+          List<DescuentosJava> lstDesc = DescuentosQuery.buscaDescuentosPorClaveAndIdFactura("AF200", nota.idFactura)
           Integer descuentoAF = lstDesc.size()
           if( appliedCoup > 0 || descuentoAF > 0 ){
             hasNoCouponApply = false
           }
         }
-        for(DetalleNotaVenta det : nota.detalles){
+        for(DetalleNotaVentaJava det : nota.detalles){
           if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_B) ){
             hasLenses = true
           }
@@ -2643,11 +2652,11 @@ class OrderController {
           }
         }
         if( amountSale.doubleValue() >= Registry.amountToGenerateFFCoupon && hasNoCouponApply && hasLenses ){
-          List<CuponMv> cuponMvTmp = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
+          List<CuponMvJava> cuponMvTmp = notaVentaServiceJava.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
           if( cuponMvTmp.size() <= 0 || !StringUtils.trimToEmpty(cuponMvTmp.first().claveDescuento).startsWith("F") ){
             String titulo = "FRIENDS AND FAMILY"
             Integer numCupon = 0
-            CuponMv cuponMv = new CuponMv()
+            CuponMvJava cuponMv = new CuponMvJava()
             cuponMv.facturaDestino = ""
             cuponMv.facturaOrigen = nota.factura
             cuponMv.fechaAplicacion = null
@@ -2656,7 +2665,7 @@ class OrderController {
             calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCuponFF)
             cuponMv.fechaVigencia = calendar.getTime()
             println cuponMv.fechaVigencia.format("dd-MM-yyyy")
-            cuponMv = updateCuponMv( nota.id, "", Registry.amountFFCoupon, numCupon, true )
+            cuponMv = updateCuponMvJava( nota.idFactura, "", Registry.amountFFCoupon, numCupon, true )
             printCuponTicket( cuponMv, titulo, Registry.amountFFCoupon )
           }
         }

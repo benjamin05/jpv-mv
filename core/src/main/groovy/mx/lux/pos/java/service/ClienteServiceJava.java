@@ -1,15 +1,9 @@
 package mx.lux.pos.java.service;
 
 
-import mx.lux.pos.java.repository.ClientesJava;
-import mx.lux.pos.java.repository.ClientesProcesoJava;
-import mx.lux.pos.java.repository.NotaVentaJava;
-import mx.lux.pos.java.repository.Parametros;
+import mx.lux.pos.java.querys.*;
+import mx.lux.pos.java.repository.*;
 import mx.lux.pos.model.*;
-import mx.lux.pos.java.querys.ClientesProcesoQuery;
-import mx.lux.pos.java.querys.ClientesQuery;
-import mx.lux.pos.java.querys.NotaVentaQuery;
-import mx.lux.pos.java.querys.ParametrosQuery;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +85,22 @@ public class ClienteServiceJava {
       return ClientesQuery.busquedaClienteById(NumberFormat.getInstance().parse(idCliente).intValue());
     }
     return null;
+  }
+
+
+  public List<DominioJava> listarDominiosClientes( ) {
+    log.debug( "listando dominios frecuentes" );
+    return DominioQuery.buscaTodoDominios();
+  }
+
+
+  public ClientesJava obtenerCliente( Integer id ) throws ParseException {
+    log.debug( "obteniendo cliente id: ${id}" );
+    ClientesJava cliente =  ClientesQuery.busquedaClienteById( id );
+    if(cliente ==null){
+      cliente = new ClientesJava();
+    }
+    return  cliente;
   }
 
 

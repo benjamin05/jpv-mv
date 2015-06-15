@@ -127,4 +127,47 @@ public class DescuentosQuery {
     }
 
 
+
+    public static List<DescuentosJava> buscaDescuentosPorClaveAndIdFactura( String clave, String idFactura ){
+      List<DescuentosJava> lstDescuentos = new ArrayList<DescuentosJava>();
+      DescuentosJava descuentosJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from descuentos where id_factura = '%s' AND clave = '%S';",
+                StringUtils.trimToEmpty(idFactura), StringUtils.trimToEmpty(clave));
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          descuentosJava = new DescuentosJava();
+          descuentosJava = descuentosJava.mapeoDescuentos(rs);
+          lstDescuentos.add( descuentosJava );
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstDescuentos;
+    }
+
+
+    public static DescuentosJava buscaDescuentosPorIdFacturaAndClaveVacia( String idFactura ){
+      DescuentosJava descuentosJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from descuentos where id_factura = '%s' AND (clave is null OR clave = '');",
+                StringUtils.trimToEmpty(idFactura));
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          descuentosJava = new DescuentosJava();
+          descuentosJava = descuentosJava.mapeoDescuentos(rs);
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return descuentosJava;
+    }
+
+
 }

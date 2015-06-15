@@ -2,6 +2,7 @@ package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
 import mx.lux.pos.java.service.ClienteServiceJava
+import mx.lux.pos.java.service.ContactoServiceJava
 import mx.lux.pos.model.*
 import mx.lux.pos.java.querys.RecetaQuery
 import mx.lux.pos.java.repository.ClientesProcesoJava
@@ -36,6 +37,7 @@ class CustomerController {
     private static PaisesService paisesService
     private static NotaVentaService notaService
     private static ContactoService contactoService
+    private static ContactoServiceJava contactoServiceJava
     private static FormaContactoService formaContactoService
     private static ClienteServiceJava clienteServiceJava
 
@@ -69,6 +71,7 @@ class CustomerController {
         this.contactoService = contactoService
         this.formaContactoService = formaContactoService
         clienteServiceJava = new ClienteServiceJava()
+        contactoServiceJava = new ContactoServiceJava()
     }
 
 
@@ -219,11 +222,11 @@ class CustomerController {
     }
 
     static List<String> findAllCustomersDomains() {
-        log.debug("obteniendo lista de dominios")
-        def results = clienteService.listarDominiosClientes()
-        results?.collect {
-            it?.nombre
-        }
+      log.debug("obteniendo lista de dominios")
+      def results = clienteServiceJava.listarDominiosClientes()
+      results?.collect {
+        it?.nombre
+      }
     }
 
 
@@ -632,11 +635,11 @@ class CustomerController {
 
 
     static List<String> findAllContactTypes() {
-        log.debug("obteniendo lista de nombres de los estados")
-        def results = contactoService.obtenerTiposContacto()
-        results.collect {
-            it.descripcion
-        }
+      log.debug("obteniendo lista de nombres de los estados")
+      def results = contactoServiceJava.obtenerTiposContacto()
+      results.collect {
+        it.descripcion
+      }
     }
 
     static List<Rx> findRxByCustomer(Integer idCliente) {

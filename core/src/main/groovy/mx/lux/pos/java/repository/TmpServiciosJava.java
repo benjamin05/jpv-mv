@@ -1,5 +1,7 @@
 package mx.lux.pos.java.repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 
 public class TmpServiciosJava {
@@ -95,21 +97,18 @@ public class TmpServiciosJava {
         this.fechaProm = fechaProm;
     }
 
-    public TmpServiciosJava setValores( String idFactura, String idCliente, String cliente, String dejo, String instruccion,
-            String emp, String servicio, String condicion, Date fechaProm ){
-
-		TmpServiciosJava tmpServiciosJava = new TmpServiciosJava();
-        this.setIdFactura(idFactura);
-        this.setIdCliente(idCliente);
-        this.setCliente(cliente);
-        this.setDejo(dejo);
-        this.setInstruccion(instruccion);
-        this.setEmp(emp);
-        this.setServicio(servicio);
-        this.setCondicion(condicion);
-        this.setFechaProm(fechaProm);
-
-		return tmpServiciosJava;
+    public TmpServiciosJava setValores( ResultSet rs) throws SQLException {
+	  this.setIdServ(rs.getInt("id_serv"));
+      this.setIdFactura(rs.getString("id_factura"));
+      this.setIdCliente(rs.getString("id_cliente"));
+      this.setCliente(rs.getString("cliente"));
+      this.setDejo(rs.getString("dejo"));
+      this.setInstruccion(rs.getString("instruccion"));
+      this.setEmp(rs.getString("emp"));
+      this.setServicio(rs.getString("servicio"));
+      this.setCondicion(rs.getString("condicion"));
+      this.setFechaProm(rs.getDate("fecha_prom"));
+      return this;
 	}
 	
 	

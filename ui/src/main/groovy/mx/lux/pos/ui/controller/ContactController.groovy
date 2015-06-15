@@ -1,6 +1,11 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.TipoContactoQuery
+import mx.lux.pos.java.repository.ClientesJava
+import mx.lux.pos.java.repository.FormaContactoJava
+import mx.lux.pos.java.service.ClienteServiceJava
+import mx.lux.pos.java.service.FormaContactoServiceJava
 import mx.lux.pos.model.Cliente
 import mx.lux.pos.model.FormaContacto
 import mx.lux.pos.model.Jb
@@ -9,6 +14,7 @@ import mx.lux.pos.repository.TipoContactoRepository
 import mx.lux.pos.service.ClienteService
 import mx.lux.pos.service.JbService
 import mx.lux.pos.service.impl.FormaContactoService
+import org.apache.commons.lang.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -18,8 +24,10 @@ class ContactController {
 
     private static JbService jbService
     private static FormaContactoService formaContactoService
+    private static FormaContactoServiceJava formaContactoServiceJava
     private static TipoContactoRepository tipoContactoRepository
     private static ClienteService clienteService
+    private static ClienteServiceJava clienteServiceJava
 
     @Autowired
     ContactController(JbService jbService, FormaContactoService formaContactoService, TipoContactoRepository tipoContactoRepository, ClienteService clienteService) {
@@ -27,6 +35,8 @@ class ContactController {
         this.formaContactoService = formaContactoService
         this.tipoContactoRepository = tipoContactoRepository
         this.clienteService = clienteService
+        formaContactoServiceJava = new FormaContactoServiceJava()
+        clienteServiceJava = new ClienteServiceJava()
 
     }
     private static final Integer TAG_ID_TELEFONO = 4
@@ -38,8 +48,8 @@ class ContactController {
         return jbService.findJBbyRx(rx)
     }
 
-    static FormaContacto findFCbyRx(String rx) {
-        return formaContactoService.findFCbyRx(rx)
+    static FormaContactoJava findFCbyRx(String rx) {
+        return formaContactoServiceJava.findFormaContactobyRx(rx)
     }
 
     static List<FormaContacto> findCustomerContact(Integer idCliente) {
@@ -102,54 +112,54 @@ class ContactController {
         return contactos
     }
 
-    static List<FormaContacto> findByIdCliente(Integer idCliente) {
-        List<FormaContacto> formaContactos = formaContactoService.findByidCliente(idCliente)
-        List<FormaContacto> contactos = new ArrayList<FormaContacto>()
-        Iterator iterator = formaContactos.iterator();
-        while (iterator.hasNext()) {
-            FormaContacto formaContacto = iterator.next()
-            formaContacto?.tipoContacto = tipoContactoRepository.findOne(formaContacto?.id_tipo_contacto)
-            contactos.add(formaContacto)
+    static List<FormaContactoJava> findByIdCliente(Integer idCliente) {
+      List<FormaContactoJava> formaContactos = formaContactoServiceJava.findByidCliente(idCliente)
+      List<FormaContactoJava> contactos = new ArrayList<FormaContactoJava>()
+      Iterator iterator = formaContactos.iterator();
+      while (iterator.hasNext()) {
+        FormaContactoJava formaContacto = iterator.next()
+        formaContacto?.tipoContacto = TipoContactoQuery.buscaTipoContactoPorIdTipoContacto(formaContacto?.idTipoContacto)
+        contactos.add(formaContacto)
+      }
+      ClientesJava cliente = clienteServiceJava.obtenerCliente(idCliente)
+      if( cliente?.emailCli != null ){
+        if (!StringUtils.trimToEmpty(cliente?.emailCli).equals('') ){
+          FormaContactoJava formaContacto = new FormaContactoJava()
+          formaContacto?.contacto = cliente?.emailCli
+          formaContacto?.tipoContacto = TipoContactoQuery.buscaTipoContactoPorIdTipoContacto(1)
+          contactos.add(formaContacto)
         }
-       Cliente cliente = clienteService.obtenerCliente(idCliente)
-       if( cliente?.email != null ){
-           if (!cliente?.email.trim().equals('') ){
-           FormaContacto formaContacto = new FormaContacto()
-           formaContacto?.contacto = cliente?.email
-           formaContacto?.tipoContacto = tipoContactoRepository.findOne(1)
-           contactos.add(formaContacto)
-       }
-       }
-       if( cliente?.telefonoCasa != null ){
-           if( !cliente?.telefonoCasa.trim().equals('') ){
-           FormaContacto formaContacto = new FormaContacto()
-           formaContacto?.contacto = cliente?.telefonoCasa
-           formaContacto?.tipoContacto = tipoContactoRepository.findOne(4)
-           contactos.add(formaContacto)
-           }
-       }
-       if( cliente?.telefonoTrabajo != null ){
-           if( !cliente?.telefonoTrabajo.trim().equals('') ){
-           FormaContacto formaContacto = new FormaContacto()
-           formaContacto?.contacto = cliente?.telefonoTrabajo
-           formaContacto?.tipoContacto = tipoContactoRepository.findOne(2)
-           contactos.add(formaContacto)
-       }
-       }
-       if( cliente?.telefonoAdicional != null  ){
-           if( !cliente?.telefonoAdicional.trim().equals('')  ){
-           FormaContacto formaContacto = new FormaContacto()
-           formaContacto?.contacto = cliente?.telefonoAdicional
-           formaContacto?.tipoContacto = tipoContactoRepository.findOne(3)
-           contactos.add(formaContacto)
-           }
-       }
-       return contactos
+      }
+      if( cliente?.telCasaCli != null ){
+        if( !StringUtils.trimToEmpty(cliente?.telCasaCli).equals('') ){
+          FormaContactoJava formaContacto = new FormaContactoJava()
+          formaContacto?.contacto = cliente?.telCasaCli
+          formaContacto?.tipoContacto = TipoContactoQuery.buscaTipoContactoPorIdTipoContacto(4)
+          contactos.add(formaContacto)
+        }
+      }
+      if( cliente?.telTrabCli != null ){
+        if( !StringUtils.trimToEmpty(cliente?.telTrabCli).equals('') ){
+          FormaContactoJava formaContacto = new FormaContactoJava()
+          formaContacto?.contacto = cliente?.telTrabCli
+          formaContacto?.tipoContacto = TipoContactoQuery.buscaTipoContactoPorIdTipoContacto(2)
+          contactos.add(formaContacto)
+        }
+      }
+      if( cliente?.telAdiCli != null  ){
+        if( !StringUtils.trimToEmpty(cliente?.telAdiCli).equals('')  ){
+          FormaContactoJava formaContacto = new FormaContactoJava()
+          formaContacto?.contacto = cliente?.telAdiCli
+          formaContacto?.tipoContacto = TipoContactoQuery.buscaTipoContactoPorIdTipoContacto(3)
+          contactos.add(formaContacto)
+        }
+      }
+      return contactos
     }
 
-    static FormaContacto saveFormaContacto(FormaContacto formaContacto) {
-        formaContacto = formaContactoService.saveFC(formaContacto)
-        return formaContacto
+    static FormaContactoJava saveFormaContacto(FormaContactoJava formaContacto) {
+      formaContacto = formaContactoServiceJava.saveFC(formaContacto)
+      return formaContacto
     }
 
 

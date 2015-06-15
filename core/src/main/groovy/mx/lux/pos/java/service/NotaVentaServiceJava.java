@@ -6,13 +6,17 @@ import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.querys.*;
 import mx.lux.pos.java.repository.*;
 import mx.lux.pos.model.*;
+import mx.lux.pos.service.business.Registry;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -24,6 +28,7 @@ public class NotaVentaServiceJava {
     private static final String TAG_GEN_TIPO_C = "C";
     private static final String TAG_GENERICOS_B = "B";
     private static final String TAG_ARTICULO_COLOR = "COG";
+    private static final String TAG_GENERICOS_H = "H";
     static final Logger log = LoggerFactory.getLogger(NotaVentaQuery.class);
 
     public static NotaVentaJava registrarNotaVenta(NotaVentaJava notaVenta) throws ParseException {
@@ -302,5 +307,167 @@ public class NotaVentaServiceJava {
   }
 
 
+
+  public NotaVentaJava buscarNotaInicial( Integer idCliente, String idFactura ) throws ParseException {
+    List<NotaVentaJava> nota = null;
+    Date fechaStart = DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
+    Date fechaEnd = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 );
+    nota = NotaVentaQuery.busquedaNotasHoyPorIdClienteAndIdFacturaEmpty( idCliente, idFactura, fechaStart, fechaEnd);
+    if( nota.size() > 0 ){
+      return  nota.get(nota.size()-1);
+    } else {
+      return null;
+    }
+  }
+
+
+  public void saveOrder( NotaVentaJava pNotaVenta ) throws ParseException {
+    if ( pNotaVenta != null ) {
+      NotaVentaQuery.updateNotaVenta(pNotaVenta);
+    }
+  }
+
+
+
+  public List<NotaVentaJava> obtenerNotaVentaPorClienteFF( Integer idCliente ) throws ParseException {
+    log.debug( "obtenerNotaVentaPorCliente(  )" );
+    Date fechaStart = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH );
+    Date fechaEnd = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 );
+    List<NotaVentaJava> notasTmp = NotaVentaQuery.busquedaNotasHoyPorIdCliente( idCliente, fechaStart, fechaEnd );
+    return notasTmp;
+  }
+
+
+
+  public List<CuponMvJava> obtenerCuponMvFacturaOriFF( String factura ){
+    return CuponMvQuery.buscaCuponMvPorFacturaOrigen(factura);
+  }
+
+
+  public List<CuponMvJava> obtenerCuponMvFacturaDest( String factura ){
+    return CuponMvQuery.buscaCuponMvPorFacturaDestino( factura );
+  }
+
+
+
+  public CuponMvJava actualizarCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon, Boolean ffCupon ) throws ParseException {
+    CuponMvJava cuponMv = CuponMvQuery.buscaCuponMvPorFacturaDestinoAndFacturaOrigen( idFacturaDestino, idFacturaOrigen);
+    if( cuponMv != null && StringUtils.trimToEmpty(idFacturaDestino).length() > 0 ){
+      CuponMvQuery.deleteCuponMv(cuponMv.getClaveDescuento());
+      NotaVentaJava notaOrigen = NotaVentaQuery.busquedaNotaById(idFacturaOrigen);
+      if( notaOrigen == null ){
+        NotaVentaJava n = NotaVentaQuery.busquedaNotaByFactura( idFacturaOrigen );
+        List<NotaVentaJava> lstNotas = new ArrayList<NotaVentaJava>();
+        if( n != null ){
+          lstNotas.add(n);
+        }
+        if( lstNotas.size() > 0 ){
+          notaOrigen = lstNotas.get(0);
+        }
+      }
+      NotaVentaJava notaDestino = NotaVentaQuery.busquedaNotaById(idFacturaDestino);
+      Integer factura = 0;
+      try{
+        factura = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(notaOrigen.getFactura())).intValue();
+      } catch ( ParseException e ){ System.out.println(e); }
+      String clave = StringUtils.trimToEmpty(cuponMv.getClaveDescuento()).length() > 0 ?
+                    StringUtils.trimToEmpty(cuponMv.getClaveDescuento()) :
+                    claveAleatoria( StringUtils.trimToEmpty(factura.toString()), StringUtils.trimToEmpty(numeroCupon.toString()) );
+      String facturaDestino = StringUtils.trimToEmpty(notaDestino != null ? notaDestino.getFactura() : "");
+      Date fechaAplicacion = cuponMv.getFechaAplicacion() != null ? cuponMv.getFechaAplicacion() : new Date();
+      Calendar calendar = Calendar.getInstance();
+      calendar.setTime(new Date());
+      calendar.add(Calendar.DAY_OF_YEAR, Registry.getDiasVigenciaCupon());
+      Date fechaVigencia = cuponMv.getFechaVigencia() != null ? cuponMv.getFechaVigencia() : calendar.getTime();
+      Boolean hasLc = false;
+      for( DetalleNotaVentaJava det : notaOrigen.getDetalles() ){
+        if( StringUtils.trimToEmpty(det.getArticulo().getIdGenerico()).equalsIgnoreCase(TAG_GENERICOS_H) ){
+          hasLc = true;
+        }
+      }
+      if( hasLc ){
+        clave = clave.replaceFirst(String.valueOf(clave.charAt(0)),"H");
+      }
+      CuponMvQuery.insertClave( clave, notaOrigen.getFactura(), facturaDestino, fechaAplicacion, fechaVigencia );
+      cuponMv = CuponMvQuery.buscaCuponMvPorClave(clave);
+      cuponMv.setMontoCupon(montoCupon);
+      CuponMvQuery.updateCuponMv(cuponMv);
+      DescuentosJava descuento = DescuentosQuery.buscaDescuentosPorIdFacturaAndClaveVacia(notaDestino.getIdFactura());
+      if( descuento != null ){
+        descuento.setClave(cuponMv.getClaveDescuento());
+        descuento.setTipoClave(cuponMv.getClaveDescuento());
+        DescuentosQuery.saveOrUpdateDescuentos(descuento);
+      }
+    } else {
+      NotaVentaJava notaOrigen = NotaVentaQuery.busquedaNotaById(idFacturaOrigen);
+      Boolean hasLc = false;
+      if( notaOrigen == null ){
+        NotaVentaJava n = NotaVentaQuery.busquedaNotaByFactura( idFacturaOrigen );
+        List<NotaVentaJava> lstNotas = new ArrayList<NotaVentaJava>();
+        if( n != null ){
+          lstNotas.add(n);
+        }
+        if( lstNotas.size() > 0 ){
+          notaOrigen = lstNotas.get(0);
+        }
+      } else {
+        for( DetalleNotaVentaJava det : notaOrigen.getDetalles() ){
+          if( StringUtils.trimToEmpty(det.getArticulo().getIdGenerico()).equalsIgnoreCase(TAG_GENERICOS_H) ){
+            hasLc = true;
+          }
+        }
+      }
+      Integer factura = 0;
+      try{
+        factura = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(notaOrigen.getFactura())).intValue();
+      } catch ( ParseException e ){ System.out.println(e); }
+      String clave = claveAleatoria( StringUtils.trimToEmpty(factura.toString()), StringUtils.trimToEmpty(numeroCupon.toString()) );
+      if( ffCupon ){
+        clave = clave.replaceFirst(String.valueOf(clave.charAt(0)),"F");
+      } else if( hasLc ){
+        clave = clave.replaceFirst(String.valueOf(clave.charAt(0)),"H");
+      }
+      Calendar calendar = Calendar.getInstance();
+      calendar.setTime(new Date());
+      calendar.add(Calendar.DAY_OF_YEAR, ffCupon ? Registry.getDiasVigenciaCuponFF() : Registry.getDiasVigenciaCupon());
+      Date fechaVigencia = calendar.getTime();
+      cuponMv = new CuponMvJava();
+      cuponMv.setClaveDescuento(clave);
+      cuponMv.setFacturaOrigen(StringUtils.trimToEmpty(notaOrigen.getFactura()));
+      cuponMv.setFacturaDestino("");
+      cuponMv.setFechaAplicacion(null);
+      cuponMv.setFechaVigencia(fechaVigencia);
+      cuponMv.setMontoCupon(montoCupon);
+      CuponMvQuery.insertCuponMv( cuponMv );
+    }
+    return cuponMv;
+  }
+
+
+
+  static String claveAleatoria(String factura, String numeroPar) {
+    String digitos = "" + numeroPar+"0";
+    String abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    String resultado = String.format("%010d", Integer.parseInt(digitos)) + factura;
+    for (int i = 0; i < resultado.length(); i++) {
+      int numAleatorio = (int) (Math.random() * abc.length());
+      if (resultado.charAt(i) == '0') {
+        resultado = replaceCharAt(resultado, i, abc.charAt(numAleatorio));
+      } else {
+        int numero = Integer.parseInt ("" + resultado.charAt(i));
+        numero = 10 - numero;
+        char diff = Character.forDigit(numero, 10);
+        resultado = replaceCharAt(resultado, i, diff);
+      }
+    }
+    return resultado;
+  }
+
+
+  static String replaceCharAt(String s, int pos, char c) {
+    StringBuffer buf = new StringBuffer( s );
+    buf.setCharAt( pos, c );
+    return buf.toString( );
+  }
 
 }
