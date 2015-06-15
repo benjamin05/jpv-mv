@@ -439,15 +439,21 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       }
       apl = model.setupOrderCouponDiscount(descuentoClave,discount )
       PromotionCommit.writeOrder( model )
-      if ( service.requestOrderDiscount( this.model, "", discount ) ) {
+      String clave = ""
+      if( StringUtils.trimToEmpty(desc?.clave).length() > 0 && StringUtils.trimToEmpty(desc?.clave).isNumber() ){
+        clave = StringUtils.trimToEmpty(desc?.clave)
+      }
+      if ( clave.trim().length() > 0 ) {
+        if( service.recoverOrderDiscount( this.model, clave, discount ) ){
+          log.debug( this.model.orderDiscount.toString() )
+          this.updatePromotionList()
+          view.refreshData()
+        }
+      } /*else if ( service.recoverOrderDiscount( this.model, desc?.clave, discount ) ) {
         log.debug( this.model.orderDiscount.toString() )
         this.updatePromotionList()
         view.refreshData()
-      } else if ( service.requestOrderDiscount( this.model, desc?.clave, discount ) ) {
-        log.debug( this.model.orderDiscount.toString() )
-        this.updatePromotionList()
-        view.refreshData()
-      } else if ( apl  ) {
+      }*/ else if ( apl  ) {
         this.updatePromotionList()
         view.refreshData()
       }

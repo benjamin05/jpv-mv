@@ -1343,15 +1343,15 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       sb.doOutside {
         Registry.getSolicitaGarbageColector()
       }
-        User user = Session.get(SessionItem.USER) as User
-        String vendedor = user.username
-        if( OrderController.showValidEmployee() ){
+      User user = Session.get(SessionItem.USER) as User
+      String vendedor = user.username
+      if( OrderController.showValidEmployee() ){
           CambiaVendedorDialog cambiaVendedor = new CambiaVendedorDialog(this,user?.username)
           cambiaVendedor.show()
           vendedor = cambiaVendedor?.vendedor
-        }
+      }
 
-        if( promoAgeActive && promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
+        if( discountAgeApplied && promoAgeActive && promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
           promotionDriver.addPromoDiscountAge( order, promoAmount )
         }
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )

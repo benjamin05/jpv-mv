@@ -38,7 +38,14 @@ class PromotionDiscount implements IPromotionAvailable {
             descTmp = descuentoClave.descripcion_descuento
           }
         }
-         String idType   =  'P'
+        String idTypeTmp = ""
+        if( descuentoClave != null ){
+          if( StringUtils.trimToEmpty(descuentoClave.clave_descuento).isNumber() &&
+                  StringUtils.trimToEmpty(descuentoClave.descripcion_descuento).equalsIgnoreCase("Descuento Corporativo") ){
+            idTypeTmp = "AP"
+          }
+        }
+         String idType = StringUtils.trimToEmpty(idTypeTmp).length() > 0 ? idTypeTmp : 'P'
          String description  = descuentoClave != null ? descuentoClave?.clave_descuento : ""
          String text   = descTmp
         return new PromotionDiscount(  PromotionDiscountType.PromotionDiscount(  idType,  description, text, descuentoClave ))
