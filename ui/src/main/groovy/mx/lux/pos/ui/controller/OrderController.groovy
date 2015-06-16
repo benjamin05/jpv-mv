@@ -3059,10 +3059,10 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           montoParcial = montoParcial.add(det.precioUnitFinal.multiply(det.cantidadFac))
         }
         if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
-          if( StringUtils.trimToEmpty(det.articulo.descripcion).equalsIgnoreCase("MONOFOCAL") ){
+          if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("SV") ){
             hasSV = true
-          } else if( StringUtils.trimToEmpty(det.articulo.descripcion).equalsIgnoreCase("LENTE BIFOCAL") ||
-                  StringUtils.trimToEmpty(det.articulo.descripcion).equalsIgnoreCase("LENTE PROGRESIVO") ){
+          } else if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("B") ||
+                  StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("P") ){
             hasMF = true
           }
         }
