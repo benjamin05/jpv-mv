@@ -642,13 +642,19 @@ class OrderController {
         println('Factura: ' + notaVenta?.getFactura())
         String idFactura = notaVenta.getFactura()
         notaVentaService.saveOrder(notaVenta)
+        Boolean hasRedEnsure = false
+        for(Pago pago : notaVenta.pagos){
+          if( StringUtils.trimToEmpty(pago.eTipoPago.id).equalsIgnoreCase(TAG_CUPON_SEGURO) ){
+            hasRedEnsure = true
+          }
+        }
         if( notaVenta.fechaEntrega != null ){
           if( Registry.isCouponFFActivated() && !alreadyDelivered ){
             if( !Registry.couponFFOtherDiscount() ){
-              if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null ){
+              if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null && !hasRedEnsure ){
                 generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
               }
-            } else {
+            } else if(!hasRedEnsure){
               generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
             }
           }
