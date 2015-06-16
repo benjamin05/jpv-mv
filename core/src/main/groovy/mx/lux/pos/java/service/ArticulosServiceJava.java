@@ -6,6 +6,7 @@ import mx.lux.pos.java.querys.*;
 import mx.lux.pos.java.repository.*;
 import mx.lux.pos.model.*;
 import mx.lux.pos.repository.impl.RepositoryFactory;
+import mx.lux.pos.service.business.Registry;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ public class ArticulosServiceJava {
   static final Logger log = LoggerFactory.getLogger(ArticulosServiceJava.class);
 
   private static final String TAG_GENERICO_H = "H";
+  private static final String TAG_GENERICO_B = "B";
 
   public ArticulosJava obtenerArticulo(Integer id) throws ParseException {
     return obtenerArticulo( id, true );
@@ -118,7 +120,8 @@ public class ArticulosServiceJava {
 
   public Boolean validaCodigoDioptra( String codigo ) throws ParseException {
     Boolean valido = true;
-    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorArticulo(codigo);
+    List<ArticulosJava> lstArticulos = ArticulosQuery.busquedaArticuloPorArticulo(codigo);
+    ArticulosJava articulo = lstArticulos.size() > 0 ? lstArticulos.get(0) : null;
     if( articulo == null ){
       valido = false;
     }
@@ -168,6 +171,110 @@ public class ArticulosServiceJava {
       return lstArticulos;
     }
     return resultados;
+  }
+
+
+  public List<ArticulosJava> listarArticulosPorCodigo( String articulo, boolean incluyePrecio ) throws ParseException {
+    log.info( "listando articulos con articulo: "+articulo );
+    List<ArticulosJava> lstArticlos = new ArrayList<ArticulosJava>();
+    List<ArticulosJava> resultados = ArticulosQuery.busquedaArticuloPorArticulo(articulo);
+    if ( incluyePrecio ) {
+      for(ArticulosJava art : resultados){
+        lstArticlos.add(establecerPrecio( art ));
+      }
+      return lstArticlos;
+    }
+    return resultados;
+  }
+
+
+  public List<ArticulosJava> obtenerListaArticulosPorIdGenerico( String idGenerico ) throws ParseException {
+    List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
+    List<ArticulosJava> resultados = ArticulosQuery.busquedaArticuloPorIdGenerico(idGenerico);
+    for(ArticulosJava art : resultados){
+      establecerPrecio( art );
+    }
+    return lstArticulos;
+  }
+
+
+
+  public List<ArticulosJava> obtenerListaArticulosPorDescripcion( String descripcion ) throws ParseException {
+    QArticulo qArticulo = QArticulo.articulo1;
+    List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
+    List<ArticulosJava> resultados = ArticulosQuery.busquedaArticuloPorDescripcion(descripcion);
+    for(ArticulosJava art : resultados){
+      lstArticulos.add(establecerPrecio(art));
+    }
+    return lstArticulos;
+  }
+
+
+  public Boolean validaUnSoloPaquete( List<Integer> lstIds, Integer idArticulo ) throws ParseException {
+    log.debug( "validaUnSoloPaquete( )" );
+    String paquetes = Registry.getPackages();
+    String[] paquete = paquetes.split(",");
+    Boolean esUnSoloPaq = true;
+    Boolean esPaquete = false;
+    Boolean existePaquete = false;
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(idArticulo);
+    List<ArticulosJava> lstArticulo = new ArrayList<ArticulosJava>();
+    for(Integer id : lstIds){
+      ArticulosJava articulo1 = new ArticulosJava();
+      articulo1 = ArticulosQuery.busquedaArticuloPorId( id );
+      if(articulo1 != null){
+        lstArticulo.add( articulo1 );
+      }
+    }
+    if( articulo != null ){
+      for(int i = 0;i<paquete.length;i++){
+        if(paquete[i].equalsIgnoreCase(articulo.getArticulo().trim())){
+          esPaquete = true;
+        }
+      }
+    }
+    for(ArticulosJava art : lstArticulo){
+      for(int i=0;i<paquete.length;i++){
+        if( paquete[i].equalsIgnoreCase(art.getArticulo().trim()) ){
+          existePaquete = true;
+        }
+      }
+    }
+    if( esPaquete && existePaquete ){
+      esUnSoloPaq = false;
+    }
+    return  esUnSoloPaq;
+  }
+
+
+  public Boolean validaUnSoloLente( List<Integer> lstIds, Integer idArticulo ) throws ParseException {
+    log.debug( "validaUnSoloLente( )" );
+    Boolean esUnSoloLente = true;
+    Boolean esLente = false;
+    Boolean existeLente = false;
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(idArticulo);
+    List<ArticulosJava> lstArticulo = new ArrayList<ArticulosJava>();
+    for(Integer id : lstIds){
+      ArticulosJava articulo1 = new ArticulosJava();
+      articulo1 = ArticulosQuery.busquedaArticuloPorId( id );
+      if(articulo1 != null){
+        lstArticulo.add( articulo1 );
+      }
+    }
+    if( articulo != null ){
+      if(StringUtils.trimToEmpty(articulo.getIdGenerico()).equalsIgnoreCase(TAG_GENERICO_B)){
+        esLente = true;
+      }
+    }
+    for(ArticulosJava art : lstArticulo){
+      if( StringUtils.trimToEmpty(art.getIdGenerico()).equalsIgnoreCase(TAG_GENERICO_B) ){
+        existeLente = true;
+      }
+    }
+    if( esLente && existeLente ){
+      esUnSoloLente = false;
+    }
+    return  esUnSoloLente;
   }
 
 

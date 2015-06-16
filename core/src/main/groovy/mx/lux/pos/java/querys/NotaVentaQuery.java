@@ -239,4 +239,24 @@ public class NotaVentaQuery {
       }
       return lstNotas;
     }
+
+
+    public static String getLastNotaVentaSequence( ) throws ParseException{
+      String factura = "";
+      try {
+      Connection con = Connections.doConnect();
+      stmt = con.createStatement();
+      String sql = "";
+      sql = String.format("SELECT value FROM folios WHERE name = 'nota_venta_id_factura';");
+
+      rs = stmt.executeQuery(sql);
+      while (rs.next()) {
+        factura = StringUtils.trimToEmpty(rs.getString("value"));
+      }
+      con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return factura;
+    }
 }

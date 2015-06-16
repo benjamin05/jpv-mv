@@ -110,35 +110,34 @@ class ItemController {
         log.debug( "busqueda con codigo similar: ${code}" )
         items = articulosServiceJava.listarArticulosPorCodigoSimilar( code, incluyePrecio ) ?: [ ]
       } else {
-          def tokens = query.replaceAll( /[+|,]/, '|' ).tokenize( '|' )
-          def code = tokens?.first() ?: null
-          log.debug( "busqueda con codigo exacto: ${code}" )
-          items = articuloService.listarArticulosPorCodigo( code, incluyePrecio ) ?: [ ]
-        }
-        if ( query.contains( colorMatch ) ) {
-          String color = query.find( /\,(\w+)/ ) { m, c -> return c }
-          log.debug( "busqueda con color: ${color}" )
-          items = items.findAll { it?.codigoColor?.equalsIgnoreCase( color ) ||
+        def tokens = query.replaceAll( /[+|,]/, '|' ).tokenize( '|' )
+        def code = tokens?.first() ?: null
+        log.debug( "busqueda con codigo exacto: ${code}" )
+        items = articulosServiceJava.listarArticulosPorCodigo( code, incluyePrecio ) ?: [ ]
+      }
+      if ( query.contains( colorMatch ) ) {
+        String color = query.find( /\,(\w+)/ ) { m, c -> return c }
+        log.debug( "busqueda con color: ${color}" )
+        items = items.findAll { it?.colorCode?.equalsIgnoreCase( color ) ||
                   it?.idCb?.equalsIgnoreCase( color )}
+      }
+      if ( query.contains( typeMatch ) ) {
+        if( query.startsWith( typeMatch ) ){
+          String type = query.replace("+","")
+          log.debug( "busqueda con tipo: ${type}" )
+          items = [ ]
+          items = articulosServiceJava.obtenerListaArticulosPorIdGenerico( type )
+        } else if( query.startsWith( "D"+typeMatch ) ){
+          String type = query.replace("D+","")
+          log.debug( "busqueda con tipo: ${type}" )
+          items = [ ]
+          items = articulosServiceJava.obtenerListaArticulosPorDescripcion( type )
+        } else {
+          String type = query.find( /\+(\w+)/ ) { m, t -> return t }
+          log.debug( "busqueda con tipo: ${type}" )
+          items = items.findAll { it?.idGenerico?.equalsIgnoreCase( type ) }
         }
-        if ( query.contains( typeMatch ) ) {
-          if( query.startsWith( typeMatch ) ){
-            String type = query.replace("+","")
-            log.debug( "busqueda con tipo: ${type}" )
-            items = [ ]
-            items = articuloService.obtenerListaArticulosPorIdGenerico( type )
-          } else if( query.startsWith( "D"+typeMatch ) ){
-            String type = query.replace("D+","")
-            log.debug( "busqueda con tipo: ${type}" )
-            items = [ ]
-            items = articuloService.obtenerListaArticulosPorDescripcion( type )
-          } else {
-            String type = query.find( /\+(\w+)/ ) { m, t -> return t }
-            log.debug( "busqueda con tipo: ${type}" )
-            items = items.findAll { it?.idGenerico?.equalsIgnoreCase( type ) }
-          }
-        }
-      //}
+      }
     }
     return items
   }
@@ -205,6 +204,11 @@ class ItemController {
   static Articulo findArticle( Integer id ) {
     log.debug( "obteniendo articulo con id: ${id}" )
     return articuloService.obtenerArticulo( id )
+  }
+
+  static ArticulosJava findArticleJava( Integer id ) {
+    log.debug( "obteniendo articulo con id: ${id}" )
+    return ArticulosQuery.busquedaArticuloPorId( id )
   }
 
   static Boolean esLenteContacto( Integer idArticulo ){

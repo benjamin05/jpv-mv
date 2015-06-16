@@ -1,11 +1,14 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.AcusesTipoQuery
 import mx.lux.pos.java.querys.DescuentosQuery
 import mx.lux.pos.java.querys.FormaContactoQuery
 import mx.lux.pos.java.querys.JbQuery
 import mx.lux.pos.java.querys.JbTrackQuery
 import mx.lux.pos.java.querys.ParametrosQuery
+import mx.lux.pos.java.querys.PreciosQuery
+import mx.lux.pos.java.repository.AcusesTipoJava
 import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.java.repository.AutorizaMovJava
 import mx.lux.pos.java.repository.BancoEmisorJava
@@ -19,11 +22,13 @@ import mx.lux.pos.java.repository.JbJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.Parametros
+import mx.lux.pos.java.repository.PreciosJava
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.java.repository.TmpServiciosJava
 import mx.lux.pos.java.service.ArticulosServiceJava
 import mx.lux.pos.java.service.CancelacionServiceJava
 import mx.lux.pos.java.service.CotizaServiceJava
+import mx.lux.pos.java.service.DetalleNotaVentaServiceJava
 import mx.lux.pos.java.service.ExamenServiceJava
 import mx.lux.pos.java.service.InventarioServiceJava
 import mx.lux.pos.java.service.NotaVentaServiceJava
@@ -107,6 +112,7 @@ class OrderController {
     private static RecetaServiceJava recetaServiceJava
     private static NotaVentaServiceJava notaVentaServiceJava
     private static DetalleNotaVentaService detalleNotaVentaService
+    private static DetalleNotaVentaServiceJava detalleNotaVentaServiceJava
     private static PagoService pagoService
     private static TicketService ticketService
     private static TicketServiceJava ticketServiceJava
@@ -220,6 +226,7 @@ class OrderController {
         cotizacionServiceJava = new CotizaServiceJava()
         ticketServiceJava = new TicketServiceJava()
         cancelacionServiceJava = new CancelacionServiceJava()
+        detalleNotaVentaServiceJava = new DetalleNotaVentaServiceJava()
     }
 
     private static Boolean canceledWarranty
@@ -1385,58 +1392,53 @@ class OrderController {
 
 
     static SurteSwitch surteCallWS(Branch branch, Item item, String surte, Order order) {
-        Boolean agregaArticulo = true
-        Boolean surteSucursal = true
-        SurteSwitch surteSwitch = new SurteSwitch()
-        surteSwitch?.surte = surte
-        Precio precio = precioRepository.findbyArt(item?.name.trim())
-
-        if( (item.subtype.startsWith('S') || item.typ.equalsIgnoreCase('O')) ||
-                (item?.type?.trim().equals('A') && precio?.surte?.trim().equals('P')) ){
-            AcusesTipo acusesTipo = acusesTipoRepository.findOne('AUT')
-            String url = acusesTipo?.pagina + '?id_suc=' + branch?.id.toString().trim() + '&id_col=' + item?.color?.trim() + '&id_art=' + item?.name.toString().trim()
-            String resultado = ''
-            if(  detalleNotaVentaService.verificaValidacionSP(item?.id, order.id, '') ){
-              resultado = callWS(url, item?.id, order.id)
-            } else {
-              resultado = 'No|'+item?.name?.toString().trim()+'|noValidaSP'
-            }
-            println(resultado)
-            int index
-            try {
-                index = 1
-            } catch (ex) {
-                index = 1
-            }
-            String[] result = resultado.split(/\|/)
-            String condicion = result[0]
-
-            if (condicion.trim().equals('Si')) {
-                String contenido = resultado + '|' + item?.id + '|' + item?.color + '|' + 'facturacion'
-                Date date = new Date()
-                SimpleDateFormat formateador = new SimpleDateFormat("hhmmss")
-                String nombre = formateador.format(date)
-                generaAcuse(contenido, nombre)
-
-                surteSwitch.surte = 'P'
-            } else if (condicion.trim().equals('No') && result.size() == 2) {
-                Integer question = JOptionPane.showConfirmDialog(new JDialog(), '¿Desea Continuar con la venta?', 'Almacen Central no Responde o sin Existencias',
-                        JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
-                if (question == 0) {
-                    surteSucursal = false
-                } else {
-                    agregaArticulo = false
-                }
-            } else if( result.size() >= 3 && result[2].equalsIgnoreCase('noValidaSP') ){
-                //notifyAlert('Almacen Central no Responde', 'Contacte a Soporte Tecnico')
-                surteSucursal = false
-            }
+      Boolean agregaArticulo = true
+      Boolean surteSucursal = true
+      SurteSwitch surteSwitch = new SurteSwitch()
+      surteSwitch?.surte = surte
+      List<PreciosJava> lstPrecios = PreciosQuery.buscaPreciosPorArticulo(StringUtils.trimToEmpty(item?.name));
+      PreciosJava precio = lstPrecios.size() > 0 ? lstPrecios.get(0) : new PreciosJava()
+      if( (item.subtype.startsWith('S') || item.typ.equalsIgnoreCase('O')) ||
+                (StringUtils.trimToEmpty(item?.type).equals('A') && StringUtils.trimToEmpty(precio?.surte).equals('P')) ){
+        AcusesTipoJava acusesTipo = AcusesTipoQuery.buscaAcuseTipoPorIdTipo('AUT')
+        String url = acusesTipo?.pagina + '?id_suc=' + StringUtils.trimToEmpty(branch?.id.toString()) + '&id_col=' + item?.color?.trim() + '&id_art=' + StringUtils.trimToEmpty(item?.name.toString())
+        String resultado = ''
+        if(  detalleNotaVentaServiceJava.verificaValidacionSP(item?.id, order.id, '') ){
+          resultado = callWS(url, item?.id, order.id)
+        } else {
+          resultado = 'No|'+StringUtils.trimToEmpty(item?.name?.toString())+'|noValidaSP'
         }
-
-        surteSwitch.setAgregaArticulo(agregaArticulo)
-        surteSwitch.setSurteSucursal(surteSucursal)
-
-        return surteSwitch
+        println(resultado)
+        int index
+        try {
+          index = 1
+        } catch (ex) {
+          index = 1
+        }
+        String[] result = resultado.split(/\|/)
+        String condicion = result[0]
+        if (condicion.trim().equals('Si')) {
+          String contenido = resultado + '|' + item?.id + '|' + item?.color + '|' + 'facturacion'
+          Date date = new Date()
+          SimpleDateFormat formateador = new SimpleDateFormat("hhmmss")
+          String nombre = formateador.format(date)
+          generaAcuse(contenido, nombre)
+          surteSwitch.surte = 'P'
+        } else if (condicion.trim().equals('No') && result.size() == 2) {
+          Integer question = JOptionPane.showConfirmDialog(new JDialog(), '¿Desea Continuar con la venta?', 'Almacen Central no Responde o sin Existencias',
+                  JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
+          if (question == 0) {
+            surteSucursal = false
+          } else {
+            agregaArticulo = false
+          }
+        } else if( result.size() >= 3 && result[2].equalsIgnoreCase('noValidaSP') ){
+          surteSucursal = false
+        }
+      }
+      surteSwitch.setAgregaArticulo(agregaArticulo)
+      surteSwitch.setSurteSucursal(surteSucursal)
+      return surteSwitch
     }
 
     static void insertaAcuseAPAR(Order order, Branch branch) {
@@ -1496,15 +1498,15 @@ class OrderController {
     }
 
     static void generaAcuse(String contenido, String nombre) {
-        try {
-            Parametro ruta = parametroRepository.findOne(TipoParametro.ARCHIVO_CONSULTA_WEB.value)
-            File archivo = new File(ruta?.valor, nombre.toString())
-            BufferedWriter out = new BufferedWriter(new FileWriter(archivo))
-            out.write(contenido)
-            out.close()
-        } catch (Exception e) {
-            e.printStackTrace()
-        }
+      try {
+        Parametros ruta = ParametrosQuery.BuscaParametroPorId(TipoParametro.ARCHIVO_CONSULTA_WEB.value)
+        File archivo = new File(ruta?.valor, nombre.toString())
+        BufferedWriter out = new BufferedWriter(new FileWriter(archivo))
+        out.write(contenido)
+        out.close()
+      } catch (Exception e) {
+        e.printStackTrace()
+      }
     }
 
     static String callUrlMethod(String url) {
@@ -1546,33 +1548,33 @@ class OrderController {
 
 
   static  String callWS(String url, Integer idArticulo, String idFactura) {
-      ExecutorService executor = Executors.newFixedThreadPool(1)
-      println url
-      LogSP log = new LogSP()
-        String respuesta = ''
-        int timeoutSecs = 20
-        final Future<?> future = executor.submit(new Runnable() {
-            public void run() {
-                try {
-                    URL urlResp = url.toURL()
-                    println urlResp.text
-                    respuesta = urlResp.text?.find( /<XX>\s*(.*)\s*<\/XX>/ ) {m, r -> return r}
-                    println "Respuesta Surte Pino: ${respuesta}"
-                } catch (Exception e) {
-                    throw new RuntimeException(e)
-                }
-            }
-        })
+    ExecutorService executor = Executors.newFixedThreadPool(1)
+    println url
+    LogSP log = new LogSP()
+    String respuesta = ''
+    int timeoutSecs = 20
+    final Future<?> future = executor.submit(new Runnable() {
+      public void run() {
         try {
-            future.get(timeoutSecs, TimeUnit.SECONDS)
-            detalleNotaVentaService.saveLogSP( idArticulo, idFactura, respuesta )
+          URL urlResp = url.toURL()
+          println urlResp.text
+          respuesta = urlResp.text?.find( /<XX>\s*(.*)\s*<\/XX>/ ) {m, r -> return r}
+          println "Respuesta Surte Pino: ${respuesta}"
         } catch (Exception e) {
-            future.cancel(true)
-            respuesta = 'No|'+idArticulo
-            this.log.warn("encountered problem while doing some work", e)
+          throw new RuntimeException(e)
         }
-        return respuesta
+      }
+    })
+    try {
+      future.get(timeoutSecs, TimeUnit.SECONDS)
+      detalleNotaVentaServiceJava.saveLogSP( idArticulo, idFactura, respuesta )
+    } catch (Exception e) {
+      future.cancel(true)
+      respuesta = 'No|'+idArticulo
+      this.log.warn("encountered problem while doing some work", e)
     }
+    return respuesta
+  }
 
 
     static String armazonString(String idNotaVenta) {
@@ -1682,24 +1684,24 @@ class OrderController {
 
 
 
-    static Boolean validOnlyOnePackage( List<OrderItem> lstItems, Integer idItem ){
-      List<Integer> lstIds = new ArrayList<Integer>()
-      for(OrderItem item : lstItems){
-        lstIds.add( item.item.id )
-      }
-      Boolean unPaquete = articuloService.validaUnSoloPaquete( lstIds, idItem )
-      return unPaquete
+  static Boolean validOnlyOnePackage( List<OrderItem> lstItems, Integer idItem ){
+    List<Integer> lstIds = new ArrayList<Integer>()
+    for(OrderItem item : lstItems){
+      lstIds.add( item.item.id )
     }
+    Boolean unPaquete = articulosServiceJava.validaUnSoloPaquete( lstIds, idItem )
+    return unPaquete
+  }
 
 
-    static Boolean validOnlyOneLens( List<OrderItem> lstItems, Integer idItem ){
-        List<Integer> lstIds = new ArrayList<Integer>()
-        for(OrderItem item : lstItems){
-            lstIds.add( item.item.id )
-        }
-        Boolean unLente = articuloService.validaUnSoloLente( lstIds, idItem )
-        return unLente
+  static Boolean validOnlyOneLens( List<OrderItem> lstItems, Integer idItem ){
+    List<Integer> lstIds = new ArrayList<Integer>()
+    for(OrderItem item : lstItems){
+      lstIds.add( item.item.id )
     }
+    Boolean unLente = articulosServiceJava.validaUnSoloLente( lstIds, idItem )
+    return unLente
+  }
 
 
     static Boolean validReusoTicket( String ticket, Integer idArticulo ){
@@ -2275,57 +2277,57 @@ class OrderController {
 
 
 
-    static Boolean validArticleGenericNoDelivered( Integer idItem ){
-        Boolean entregaBo = false
-        Parametro genericoNoEntrega = parametroRepository.findOne(TipoParametro.GENERICOS_NO_ETREGABLES.value)
-        ArrayList<String> genericosNoEntregables = new ArrayList<String>()
-        String s = genericoNoEntrega?.valor
-        StringTokenizer st = new StringTokenizer(s.trim(), ",")
-        Iterator its = st.iterator()
-        while (its.hasNext()) {
-            genericosNoEntregables.add(its.next().toString())
-        }
-        Articulo articulo = articuloService.obtenerArticulo(idItem)
-            for (int a = 0; a < genericosNoEntregables.size(); a++) {
-                String[] values = genericosNoEntregables.get(a).trim().split(":")
-                String generico = StringUtils.trimToEmpty(values[0])
-                String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
-                String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
-                String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
-                Boolean genericoValid = false
-                Boolean tipoValid = false
-                Boolean subtipoValid = false
-                Boolean marcaValid = false
-                if (articulo?.idGenerico.trim().equalsIgnoreCase(generico.trim())) {
-                    genericoValid = true
-                }
-                if( tipo.length() > 0 ){
-                    if (articulo?.tipo.trim().equalsIgnoreCase(tipo.trim())) {
-                        tipoValid = true
-                    }
-                } else {
-                    tipoValid = true
-                }
-                if( subtipo.length() > 0 ){
-                    if (articulo?.subtipo.trim().equalsIgnoreCase(subtipo.trim())) {
-                        subtipoValid = true
-                    }
-                } else {
-                    subtipoValid = true
-                }
-                if( marca.length() > 0 ){
-                    if (articulo?.marca.trim().equalsIgnoreCase(marca.trim())) {
-                        marcaValid = true
-                    }
-                } else {
-                    marcaValid = true
-                }
-                if( genericoValid && tipoValid && subtipoValid && marcaValid ){
-                    entregaBo = true
-                }
-            }
-        return entregaBo
+  static Boolean validArticleGenericNoDelivered( Integer idItem ){
+    Boolean entregaBo = false
+    Parametros genericoNoEntrega = ParametrosQuery.BuscaParametroPorId(TipoParametro.GENERICOS_NO_ETREGABLES.value)
+    ArrayList<String> genericosNoEntregables = new ArrayList<String>()
+    String s = genericoNoEntrega?.valor
+    StringTokenizer st = new StringTokenizer(s.trim(), ",")
+    Iterator its = st.iterator()
+    while (its.hasNext()) {
+      genericosNoEntregables.add(its.next().toString())
     }
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(idItem)
+    for (int a = 0; a < genericosNoEntregables.size(); a++) {
+      String[] values = genericosNoEntregables.get(a).trim().split(":")
+      String generico = StringUtils.trimToEmpty(values[0])
+      String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
+      String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
+      String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
+      Boolean genericoValid = false
+      Boolean tipoValid = false
+      Boolean subtipoValid = false
+      Boolean marcaValid = false
+      if (StringUtils.trimToEmpty(articulo?.idGenerico).equalsIgnoreCase(StringUtils.trimToEmpty(generico))) {
+        genericoValid = true
+      }
+      if( tipo.length() > 0 ){
+        if (StringUtils.trimToEmpty(articulo?.tipo).equalsIgnoreCase(StringUtils.trimToEmpty(tipo))) {
+          tipoValid = true
+        }
+      } else {
+        tipoValid = true
+      }
+      if( subtipo.length() > 0 ){
+        if (StringUtils.trimToEmpty(articulo?.subtipo).equalsIgnoreCase(StringUtils.trimToEmpty(subtipo))) {
+          subtipoValid = true
+        }
+      } else {
+        subtipoValid = true
+      }
+      if( marca.length() > 0 ){
+        if (StringUtils.trimToEmpty(articulo?.marca).equalsIgnoreCase(StringUtils.trimToEmpty(marca))) {
+          marcaValid = true
+        }
+      } else {
+        marcaValid = true
+      }
+      if( genericoValid && tipoValid && subtipoValid && marcaValid ){
+        entregaBo = true
+      }
+    }
+    return entregaBo
+  }
 
 
 

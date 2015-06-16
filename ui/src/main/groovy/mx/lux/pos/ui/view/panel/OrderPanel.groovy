@@ -2,6 +2,7 @@ package mx.lux.pos.ui.view.panel
 
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
+import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.model.*
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.Parametros
@@ -571,28 +572,27 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               article = input.trim()
             }
             List<Item> results = ItemController.findItemsByQuery(article)
-                if (results?.any()) {
-                    Item item = new Item()
-                    if (results.size() == 1) {
-                        item = results.first()
-                        Articulo art = ItemController.findArticle( item.id )
-                        if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
-                            if( OrderController.validArticleGenericNoDelivered(item.id) ||
-                                    StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
-                                if( customer.id != CustomerController.findDefaultCustomer().id ){
-                                  if( !appliedEnsure( art ) ){
-                                    validarVentaNegativa(item, customer, holdPromo)
-                                  } else {
-                                    optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
-                                              .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
-                                              .show()
-                                  }
-                                } else {
+            if (results?.any()) {
+              Item item = new Item()
+              if (results.size() == 1) {
+                item = results.first()
+                ArticulosJava art = ItemController.findArticleJava( item.id )
+                if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
+                  if( OrderController.validArticleGenericNoDelivered(item.id) ||
+                          StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+                    if( customer.id != CustomerController.findDefaultCustomer().id ){
+                      if( !appliedEnsure( art ) ){
+                        validarVentaNegativa(item, customer, holdPromo)
+                      } else {
+                        optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                                .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO).show()
+                      }
+                    } else {
                                     optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
                                             .createDialog(new JTextField(), "Articulo Invalido")
                                             .show()
-                                }
-                            } else {
+                    }
+                  } else {
                               if( !appliedEnsure( art ) ){
                                 validarVentaNegativa(item, customer, holdPromo)
                               } else {
@@ -600,13 +600,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                                     .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
                                     .show()
                               }
-                            }
-                        } else {
+                  }
+                } else {
                             optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
                                     .createDialog(new JTextField(), "Articulo Invalido")
                                     .show()
-                        }
-                    } else {
+                }
+              } else {
                         SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, results)
                         dialog.show()
                         item = dialog.item
@@ -643,8 +643,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                                       .show()
                           }
                         }
-                    }
-                } else if( StringUtils.trimToEmpty(article).equalsIgnoreCase(TAG_RECETA_LC) ){
+              }
+            } else if( StringUtils.trimToEmpty(article).equalsIgnoreCase(TAG_RECETA_LC) ){
                   if( customer.id != CustomerController.findDefaultCustomer().id ){
                     if( order?.id == null ){
                       order = OrderController.openOrder(StringUtils.trimToEmpty(customer.id.toString()), order.employee)
@@ -659,14 +659,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                               .createDialog(new JTextField(), "Articulo Invalido")
                               .show()
                   }
-                } else {
+            } else {
                     optionPane(message: "No se encontraron resultados para: ${article}", optionType: JOptionPane.DEFAULT_OPTION)
                             .createDialog(new JTextField(), "B\u00fasqueda: ${article}")
                             .show()
-                }
-                if (newOrder && (StringUtils.trimToNull(order?.id) != null) && (StringUtils.trimToNull(customer?.id) != null)) {
+            }
+            if (newOrder && (StringUtils.trimToNull(order?.id) != null) && (StringUtils.trimToNull(customer?.id) != null)) {
                     this.setCustomerInOrder()
-                }
+            }
 
           }
           sb.doLater {
@@ -846,15 +846,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void validarVentaNegativa(Item item, Customer customer, Boolean holdPromo) {
-        User u = Session.get(SessionItem.USER) as User
-        order.setEmployee(u.username)
-        Branch branch = Session.get(SessionItem.BRANCH) as Branch
-        Boolean isOnePackage = OrderController.validOnlyOnePackage( order.items, item.id )
-        Boolean isOneLens = OrderController.validOnlyOneLens( order.items, item.id )
-        SurteSwitch surteSwitch = OrderController.surteCallWS(branch, item, 'S', order)
-        surteSwitch = surteSu(item, surteSwitch)
-        Boolean esInventariable = ItemController.esInventariable( item.id )
-        if( isOnePackage ){
+      User u = Session.get(SessionItem.USER) as User
+      order.setEmployee(u.username)
+      Branch branch = Session.get(SessionItem.BRANCH) as Branch
+      Boolean isOnePackage = OrderController.validOnlyOnePackage( order.items, item.id )
+      Boolean isOneLens = OrderController.validOnlyOneLens( order.items, item.id )
+      SurteSwitch surteSwitch = OrderController.surteCallWS(branch, item, 'S', order)
+        #$
+      surteSwitch = surteSu(item, surteSwitch)
+      Boolean esInventariable = ItemController.esInventariable( item.id )
+      if( isOnePackage ){
           if( isOneLens ){
               if (surteSwitch?.agregaArticulo == true && surteSwitch?.surteSucursal == true) {
                   String surte = surteSwitch?.surte
@@ -2272,7 +2273,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
   }
 
 
-  private Boolean appliedEnsure( Articulo articulo ){
+  private Boolean appliedEnsure( ArticulosJava articulo ){
     Boolean valid = false
     for(int i=0;i<promotionList.size();i++){
       if(promotionList.get(i) instanceof PromotionDiscount){

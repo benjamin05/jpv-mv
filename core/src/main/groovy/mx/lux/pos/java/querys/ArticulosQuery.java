@@ -44,7 +44,8 @@ public class ArticulosQuery {
 	}
 
 
-    public static ArticulosJava busquedaArticuloPorArticulo(String articulo) throws ParseException{
+    public static List<ArticulosJava> busquedaArticuloPorArticulo(String articulo) throws ParseException{
+      List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
       ArticulosJava articulosJava = null;
       try {
         Connection con = Connections.doConnect();
@@ -56,6 +57,7 @@ public class ArticulosQuery {
           while (rs.next()) {
             articulosJava = new ArticulosJava();
             articulosJava.setValores( rs );
+            lstArticulos.add(articulosJava);
           }
           con.close();
         } else {
@@ -64,7 +66,59 @@ public class ArticulosQuery {
       } catch (SQLException err) {
         System.out.println( err );
       }
-      return articulosJava;
+      return lstArticulos;
+    }
+
+
+    public static List<ArticulosJava> busquedaArticuloPorDescripcion(String descripcion) throws ParseException{
+      List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
+      ArticulosJava articulosJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "";
+        if(StringUtils.trimToEmpty(descripcion).length() > 0 ){
+          sql = "SELECT * FROM articulos WHERE desc_articulo like '%"+StringUtils.trimToEmpty(descripcion)+"%' AND s_articulo = 'V';";
+          rs = stmt.executeQuery(sql);
+          while (rs.next()) {
+            articulosJava = new ArticulosJava();
+            articulosJava.setValores( rs );
+            lstArticulos.add(articulosJava);
+          }
+          con.close();
+        } else {
+          System.out.println( "No existen el articulo con descripcion: "+descripcion );
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstArticulos;
+    }
+
+
+    public static List<ArticulosJava> busquedaArticuloPorIdGenerico(String idGenerico) throws ParseException{
+      List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
+      ArticulosJava articulosJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "";
+        if(StringUtils.trimToEmpty(idGenerico).length() > 0 ){
+          sql = String.format("SELECT * FROM articulos WHERE id_generico = '%s' AND s_articulo = 'V';", StringUtils.trimToEmpty(idGenerico));
+          rs = stmt.executeQuery(sql);
+          while (rs.next()) {
+            articulosJava = new ArticulosJava();
+            articulosJava.setValores( rs );
+            lstArticulos.add(articulosJava);
+          }
+          con.close();
+        } else {
+          System.out.println( "No existen el generico: "+idGenerico );
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstArticulos;
     }
 
 

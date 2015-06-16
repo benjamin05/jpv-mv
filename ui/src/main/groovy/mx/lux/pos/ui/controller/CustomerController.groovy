@@ -201,8 +201,8 @@ class CustomerController {
     }
 
     static Customer findDefaultCustomer() {
-        log.debug("obteniendo customer por default")
-        Customer.toCustomer(clienteService.obtenerClientePorDefecto())
+      log.debug("obteniendo customer por default")
+      Customer.toCustomer(clienteServiceJava.obtenerClientePorDefecto())
     }
 
     static Customer findDefaultCustomerJava() {
