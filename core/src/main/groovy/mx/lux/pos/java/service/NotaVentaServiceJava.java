@@ -470,4 +470,25 @@ public class NotaVentaServiceJava {
     return buf.toString( );
   }
 
+
+
+  public void entregaPedidoLc( String idPedido ) throws ParseException {
+    PedidoLcJava pedidoLc = PedidoLcQuery.buscaPedidoLcPorId(idPedido);
+    if( pedidoLc != null ){
+      pedidoLc.setFechaEntrega(new Date());
+      PedidoLcQuery.savePedidoLc(pedidoLc);
+    }
+  }
+
+
+  Boolean diaActualEstaAbierto(){
+    Boolean isOpen = true;
+    CierreDiarioJava cierreDiario = CierreDiarioQuery.buscaCierreDiarioPorFecha( new Date() );
+    if( cierreDiario != null ){
+      if( StringUtils.trimToEmpty(cierreDiario.getEstado()).equalsIgnoreCase("c") ){
+        isOpen = false;
+      }
+    }
+    return isOpen;
+  }
 }

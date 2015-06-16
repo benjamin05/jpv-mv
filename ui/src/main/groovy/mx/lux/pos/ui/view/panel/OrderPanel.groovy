@@ -549,27 +549,28 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     private def doItemSearch( Boolean holdPromo ) {
       println "holdPromo: "+holdPromo
-        Receta rec = new Receta()
-        String input = itemSearch.text
-        String article = input
-        Boolean newOrder = false
-        if (order?.id != null) {
-            newOrder = StringUtils.isBlank(order.id)
-        }
+      Receta rec = new Receta()
+      itemSearch.enabled = false
+      String input = itemSearch.text
+      String article = input
+      Boolean newOrder = false
+      if (order?.id != null) {
+        newOrder = StringUtils.isBlank(order.id)
+      }
       if( OrderController.dayIsOpen() ){
         if (StringUtils.isNotBlank(input)) {
-            sb.doOutside {
-                if( input.contains(/$/) ){
-                  String[] inputTmp = input.split(/\$/)
-                  if( input.trim().contains(/$$/) ) {
-                      article = inputTmp[0]
-                  } else {
-                      article = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
-                  }
-                } else {
-                  article = input.trim()
-                }
-                List<Item> results = ItemController.findItemsByQuery(article)
+          sb.doOutside {
+            if( input.contains(/$/) ){
+              String[] inputTmp = input.split(/\$/)
+              if( input.trim().contains(/$$/) ) {
+                article = inputTmp[0]
+              } else {
+                article = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
+              }
+            } else {
+              article = input.trim()
+            }
+            List<Item> results = ItemController.findItemsByQuery(article)
                 if (results?.any()) {
                     Item item = new Item()
                     if (results.size() == 1) {
@@ -667,10 +668,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     this.setCustomerInOrder()
                 }
 
-            }
-            sb.doLater {
-                itemSearch.text = null
-            }
+          }
+          sb.doLater {
+            itemSearch.text = null
+          }
 
         } else {
           sb.optionPane(message: 'Es necesario ingresar una b\u00fasqeda v\u00e1lida', optionType: JOptionPane.DEFAULT_OPTION)
@@ -682,6 +683,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   .createDialog(new JTextField(), "Dia cerrado")
                   .show()
       }
+      itemSearch.enabled = true
     }
 
     private def doShowItemClick = { MouseEvent ev ->

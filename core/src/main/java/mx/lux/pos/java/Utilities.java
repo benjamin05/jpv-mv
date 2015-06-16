@@ -73,4 +73,11 @@ public class Utilities {
   }
 
 
+  public static Boolean toBoolean( Boolean value ){
+    Boolean result = false;
+    if( value != null ){
+      result = value;
+    }
+    return  result;
+  }
 }

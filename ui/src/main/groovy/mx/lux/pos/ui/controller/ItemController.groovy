@@ -2,11 +2,13 @@ package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
 import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.querys.PedidoLcQuery
 import mx.lux.pos.java.repository.ModeloLcJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PedidoLcDetJava
 import mx.lux.pos.java.repository.PedidoLcJava
+import mx.lux.pos.java.service.NotaVentaServiceJava
 import mx.lux.pos.model.Articulo
 import mx.lux.pos.model.Generico
 import mx.lux.pos.model.ModeloLc
@@ -46,6 +48,7 @@ class ItemController {
   private static ArticulosServiceJava articulosServiceJava
   private static TicketService ticketService
   private static NotaVentaService notaVentaService
+  private static NotaVentaServiceJava notaVentaServiceJava
 
   @Autowired
   public ItemController( ArticuloService articuloService, TicketService ticketService, NotaVentaService notaVentaService ) {
@@ -53,6 +56,7 @@ class ItemController {
     this.ticketService = ticketService
     this.notaVentaService = notaVentaService
     this.articulosServiceJava = new ArticulosServiceJava()
+    notaVentaServiceJava = new NotaVentaServiceJava()
   }
 
   static Item findItem( Integer id ) {
@@ -79,7 +83,7 @@ class ItemController {
   static List<Item> findItemsByQuery( final String query ) {
     log.debug( "buscando de articulos con query: $query" )
       if ( StringUtils.isNotBlank( query ) ) {
-      List<Articulo> items = findPartsByQuery( query )
+      List<ArticulosJava> items = findPartsByQuery( query )
       if (items.size() > 0) {
         log.debug( "Items:: ${items.first()?.dump()} " )
         return items?.collect { Item.toItem( it ) }
@@ -89,28 +93,23 @@ class ItemController {
     return [ ]
   }
 
-  static List<Articulo> findPartsByQuery( final String query ) {
+  static List<ArticulosJava> findPartsByQuery( final String query ) {
     return findPartsByQuery( query, true )
   }
 
-  static List<Articulo> findPartsByQuery( final String query, Boolean incluyePrecio ) {
-    List<Articulo> items = [ ]
+  static List<ArticulosJava> findPartsByQuery( final String query, Boolean incluyePrecio ) {
+    List<ArticulosJava> items = [ ]
     if ( StringUtils.isNotBlank( query ) ) {
-      /*if ( query.integer ) {
-        log.debug( "busqueda por articulo exacto ${query}" )
-        items.add( articuloService.obtenerArticulo( query.toInteger(), incluyePrecio ) )
-      } else {*/
-        def anyMatch = '*'
-        def colorMatch = ','
-        def typeMatch = '+'
-        if ( query.contains( anyMatch ) ) {
-          def tokens = query.tokenize( anyMatch )
-          def code = tokens?.first() ?: null
-            log.warn( "bien3" )
-            log.debug( "busqueda con codigo similar: ${code}" )
-
-          items = articuloService.listarArticulosPorCodigoSimilar( code, incluyePrecio ) ?: [ ]
-        } else {
+      def anyMatch = '*'
+      def colorMatch = ','
+      def typeMatch = '+'
+      if ( query.contains( anyMatch ) ) {
+        def tokens = query.tokenize( anyMatch )
+        def code = tokens?.first() ?: null
+        log.warn( "bien3" )
+        log.debug( "busqueda con codigo similar: ${code}" )
+        items = articulosServiceJava.listarArticulosPorCodigoSimilar( code, incluyePrecio ) ?: [ ]
+      } else {
           def tokens = query.replaceAll( /[+|,]/, '|' ).tokenize( '|' )
           def code = tokens?.first() ?: null
           log.debug( "busqueda con codigo exacto: ${code}" )
@@ -402,9 +401,9 @@ class ItemController {
 
 
   static void printWarranty( BigDecimal amount, String idItem, String typeWarranty, String idFactura, Boolean doubleEnsure ){
-    NotaVenta nota = ticketService.imprimeGarantia( amount, idItem, typeWarranty, idFactura, doubleEnsure )
+    NotaVentaJava nota = ticketService.imprimeGarantia( amount, idItem, typeWarranty, idFactura, doubleEnsure )
     if( nota != null ){
-      notaVentaService.saveOrder( nota )
+      NotaVentaQuery.updateNotaVenta( nota )
     }
   }
 

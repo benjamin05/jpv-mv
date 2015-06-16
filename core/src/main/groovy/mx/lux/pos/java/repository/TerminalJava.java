@@ -1,5 +1,7 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.Utilities;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -77,7 +79,7 @@ public class TerminalJava {
 	  terminal.setIdBancoDep(rs.getInt("id_banco_dep"));
       terminal.setDescripcion(rs.getString("descripcion"));
       terminal.setAfiliacion(rs.getString("afiliacion"));
-      terminal.setPromocion(rs.getBoolean("promocion"));
+      terminal.setPromocion(Utilities.toBoolean(rs.getBoolean("promocion")));
       terminal.setNumero(rs.getString("numero"));
 	  return terminal;
 	}

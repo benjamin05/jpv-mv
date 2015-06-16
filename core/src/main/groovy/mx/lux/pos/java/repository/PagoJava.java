@@ -294,7 +294,7 @@ public class PagoJava {
         this.setIdBancoEmi(trim(rs.getString("id_banco_emi")));
         this.setIdTerm(trim(rs.getString("id_term")));
         this.setIdPlan(trim(rs.getString("id_plan")));
-        this.setConfirm(rs.getBoolean("confirm"));
+        this.setConfirm(Utilities.toBoolean(rs.getBoolean("confirm")));
         this.setPorDev(Utilities.toBigDecimal(trim(rs.getString("por_dev"))));
         this.seteTipoPago( tipoPago() );
         this.setTerminal( terminal() );

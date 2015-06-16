@@ -1,5 +1,6 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.querys.ClientePaisQuery;
 import mx.lux.pos.java.querys.MunicipioQuery;
 import org.apache.commons.lang.StringUtils;
@@ -407,10 +408,10 @@ public class ClientesJava {
         this.setIdLocalidad(rs.getString("id_localidad"));
         this.setIdEstado(rs.getString("id_estado"));
         this.setFechaAltaCli(rs.getDate("fecha_alta_cli"));
-        this.setSexoCli(rs.getBoolean("sexo_cli"));
+        this.setSexoCli(Utilities.toBoolean(rs.getBoolean("sexo_cli")));
         this.setApellidoPatCli(rs.getString("apellido_pat_cli"));
         this.setApellidoMatCli(rs.getString("apellido_mat_cli"));
-        this.setfCasadaCli(rs.getBoolean("f_casada_cli"));
+        this.setfCasadaCli(Utilities.toBoolean(rs.getBoolean("f_casada_cli")));
         this.setNombreCli(rs.getString("nombre_cli"));
         this.setRfcCli(rs.getString("rfc_cli"));
         this.setDireccionCli(rs.getString("direccion_cli"));
@@ -423,7 +424,7 @@ public class ClientesJava {
         this.setExtAdiCli(rs.getString("ext_adi_cli"));
         this.setEmailCli(rs.getString("email_cli"));
         this.setsUsaAnteojos(rs.getString("s_usa_anteojos"));
-        this.setAvisar(rs.getBoolean("avisar"));
+        this.setAvisar(Utilities.toBoolean(rs.getBoolean("avisar")));
         this.setIdAtendio(rs.getString("id_atendio"));
         this.setUdf1(rs.getString("udf1"));
         this.setUdf2(rs.getString("udf2"));
@@ -436,7 +437,7 @@ public class ClientesJava {
         this.setFechaNac(rs.getDate("fecha_nac"));
         this.setCuc(rs.getString("cuc"));
         this.setHoraAlta(rs.getDate("hora_alta"));
-        this.setFinado(rs.getBoolean("finado"));
+        this.setFinado(Utilities.toBoolean(rs.getBoolean("finado")));
         this.setFechaImp(rs.getDate("fecha_imp"));
         this.setPrincipal(rs.getInt("principal"));
         this.setMunicipio( municipioJava() );

@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ArticulosQuery {
 
@@ -63,6 +65,32 @@ public class ArticulosQuery {
         System.out.println( err );
       }
       return articulosJava;
+    }
+
+
+    public static List<ArticulosJava> busquedaArticuloPorArticuloParecido(String articulo) throws ParseException{
+      List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
+      ArticulosJava articulosJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "";
+        if(StringUtils.trimToEmpty(articulo).length() > 0 ){
+          sql = "SELECT * FROM articulos WHERE articulo ILIKE '"+StringUtils.trimToEmpty(articulo)+"%' ORDER BY articulo ASC;";
+          rs = stmt.executeQuery(sql);
+          while (rs.next()) {
+            articulosJava = new ArticulosJava();
+            articulosJava.setValores( rs );
+            lstArticulos.add(articulosJava);
+          }
+          con.close();
+        } else {
+          System.out.println( "No existen el articulo: "+articulo );
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstArticulos;
     }
 
 

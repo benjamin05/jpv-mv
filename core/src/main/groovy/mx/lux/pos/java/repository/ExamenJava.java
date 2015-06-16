@@ -1,5 +1,7 @@
 package mx.lux.pos.java.repository;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
@@ -65,7 +67,7 @@ public class ExamenJava {
     }
 
     public String getIdAtendio() {
-        return idAtendio;
+        return StringUtils.trimToEmpty(idAtendio);
     }
 
     public void setIdAtendio(String idAtendio) {
@@ -73,7 +75,7 @@ public class ExamenJava {
     }
 
     public String getAvSaOdLejosEx() {
-        return avSaOdLejosEx;
+        return StringUtils.trimToEmpty(avSaOdLejosEx);
     }
 
     public void setAvSaOdLejosEx(String avSaOdLejosEx) {
@@ -81,7 +83,7 @@ public class ExamenJava {
     }
 
     public String getAvSaOiLejosEx() {
-        return avSaOiLejosEx;
+        return StringUtils.trimToEmpty(avSaOiLejosEx);
     }
 
     public void setAvSaOiLejosEx(String avSaOiLejosEx) {
@@ -89,7 +91,7 @@ public class ExamenJava {
     }
 
     public String getObjOdEsfEx() {
-        return objOdEsfEx;
+        return StringUtils.trimToEmpty(objOdEsfEx);
     }
 
     public void setObjOdEsfEx(String objOdEsfEx) {
@@ -97,7 +99,7 @@ public class ExamenJava {
     }
 
     public String getObjOdCilEx() {
-        return objOdCilEx;
+        return StringUtils.trimToEmpty(objOdCilEx);
     }
 
     public void setObjOdCilEx(String objOdCilEx) {
@@ -105,7 +107,7 @@ public class ExamenJava {
     }
 
     public String getObjOdEjeEx() {
-        return objOdEjeEx;
+        return StringUtils.trimToEmpty(objOdEjeEx);
     }
 
     public void setObjOdEjeEx(String objOdEjeEx) {
@@ -113,7 +115,7 @@ public class ExamenJava {
     }
 
     public String getObjOiEsfEx() {
-        return objOiEsfEx;
+        return StringUtils.trimToEmpty(objOiEsfEx);
     }
 
     public void setObjOiEsfEx(String objOiEsfEx) {
@@ -121,7 +123,7 @@ public class ExamenJava {
     }
 
     public String getObjOiCilEx() {
-        return objOiCilEx;
+        return StringUtils.trimToEmpty(objOiCilEx);
     }
 
     public void setObjOiCilEx(String objOiCilEx) {
@@ -129,7 +131,7 @@ public class ExamenJava {
     }
 
     public String getObjOiEjeEx() {
-        return objOiEjeEx;
+        return StringUtils.trimToEmpty(objOiEjeEx);
     }
 
     public void setObjOiEjeEx(String objOiEjeEx) {
@@ -137,7 +139,7 @@ public class ExamenJava {
     }
 
     public String getObjDiEx() {
-        return objDiEx;
+        return StringUtils.trimToEmpty(objDiEx);
     }
 
     public void setObjDiEx(String objDiEx) {
@@ -145,7 +147,7 @@ public class ExamenJava {
     }
 
     public String getSubOdEsfEx() {
-        return subOdEsfEx;
+        return StringUtils.trimToEmpty(subOdEsfEx);
     }
 
     public void setSubOdEsfEx(String subOdEsfEx) {
@@ -153,7 +155,7 @@ public class ExamenJava {
     }
 
     public String getSubOdCilEx() {
-        return subOdCilEx;
+        return StringUtils.trimToEmpty(subOdCilEx);
     }
 
     public void setSubOdCilEx(String subOdCilEx) {
@@ -161,7 +163,7 @@ public class ExamenJava {
     }
 
     public String getSubOdEjeEx() {
-        return subOdEjeEx;
+        return StringUtils.trimToEmpty(subOdEjeEx);
     }
 
     public void setSubOdEjeEx(String subOdEjeEx) {
@@ -169,7 +171,7 @@ public class ExamenJava {
     }
 
     public String getSubOdAdcEx() {
-        return subOdAdcEx;
+        return StringUtils.trimToEmpty(subOdAdcEx);
     }
 
     public void setSubOdAdcEx(String subOdAdcEx) {
@@ -177,7 +179,7 @@ public class ExamenJava {
     }
 
     public String getSubOdAdiEx() {
-        return subOdAdiEx;
+        return StringUtils.trimToEmpty(subOdAdiEx);
     }
 
     public void setSubOdAdiEx(String subOdAdiEx) {
@@ -185,7 +187,7 @@ public class ExamenJava {
     }
 
     public String getSubOdAvEx() {
-        return subOdAvEx;
+        return StringUtils.trimToEmpty(subOdAvEx);
     }
 
     public void setSubOdAvEx(String subOdAvEx) {
@@ -193,7 +195,7 @@ public class ExamenJava {
     }
 
     public String getSubOiEsfEx() {
-        return subOiEsfEx;
+        return StringUtils.trimToEmpty(subOiEsfEx);
     }
 
     public void setSubOiEsfEx(String subOiEsfEx) {
@@ -201,7 +203,7 @@ public class ExamenJava {
     }
 
     public String getSubOiCilEx() {
-        return subOiCilEx;
+        return StringUtils.trimToEmpty(subOiCilEx);
     }
 
     public void setSubOiCilEx(String subOiCilEx) {
@@ -209,7 +211,7 @@ public class ExamenJava {
     }
 
     public String getSubOiEjeEx() {
-        return subOiEjeEx;
+        return StringUtils.trimToEmpty(subOiEjeEx);
     }
 
     public void setSubOiEjeEx(String subOiEjeEx) {
@@ -217,7 +219,7 @@ public class ExamenJava {
     }
 
     public String getSubOiAdcEx() {
-        return subOiAdcEx;
+        return StringUtils.trimToEmpty(subOiAdcEx);
     }
 
     public void setSubOiAdcEx(String subOiAdcEx) {
@@ -225,7 +227,7 @@ public class ExamenJava {
     }
 
     public String getSubOiAdiEx() {
-        return subOiAdiEx;
+        return StringUtils.trimToEmpty(subOiAdiEx);
     }
 
     public void setSubOiAdiEx(String subOiAdiEx) {
@@ -233,7 +235,7 @@ public class ExamenJava {
     }
 
     public String getSubOiAvEx() {
-        return subOiAvEx;
+        return StringUtils.trimToEmpty(subOiAvEx);
     }
 
     public void setSubOiAvEx(String subOiAvEx) {
@@ -241,7 +243,7 @@ public class ExamenJava {
     }
 
     public String getObservacionesEx() {
-        return observacionesEx;
+        return StringUtils.trimToEmpty(observacionesEx);
     }
 
     public void setObservacionesEx(String observacionesEx) {
@@ -249,7 +251,7 @@ public class ExamenJava {
     }
 
     public String getIdSync() {
-        return idSync;
+        return StringUtils.trimToEmpty(idSync);
     }
 
     public void setIdSync(String idSync) {
@@ -265,7 +267,7 @@ public class ExamenJava {
     }
 
     public String getIdMod() {
-        return idMod;
+        return StringUtils.trimToEmpty(idMod);
     }
 
     public void setIdMod(String idMod) {
@@ -281,7 +283,7 @@ public class ExamenJava {
     }
 
     public String getDiOd() {
-        return diOd;
+        return StringUtils.trimToEmpty(diOd);
     }
 
     public void setDiOd(String diOd) {
@@ -289,7 +291,7 @@ public class ExamenJava {
     }
 
     public String getDiOi() {
-        return diOi;
+        return StringUtils.trimToEmpty(diOi);
     }
 
     public void setDiOi(String diOi) {
@@ -297,7 +299,7 @@ public class ExamenJava {
     }
 
     public String getUdf1() {
-        return udf1;
+        return StringUtils.trimToEmpty(udf1);
     }
 
     public void setUdf1(String udf1) {
@@ -305,7 +307,7 @@ public class ExamenJava {
     }
 
     public String getUdf2() {
-        return udf2;
+        return StringUtils.trimToEmpty(udf2);
     }
 
     public void setUdf2(String udf2) {
@@ -313,7 +315,7 @@ public class ExamenJava {
     }
 
     public String getUdf3() {
-        return udf3;
+        return StringUtils.trimToEmpty(udf3);
     }
 
     public void setUdf3(String udf3) {
@@ -321,7 +323,7 @@ public class ExamenJava {
     }
 
     public String getFactura() {
-        return factura;
+        return StringUtils.trimToEmpty(factura);
     }
 
     public void setFactura(String factura) {
@@ -329,7 +331,7 @@ public class ExamenJava {
     }
 
     public String getTipoCli() {
-        return tipoCli;
+        return StringUtils.trimToEmpty(tipoCli);
     }
 
     public void setTipoCli(String tipoCli) {
@@ -337,7 +339,7 @@ public class ExamenJava {
     }
 
     public String getTipoOft() {
-        return tipoOft;
+        return StringUtils.trimToEmpty(tipoOft);
     }
 
     public void setTipoOft(String tipoOft) {
@@ -369,7 +371,7 @@ public class ExamenJava {
     }
 
     public String getIdExOri() {
-        return idExOri;
+        return StringUtils.trimToEmpty(idExOri);
     }
 
     public void setIdExOri(String idExOri) {

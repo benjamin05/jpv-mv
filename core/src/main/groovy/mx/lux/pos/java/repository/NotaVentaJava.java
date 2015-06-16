@@ -492,8 +492,8 @@ public class NotaVentaJava {
         this.ordenPromDet = ordenPromDet;
     }
 
-    public NotaVentaJava setValores( ResultSet rs ) {
-        try {
+    public NotaVentaJava setValores( ResultSet rs ) throws SQLException {
+      try {
             this.setIdFactura(rs.getString("id_factura"));
             this.setIdEmpleado(rs.getString("id_empleado"));
             this.setIdCliente(rs.getInt("id_cliente"));
@@ -502,19 +502,19 @@ public class NotaVentaJava {
             this.setTipoNotaVenta(rs.getString("tipo_nota_venta"));
             this.setFechaRecOrd(rs.getDate("fecha_rec_ord"));
             this.setTipoCli(rs.getString("tipo_cli"));
-            this.setfExpideFactura(rs.getBoolean("f_expide_factura"));
+            this.setfExpideFactura(Utilities.toBoolean(rs.getBoolean("f_expide_factura")));
             this.setVentaTotal(Utilities.toBigDecimal(rs.getString("venta_total")));
             this.setVentaNeta(Utilities.toBigDecimal(rs.getString("venta_neta")));
             this.setSumaPagos(Utilities.toBigDecimal(rs.getString("suma_pagos")));
             this.setFechaHoraFactura(rs.getDate("fecha_hora_factura"));
             this.setFechaPrometida(rs.getDate("fecha_prometida"));
             this.setFechaEntrega(rs.getDate("fecha_entrega"));
-            this.setfArmazonCli(rs.getBoolean("f_armazon_cli"));
+            this.setfArmazonCli(Utilities.toBoolean(rs.getBoolean("f_armazon_cli")));
             this.setPor100Descuento(rs.getInt("por100_descuento"));
             this.setMontoDescuento(Utilities.toBigDecimal(rs.getString("monto_descuento")));
             this.setTipoDescuento(rs.getString("tipo_descuento"));
             this.setIdEmpleadoDescto(rs.getString("id_empleado_descto"));
-            this.setfResumenNotasMo(rs.getBoolean("f_resumen_notas_mo"));
+            this.setfResumenNotasMo(Utilities.toBoolean(rs.getBoolean("f_resumen_notas_mo")));
             this.setsFactura(rs.getString("s_factura"));
             this.setNumeroOrden(rs.getInt("numero_orden"));
             this.setTipoEntrega(rs.getString("tipo_entrega"));
@@ -535,8 +535,8 @@ public class NotaVentaJava {
             this.setEmpEntrego(rs.getString("emp_entrego"));
             this.setLc(rs.getString("lc"));
             this.setHoraEntrega(rs.getDate("hora_entrega"));
-            this.setDescuento(rs.getBoolean("descuento"));
-            this.setPolEnt(rs.getBoolean("pol_ent"));
+            this.setDescuento(Utilities.toBoolean(rs.getBoolean("descuento")));
+            this.setPolEnt(Utilities.toBoolean(rs.getBoolean("pol_ent")));
             this.setTipoVenta(rs.getString("tipo_venta"));
             this.setPoliza(Utilities.toBigDecimal(rs.getString("poliza")));
             this.setCodigoLente(rs.getString("codigo_lente"));

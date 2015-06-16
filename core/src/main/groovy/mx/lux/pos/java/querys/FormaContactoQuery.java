@@ -67,13 +67,15 @@ public class FormaContactoQuery {
       String formatTime = "HH:mm:ss.SSS";
       String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
       FormaContactoJava formaContacto = null;
-      db.insertQuery( sql );
-      sql = String.format("INSERT INTO forma_contacto (rx,id_cliente,id_tipo_contacto,contacto,observaciones,fecha_mod,id_sucursal)" +
-              "VALUES('%s',%d,%d,'%s','%s',%s,%d);", formaContactoJava.getRx(), formaContacto.getIdCliente(), formaContacto.getIdTipoContacto(),
-              formaContacto.getContacto(), formaContacto.getObservaciones(), Utilities.toString(formaContacto.getFechaMod(), formatTimeStamp),
-              formaContacto.getIdSucursal());
-      db.close();
-      formaContacto = buscaFormaContactoPorRx( formaContactoJava.getRx() );
+      if( formaContactoJava != null ){
+        sql = String.format("INSERT INTO forma_contacto (rx,id_cliente,id_tipo_contacto,contacto,observaciones,fecha_mod,id_sucursal)" +
+                  "VALUES('%s',%d,%d,'%s','%s',%s,%d);", formaContactoJava.getRx(), formaContactoJava.getIdCliente(), formaContactoJava.getIdTipoContacto(),
+                  formaContactoJava.getContacto(), formaContactoJava.getObservaciones(), Utilities.toString(formaContactoJava.getFechaMod(), formatTimeStamp),
+                  formaContactoJava.getIdSucursal());
+        db.insertQuery( sql );
+        db.close();
+        formaContacto = buscaFormaContactoPorRx( formaContactoJava.getRx() );
+      }
       return formaContacto;
     }
 

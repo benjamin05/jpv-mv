@@ -1,5 +1,7 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.Utilities;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
@@ -87,7 +89,7 @@ public class GenericosJava {
       this.setIdMod(rs.getString("id_mod"));
       this.setIdSucursal(rs.getInt("id_sucursal"));
       this.setSurte(rs.getString("surte"));
-      this.setInventariable(rs.getBoolean("inventariable"));
+      this.setInventariable(Utilities.toBoolean(rs.getBoolean("inventariable")));
 	  return this;
 	}
 	

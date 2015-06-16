@@ -1,6 +1,7 @@
 package mx.lux.pos.java.service;
 
 
+import com.mysema.query.types.Predicate;
 import mx.lux.pos.java.querys.*;
 import mx.lux.pos.java.repository.*;
 import mx.lux.pos.model.*;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ArticulosServiceJava {
@@ -150,6 +152,22 @@ public class ArticulosServiceJava {
       inventariable = genre.getInventariable();
     }
     return inventariable;
+  }
+
+
+
+  public List<ArticulosJava> listarArticulosPorCodigoSimilar( String articulo, boolean incluyePrecio ) throws ParseException {
+    log.info( "listando articulos con articulo similar: "+articulo );
+    log.warn( "bien5" );
+    List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
+    List<ArticulosJava> resultados = ArticulosQuery.busquedaArticuloPorArticuloParecido(articulo);
+    if ( incluyePrecio ) {
+      for(ArticulosJava art : resultados){
+        lstArticulos.add(establecerPrecio( art ));
+      }
+      return lstArticulos;
+    }
+    return resultados;
   }
 
 

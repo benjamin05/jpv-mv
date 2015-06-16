@@ -1,6 +1,10 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.Utilities;
+
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 
 public class JbJava {
@@ -183,39 +187,34 @@ public class JbJava {
 		this.externo = externo;
 	}
 	
-	public JbJava setValores( String rx, String estado, String idViaje, String caja, String idCliente, Integer roto,
-			String empAtendio, Integer numLlamada, String material, String surte, BigDecimal saldo, String jbTipo,
-			Date volverLlamar, Date fechaPromesa, Date fechaMod, String cliente, String idMod, String obsExt,
-			String retAuto, Boolean noLlamar, String tipoVenta, Date fechaVenta, String idGrupo, Boolean noEnviar,
-			String externo ){
+	public JbJava setValores( ResultSet rs ) throws SQLException {
+		this.setRx(rs.getString("rx"));
+		this.setEstado(rs.getString("estado"));
+		this.setIdViaje(rs.getString("id_viaje"));
+		this.setCaja(rs.getString("caja"));
+		this.setIdCliente(rs.getString("id_cliente"));
+		this.setRoto(rs.getInt("roto"));
+		this.setEmpAtendio(rs.getString("emp_atendio"));
+		this.setNumLlamada(rs.getInt("num_llamada"));
+		this.setMaterial(rs.getString("material"));
+		this.setSurte(rs.getString("surte"));
+		this.setSaldo(Utilities.toBigDecimal(rs.getString("saldo")));
+		this.setJbTipo(rs.getString("jb_tipo"));
+		this.setVolverLlamar(rs.getDate("volver_llamar"));
+		this.setFechaPromesa(rs.getDate("fecha_promesa"));
+		this.setFechaMod(rs.getDate("fecha_mod"));
+		this.setCliente(rs.getString("cliente"));
+		this.setIdMod(rs.getString("id_mod"));
+		this.setObsExt(rs.getString("obs_ext"));
+		this.setRetAuto(rs.getString("ret_auto"));
+		this.setNoLlamar(Utilities.toBoolean(rs.getBoolean("no_llamar")));
+		this.setTipoVenta(rs.getString("tipo_venta"));
+		this.setFechaVenta(rs.getDate("fecha_venta"));
+		this.setIdGrupo(rs.getString("id_grupo"));
+		this.setNoEnviar(Utilities.toBoolean(rs.getBoolean("no_enviar")));
+        this.setExterno(rs.getString("externo"));
 		
-		JbJava jb = new JbJava();
-		this.setRx(rx);
-		this.setEstado(estado);
-		this.setIdViaje(idViaje);
-		this.setCaja(caja);
-		this.setIdCliente(idCliente);
-		this.setRoto(roto);
-		this.setEmpAtendio(empAtendio);
-		this.setNumLlamada(numLlamada);
-		this.setMaterial(material);
-		this.setSurte(surte);
-		this.setSaldo(saldo);
-		this.setJbTipo(jbTipo);
-		this.setVolverLlamar(volverLlamar);
-		this.setFechaPromesa(fechaPromesa);
-		this.setFechaMod(fechaMod);
-		this.setCliente(cliente);
-		this.setIdMod(idMod);
-		this.setObsExt(obsExt);
-		this.setRetAuto(retAuto);
-		this.setNoLlamar(noLlamar);
-		this.setTipoVenta(tipoVenta);
-		this.setFechaVenta(fechaVenta);
-		this.setIdGrupo(idGrupo);
-		this.setNoEnviar(noEnviar);
-		
-		return jb;
+		return this;
 	}
 	
 	

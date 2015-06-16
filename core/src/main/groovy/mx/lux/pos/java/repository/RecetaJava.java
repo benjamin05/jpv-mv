@@ -1,5 +1,6 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.querys.ClientesQuery;
 import mx.lux.pos.java.querys.EmpleadoQuery;
 import mx.lux.pos.java.querys.NotaVentaQuery;
@@ -433,7 +434,7 @@ public class RecetaJava {
             this.setIdRxOri(trim(rs.getString("id_rx_ori")));
             this.setFolio(trim(rs.getString("folio")));
             this.setIdSucursal(rs.getInt("id_sucursal"));
-            this.setfImpresa(rs.getBoolean("f_impresa"));
+            this.setfImpresa(Utilities.toBoolean(rs.getBoolean("f_impresa")));
             this.setIdSync(rs.getString("id_sync"));
             this.setFechaMod(rs.getDate("fecha_mod"));
             this.setIdMod(rs.getString("id_mod"));

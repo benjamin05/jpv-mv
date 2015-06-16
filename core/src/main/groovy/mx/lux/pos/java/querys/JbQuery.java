@@ -8,12 +8,10 @@ import java.sql.Statement;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-import mx.lux.pos.java.repository.JbEstados;
-import mx.lux.pos.java.repository.JbEstadosGrupo;
-import mx.lux.pos.java.repository.JbJava;
-import mx.lux.pos.java.repository.JbTrack;
+import mx.lux.pos.java.repository.*;
 import mx.lux.pos.model.Jb;
 import org.apache.commons.lang3.StringUtils;
 
@@ -93,13 +91,7 @@ public class JbQuery {
             	try{
             		saldo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(saldoTmp)).doubleValue();
             	} catch ( NumberFormatException e ){ System.out.println( e );}
-            	jb.setValores(rs.getString("rx"), rs.getString("descr"), rs.getString("id_viaje"), rs.getString("caja"), 
-            			rs.getString("id_cliente"), rs.getInt("roto"), rs.getString("emp_atendio"), rs.getInt("num_llamada"), 
-            			rs.getString("material"), rs.getString("surte"), new BigDecimal(saldo), rs.getString("jb_tipo"), 
-            			rs.getDate("volver_llamar"), rs.getDate("fecha_promesa"), rs.getDate("fecha_mod"), rs.getString("cliente"), 
-            			rs.getString("id_mod"), rs.getString("obs_ext"), rs.getString("ret_auto"), rs.getBoolean("no_llamar"), 
-            			rs.getString("tipo_venta"), rs.getDate("fecha_venta"), rs.getString("id_grupo"), rs.getBoolean("no_enviar"), 
-            			rs.getString("externo"));
+            	jb.setValores(rs);
             	lstJbs.add(jb);
             }            
             con.close();
@@ -125,13 +117,7 @@ public class JbQuery {
             	try{
             		saldo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(saldoTmp)).doubleValue();
             	} catch ( ParseException e ){ System.out.println( e );}
-            	jb.setValores(rs.getString("rx"), rs.getString("estado"), rs.getString("id_viaje"), rs.getString("caja"), 
-            			rs.getString("id_cliente"), rs.getInt("roto"), rs.getString("emp_atendio"), rs.getInt("num_llamada"), 
-            			rs.getString("material"), rs.getString("surte"), new BigDecimal(saldo), rs.getString("jb_tipo"), 
-            			rs.getDate("volver_llamar"), rs.getDate("fecha_promesa"), rs.getDate("fecha_mod"), rs.getString("cliente"), 
-            			rs.getString("id_mod"), rs.getString("obs_ext"), rs.getString("ret_auto"), rs.getBoolean("no_llamar"), 
-            			rs.getString("tipo_venta"), rs.getDate("fecha_venta"), rs.getString("id_grupo"), rs.getBoolean("no_enviar"), 
-            			rs.getString("externo"));
+            	jb.setValores( rs );
             }            
             con.close();
         } catch (SQLException err) {
@@ -180,7 +166,6 @@ public class JbQuery {
 	}
 
     public static void updateEstadoJbRx (String rx, String estado) {
-
         String sql = "update jb set estado = '" + estado + "' where rx = '" + rx + "'";
         Connections db = new Connections();
         db.updateQuery(sql);
@@ -251,4 +236,67 @@ public class JbQuery {
 
         return jb;
     }
+
+
+    public static void eliminaJbLLamada( String rx ){
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("DELETE FROM jb_llamada where rx = '%s';", StringUtils.trimToEmpty(rx));
+        stmt.executeUpdate(sql);
+        con.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
+
+
+    public static List<JbJava> buscaJbPorIdGrupo( String idGrupo ){
+      List<JbJava> lstJb = new ArrayList<JbJava>();
+      JbJava jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb where id_grupo = '%s';", StringUtils.trimToEmpty(idGrupo));
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          jbJava = new JbJava();
+          jbJava = jbJava.setValores( rs );
+          lstJb.add(jbJava);
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJb;
+    }
+
+
+    public static JbLlamadaJava buscaJbLlamadaPorIdGrupo( String rx ){
+      JbLlamadaJava jbLlamadaJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb_llamada where rx = '%s';", StringUtils.trimToEmpty(rx));
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          jbLlamadaJava = new JbLlamadaJava();
+          jbLlamadaJava = jbLlamadaJava.mapeoParametro(rs);
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return jbLlamadaJava;
+    }
+
+
+    public static void saveJbTrack (JbTrack jbTrack) {
+      String sql = String.format("INSERT INTO jb_track (rx,estado,obs,emp,id_viaje) VALUES('%s','%s','%s','%s','%s');",
+              jbTrack.getRx(), jbTrack.getEstado(), jbTrack.getObs(), jbTrack.getEmp(), jbTrack.getIdViaje());
+      Connections db = new Connections();
+      db.updateQuery(sql);
+      db.close();
+    }
+
 }

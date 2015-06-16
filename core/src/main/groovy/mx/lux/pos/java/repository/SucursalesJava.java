@@ -1,5 +1,7 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.Utilities;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
@@ -234,19 +236,19 @@ public class SucursalesJava {
         this.setTelefonos(rs.getString("telefonos"));
         this.setIdGerente(rs.getString("id_gerente"));
         this.setLetraAscii(rs.getInt("letra_ascii"));
-        this.setSears(rs.getBoolean("sears"));
+        this.setSears(Utilities.toBoolean(rs.getBoolean("sears")));
         this.setPor100Anticipo(rs.getInt("por100_anticipo"));
-        this.setImpresionFact(rs.getBoolean("impresion_fact"));
+        this.setImpresionFact(Utilities.toBoolean(rs.getBoolean("impresion_fact")));
         this.setSerieRepVentas(rs.getInt("serie_rep_ventas"));
         this.setNumRepVentas(rs.getInt("num_rep_ventas"));
-        this.setSerieNumOrden(rs.getBoolean("serie_num_orden"));
+        this.setSerieNumOrden(Utilities.toBoolean(rs.getBoolean("serie_num_orden")));
         this.setIdSync(rs.getString("id_sync"));
         this.setFechaMod(rs.getDate("fecha_mod"));
         this.setIdMod(rs.getString("id_mod"));
         this.setIdSucursal(rs.getInt("id_sucursal"));
         this.setCentroCostos(rs.getString("centro_costos"));
         this.setCiudad(rs.getString("ciudad"));
-        this.setDomingo(rs.getBoolean("domingo"));
+        this.setDomingo(Utilities.toBoolean(rs.getBoolean("domingo")));
         this.setMarca(rs.getString("marca"));
 	  } catch (SQLException err) {
         System.out.println( err );

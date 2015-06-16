@@ -3,6 +3,8 @@ package mx.lux.pos.ui.controller
 import groovy.util.logging.Slf4j
 import mx.lux.pos.java.querys.DescuentosQuery
 import mx.lux.pos.java.querys.FormaContactoQuery
+import mx.lux.pos.java.querys.JbQuery
+import mx.lux.pos.java.querys.JbTrackQuery
 import mx.lux.pos.java.querys.ParametrosQuery
 import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.java.repository.AutorizaMovJava
@@ -13,12 +15,14 @@ import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.java.repository.EmpleadoJava
 import mx.lux.pos.java.repository.ExamenJava
 import mx.lux.pos.java.repository.FormaContactoJava
+import mx.lux.pos.java.repository.JbJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.Parametros
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.java.repository.TmpServiciosJava
 import mx.lux.pos.java.service.ArticulosServiceJava
+import mx.lux.pos.java.service.CancelacionServiceJava
 import mx.lux.pos.java.service.CotizaServiceJava
 import mx.lux.pos.java.service.ExamenServiceJava
 import mx.lux.pos.java.service.InventarioServiceJava
@@ -113,6 +117,7 @@ class OrderController {
     private static Boolean displayUsd
     private static PromotionService promotionService
     private static CancelacionService cancelacionService
+    private static CancelacionServiceJava cancelacionServiceJava
     private static RecetaService recetaService
     private static ExamenService examenService
     private static ExamenServiceJava examenServiceJava
@@ -214,6 +219,7 @@ class OrderController {
         examenServiceJava = new ExamenServiceJava()
         cotizacionServiceJava = new CotizaServiceJava()
         ticketServiceJava = new TicketServiceJava()
+        cancelacionServiceJava = new CancelacionServiceJava()
     }
 
     private static Boolean canceledWarranty
@@ -705,7 +711,6 @@ class OrderController {
             Boolean doubleEnsure = lstWarranty.size() > 1 ? true : false
             for(Warranty warranty : lstWarranty){
               String idFac = StringUtils.trimToEmpty(idOrderEnsured).length() > 0 ? StringUtils.trimToEmpty(idOrderEnsured) : notaVenta.id
-              #$%
               ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, idFac, doubleEnsure )
             }
             idOrderEnsured = ""
@@ -728,7 +733,7 @@ class OrderController {
             Warranty warranty = new Warranty()
             warranty.idItem = ""
             warranty.amount = BigDecimal.ZERO
-            for(DetalleNotaVenta det : notaVenta.detalles){
+            for(DetalleNotaVentaJava det : notaVenta.detalles){
               if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
                 validWarranty = true
                 if( StringUtils.trimToEmpty(det.articulo.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
@@ -758,32 +763,30 @@ class OrderController {
         }
       }
     }
+    if (entregaInstante == false) {
+      JbJava trabajo = JbQuery.getJbRxSimple(idFactura)
+      if( trabajo == null ){
+        idFactura = idFactura.replaceFirst("^0*", "")
+        trabajo = JbQuery.getJbRxSimple(idFactura)
+      }
+      if( trabajo != null && !trabajo.estado.equalsIgnoreCase('TE')){
+        trabajo.setEstado('TE')
+        JbQuery.updateEstadoJbRx(idFactura, trabajo.estado)
+      }
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+      String bill = order?.bill.replaceFirst("^0*", "")
+      jbTrack?.rx = bill
+      jbTrack?.estado = 'TE'
+      jbTrack?.emp = user?.username
+      jbTrack?.fecha = new Date()
+      jbTrack?.idMod = '0'
+      jbTrack?.idViaje = null
+      jbTrack?.obs = user?.username
 
-        if (entregaInstante == false) {
-            Jb trabajo = jbRepository.findOne(idFactura)
-            if( trabajo == null ){
-              idFactura = idFactura.replaceFirst("^0*", "")
-              trabajo = jbRepository.findOne( idFactura)
-            }
-            if( trabajo != null && !trabajo.estado.equalsIgnoreCase('TE')){
-              trabajo.setEstado('TE')
-              trabajo = jbRepository.saveAndFlush(trabajo)
-            }
-
-            JbTrack jbTrack = new JbTrack()
-            String bill = order?.bill.replaceFirst("^0*", "")
-            jbTrack?.rx = bill
-            jbTrack?.estado = 'TE'
-            jbTrack?.emp = user?.username
-            jbTrack?.fecha = new Date()
-            jbTrack?.id_mod = '0'
-            jbTrack?.id_viaje = null
-            jbTrack?.obs = user?.username
-
-            jbTrackService.saveJbTrack(jbTrack)
-            jbLlamadaRepository.deleteByJbLlamada(order?.bill)
-            cancelacionService.actualizaGrupo( notaVenta.id, 'E' )
-        }
+      JbTrackQuery.insertJbTrack(jbTrack)
+      JbQuery.eliminaJbLLamada(order?.bill)
+      cancelacionServiceJava.actualizaGrupo( notaVenta.idFactura, 'E' )
+    }
   }
 
     static void printOrder(String orderId) {
@@ -1189,29 +1192,28 @@ class OrderController {
           }
           if (fechaC) {
             if( validaEntregaSegundaVenta( order ) ){
-              $%
               insertaEntrega(order, entregaInstante)
               deliverOrderLc( notaVenta.factura )
             } else {
-                  retenerEntrega( order.id )
+              retenerEntrega( order.id )
             }
             try{
-                runScriptBckpOrder( order )
+              runScriptBckpOrder( order )
             } catch( Exception e){
-                  println e
+              println e
             }
           } else {
-                JOptionPane.showMessageDialog(null, "No se puede entregar trabajo hoy mismo")
+            JOptionPane.showMessageDialog(null, "No se puede entregar trabajo hoy mismo")
           }
         } else {
-            if (!entregaInstante) {
-                JOptionPane.showMessageDialog(null, "La nota tiene saldo pendiente por cubrir. No se puede entregar trabajo")
-            }
+          if (!entregaInstante) {
+            JOptionPane.showMessageDialog(null, "La nota tiene saldo pendiente por cubrir. No se puede entregar trabajo")
+          }
         }
-      }else{
-            registro = false
-        }
-        return registro
+      } else {
+        registro = false
+      }
+      return registro
     }
 
     static Boolean creaJb(String idFactura, Boolean cSaldo) {
@@ -1845,50 +1847,50 @@ class OrderController {
 
 
     static void retenerEntrega(String orderId){
-      NotaVenta nota = notaVentaService.obtenerNotaVenta( orderId )
-      NotaVenta notaAnterior = notaVentaService.buscarNotaInicial( nota.idCliente, nota.id )
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( orderId )
+      NotaVentaJava notaAnterior = notaVentaServiceJava.buscarNotaInicial( nota.idCliente, nota.id )
       BigDecimal saldo = BigDecimal.ZERO
       if( nota != null ){
         saldo = nota.ventaNeta.subtract(nota.sumaPagos)
       }
-      List<DetalleNotaVenta> lstDetalles = new ArrayList<>(nota.detalles)
+      List<DetalleNotaVentaJava> lstDetalles = new ArrayList<>(nota.detalles)
       String articulos = ''
-      for(DetalleNotaVenta det : nota.detalles){
+      for(DetalleNotaVentaJava det : nota.detalles){
         articulos = articulos+","+det.articulo.articulo.trim()
       }
       articulos = articulos.replaceFirst( ",", "" )
-      JbTrack nuevoJbTrack = new JbTrack()
+      mx.lux.pos.java.repository.JbTrack nuevoJbTrack = new mx.lux.pos.java.repository.JbTrack()
       nuevoJbTrack?.rx = nota.factura
       nuevoJbTrack?.estado = 'PE'
       nuevoJbTrack?.emp = nota.idEmpleado
       nuevoJbTrack?.obs = articulos
       nuevoJbTrack?.fecha = new Date()
-      nuevoJbTrack?.id_mod = '0'
-      jbTrackService.saveJbTrack( nuevoJbTrack )
+      nuevoJbTrack?.idMod = '0'
+      JbQuery.saveJbTrack( nuevoJbTrack )
 
-      Jb jbRtn = new Jb()
+      JbJava jbRtn = new JbJava()
       jbRtn.rx = nota.factura
       jbRtn.estado = 'RTN'
-      jbRtn.id_cliente = nota.idCliente
-      jbRtn.emp_atendio = nota.idEmpleado
-      jbRtn.num_llamada = 0
+      jbRtn.idCliente = nota.idCliente
+      jbRtn.empAtendio = nota.idEmpleado
+      jbRtn.numLlamada = 0
       jbRtn.saldo = saldo
-      jbRtn.jb_tipo = 'REF'
+      jbRtn.jbTipo = 'REF'
       jbRtn.cliente = nota.cliente.nombreCompleto
-      jbRtn.id_mod = '0'
-      jbRtn.fecha_mod = new Date()
-      jbRtn.fecha_venta = nota.fechaHoraFactura
+      jbRtn.idMod = '0'
+      jbRtn.fechaMod = new Date()
+      jbRtn.fechaVenta = nota.fechaHoraFactura
       jbRtn.material = articulos
-      jbRtn = jbService.saveJb( jbRtn )
+      jbRtn = JbQuery.updateEstadoJbRx( jbRtn.rx, jbRtn.estado )
 
-      JbTrack jbTrack = new JbTrack()
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
       jbTrack.rx = jbRtn.rx
       jbTrack.estado = "RTN"
       jbTrack.obs = "PAGO CON CUPON"
       jbTrack.emp = jbRtn.emp_atendio
       jbTrack.fecha = new Date()
       jbTrack.id_mod = '0'
-      jbTrackService.saveJbTrack( jbTrack )
+      JbQuery.saveJbTrack( jbTrack )
     }
 
 
@@ -2199,7 +2201,7 @@ class OrderController {
     }
 
     static void deliverOrderLc( String idPedido ){
-      notaVentaService.entregaPedidoLc( StringUtils.trimToEmpty(idPedido) )
+      notaVentaServiceJava.entregaPedidoLc( StringUtils.trimToEmpty(idPedido) )
     }
 
   static Boolean validGenericNoDelivered( String idOrder ){
@@ -2536,13 +2538,13 @@ class OrderController {
     }
 
 
-    static Boolean dayIsOpen(){
-      Boolean isOpenDay = true
-      if( Registry.validDayCloseToSell() ){
-        isOpenDay = notaVentaService.diaActualEstaAbierto()
-      }
-      return isOpenDay
+  static Boolean dayIsOpen(){
+    Boolean isOpenDay = true
+    if( Registry.validDayCloseToSell() ){
+      isOpenDay = notaVentaServiceJava.diaActualEstaAbierto()
     }
+    return isOpenDay
+  }
 
 
 

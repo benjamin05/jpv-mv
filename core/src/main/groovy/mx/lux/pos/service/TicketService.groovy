@@ -1,5 +1,6 @@
 package mx.lux.pos.service
 
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.model.*
 
 interface TicketService {
@@ -62,5 +63,5 @@ interface TicketService {
 
   void imprimeResumenCuponCan( String idFactura, List<String> porDev )
 
-  NotaVenta imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure )
+  NotaVentaJava imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure )
 }

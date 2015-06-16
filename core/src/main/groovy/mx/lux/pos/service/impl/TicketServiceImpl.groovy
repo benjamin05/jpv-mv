@@ -3,7 +3,9 @@ package mx.lux.pos.service.impl
 import com.ibm.icu.text.RuleBasedNumberFormat
 import com.mysema.query.BooleanBuilder
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.repository.CuponMvJava
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
@@ -2740,10 +2742,10 @@ class TicketServiceImpl implements TicketService {
     }
 
 
-    NotaVenta imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure ){
+    NotaVentaJava imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure ){
       log.debug( "imprimeGarantia( )" )
       DateFormat df = new SimpleDateFormat( "dd-MM-yy" )
-      NotaVenta notaVenta = notaVentaRepository.findOne( idFactura )
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( idFactura )
       Sucursal site = ServiceFactory.sites.obtenSucursalActual()
       AddressAdapter companyAddress = Registry.companyAddress
       Integer validity = 0
