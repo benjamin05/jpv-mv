@@ -121,6 +121,35 @@ public class NotaVentaQuery {
     }
 
 
+
+    public static NotaVentaJava saveNotaVenta (NotaVentaJava notaVentaJava) throws ParseException {
+      String formatDate = "yyyy-MM-dd";
+      String formatTime = "HH:mm:ss.SSS";
+      NotaVentaJava notaVenta = busquedaNotaById( notaVentaJava.getIdFactura() );
+      if( notaVenta == null ){
+        String sql = String.format("INSERT INTO nota_venta (id_factura,id_empleado,id_cliente,id_convenio,tipo_nota_venta,fecha_rec_ord," +
+                "venta_total,venta_neta,suma_pagos,fecha_prometida,fecha_entrega,f_armazon_cli,por100_descuento," +
+                "monto_descuento,tipo_descuento,f_resumen_notas_mo,s_factura,tipo_entrega,observaciones_nv,factura," +
+                "cant_lente,udf2,udf3,udf4,udf5,receta,emp_entrego,lc,hora_entrega,codigo_lente) VALUES('%s','%s',%d,'%s','%s',%s,%s,%s,%s,%s,%s,'%s',%d,%s,'%s'," +
+                "'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,'%s','%s',%s,'%s')",
+                notaVentaJava.getIdFactura().trim(),notaVentaJava.getIdEmpleado(), notaVentaJava.getIdCliente(), notaVentaJava.getIdConvenio(),
+                notaVentaJava.getTipoNotaVenta(),Utilities.toString(notaVentaJava.getFechaRecOrd(), formatDate), Utilities.toMoney(notaVentaJava.getVentaTotal()),
+                Utilities.toMoney(notaVentaJava.getVentaNeta()), Utilities.toMoney(notaVentaJava.getSumaPagos()),
+                Utilities.toString(notaVentaJava.getFechaPrometida(), formatDate), Utilities.toString(notaVentaJava.getFechaEntrega(), formatDate),
+                notaVentaJava.getfArmazonCli().toString(), notaVentaJava.getPor100Descuento(), Utilities.toMoney(notaVentaJava.getMontoDescuento()),
+                notaVentaJava.getTipoDescuento(), notaVentaJava.getfResumenNotasMo().toString(),notaVentaJava.getsFactura(),
+                notaVentaJava.getTipoEntrega(), notaVentaJava.getObservacionesNv(), notaVentaJava.getFactura(), notaVentaJava.getCantLente(), notaVentaJava.getUdf2(),
+                notaVentaJava.getUdf3(), notaVentaJava.getUdf4(), notaVentaJava.getUdf5(), Utilities.trimtoNull(notaVentaJava.getReceta()), notaVentaJava.getEmpEntrego(),
+                notaVentaJava.getLc(), Utilities.toString(notaVentaJava.getHoraEntrega(), formatTime), notaVentaJava.getCodigoLente());
+        Connections db = new Connections();
+        db.updateQuery(sql);
+        db.close();
+      }
+      return busquedaNotaById( StringUtils.trimToEmpty(notaVentaJava.getIdFactura()) );
+    }
+
+
+
     public static String busquedaFacturaByIdFactura(String idNotaVenta) throws ParseException{
       String factura = "";
       try {
@@ -254,6 +283,25 @@ public class NotaVentaQuery {
         factura = StringUtils.trimToEmpty(rs.getString("value"));
       }
       con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return factura;
+    }
+
+
+    public static String getNotaVentaSequence( ) throws ParseException{
+      String factura = "";
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "";
+        sql = String.format("SELECT next_folio('nota_venta_id_factura');");
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          factura = StringUtils.trimToEmpty(rs.getString("next_folio"));
+        }
+        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

@@ -265,9 +265,9 @@ class OrderController {
     }
 
     static Order openOrder(String clienteID, String empID) {
-        log.info('abriendo nueva orden')
-        NotaVenta notaVenta = notaVentaService.abrirNotaVenta(clienteID, empID)
-        return Order.toOrder(notaVenta)
+      log.info('abriendo nueva orden')
+      NotaVentaJava notaVenta = notaVentaServiceJava.abrirNotaVenta(clienteID, empID)
+      return Order.toOrder(notaVenta)
     }
 
     static Item findArt(String dioptra) {
@@ -375,13 +375,12 @@ class OrderController {
     }
 
     static Order addItemToOrder(Order order, Item item, String surte) {
-        String orderId = order?.id
-        String clienteID = order.customer?.id
-        String empleadoID = order?.employee
-
-        log.info("agregando articulo id: ${item?.id} a orden id: ${orderId}")
-        if (item?.id) {
-            orderId = (notaVentaService.obtenerNotaVenta(orderId) ? orderId : openOrder(clienteID, empleadoID)?.id)
+      String orderId = order?.id
+      String clienteID = order.customer?.id
+      String empleadoID = order?.employee
+      log.info("agregando articulo id: ${item?.id} a orden id: ${orderId}")
+      if (item?.id) {
+        orderId = (NotaVentaQuery.busquedaNotaById(orderId) ? orderId : openOrder(clienteID, empleadoID)?.id)
             NotaVenta nota = notaVentaService.obtenerNotaVenta(orderId)
             DetalleNotaVenta detalle = null
             if (item.isManualPriceItem()) {
@@ -434,10 +433,10 @@ class OrderController {
             }
             nota.observacionesNv = nota.observacionesNv.trim().length() <= 0 ? order.comments : ''
             return Order.toOrder(nota)
-        } else {
-            log.warn("no se agrega articulo, parametros invalidos")
-        }
-        return null
+      } else {
+        log.warn("no se agrega articulo, parametros invalidos")
+      }
+      return null
     }
 
     static Order addOrderItemToOrder(String orderId, OrderItem orderItem, String surte, String batch) {
@@ -871,9 +870,9 @@ class OrderController {
         return false//displayUsd
     }
 
-    static SalesWithNoInventory requestConfigSalesWithNoInventory() {
-        return notaVentaService.obtenerConfigParaVentasSinInventario()
-    }
+  static SalesWithNoInventory requestConfigSalesWithNoInventory() {
+    return notaVentaServiceJava.obtenerConfigParaVentasSinInventario()
+  }
 
     static DetalleNotaVenta getDetalleNotaVenta(String idFactura, Integer idArticulo) {
         log.debug("getDetalleNotaVenta( String idFactura, Integer idArticulo )")

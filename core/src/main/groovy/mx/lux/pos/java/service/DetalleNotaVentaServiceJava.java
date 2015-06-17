@@ -29,7 +29,7 @@ public class DetalleNotaVentaServiceJava {
     Boolean log = false;
     Boolean verificacion = false;
     String parametro = Registry.isActiveValidSP();
-    String[] valid = parametro.split( "|" );
+    String[] valid = parametro.split( "\\|" );
     if(valid.length > 1 && valid[0].trim().equalsIgnoreCase("si")){
       param = true;
     }

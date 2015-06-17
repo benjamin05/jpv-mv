@@ -69,7 +69,7 @@ public class NotaVentaJava {
     EmpleadoJava empleadoEntrego;
 
     public String getIdFactura() {
-        return idFactura;
+        return StringUtils.trimToEmpty(idFactura);
     }
 
     public void setIdFactura(String idFactura) {
@@ -77,7 +77,7 @@ public class NotaVentaJava {
     }
 
     public String getIdEmpleado() {
-        return idEmpleado;
+        return StringUtils.trimToEmpty(idEmpleado);
     }
 
     public void setIdEmpleado(String idEmpleado) {
@@ -93,7 +93,7 @@ public class NotaVentaJava {
     }
 
     public String getIdConvenio() {
-        return idConvenio;
+        return StringUtils.trimToEmpty(idConvenio);
     }
 
     public void setIdConvenio(String idConvenio) {
@@ -109,7 +109,7 @@ public class NotaVentaJava {
     }
 
     public String getTipoNotaVenta() {
-        return tipoNotaVenta;
+        return StringUtils.trimToEmpty(tipoNotaVenta);
     }
 
     public void setTipoNotaVenta(String tipoNotaVenta) {
@@ -125,7 +125,7 @@ public class NotaVentaJava {
     }
 
     public String getTipoCli() {
-        return tipoCli;
+        return StringUtils.trimToEmpty(tipoCli);
     }
 
     public void setTipoCli(String tipoCli) {
@@ -213,7 +213,7 @@ public class NotaVentaJava {
     }
 
     public String getTipoDescuento() {
-        return tipoDescuento;
+        return StringUtils.trimToEmpty(tipoDescuento);
     }
 
     public void setTipoDescuento(String tipoDescuento) {
@@ -221,7 +221,7 @@ public class NotaVentaJava {
     }
 
     public String getIdEmpleadoDescto() {
-        return idEmpleadoDescto;
+        return StringUtils.trimToEmpty(idEmpleadoDescto);
     }
 
     public void setIdEmpleadoDescto(String idEmpleadoDescto) {
@@ -237,7 +237,7 @@ public class NotaVentaJava {
     }
 
     public String getsFactura() {
-        return sFactura;
+        return StringUtils.trimToEmpty(sFactura);
     }
 
     public void setsFactura(String sFactura) {
@@ -253,7 +253,7 @@ public class NotaVentaJava {
     }
 
     public String getTipoEntrega() {
-        return tipoEntrega;
+        return StringUtils.trimToEmpty(tipoEntrega);
     }
 
     public void setTipoEntrega(String tipoEntrega) {
@@ -261,7 +261,7 @@ public class NotaVentaJava {
     }
 
     public String getObservacionesNv() {
-        return observacionesNv;
+        return StringUtils.trimToEmpty(observacionesNv);
     }
 
     public void setObservacionesNv(String observacionesNv) {
@@ -269,7 +269,7 @@ public class NotaVentaJava {
     }
 
     public String getIdSync() {
-        return idSync;
+        return StringUtils.trimToEmpty(idSync);
     }
 
     public void setIdSync(String idSync) {
@@ -285,7 +285,7 @@ public class NotaVentaJava {
     }
 
     public String getIdMod() {
-        return idMod;
+        return StringUtils.trimToEmpty(idMod);
     }
 
     public void setIdMod(String idMod) {
@@ -301,7 +301,7 @@ public class NotaVentaJava {
     }
 
     public String getFactura() {
-        return factura;
+        return StringUtils.trimToEmpty(factura);
     }
 
     public void setFactura(String factura) {
@@ -309,7 +309,7 @@ public class NotaVentaJava {
     }
 
     public String getCantLente() {
-        return cantLente;
+        return StringUtils.trimToEmpty(cantLente);
     }
 
     public void setCantLente(String cantLente) {
@@ -317,7 +317,7 @@ public class NotaVentaJava {
     }
 
     public String getUdf2() {
-        return udf2;
+        return StringUtils.trimToEmpty(udf2);
     }
 
     public void setUdf2(String udf2) {
@@ -325,7 +325,7 @@ public class NotaVentaJava {
     }
 
     public String getUdf3() {
-        return udf3;
+        return StringUtils.trimToEmpty(udf3);
     }
 
     public void setUdf3(String udf3) {
@@ -333,7 +333,7 @@ public class NotaVentaJava {
     }
 
     public String getUdf4() {
-        return udf4;
+        return StringUtils.trimToEmpty(udf4);
     }
 
     public void setUdf4(String udf4) {
@@ -341,7 +341,7 @@ public class NotaVentaJava {
     }
 
     public String getUdf5() {
-        return udf5;
+        return StringUtils.trimToEmpty(udf5);
     }
 
     public void setUdf5(String udf5) {
@@ -349,7 +349,7 @@ public class NotaVentaJava {
     }
 
     public String getSucDest() {
-        return sucDest;
+        return StringUtils.trimToEmpty(sucDest);
     }
 
     public void setSucDest(String sucDest) {
@@ -357,7 +357,7 @@ public class NotaVentaJava {
     }
 
     public String gettDeduc() {
-        return tDeduc;
+        return StringUtils.trimToEmpty(tDeduc);
     }
 
     public void settDeduc(String tDeduc) {
@@ -373,7 +373,7 @@ public class NotaVentaJava {
     }
 
     public String getEmpEntrego() {
-        return empEntrego;
+        return StringUtils.trimToEmpty(empEntrego);
     }
 
     public void setEmpEntrego(String empEntrego) {
@@ -381,7 +381,7 @@ public class NotaVentaJava {
     }
 
     public String getLc() {
-        return lc;
+        return StringUtils.trimToEmpty(lc);
     }
 
     public void setLc(String lc) {
@@ -413,7 +413,7 @@ public class NotaVentaJava {
     }
 
     public String getTipoVenta() {
-        return tipoVenta;
+        return StringUtils.trimToEmpty(tipoVenta);
     }
 
     public void setTipoVenta(String tipoVenta) {
@@ -429,7 +429,7 @@ public class NotaVentaJava {
     }
 
     public String getCodigoLente() {
-        return codigoLente;
+        return StringUtils.trimToEmpty(codigoLente);
     }
 
     public void setCodigoLente(String codigoLente) {
@@ -598,6 +598,37 @@ public class NotaVentaJava {
     List<OrdenPromDetJava> lstOrdenPromDet = new ArrayList<OrdenPromDetJava>();
     lstOrdenPromDet = OrdenPromDetQuery.BuscaOrdenPromDetPorIdFactura(StringUtils.trimToEmpty(idFactura));
     return lstOrdenPromDet;
+  }
+
+  public NotaVentaJava trim(){
+    this.setIdFactura(StringUtils.trimToEmpty(this.getIdFactura()));
+    this.setIdEmpleado(StringUtils.trimToEmpty(this.getIdEmpleado()));
+    this.setIdConvenio(StringUtils.trimToEmpty(this.getIdConvenio()));
+    this.setTipoNotaVenta(StringUtils.trimToEmpty(this.getTipoNotaVenta()));
+    this.setTipoCli(StringUtils.trimToEmpty(this.getTipoCli()));
+    this.setTipoDescuento(StringUtils.trimToEmpty(this.getTipoDescuento()));
+    this.setIdEmpleadoDescto(StringUtils.trimToEmpty(this.getIdEmpleadoDescto()));
+    this.setsFactura(StringUtils.trimToEmpty(this.getsFactura()));
+    this.setTipoEntrega(StringUtils.trimToEmpty(this.getTipoEntrega()));
+    this.setObservacionesNv(StringUtils.trimToEmpty(this.getObservacionesNv()));
+    this.setIdSync(StringUtils.trimToEmpty(this.getIdSync()));
+    this.setIdMod(StringUtils.trimToEmpty(this.getIdMod()));
+    this.setFactura(StringUtils.trimToEmpty(this.getFactura()));
+    this.setCantLente(StringUtils.trimToEmpty(this.getCantLente()));
+    this.setUdf2(StringUtils.trimToEmpty(this.getUdf2()));
+    this.setUdf3(StringUtils.trimToEmpty(this.getUdf3()));
+    this.setUdf4(StringUtils.trimToEmpty(this.getUdf4()));
+    this.setUdf5(StringUtils.trimToEmpty(this.getUdf5()));
+    this.setSucDest(StringUtils.trimToEmpty(this.getSucDest()));
+    this.settDeduc(StringUtils.trimToEmpty(this.gettDeduc()));
+    this.setEmpEntrego(StringUtils.trimToEmpty(this.getEmpEntrego()));
+    this.setLc(StringUtils.trimToEmpty(this.getLc()));
+    this.setTipoVenta(StringUtils.trimToEmpty(this.getTipoVenta()));
+    this.setCodigoLente(StringUtils.trimToEmpty(this.getCodigoLente()));
+    this.setfArmazonCli(this.getfArmazonCli() != null ? this.getfArmazonCli() : false);
+    this.setfResumenNotasMo(this.getfResumenNotasMo() != null ? this.getfResumenNotasMo() : false);
+    this.setPor100Descuento(this.getPor100Descuento() != null ? this.getPor100Descuento() : 0);
+    return this;
   }
 
 }

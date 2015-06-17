@@ -31,6 +31,29 @@ public class NotaVentaServiceJava {
     private static final String TAG_GENERICOS_H = "H";
     static final Logger log = LoggerFactory.getLogger(NotaVentaQuery.class);
 
+
+    public NotaVentaJava abrirNotaVenta(String clienteID, String empleadoID ) throws ParseException {
+      log.info( "abriendo nueva notaVenta" ) ;
+      Parametros parametro = new Parametros();
+      parametro.setValor(clienteID);
+      NotaVentaJava notaVenta = new NotaVentaJava();
+      notaVenta.setIdFactura(NotaVentaQuery.getNotaVentaSequence());
+      notaVenta.setIdSucursal(SucursalesQuery.getCurrentSucursalId());
+      notaVenta.setIdCliente(StringUtils.isNumeric(parametro.getValor()) ? NumberFormat.getInstance().parse(parametro.getValor()).intValue() : null);
+      notaVenta.setIdEmpleado(empleadoID);
+
+      try {
+        notaVenta = notaVenta.trim();
+        notaVenta = NotaVentaQuery.saveNotaVenta( notaVenta );
+        log.info( "notaVenta registrada id: "+notaVenta.getIdFactura() );
+        return notaVenta;
+      } catch ( Exception ex ) {
+        log.error( "problema al registrar notaVenta: ${notaVenta?.dump()}", ex );
+      }
+      return null;
+    }
+
+
     public static NotaVentaJava registrarNotaVenta(NotaVentaJava notaVenta) throws ParseException {
         log.info( "registrando notaVenta id: ${notaVenta?.id}," );
         log.info( "fechaHoraFactura: ${notaVenta?.fechaHoraFactura?.format( DATE_TIME_FORMAT )}" );
@@ -491,4 +514,12 @@ public class NotaVentaServiceJava {
     }
     return isOpen;
   }
+
+
+  SalesWithNoInventory obtenerConfigParaVentasSinInventario( ) {
+    SalesWithNoInventory autorizacion = Registry.getConfigForSalesWithNoInventory();
+    return autorizacion;
+  }
+
+
 }

@@ -183,7 +183,7 @@ class ItemController {
   }
 
   static Boolean esInventariable( Integer idArticulo ){
-    Boolean esInventariable = articuloService.esInventariable( idArticulo )
+    Boolean esInventariable = articulosServiceJava.esInventariable( idArticulo )
     return esInventariable
   }
 
