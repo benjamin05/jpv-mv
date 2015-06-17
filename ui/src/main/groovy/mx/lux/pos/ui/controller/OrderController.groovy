@@ -55,6 +55,7 @@ import mx.lux.pos.ui.view.dialog.AseguraNotaDialog
 import mx.lux.pos.ui.view.dialog.ContactClientDialog
 import mx.lux.pos.ui.view.dialog.ContactDialog
 import mx.lux.pos.ui.view.dialog.ManualPriceDialog
+import mx.lux.pos.ui.view.dialog.WarrantySelectionDialog
 import mx.lux.pos.ui.view.panel.OrderPanel
 import org.apache.commons.lang.NumberUtils
 import org.apache.commons.lang3.StringUtils
