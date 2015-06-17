@@ -344,7 +344,7 @@ class OrderController {
     static String preDioptra(String dioString) {
         String preDioptra
         //try{
-        if (!dioString.equals(null)) {
+        if (!dioString.equals(null) && dioString.length() >= 7) {
             preDioptra = dioString.substring(0, 1) + ',' +
                     dioString.substring(1, 2) + ',' +
                     dioString.substring(2, 3) + ',' +
@@ -381,58 +381,56 @@ class OrderController {
       log.info("agregando articulo id: ${item?.id} a orden id: ${orderId}")
       if (item?.id) {
         orderId = (NotaVentaQuery.busquedaNotaById(orderId) ? orderId : openOrder(clienteID, empleadoID)?.id)
-            NotaVenta nota = notaVentaService.obtenerNotaVenta(orderId)
-            DetalleNotaVenta detalle = null
-            if (item.isManualPriceItem()) {
-                String rmks = nota.observacionesNv+nota.observacionesNv.trim().length() <= 0 ? order.comments : ''
-                ManualPriceDialog dlg = ManualPriceDialog.instance
-                dlg.item = item
-                dlg.remarks = rmks
-                dlg.activate()
-                if (dlg.itemAccepted) {
-                    item.listPrice = item.price
-                    detalle = new DetalleNotaVenta(
-                            idArticulo: item.id,
-                            cantidadFac: 1,
-                            precioUnitLista: item.listPrice,
-                            precioUnitFinal: item.price,
-                            precioCalcLista: item.listPrice,
-                            precioFactura: item.price,
-                            precioCalcOferta: 0,
-                            precioConv: 0,
-                            idTipoDetalle: 'N',
-                            surte: item?.type.trim().equalsIgnoreCase('B') ? 'P' : surte,
-                    )
-                    nota.observacionesNv = dlg.remarks
-
-                    notaVentaService.registrarNotaVenta(nota)
-                }
-            } else {
-                if(!TAG_GENERICOS_INVENTARIABLES.contains(item.type)){
-                    surte = ' '
-                }
-                detalle = new DetalleNotaVenta(
-                        idArticulo: item.id,
-                        cantidadFac: 1,
-                        precioUnitLista: item.listPrice,
-                        precioUnitFinal: item.price,
-                        precioCalcLista: item.listPrice,
-                        precioFactura: item.price,
-                        precioCalcOferta: 0,
-                        precioConv: 0,
-                        idTipoDetalle: 'N',
-                        surte: surte
-
-                )
-            }
-            if (detalle != null) {
-                nota = notaVentaService.registrarDetalleNotaVentaEnNotaVenta(orderId, detalle)
-            }
-            if (nota != null ) {
-                notaVentaService.registraImpuestoPorFactura( nota )
-            }
-            nota.observacionesNv = nota.observacionesNv.trim().length() <= 0 ? order.comments : ''
-            return Order.toOrder(nota)
+        NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(orderId)
+        DetalleNotaVentaJava detalle = null
+        if (item.isManualPriceItem()) {
+          String rmks = nota.observacionesNv+nota.observacionesNv.trim().length() <= 0 ? order.comments : ''
+          ManualPriceDialog dlg = ManualPriceDialog.instance
+          dlg.item = item
+          dlg.remarks = rmks
+          dlg.activate()
+          if (dlg.itemAccepted) {
+            item.listPrice = item.price
+            detalle = new DetalleNotaVentaJava(
+                    idArticulo: item.id,
+                    cantidadFac: 1,
+                    precioUnitLista: item.listPrice,
+                    precioUnitFinal: item.price,
+                    precioCalcLista: item.listPrice,
+                    precioFactura: item.price,
+                    precioCalcOferta: 0,
+                    precioConv: 0,
+                    idTipoDetalle: 'N',
+                    surte: StringUtils.trimToEmpty(item?.type).equalsIgnoreCase('B') ? 'P' : surte,
+            )
+            nota.observacionesNv = dlg.remarks
+            notaVentaServiceJava.registrarNotaVenta(nota)
+          }
+        } else {
+          if(!TAG_GENERICOS_INVENTARIABLES.contains(item.type)){
+            surte = ' '
+          }
+          detalle = new DetalleNotaVentaJava(
+                  idArticulo: item.id,
+                  cantidadFac: 1,
+                  precioUnitLista: item.listPrice,
+                  precioUnitFinal: item.price,
+                  precioCalcLista: item.listPrice,
+                  precioFactura: item.price,
+                  precioCalcOferta: 0,
+                  precioConv: 0,
+                  idTipoDetalle: 'N',
+                  surte: surte
+           )
+        }
+        if (detalle != null) {
+          nota = notaVentaServiceJava.registrarDetalleNotaVentaEnNotaVenta(orderId, detalle)
+        }
+        if (nota != null ) {
+          notaVentaServiceJava.registraImpuestoPorFactura( nota )
+        }
+        nota.observacionesNv = nota.observacionesNv.trim().length() <= 0 ? order.comments : ''
+        return Order.toOrder(nota)
       } else {
         log.warn("no se agrega articulo, parametros invalidos")
       }
@@ -487,9 +485,13 @@ class OrderController {
               nota.receta = null
               NotaVentaQuery.updateNotaVenta( nota )
             }
-            Dioptra actDioptra = validaDioptra(generaDioptra(preDioptra(nota.codigoLente)), generaDioptra(i.indiceDioptra))
-            o = Order.toOrder(notaVenta)
-            actDioptra = addDioptra(o, codigoDioptra(actDioptra))
+            if( StringUtils.trimToEmpty(i.indiceDioptra).length() > 0 ){
+              Dioptra actDioptra = validaDioptra(generaDioptra(preDioptra(nota.codigoLente)), generaDioptra(i.indiceDioptra))
+              o = Order.toOrder(notaVenta)
+              actDioptra = addDioptra(o, codigoDioptra(actDioptra))
+            } else {
+              o = Order.toOrder(notaVenta)
+            }
           }
           return o
         } else {
@@ -2466,7 +2468,7 @@ class OrderController {
 
 
     static void deleteCuponMv( String idOrder ){
-      notaVentaService.eliminarCUponMv( idOrder )
+      notaVentaServiceJava.eliminarCUponMv( idOrder )
     }
 
     static CuponMv obtenerCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon ){

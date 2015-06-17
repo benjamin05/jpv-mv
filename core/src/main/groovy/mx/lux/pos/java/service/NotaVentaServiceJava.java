@@ -522,4 +522,110 @@ public class NotaVentaServiceJava {
   }
 
 
+
+  public NotaVentaJava registrarDetalleNotaVentaEnNotaVenta( String idNotaVenta, DetalleNotaVentaJava detalleNotaVenta ) throws ParseException {
+    log.info( "registrando detalleNotaVenta id: "+detalleNotaVenta.getIdFactura()+"idArticulo: "+detalleNotaVenta.getIdArticulo() );
+    log.info( "en notaVenta id: "+idNotaVenta );
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( idNotaVenta );
+    if ( StringUtils.isNotBlank( notaVenta.getIdFactura() ) && detalleNotaVenta.getIdArticulo() != null ) {
+      detalleNotaVenta.setIdFactura(idNotaVenta);
+      detalleNotaVenta.setIdSucursal(SucursalesQuery.getCurrentSucursalId());
+      DetalleNotaVentaJava tmp = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFacturaEIdArticulo( idNotaVenta, detalleNotaVenta.getIdArticulo() );
+      log.debug( "obtiene detalleNotaVenta existente" );
+      if ( tmp != null && tmp.getId() != null ) {
+        log.debug( "actualizando detalleNotaVenta con id: "+tmp.getId().toString()+"cantidadFac: "+tmp.getCantidadFac().toString() );
+        detalleNotaVenta.setId(tmp.getId());
+        detalleNotaVenta.setCantidadFac(detalleNotaVenta.getCantidadFac()+tmp.getCantidadFac());
+        detalleNotaVenta.setIdRepVenta(tmp.getIdRepVenta());
+        log.debug( "actualizados cantidadFac: "+detalleNotaVenta.getCantidadFac() );
+      } else {
+        log.debug( "registrando nuevo detalleNotaVenta" );
+      }
+      detalleNotaVenta = establecerPrecios( detalleNotaVenta );
+      try {
+        detalleNotaVenta = DetalleNotaVentaQuery.updateDetalleNotaVenta( detalleNotaVenta );
+        log.debug( "detalleNotaVenta registrado id: "+detalleNotaVenta.getId() );
+        return registrarNotaVenta( notaVenta );
+      } catch ( Exception ex ) {
+        log.error( "problema al registrar detalleNotaVenta: ${detalleNotaVenta?.dump()}", ex );
+      }
+    } else {
+      log.warn("no se registra detalleNotaVenta, parametros invalidos");
+    }
+    return null;
+  }
+
+
+  private DetalleNotaVentaJava establecerPrecios( DetalleNotaVentaJava detalle ) throws ParseException {
+    log.debug( "estableciendo precios para detalleNotaVenta articulo: "+detalle.getIdArticulo() );
+    if ( detalle.getIdArticulo() != null ) {
+      ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(detalle.getIdArticulo());
+      log.debug( "obtiene articulo id: "+articulo.getIdArticulo()+", codigo: "+articulo.getArticulo()+", color: "+articulo.getColorCode() );
+      if ( articulo.getIdArticulo() != null ) {
+        List<PreciosJava> precios = PreciosQuery.buscaPreciosPorArticulo( articulo.getArticulo() );
+        if ( precios.size() > 0 ) {
+          PreciosJava precioLista = new PreciosJava();
+          for(PreciosJava tmp : precios){
+            if( "L".equalsIgnoreCase( StringUtils.trimToEmpty(tmp.getLista())) ){
+              precioLista = tmp;
+            }
+          }
+          log.debug( "precio lista: "+precioLista.getPrecio() );
+          BigDecimal lista = precioLista.getPrecio() != null  ? precioLista.getPrecio() : BigDecimal.ZERO;
+          PreciosJava precioOferta = new PreciosJava();
+          for(PreciosJava tmp : precios){
+            if( "O".equalsIgnoreCase( StringUtils.trimToEmpty(tmp.getLista())) ){
+                    precioLista = tmp;
+            }
+          }
+          log.debug( "precio oferta: "+precioOferta.getPrecio() );
+          BigDecimal oferta = precioOferta.getPrecio() != null ? precioOferta.getPrecio() : BigDecimal.ZERO;
+          BigDecimal unitario = oferta.compareTo(BigDecimal.ZERO) > 0 && ( oferta.compareTo(lista) < 0 ) ? oferta : lista;
+          detalle.setPrecioCalcLista(lista);
+          detalle.setPrecioCalcOferta(oferta);
+          detalle.setPrecioUnitLista(unitario);
+          detalle.setPrecioUnitFinal(unitario);
+          detalle.setPrecioFactura(unitario);
+          detalle.setPrecioConv(BigDecimal.ZERO);
+          log.debug( "detalleNotaVenta actualizado" );
+        } else {
+          log.warn( "no se establecen precios, lista de precios vacia" );
+        }
+      } else {
+        log.warn( "no se establecen precios, articulo invalido" );
+      }
+    } else {
+      log.warn( "no se establecen precios, parametros invalidos" );
+    }
+    return detalle;
+  }
+
+
+  public void registraImpuestoPorFactura( NotaVentaJava notaVenta ) throws ParseException {
+    Parametros parametro = ParametrosQuery.BuscaParametroPorId(TipoParametro.IVA_VIGENTE.getValor());
+    FacturasImpuestosJava impuesto = new FacturasImpuestosJava();
+    impuesto.setIdFactura(notaVenta.getIdFactura());
+    impuesto.setIdImpuesto(parametro.getValor());
+    impuesto.setIdSucursal(notaVenta.getIdSucursal());
+    impuesto.setFecha(new Date());
+    impuesto = FacturasImpuestosQuery.updateFacturasImpuestos( impuesto );
+    log.debug( "guardando idImpuesto "+impuesto.getIdImpuesto()+"a factura: "+impuesto.getIdFactura() );
+  }
+
+
+
+  public void eliminarCUponMv( String idFactura ) throws ParseException {
+    List<CuponMvJava> cuponesMv = CuponMvQuery.buscaCuponMvPorFacturaDestino(idFactura);
+    for( CuponMvJava cuponMv1 : cuponesMv ){
+      cuponMv1.setFacturaDestino("");
+      cuponMv1.setFechaAplicacion(null);
+      CuponMvQuery.updateCuponMv(cuponMv1);
+    }
+    List<DescuentosJava> lstDescuentos = DescuentosQuery.buscaDescuentosPorIdFactura( idFactura );
+    for(DescuentosJava descuento : lstDescuentos){
+      DescuentosQuery.eliminaDescuento(descuento);
+    }
+  }
+
+
 }

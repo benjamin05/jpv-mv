@@ -147,17 +147,33 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   void requestCancelPromotion( IPromotionAvailable pPromotion ) {
     log.debug( String.format( "Cancel Promotion: %s", pPromotion.toString() ) )
     if ( pPromotion instanceof PromotionAvailable ) {
-      service.requestCancelPromotion( this.model, pPromotion )
+      serviceJava.requestCancelPromotion( this.model, pPromotion )
       this.updatePromotionList()
       view.refreshData()
     }
 
     if( pPromotion instanceof PromotionDiscount ){
-        service.requestCancelPromotionDiscount( this.model, pPromotion )
+        serviceJava.requestCancelPromotionDiscount( this.model, pPromotion )
         this.updatePromotionList()
         view.refreshData()
     }
   }
+
+
+  void requestCancelPromotionJava( IPromotionAvailable pPromotion ) {
+    log.debug( String.format( "Cancel Promotion: %s", pPromotion.toString() ) )
+    if ( pPromotion instanceof PromotionAvailable ) {
+      service.requestCancelPromotion( this.model, pPromotion )
+      this.updatePromotionList()
+      view.refreshData()
+    }
+    if( pPromotion instanceof PromotionDiscount ){
+            service.requestCancelPromotionDiscount( this.model, pPromotion )
+            this.updatePromotionList()
+            view.refreshData()
+    }
+  }
+
 
   void requestDiscount( ) {
     log.debug( "Discount Selected" )

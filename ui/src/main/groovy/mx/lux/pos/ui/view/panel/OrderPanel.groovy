@@ -583,90 +583,114 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
                     if( customer.id != CustomerController.findDefaultCustomer().id ){
                       if( !appliedEnsure( art ) ){
-                        validarVentaNegativa(item, customer, holdPromo)
+                        validarVentaNegativa(item, customer, holdPromo, log)
                       } else {
+                        if(log.equalsIgnoreCase("actionPerformed")){
+                          focusItem = true
+                        }
                         sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
                                 .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO).show()
                       }
                     } else {
-                                    sb.optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
-                                            .createDialog(new JTextField(), "Articulo Invalido")
-                                            .show()
+                      if(log.equalsIgnoreCase("actionPerformed")){
+                        focusItem = true
+                      }
+                      sb.optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
+                              .createDialog(new JTextField(), "Articulo Invalido").show()
                     }
                   } else {
-                              if( !appliedEnsure( art ) ){
-                                validarVentaNegativa(item, customer, holdPromo)
-                              } else {
-                                sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
-                                    .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
-                                    .show()
-                              }
+                    if( !appliedEnsure( art ) ){
+                      validarVentaNegativa(item, customer, holdPromo, log)
+                    } else {
+                      if(log.equalsIgnoreCase("actionPerformed")){
+                        focusItem = true
+                      }
+                      sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                              .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO).show()
+                    }
                   }
                 } else {
-                            sb.optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
-                                    .createDialog(new JTextField(), "Articulo Invalido")
-                                    .show()
+                  if(log.equalsIgnoreCase("actionPerformed")){
+                    focusItem = true
+                  }
+                  sb.optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
+                          .createDialog(new JTextField(), "Articulo Invalido").show()
                 }
               } else {
-                        SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, results)
-                        dialog.show()
-                        item = dialog.item
-                        if (item?.id) {
-                          Articulo art = ItemController.findArticle( item.id )
-                          if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
-                              if( OrderController.validArticleGenericNoDelivered(item.id) ||
-                                      StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO)){
-                                  if(customer.id != CustomerController.findDefaultCustomer().id){
-                                    if( !appliedEnsure( art ) ){
-                                      validarVentaNegativa(item, customer, holdPromo)
-                                    } else {
-                                      sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
-                                          .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
-                                          .show()
-                                    }
-                                  } else {
-                                      sb.optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
-                                              .createDialog(new JTextField(), "Articulo Invalido")
-                                              .show()
-                                  }
-                              } else {
-                                if( !appliedEnsure( art ) ){
-                                  validarVentaNegativa(item, customer, holdPromo)
-                                } else {
-                                  sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
-                                      .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
-                                      .show()
-                                }
-                              }
-                          }else {
-                              sb.optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
-                                      .createDialog(new JTextField(), "Articulo Invalido")
-                                      .show()
+                SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, results)
+                dialog.show()
+                item = dialog.item
+                if (item?.id) {
+                  ArticulosJava art = ItemController.findArticleJava( item.id )
+                  if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
+                    if( OrderController.validArticleGenericNoDelivered(item.id) ||
+                            StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO)){
+                      if(customer.id != CustomerController.findDefaultCustomer().id){
+                        if( !appliedEnsure( art ) ){
+                          validarVentaNegativa(item, customer, holdPromo, log)
+                        } else {
+                          if(log.equalsIgnoreCase("actionPerformed")){
+                            focusItem = true
                           }
+                          sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                                  .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO).show()
                         }
+                      } else {
+                        if(log.equalsIgnoreCase("actionPerformed")){
+                          focusItem = true
+                        }
+                        if(log.equalsIgnoreCase("actionPerformed")){
+                          focusItem = true
+                        }
+                        sb.optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
+                                .createDialog(new JTextField(), "Articulo Invalido").show()
+                      }
+                    } else {
+                      if( !appliedEnsure( art ) ){
+                        validarVentaNegativa(item, customer, holdPromo, log)
+                      } else {
+                        if(log.equalsIgnoreCase("actionPerformed")){
+                          focusItem = true
+                        }
+                        sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                                .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO).show()
+                      }
+                    }
+                  } else {
+                    if(log.equalsIgnoreCase("actionPerformed")){
+                      focusItem = true
+                    }
+                    sb.optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
+                            .createDialog(new JTextField(), "Articulo Invalido").show()
+                  }
+                }
               }
             } else if( StringUtils.trimToEmpty(article).equalsIgnoreCase(TAG_RECETA_LC) ){
-                  if( customer.id != CustomerController.findDefaultCustomer().id ){
-                    if( order?.id == null ){
-                      order = OrderController.openOrder(StringUtils.trimToEmpty(customer.id.toString()), order.employee)
-                      updateOrder( StringUtils.trimToEmpty(order.id) )
-                    }
-                    Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                    EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, false)
-                    editRx.show()
-                    OrderController.saveRxOrder(order?.id, this.rec.idReceta)
-                  } else {
-                      sb.optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
-                              .createDialog(new JTextField(), "Articulo Invalido")
-                              .show()
-                  }
+              if( customer.id != CustomerController.findDefaultCustomer().id ){
+                if( order?.id == null ){
+                  order = OrderController.openOrder(StringUtils.trimToEmpty(customer.id.toString()), order.employee)
+                  updateOrder( StringUtils.trimToEmpty(order.id) )
+                }
+                Branch branch = Session.get(SessionItem.BRANCH) as Branch
+                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, false)
+                editRx.show()
+                OrderController.saveRxOrder(order?.id, this.rec.idReceta)
+              } else {
+                if(log.equalsIgnoreCase("actionPerformed")){
+                  focusItem = true
+                }
+                sb.optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
+                        .createDialog(new JTextField(), "Articulo Invalido").show()
+              }
             } else {
-                    sb.optionPane(message: "No se encontraron resultados para: ${article}", optionType: JOptionPane.DEFAULT_OPTION)
-                            .createDialog(new JTextField(), "B\u00fasqueda: ${article}")
-                            .show()
+              if(log.equalsIgnoreCase("actionPerformed")){
+                focusItem = true
+              }
+              sb.optionPane(message: "No se encontraron resultados para: ${article}", optionType: JOptionPane.DEFAULT_OPTION)
+                      .createDialog(new JTextField(), "B\u00fasqueda: ${article}").show()
             }
-            if (newOrder && (StringUtils.trimToNull(order?.id) != null) && (StringUtils.trimToNull(customer?.id) != null)) {
-                    this.setCustomerInOrder()
+            if (newOrder && (StringUtils.trimToNull(order?.id) != null) && (customer?.id != null)) {
+              this.setCustomerInOrder()
             }
 
           //}
@@ -675,19 +699,25 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           //}
 
         } else {
+          if(log.equalsIgnoreCase("actionPerformed")){
+            focusItem = true
+          }
           sb.optionPane(message: 'Es necesario ingresar una b\u00fasqeda v\u00e1lida', optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "B\u00fasqueda inv\u00e1lida")
                 .show()
         }
       } else {
-          sb.optionPane(message: 'No se pueden realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
-                  .createDialog(new JTextField(), "Dia cerrado")
-                  .show()
+        if(log.equalsIgnoreCase("actionPerformed")){
+          focusItem = true
+        }
+        sb.optionPane(message: 'No se pueden realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+                .createDialog(new JTextField(), "Dia cerrado").show()
       }
       itemSearch.enabled = true
       if(log.equalsIgnoreCase("actionPerformed")){
         focusItem = true
       }
+      itemSearch.requestFocus()
     }
 
     private def doShowItemClick = { MouseEvent ev ->
@@ -849,7 +879,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       return surteSwitch
     }
 
-    private void validarVentaNegativa(Item item, Customer customer, Boolean holdPromo) {
+    private void validarVentaNegativa(Item item, Customer customer, Boolean holdPromo, String log) {
       User u = Session.get(SessionItem.USER) as User
       order.setEmployee(u.username)
       Branch branch = Session.get(SessionItem.BRANCH) as Branch
@@ -864,90 +894,96 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             String surte = surteSwitch?.surte
             if (item.stock > 0) {
               order = OrderController.addItemToOrder(order, item, surte)
-                      updateOrder( order.id )
-                      validaLC(item, false)
-                      controlItem(item, false)
-                      List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
-                      promotionsListTmp.addAll(promotionList)
-                      if( !holdPromo ){
-                        for(IPromotionAvailable promo : promotionsListTmp){
-                          this.promotionDriver.requestCancelPromotion(promo)
-                          OrderController.deleteCuponMv( order.id )
-                        }
-                      }
-                      if (customer != null) {
-                          order.customer = customer
-                      }
+              updateOrder( order.id )
+              validaLC(item, false)
+              controlItem(item, false, log)
+              List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
+              promotionsListTmp.addAll(promotionList)
+              if( !holdPromo ){
+                for(IPromotionAvailable promo : promotionsListTmp){
+                  this.promotionDriver.requestCancelPromotion(promo)
+                  OrderController.deleteCuponMv( order.id )
+                }
+              }
+              if (customer != null) {
+                order.customer = customer
+              }
             } else {
-                      if( esInventariable ){
-                          SalesWithNoInventory onSalesWithNoInventory = OrderController.requestConfigSalesWithNoInventory()
-                          order.customer = customer
-                          if (SalesWithNoInventory.ALLOWED.equals(onSalesWithNoInventory)) {
-                              order = OrderController.addItemToOrder(order, item, surte)
-                              updateOrder( order.id )
-                              validaLC(item, false)
-                              controlItem(item, false)
-                              List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
-                              promotionsListTmp.addAll(promotionList)
-                              if( !holdPromo ){
-                                for(IPromotionAvailable promo : promotionsListTmp){
-                                  this.promotionDriver.requestCancelPromotion(promo)
-                                  OrderController.deleteCuponMv( order.id )
-                                }
-                              }
-                          } else if (SalesWithNoInventory.REQUIRE_AUTHORIZATION.equals(onSalesWithNoInventory)) {
-                              boolean authorized
-                              if (AccessController.authorizerInSession) {
-                                  authorized = true
-                              } else {
-                                  AuthorizationDialog authDialog = new AuthorizationDialog(this, " ")
-                                  authDialog.show()
-                                  authorized = authDialog.authorized
-                              }
-                              if (authorized) {
-                                  order = OrderController.addItemToOrder(order, item, surte)
-                                  updateOrder( order.id )
-                                  validaLC(item, false)
-                                  controlItem(item, false)
-                                  List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
-                                  promotionsListTmp.addAll(promotionList)
-                                  if( !holdPromo ){
-                                    for(IPromotionAvailable promo : promotionsListTmp){
-                                      this.promotionDriver.requestCancelPromotion(promo)
-                                      OrderController.deleteCuponMv( order.id )
-                                    }
-                                  }
-                              }
-                          } else {
-                              sb.optionPane(message: MSJ_VENTA_NEGATIVA, messageType: JOptionPane.ERROR_MESSAGE,)
-                                      .createDialog(this, TXT_VENTA_NEGATIVA_TITULO)
-                                      .show()
-                          }
-                      } else {
-                          order = OrderController.addItemToOrder(order, item, surte)
-                          updateOrder( order.id )
-                          validaLC(item, false)
-                          controlItem(item, false)
-                          List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
-                          promotionsListTmp.addAll(promotionList)
-                          if( !holdPromo ){
-                            for(IPromotionAvailable promo : promotionsListTmp){
-                              this.promotionDriver.requestCancelPromotion(promo)
-                              OrderController.deleteCuponMv( order.id )
-                            }
-                          }
+              if( esInventariable ){
+                SalesWithNoInventory onSalesWithNoInventory = OrderController.requestConfigSalesWithNoInventory()
+                order.customer = customer
+                if (SalesWithNoInventory.ALLOWED.equals(onSalesWithNoInventory)) {
+                  order = OrderController.addItemToOrder(order, item, surte)
+                  updateOrder( order.id )
+                  validaLC(item, false)
+                  controlItem(item, false, log)
+                  List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
+                  promotionsListTmp.addAll(promotionList)
+                  if( !holdPromo ){
+                    for(IPromotionAvailable promo : promotionsListTmp){
+                      this.promotionDriver.requestCancelPromotion(promo)
+                      OrderController.deleteCuponMv( order.id )
+                    }
+                  }
+                } else if (SalesWithNoInventory.REQUIRE_AUTHORIZATION.equals(onSalesWithNoInventory)) {
+                  boolean authorized
+                  if (AccessController.authorizerInSession) {
+                    authorized = true
+                  } else {
+                    AuthorizationDialog authDialog = new AuthorizationDialog(this, " ")
+                    authDialog.show()
+                    authorized = authDialog.authorized
+                  }
+                  if (authorized) {
+                    order = OrderController.addItemToOrder(order, item, surte)
+                    updateOrder( order.id )
+                    validaLC(item, false)
+                    controlItem(item, false, log)
+                    List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
+                    promotionsListTmp.addAll(promotionList)
+                    if( !holdPromo ){
+                      for(IPromotionAvailable promo : promotionsListTmp){
+                        this.promotionDriver.requestCancelPromotion(promo)
+                        OrderController.deleteCuponMv( order.id )
                       }
+                    }
+                  }
+                } else {
+                  if(log.equalsIgnoreCase("actionPerformed")){
+                    focusItem = true
+                  }
+                  sb.optionPane(message: MSJ_VENTA_NEGATIVA, messageType: JOptionPane.ERROR_MESSAGE,)
+                          .createDialog(this, TXT_VENTA_NEGATIVA_TITULO).show()
+                }
+              } else {
+                order = OrderController.addItemToOrder(order, item, surte)
+                updateOrder( order.id )
+                validaLC(item, false)
+                controlItem(item, false, log)
+                List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
+                promotionsListTmp.addAll(promotionList)
+                if( !holdPromo ){
+                  for(IPromotionAvailable promo : promotionsListTmp){
+                    this.promotionDriver.requestCancelPromotion(promo)
+                    OrderController.deleteCuponMv( order.id )
+                  }
+                }
+              }
             }
           }
         } else {
-            sb.optionPane(message: MSJ_LENTE_INVALIDO, messageType: JOptionPane.ERROR_MESSAGE,)
-                .createDialog(this, TXT_LENTE_INVALIDO)
-                .show()
+          if(log.equalsIgnoreCase("actionPerformed")){
+            focusItem = true
+          }
+          sb.optionPane(message: MSJ_LENTE_INVALIDO, messageType: JOptionPane.ERROR_MESSAGE,)
+                  .createDialog(this, TXT_LENTE_INVALIDO).show()
         }
       } else {
-          sb.optionPane(message: MSJ_PAQUETE_INVALIDO, messageType: JOptionPane.ERROR_MESSAGE,)
-                  .createDialog(this, TXT_PAQUETE_INVALIDO)
-                  .show()
+        if(log.equalsIgnoreCase("actionPerformed")){
+          focusItem = true
+        }
+        sb.optionPane(message: MSJ_PAQUETE_INVALIDO, messageType: JOptionPane.ERROR_MESSAGE,)
+                .createDialog(this, TXT_PAQUETE_INVALIDO).show()
       }
     }
 
@@ -990,7 +1026,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
-              controlItem( result, true )
+              if( StringUtils.trimToEmpty(it.item.indexDiotra).length() <= 0 || it.item.indexDiotra.contains("@")) {
+                controlItem( result, true, "" )
+              }
               if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
                 hasDioptra = true
               }
@@ -1129,8 +1167,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
     }
 
-    private void controlItem(Item item, Boolean itemDelete) {
+    private void controlItem(Item item, Boolean itemDelete, String log) {
       String indexDioptra = item?.indexDiotra
+      if(log.equalsIgnoreCase("actionPerformed")){
+        focusItem = true
+      }
       logger.debug('Index Dioptra del Articulo : ' + item?.indexDiotra)
       if (!StringUtils.trimToNull(indexDioptra).equals(null) && !StringUtils.trimToNull(item?.indexDiotra).equals(null)) {
         Dioptra nuevoDioptra = OrderController.generaDioptra(item?.indexDiotra)
@@ -1142,7 +1183,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         order?.dioptra = OrderController.codigoDioptra(antDioptra)
       }
       logger.debug('Codigo Dioptra :' + antDioptra)
-      if (item?.name?.trim().equals('MONTAJE') && !itemDelete) {
+      if (StringUtils.trimToEmpty(item?.name).equals('MONTAJE') && !itemDelete) {
         User u = Session.get(SessionItem.USER) as User
         CapturaSuyoDialog capturaSuyoDialog = new CapturaSuyoDialog(order, u,true)
         capturaSuyoDialog.show()
@@ -1603,7 +1644,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         itemSearch.requestFocus()
       } else if( focusItem ){
         focusItem = false
-        itemSearch.requestFocus()
+        //itemSearch.requestFocus()
+
       }
     }
 
@@ -1731,7 +1773,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
-                controlItem( result, true )
+              if( StringUtils.trimToEmpty(it.item.indexDiotra).length() <= 0 || it.item.indexDiotra.contains("@")){
+                controlItem( result, true, "" )
+              }
                 if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
                     hasDioptra = true
                 }
@@ -1913,7 +1957,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
-                controlItem( result, true )
+              if( StringUtils.trimToEmpty(it.item.indexDiotra).length() <= 0 || it.item.indexDiotra.contains("@")){
+                controlItem( result, true, "" )
+              }
                 if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
                     hasDioptra = true
                 }
@@ -2191,7 +2237,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     for(OrderItem it : order.items){
       Item result = ItemController.findItemsById(it.item.id)
       if( result != null ){
-        controlItem( result, true )
+        controlItem( result, true, "" )
       }
     }
   }

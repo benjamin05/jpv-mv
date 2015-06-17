@@ -1,15 +1,13 @@
 package mx.lux.pos.java.service.business;
 
+import mx.lux.pos.java.querys.*;
+import mx.lux.pos.java.repository.*;
 import mx.lux.pos.model.*;
-import mx.lux.pos.java.querys.DescuentosQuery;
-import mx.lux.pos.java.querys.OrdenPromDetQuery;
-import mx.lux.pos.java.querys.OrdenPromQuery;
-import mx.lux.pos.java.querys.PromotionQueryJava;
 import mx.lux.pos.java.querys.model.OrdenPromDetJavaList;
 import mx.lux.pos.java.querys.model.OrdenPromJavaList;
-import mx.lux.pos.java.repository.DescuentosJava;
-import mx.lux.pos.java.repository.OrdenPromDetJava;
-import mx.lux.pos.java.repository.OrdenPromJava;
+import mx.lux.pos.repository.impl.RepositoryFactory;
+import mx.lux.pos.service.business.Registry;
+import org.apache.commons.lang.StringUtils;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -103,6 +101,52 @@ public class PromotionCommitJava {
         DescuentosQuery.eliminaDescuento(desc);
       }
     }
+  }
+
+
+  static final void writeOrder( PromotionModel pModel ) throws ParseException {
+    NotaVentaJava dbOrder = NotaVentaQuery.busquedaNotaById(pModel.getOrder().getOrderNbr());
+    Double netAmount = 0.00;
+    Double amountEnsure = 0.00;
+    for ( DetalleNotaVentaJava dbOrderLine : dbOrder.getDetalles() ) {
+      if( pModel.getOrderDiscount() != null ){
+        if( !Registry.getGenericsWithoutDiscount().contains(StringUtils.trimToEmpty(dbOrderLine.getArticulo().getIdGenerico()))  ){
+          PromotionOrderDetail orderDetail = pModel.getOrder().getOrderDetailSet().get(dbOrderLine.getIdArticulo());
+          if ( orderDetail != null ) {
+            dbOrderLine.setPrecioUnitFinal(asAmount(orderDetail.getFinalPrice()));
+          } else {
+            dbOrderLine.setPrecioUnitFinal(dbOrderLine.getPrecioUnitLista());
+          }
+          dbOrderLine.setPrecioFactura(dbOrderLine.getPrecioUnitFinal());
+          netAmount += dbOrderLine.getPrecioUnitFinal().doubleValue() * dbOrderLine.getCantidadFac();
+          DetalleNotaVentaQuery.updateDetalleNotaVenta(dbOrderLine);
+        } else {
+          amountEnsure = amountEnsure+dbOrderLine.getPrecioUnitFinal().doubleValue() * dbOrderLine.getCantidadFac();
+        }
+      } else {
+        PromotionOrderDetail orderDetail = pModel.getOrder().getOrderDetailSet().get(dbOrderLine.getIdArticulo());
+        if ( orderDetail != null ) {
+          dbOrderLine.setPrecioUnitFinal(asAmount(orderDetail.getFinalPrice()));
+        } else {
+          dbOrderLine.setPrecioUnitFinal(dbOrderLine.getPrecioUnitLista());
+        }
+        dbOrderLine.setPrecioFactura(dbOrderLine.getPrecioUnitFinal());
+        netAmount += dbOrderLine.getPrecioUnitFinal().doubleValue() * dbOrderLine.getCantidadFac();
+        DetalleNotaVentaQuery.updateDetalleNotaVenta(dbOrderLine);
+      }
+    }
+    netAmount = netAmount+amountEnsure;
+    dbOrder.setVentaNeta(asAmount((double) Math.round(netAmount)));
+    dbOrder.setVentaTotal(asAmount( (double) Math.round(netAmount) ));
+    if ( pModel.hasOrderDiscountApplied() ) {
+      System.out.println((double) Math.round(pModel.getOrderDiscount().getDiscountAmount()));
+      dbOrder.setMontoDescuento(asAmount( (double) Math.round(pModel.getOrderDiscount().getDiscountAmount()) ));
+      dbOrder.setPor100Descuento((int) Math.round( pModel.getOrderDiscount().getDiscountPercent() * 100.0 ));
+    } else {
+      dbOrder.setMontoDescuento(BigDecimal.ZERO);
+      dbOrder.setPor100Descuento(0);
+    }
+    NotaVentaQuery.updateNotaVenta( dbOrder );
   }
 
 
