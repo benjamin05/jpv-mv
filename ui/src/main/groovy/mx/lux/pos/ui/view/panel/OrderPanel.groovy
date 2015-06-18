@@ -2452,7 +2452,6 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         promoAmount = promo.promotionItem.descuentoMonto
       }
     }*/
-
     if( !promoApplied ){
       promoAmount = OrderController.amountPromoAge( order.id )
       discountAgeApplied = true
@@ -2460,7 +2459,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       discountAgeApplied = false
     }
 
-    lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount)
+    lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount != null ? promoAmount : BigDecimal.ZERO)
     String comments = ''
     if( order.comments != null && order.comments != '' ){
       comments = order.comments
@@ -2477,15 +2476,17 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
   private Boolean promoApplied (){
     Boolean applied = false
+    println "Monto promocion por EdadAntes : "+promoAmount
     for(int i=0;i<promotionList.size();i++){
+      BigDecimal monto = promotionList.get(i).discountAmount
       if(promotionList.get(i) instanceof PromotionAvailable){
         if( promotionList.get(i).applied ){
           applied= true
-          promoAmount = promotionList.get(i).discountAmount
+          promoAmount = monto != null ? monto : BigDecimal.ZERO
         }
       } else if(promotionList.get(i) instanceof PromotionDiscount){
         applied = true
-        promoAmount = promotionList.get(i).discountAmount
+        promoAmount = monto != null ? monto : BigDecimal.ZERO
       }
     }
 
@@ -2493,10 +2494,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       for(int i = 0;i< order.deals.size();i++){
         if( order.deals.get(i) instanceof OrderLinePromotion ){
           applied = true
-          promoAmount = order.deals.get(i).promotionItem.descuentoMonto
+          BigDecimal monto = order.deals.get(i).promotionItem.descuentoMonto
+          promoAmount = monto != null ? monto : BigDecimal.ZERO
         } else if( order.deals.get(i) instanceof OrderDiscount ){
           applied = true
-          promoAmount = order.deals.get(i).getDescuento()
+          BigDecimal monto = order.deals.get(i).getDescuento()
+          promoAmount = monto != null ? monto : BigDecimal.ZERO
         }
       }
     }

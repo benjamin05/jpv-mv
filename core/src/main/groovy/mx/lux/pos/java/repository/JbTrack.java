@@ -1,5 +1,7 @@
 package mx.lux.pos.java.repository;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Date;
 
 public class JbTrack {
@@ -15,31 +17,31 @@ public class JbTrack {
 	
 	
 	public String getRx() {
-		return rx;
+		return StringUtils.trimToEmpty(rx);
 	}
 	public void setRx(String rx) {
 		this.rx = rx;
 	}
 	public String getEstado() {
-		return estado;
+		return StringUtils.trimToEmpty(estado);
 	}
 	public void setEstado(String estado) {
 		this.estado = estado;
 	}
 	public String getObs() {
-		return obs;
+		return StringUtils.trimToEmpty(obs);
 	}
 	public void setObs(String obs) {
 		this.obs = obs;
 	}
 	public String getEmp() {
-		return emp;
+		return StringUtils.trimToEmpty(emp);
 	}
 	public void setEmp(String emp) {
 		this.emp = emp;
 	}
 	public String getIdViaje() {
-		return idViaje;
+		return StringUtils.trimToEmpty(idViaje);
 	}
 	public void setIdViaje(String idViaje) {
 		this.idViaje = idViaje;
@@ -51,13 +53,13 @@ public class JbTrack {
 		this.fecha = fecha;
 	}
 	public String getIdMod() {
-		return idMod;
+		return StringUtils.trimToEmpty(idMod);
 	}
 	public void setIdModM(String idModM) {
 		this.idMod = idModM;
 	}
 	public String getIdJbTrack() {
-		return idJbTrack;
+		return StringUtils.trimToEmpty(idJbTrack);
 	}
 	public void setIdJbTrack(String idJbTrack) {
 		this.idJbTrack = idJbTrack;

@@ -1,6 +1,7 @@
 package mx.lux.pos.java.repository;
 
 import mx.lux.pos.java.Utilities;
+import org.apache.commons.lang.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -37,31 +38,31 @@ public class JbJava {
 	
 	
 	public String getRx() {
-		return rx;
+		return StringUtils.trimToEmpty(rx);
 	}
 	public void setRx(String rx) {
 		this.rx = rx;
 	}
 	public String getEstado() {
-		return estado;
+		return StringUtils.trimToEmpty(estado);
 	}
 	public void setEstado(String estado) {
 		this.estado = estado;
 	}
 	public String getIdViaje() {
-		return idViaje;
+		return StringUtils.trimToEmpty(idViaje);
 	}
 	public void setIdViaje(String idViaje) {
 		this.idViaje = idViaje;
 	}
 	public String getCaja() {
-		return caja;
+		return StringUtils.trimToEmpty(caja);
 	}
 	public void setCaja(String caja) {
 		this.caja = caja;
 	}
 	public String getIdCliente() {
-		return idCliente;
+		return StringUtils.trimToEmpty(idCliente);
 	}
 	public void setIdCliente(String idCliente) {
 		this.idCliente = idCliente;
@@ -73,7 +74,7 @@ public class JbJava {
 		this.roto = roto;
 	}
 	public String getEmpAtendio() {
-		return empAtendio;
+		return StringUtils.trimToEmpty(empAtendio);
 	}
 	public void setEmpAtendio(String empAtendio) {
 		this.empAtendio = empAtendio;
@@ -85,13 +86,13 @@ public class JbJava {
 		this.numLlamada = numLlamada;
 	}
 	public String getMaterial() {
-		return material;
+		return StringUtils.trimToEmpty(material);
 	}
 	public void setMaterial(String material) {
 		this.material = material;
 	}
 	public String getSurte() {
-		return surte;
+		return StringUtils.trimToEmpty(surte);
 	}
 	public void setSurte(String surte) {
 		this.surte = surte;
@@ -103,7 +104,7 @@ public class JbJava {
 		this.saldo = saldo;
 	}
 	public String getJbTipo() {
-		return jbTipo;
+		return StringUtils.trimToEmpty(jbTipo);
 	}
 	public void setJbTipo(String jbTipo) {
 		this.jbTipo = jbTipo;
@@ -127,25 +128,25 @@ public class JbJava {
 		this.fechaMod = fechaMod;
 	}
 	public String getCliente() {
-		return cliente;
+		return StringUtils.trimToEmpty(cliente);
 	}
 	public void setCliente(String cliente) {
 		this.cliente = cliente;
 	}
 	public String getIdMod() {
-		return idMod;
+		return StringUtils.trimToEmpty(idMod);
 	}
 	public void setIdMod(String idMod) {
 		this.idMod = idMod;
 	}
 	public String getObsExt() {
-		return obsExt;
+		return StringUtils.trimToEmpty(obsExt);
 	}
 	public void setObsExt(String obsExt) {
 		this.obsExt = obsExt;
 	}
 	public String getRetAuto() {
-		return retAuto;
+		return StringUtils.trimToEmpty(retAuto);
 	}
 	public void setRetAuto(String retAuto) {
 		this.retAuto = retAuto;
@@ -157,7 +158,7 @@ public class JbJava {
 		this.noLlamar = noLlamar;
 	}
 	public String getTipoVenta() {
-		return tipoVenta;
+		return StringUtils.trimToEmpty(tipoVenta);
 	}
 	public void setTipoVenta(String tipoVenta) {
 		this.tipoVenta = tipoVenta;
@@ -169,7 +170,7 @@ public class JbJava {
 		this.fechaVenta = fechaVenta;
 	}
 	public String getIdGrupo() {
-		return idGrupo;
+		return StringUtils.trimToEmpty(idGrupo);
 	}
 	public void setIdGrupo(String idGrupo) {
 		this.idGrupo = idGrupo;
@@ -181,7 +182,7 @@ public class JbJava {
 		this.noEnviar = noEnviar;
 	}
 	public String getExterno() {
-		return externo;
+		return StringUtils.trimToEmpty(externo);
 	}
 	public void setExterno(String externo) {
 		this.externo = externo;

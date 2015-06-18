@@ -705,7 +705,7 @@ class OrderController {
     if( notaVenta.fechaEntrega != null ){
       if( Registry.isCouponFFActivated() && !alreadyDelivered ){
         if( !Registry.couponFFOtherDiscount() ){
-          if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null ){
+          if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.descuento == null ){
             generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
           }
         } else {
@@ -3331,7 +3331,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
-  static void reprintEnsure( NotaVenta notaVenta ){
+  static void reprintEnsure( NotaVentaJava notaVenta ){
     if( notaVenta.fechaEntrega != null ) {
       if(validEnsureDateAplication(notaVenta)){
         if( validWarranty( notaVenta, false, null, "", false ) ){
@@ -3372,7 +3372,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
 
-  static Boolean validEnsureDateAplication( NotaVenta notaVenta ){
+  static Boolean validEnsureDateAplication( NotaVentaJava notaVenta ){
     Boolean valid = false
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
     Date limitDate = new Date()

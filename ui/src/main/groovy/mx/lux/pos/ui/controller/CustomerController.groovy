@@ -361,8 +361,8 @@ class CustomerController {
         pListener.disableUI()
         pListener.operationTypeSelected = type//OperationType.PAYING
         pListener.setCustomer(c)
-        pListener.setPromotion(o)
         pListener.setOrder(o)
+        pListener.setPromotion(o)
         pListener.enableUI()
       } else {
         pListener.operationTypeSelected = OperationType.DEFAULT
