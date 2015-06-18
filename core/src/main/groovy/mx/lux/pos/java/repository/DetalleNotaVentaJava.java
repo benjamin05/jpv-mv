@@ -176,8 +176,7 @@ public class DetalleNotaVentaJava {
     }
 
     public DetalleNotaVentaJava setValores( ResultSet rs ) throws SQLException, ParseException {
-        DetalleNotaVentaJava detalleNotaVentaJava = new DetalleNotaVentaJava();
-		this.setIdFactura(rs.getString("id_factura"));
+        this.setIdFactura(rs.getString("id_factura"));
 		this.setIdArticulo(rs.getInt("id_articulo"));
 		this.setIdTipoDetalle(rs.getString("id_tipo_detalle"));
 		this.setCantidadFac(rs.getDouble("cantidad_fac"));
@@ -196,7 +195,7 @@ public class DetalleNotaVentaJava {
         this.setId(rs.getInt("id"));
         this.setArticulo( articulo() );
 		
-		return detalleNotaVentaJava;
+		return this;
 	}
 
     private ArticulosJava articulo( ) throws ParseException {
