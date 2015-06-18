@@ -1610,7 +1610,27 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
 
     void correProcesoBodegas(  ){
       log.debug( "correProcesoBodegas( )" )
-      Registry.executeCommand( TAG_COMANDO_BODEGA )
+      if( System.getProperty("os.name").trim().equals("Linux") ){
+        Integer diaBod = Registry.cellarDay
+        Calendar cal = Calendar.getInstance();
+        Integer dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+        try{
+          String s = null
+          Process p1 = Runtime.getRuntime().exec(TAG_COMANDO_BODEGA);
+          BufferedReader stdInput = new BufferedReader(new InputStreamReader(p1.getInputStream()));
+          BufferedReader stdError = new BufferedReader(new InputStreamReader(p1.getErrorStream()));
+          while ((s = stdInput.readLine()) != null) {
+            println(s+"\n");
+          }
+          while ((s = stdError.readLine()) != null) {
+            println(s+"\n");
+          }
+        } catch ( Exception ex ){
+          println( ex.getMessage() )
+        }
+      } else {
+        Registry.executeCommand( TAG_COMANDO_BODEGA )
+      }
     }
 
 

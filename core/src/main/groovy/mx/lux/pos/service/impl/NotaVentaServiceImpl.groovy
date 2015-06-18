@@ -899,14 +899,17 @@ class NotaVentaServiceImpl implements NotaVentaService {
     NotaVenta nota = notaVentaRepository.findOne( idFactura )
     if( nota != null ){
       String cmd = String.format( "%s %s", Registry.commandBakpOrder, nota.id);
-      /*try{
-      String cmd = String.format( "%s %s", Registry.commandBakpOrder, nota.id);
-      Process p = Runtime.getRuntime().exec(cmd);
-      log.debug( "comando a ejecutar <${cmd}>" )
-      } catch (Exception e){
-        println e
-      }*/
-      Registry.executeCommand( cmd )
+      if( System.getProperty("os.name").trim().equals("Linux") ){
+        try{
+          Process p = Runtime.getRuntime().exec(cmd);
+          log.debug( "comando a ejecutar <${cmd}>" )
+        } catch (Exception e){
+          println e
+        }
+      } else {
+        Registry.executeCommand( cmd )
+      }
+
     }
   }
 
