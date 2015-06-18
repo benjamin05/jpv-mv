@@ -25,6 +25,17 @@ class PromotionEngine {
     return applied
   }
 
+
+  Boolean applyRecoverOrderDiscount( PromotionModel pModel, String pCorporateKey, Double pDiscountPercent ) {
+    Boolean applied = false
+    //if ( !pModel.hasOrderDiscountApplied() ) {
+    pModel.setupOrderDiscount( StringUtils.trimToEmpty( pCorporateKey ), pDiscountPercent )
+    PromotionCommit.writeOrder( pModel )
+    applied = true
+    //}
+    return applied
+  }
+
   Boolean applyPromotion( PromotionModel pModel, PromotionAvailable pPromotion, Boolean pUserSelection ) {
     Boolean result = pModel.applyPromotion( pPromotion, pUserSelection )
     if ( result ) {

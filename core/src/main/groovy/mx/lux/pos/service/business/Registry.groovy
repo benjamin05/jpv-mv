@@ -14,6 +14,8 @@ class Registry {
 
   private static final String TAG_TRANSACCION_VENTA = 'VENTA'
   private static final String TAG_TRANSACCION_REMESA = 'REM'
+
+  private static String ip = ""
   static Parametro find( TipoParametro pParametro ) {
     Parametro p = RepositoryFactory.getRegistry().findOne( pParametro.getValue() )
     if ( p == null ) {
@@ -538,6 +540,10 @@ class Registry {
         return isTrue( TipoParametro.ACTIVE_STORE_DISCOUNT )
     }
 
+    static Boolean getPromoAgeActive( ) {
+        return isTrue( TipoParametro.PROMO_EDAD_ACTIVA )
+    }
+
     static Boolean getValidSPToStore( ) {
         return isTrue( mx.lux.pos.java.TipoParametro.SALIDA_VENTA_SP )
     }
@@ -584,19 +590,23 @@ class Registry {
         return url
     }
   static Double getAckDelay( ) {
-    return asDouble( TipoParametro.ACUSE_RETRASO )
+    return asDouble( mx.lux.pos.java.TipoParametro.ACUSE_RETRASO )
+  }
+
+  static Double getValidAmountPromoAge( ) {
+    return asDouble( mx.lux.pos.java.TipoParametro.MONTO_VALIDO_PROMO_EDAD )
   }
 
   static Double getAmountToGenerateFFCoupon( ) {
-    return asDouble( TipoParametro.MONTO_GENERA_FF_CUPON )
+    return asDouble( mx.lux.pos.java.TipoParametro.MONTO_GENERA_FF_CUPON )
   }
 
   static Double getAmountToApplyFFCoupon( ) {
-    return asDouble( TipoParametro.MONTO_APLICA_FF_CUPON )
+    return asDouble( mx.lux.pos.java.TipoParametro.MONTO_APLICA_FF_CUPON )
   }
 
   static Double getAmountFFCoupon( ) {
-    return asDouble( TipoParametro.MONTO_FF_CUPON )
+    return asDouble( mx.lux.pos.java.TipoParametro.MONTO_FF_CUPON )
   }
 
   static Boolean isAckDebugEnabled() {
@@ -658,5 +668,57 @@ class Registry {
     return valid
 
   }
+
+
+  static void getSolicitaGarbageColector(){
+    try{
+      //System.out.println( "********** INICIO: 'LIMPIEZA GARBAGE COLECTOR' **********" );
+      Runtime basurero = Runtime.getRuntime();
+      /*System.out.println( "MEMORIA TOTAL 'JVM': " + basurero.totalMemory() );
+      System.out.println( "MEMORIA [FREE] 'JVM' [ANTES]: " + basurero.freeMemory() );*/
+      basurero.gc(); //Solicitando ...
+      /*System.out.println( "MEMORIA [FREE] 'JVM' [DESPUES]: " + basurero.freeMemory() );
+      System.out.println( "********** FIN: 'LIMPIEZA GARBAGE COLECTOR' **********" );*/
+    }  catch( Exception e ){
+      e.printStackTrace();
+    }
+  }
+
+
+  static String ipCurrentMachine( ){
+    if( StringUtils.trimToEmpty(ip).length() <= 0 ){
+      String line = ""
+      try{
+        line = System.getenv("SSH_CLIENT");
+      } catch ( Exception e ) { println e }
+
+      if( StringUtils.trimToEmpty(line).length() > 0 ){
+        String[] data = StringUtils.trimToEmpty(line).split(" ")
+        if( data.length > 1 ){
+          ip = data[0]
+          println "Ip Maquina: "+ip
+        }
+      }
+
+      if(StringUtils.trimToEmpty(ip).length() <= 0){
+        Enumeration en = NetworkInterface.getNetworkInterfaces();
+        while(en.hasMoreElements()){
+          NetworkInterface ni=(NetworkInterface) en.nextElement();
+          Enumeration ee = ni.getInetAddresses();
+          while(ee.hasMoreElements()) {
+            InetAddress ia= (InetAddress) ee.nextElement();
+            if(StringUtils.trimToEmpty(ia.canonicalHostName).contains(InetAddress.getLocalHost().getHostName())){
+              ip = ia.getHostAddress()
+              println("Ip Maquina: "+ip)
+            }
+          }
+        }
+      }
+      return ip
+    } else {
+      return ip
+    }
+  }
+
 
 }

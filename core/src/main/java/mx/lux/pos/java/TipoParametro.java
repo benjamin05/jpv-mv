@@ -68,6 +68,7 @@ public enum TipoParametro {
     METODO_BUSQUEDA_ARTICULOS( "metodo_busqueda_articulos" ),
     MOSTRAR_NO_STOCK_TICKET_LC( "mostrar_no_stock_ticket_lc" ),
     MONTO_GENERA_FF_CUPON( "monto_genera_ff_cupon" ),
+    MONTO_VALIDO_PROMO_EDAD( "monto_minimo_promo_edad" ),
     MONTO_APLICA_FF_CUPON( "monto_aplica_ff_cupon" ),
     MONTO_FF_CUPON( "monto_ff_cupon" ),
     PAQUETES("paquetes" ),

@@ -2,6 +2,7 @@ package mx.lux.pos.java.repository;
 
 import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.querys.ArticulosQuery;
+import org.apache.commons.lang.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -31,7 +32,7 @@ public class DetalleNotaVentaJava {
     ArticulosJava articulo;
 
     public String getIdFactura() {
-        return idFactura;
+        return StringUtils.trimToEmpty(idFactura);
     }
 
     public void setIdFactura(String idFactura) {
@@ -47,7 +48,7 @@ public class DetalleNotaVentaJava {
     }
 
     public String getIdTipoDetalle() {
-        return idTipoDetalle;
+        return StringUtils.trimToEmpty(idTipoDetalle);
     }
 
     public void setIdTipoDetalle(String idTipoDetalle) {
@@ -79,7 +80,7 @@ public class DetalleNotaVentaJava {
     }
 
     public String getIdSync() {
-        return idSync;
+        return StringUtils.trimToEmpty(idSync);
     }
 
     public void setIdSync(String idSync) {
@@ -95,7 +96,7 @@ public class DetalleNotaVentaJava {
     }
 
     public String getIdMod() {
-        return idMod;
+        return StringUtils.trimToEmpty(idMod);
     }
 
     public void setIdMod(String idMod) {
@@ -111,7 +112,7 @@ public class DetalleNotaVentaJava {
     }
 
     public String getSurte() {
-        return surte;
+        return StringUtils.trimToEmpty(surte);
     }
 
     public void setSurte(String surte) {
@@ -119,7 +120,7 @@ public class DetalleNotaVentaJava {
     }
 
     public String getIdRepVenta() {
-        return idRepVenta;
+        return StringUtils.trimToEmpty(idRepVenta);
     }
 
     public void setIdRepVenta(String idRepVenta) {

@@ -102,9 +102,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private JLabel paid
     private JLabel due
     private JLabel change
+    private JLabel lblPromo
+    private JLabel lblAmountPromo
 
     private Integer flag = 0
     private Boolean focusItem = false
+    private BigDecimal promoAmount = BigDecimal.ZERO
     private Boolean isPaying = false
 
     private DiscountContextMenu discountMenu
@@ -119,9 +122,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private Boolean activeDialogBusquedaCliente = true
     private Boolean advanceOnlyInventariable
     private Boolean canceledWarranty
+    private Boolean discountAgeApplied
     private String sComments = ''
-    private String ip
+    private static final String ip = Registry.ipCurrentMachine()
     private HelpItemSearchDialog helpItemSearchDialog
+
+    private Boolean promoAgeActive
 
     private String MSJ_ERROR_WARRANTY = ""
     private String TXT_ERROR_WARRANTY = ""
@@ -139,7 +145,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                customerTypes.add(customer)
             }
         }
-        ip = ipCurrentMachine()
+        promoAgeActive = Registry.promoAgeActive
         customer = CustomerController.findDefaultCustomer()
         promotionList = new ArrayList<PromotionAvailable>()
         promotionListTmp = new ArrayList<PromotionAvailable>()
@@ -175,6 +181,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     folio = label()
                     label('Factura')
                     bill = label()
+                    lblPromo = label('Descuento:', constraints: 'hidemode 3', visible: promoAgeActive )
+                    lblAmountPromo = label( constraints: 'hidemode 3', visible: promoAgeActive)
                 }
 
                 panel(border: loweredEtchedBorder(), layout: new MigLayout('wrap 2', '[][grow,right]', '[top]')) {
@@ -324,21 +332,38 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void doBindings() {
-      sb.build {
-        bean(customerName, text: bind { customer?.fullName })
-        bean(folio, text: bind { order.id })
-        bean(bill, text: bind { order.bill })
-        bean(date, text: bind(source: order, sourceProperty: 'date', converter: dateConverter), alignmentX: CENTER_ALIGNMENT)
-        bean(total, text: bind(source: order, sourceProperty: 'total', converter: currencyConverter))
-        bean(paid, text: bind(source: order, sourceProperty: 'paid', converter: currencyConverter))
-        bean(due, text: bind(source: order, sourceProperty: 'dueString'))
-        bean(itemsModel.rowsModel, value: bind(source: order, sourceProperty: 'items', mutual: true))
-        bean(paymentsModel.rowsModel, value: bind(source: order, sourceProperty: 'payments', mutual: true))
-        bean(comments, text: bind(source: order, sourceProperty: 'comments', mutual: true))
-        bean(order, customer: bind { customer })
+      if(promoAgeActive){
+        calculatedPromoAge()
       }
-      itemsModel.fireTableDataChanged()
-      paymentsModel.fireTableDataChanged()
+        sb.build {
+            bean(customerName, text: bind { customer?.fullName })
+            bean(folio, text: bind { order.id })
+            bean(bill, text: bind { order.bill })
+            bean(date, text: bind(source: order, sourceProperty: 'date', converter: dateConverter), alignmentX: CENTER_ALIGNMENT)
+            if( promoAmount.compareTo(BigDecimal.ZERO) > 0 && !promoApplied() ){
+                BigDecimal amountParcial = BigDecimal.ZERO
+                BigDecimal amountEnsure = BigDecimal.ZERO
+                for(OrderItem orderItem : order.items){
+                    if( StringUtils.trimToEmpty(orderItem.item.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                        amountEnsure = amountEnsure.add(orderItem.item.price)
+                    } else {
+                        amountParcial = amountParcial.add(orderItem.item.price)
+                    }
+                }
+                total.text = NumberFormat.getCurrencyInstance(Locale.US).format((amountParcial.subtract(promoAmount)).add(amountEnsure))
+                due.text = NumberFormat.getCurrencyInstance(Locale.US).format(((amountParcial.subtract(promoAmount)).add(amountEnsure)).subtract(order.paid))
+            } else {
+              bean(total, text: bind(source: order, sourceProperty: 'total', converter: currencyConverter))
+              bean(due, text: bind(source: order, sourceProperty: 'dueString'))
+            }
+            bean(paid, text: bind(source: order, sourceProperty: 'paid', converter: currencyConverter))
+            bean(itemsModel.rowsModel, value: bind(source: order, sourceProperty: 'items', mutual: true))
+            bean(paymentsModel.rowsModel, value: bind(source: order, sourceProperty: 'payments', mutual: true))
+            bean(comments, text: bind(source: order, sourceProperty: 'comments', mutual: true))
+            bean(order, customer: bind { customer })
+        }
+        itemsModel.fireTableDataChanged()
+        paymentsModel.fireTableDataChanged()
 
       if (order?.id != null) {
         change.text = OrderController.requestEmployee(order?.id)
@@ -494,6 +519,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         }
                       }
                       if( valid ){
+                        sb.doOutside {
+                          Registry.getSolicitaGarbageColector()
+                        }
                         CustomerController.requestPayingCustomer(this, OperationType.PAYING)
                         isPaying = true
                       } else {
@@ -537,6 +565,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     }
                     break*/
             }
+            sb.doOutside {
+              Registry.getSolicitaGarbageColector()
+            }
             if(!operationType.selectedItem.equals(OperationType.DOMESTIC)){
               operationType.removeItem( OperationType.DOMESTIC )
             }
@@ -549,6 +580,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
     private def doItemSearch( Boolean holdPromo, String log ) {
+      Registry.getSolicitaGarbageColector()
       println "holdPromo: "+holdPromo
       println "log: "+log
       Receta rec = new Receta()
@@ -763,7 +795,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     }
                   }
                     CuponMvView cuponMvView = OrderController.cuponValid( order.customer.id )
-                    new PaymentDialog(ev.component, order, null, cuponMvView, this, hasDiscount).show()
+                    println "PromoAmount: "+promoAmount
+                    new PaymentDialog(ev.component, order, null, cuponMvView, this, hasDiscount, promoAmount, discountAgeApplied).show()
                     updateOrder(order?.id)
                     //validTransferCuponMv()
                     doBindings()
@@ -792,7 +825,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
             if (ev.clickCount == 2 && valid && (!operationType1.equals(OperationType.PENDING) &&
                     !operationType1.equals(OperationType.EDIT_PAYING) && !operationType1.equals(OperationType.QUOTE))) {
-                new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false).show()
+                new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false, promoAmount, discountAgeApplied).show()
                 updateOrder(order?.id)
             }
         }
@@ -1018,6 +1051,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private def doPrint = { ActionEvent ev ->
+      Registry.getSolicitaGarbageColector()
       if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         dioptra = new Dioptra()
@@ -1037,6 +1071,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               hasLc = true
             }
         }
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
+        }
         if( !hasDioptra ){
           order.dioptra = null
         }
@@ -1054,6 +1091,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             warranty = OrderController.validWarranty( OrderController.findOrderJavaByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, true )
         } else {
           warranty = true
+        }
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
         }
         if( warranty ){
           if( validLensesPack() ){
@@ -1188,7 +1228,6 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         CapturaSuyoDialog capturaSuyoDialog = new CapturaSuyoDialog(order, u,true)
         capturaSuyoDialog.show()
       }
-
       if( !itemDelete && !StringUtils.trimToNull(indexDioptra).equals(null)){
         rec = validarGenericoB(item)
         OrderController.saveRxOrder(order?.id, rec?.idReceta)
@@ -1222,7 +1261,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             ).createDialog(this, 'No se puede registrar la venta').show()
           }
         } else if (order?.paid < (order?.total * pAnticipo)) {
-                Boolean requierAuth = OrderController.requiereAuth( order )
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
+        }
+        Boolean requierAuth = OrderController.requiereAuth( order )
                 if( requierAuth ){
                   AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo menor al permitido, esta operacion requiere autorizaci\u00f3n")
                   authDialog.show()
@@ -1336,7 +1378,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         cambiaVendedor.show()
         vendedor = cambiaVendedor?.vendedor
       }
-
+      sb.doOutside {
+        Registry.getSolicitaGarbageColector()
+      }
+        if( discountAgeApplied && promoAgeActive && promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
+          promotionDriver.addPromoDiscountAge( order, promoAmount )
+        }
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
       Order newOrder = OrderController.placeOrder(order, vendedor, false)
       OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
@@ -1487,6 +1534,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               OrderController.fieldRX(newOrder.id)
             }
             reviewForTransfers(newOrder.id)
+            promoAmount = BigDecimal.ZERO
+            lblAmountPromo.text = promoAmount
             sb.doOutside {
               try{
                 OrderController.runScriptBckpOrder( newOrder )
@@ -1573,23 +1622,31 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           .show()
               }
           } else {
+            Boolean canDelete = true
+              if( pPromotion instanceof PromotionDiscount){
+                if( StringUtils.trimToEmpty(pPromotion.discountType.description).equalsIgnoreCase("PREDAD") ){
+                  canDelete = false
+                }
+              }
+            if( canDelete ){
               this.promotionDriver.requestCancelPromotion(pPromotion)
 
               Payment payment = null
               for(Payment pay : order.payments){
-                  if( StringUtils.trimToEmpty(pay.paymentTypeId).equalsIgnoreCase(TAG_PAYMENT_TYPE_TRANSF) ){
-                      payment = pay
-                  }
+                if( StringUtils.trimToEmpty(pay.paymentTypeId).equalsIgnoreCase(TAG_PAYMENT_TYPE_TRANSF) ){
+                  payment = pay
+                }
               }
               if( payment != null ){
-                  List<CuponMv> lstCupons = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(order.id) )
-                  if( lstCupons.size() > 0 ){
-                      OrderController.existDiscountKey( StringUtils.trimToEmpty(lstCupons.first().claveDescuento),
-                              StringUtils.trimToEmpty(payment.paymentReference) )
-                  }
+                List<CuponMv> lstCupons = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(order.id) )
+                if( lstCupons.size() > 0 ){
+                  OrderController.existDiscountKey( StringUtils.trimToEmpty(lstCupons.first().claveDescuento),
+                      StringUtils.trimToEmpty(payment.paymentReference) )
+                }
               }
 
               OrderController.deleteCuponMv( order.id )
+            }
           }
           for(Payment payment : order.payments){
               OrderController.removePaymentFromOrder( order.id, payment )
@@ -1717,6 +1774,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         dioptra = new Dioptra()
         antDioptra = new Dioptra()
         order?.dioptra = null
+        promotionList.clear()
         doBindings()
         operationType.setSelectedItem(OperationType.DEFAULT)
     }
@@ -1764,6 +1822,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void fireRequestContinue(DefaultTableModel itemsModel) {
+      Registry.getSolicitaGarbageColector()
       if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         Boolean hasLc = false
@@ -1786,6 +1845,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           if( StringUtils.trimToEmpty(result.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
             hasLc = true
           }
+        }
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
         }
         if( !hasDioptra ){
             order.dioptra = null
@@ -2340,11 +2402,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
 
-  private String ipCurrentMachine( ){
+  /*private String ipCurrentMachine( ){
     String line = ""
     String ip = ""
     try{
-          line = System.getenv("SSH_CLIENT");
+      line = System.getenv("SSH_CLIENT");
     } catch ( Exception e ) { println e }
 
     if( StringUtils.trimToEmpty(line).length() > 0 ){
@@ -2370,6 +2432,76 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
     }
     return ip
+  }*/
+
+
+
+  private void calculatedPromoAge( ){
+    promoAmount = BigDecimal.ZERO
+    Boolean promoApplied = promoApplied()
+    //BigDecimal promoAmount = BigDecimal.ZERO
+    /*for(IPromotionAvailable promo : promotionList){
+      if( promo.applied ){
+        promoApplied = true
+        promoAmount = promo.discountAmount
+      }
+    }
+    if( promoAmount.compareTo(BigDecimal.ZERO) <= 0  ){
+      for(OrderLinePromotion promo : order.deals){
+        promoApplied = true
+        promoAmount = promo.promotionItem.descuentoMonto
+      }
+    }*/
+
+    if( !promoApplied ){
+      promoAmount = OrderController.amountPromoAge( order.id )
+      discountAgeApplied = true
+    } else {
+      discountAgeApplied = false
+    }
+
+    lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount)
+    String comments = ''
+    if( order.comments != null && order.comments != '' ){
+      comments = order.comments
+    }
+    Order tmp = OrderController.getOrder(order.id)
+    if (tmp?.id) {
+      if( comments.length() > 0 ){
+        tmp?.comments = comments
+      }
+      order = tmp
+    }
+  }
+
+
+  private Boolean promoApplied (){
+    Boolean applied = false
+    for(int i=0;i<promotionList.size();i++){
+      if(promotionList.get(i) instanceof PromotionAvailable){
+        if( promotionList.get(i).applied ){
+          applied= true
+          promoAmount = promotionList.get(i).discountAmount
+        }
+      } else if(promotionList.get(i) instanceof PromotionDiscount){
+        applied = true
+        promoAmount = promotionList.get(i).discountAmount
+      }
+    }
+
+    if( !applied  ){
+      for(int i = 0;i< order.deals.size();i++){
+        if( order.deals.get(i) instanceof OrderLinePromotion ){
+          applied = true
+          promoAmount = order.deals.get(i).promotionItem.descuentoMonto
+        } else if( order.deals.get(i) instanceof OrderDiscount ){
+          applied = true
+          promoAmount = order.deals.get(i).getDescuento()
+        }
+      }
+    }
+    println "Algo aplicado: "+applied
+    return applied
   }
 
 

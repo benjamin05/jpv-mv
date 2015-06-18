@@ -3424,4 +3424,57 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static BigDecimal amountPromoAge( String idOrder ){
+    BigDecimal monto = BigDecimal.ZERO
+    NotaVenta nota = notaVentaService.obtenerNotaVenta( idOrder )
+    if( nota != null ){
+      BigDecimal montoParcial = BigDecimal.ZERO
+      Boolean montoValido = false
+      Boolean hasSV = false
+      Boolean hasMF = false
+      for(DetalleNotaVenta det : nota.detalles){
+        if( !StringUtils.trimToEmpty(det?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEG) ){
+          montoParcial = montoParcial.add(det.precioUnitFinal.multiply(det.cantidadFac))
+        }
+        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
+          if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("SV") ){
+            hasSV = true
+          } else if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("B") ||
+                  StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("P") ){
+            hasMF = true
+          }
+        }
+      }
+      if( montoParcial.compareTo(Registry.validAmountPromoAge) >= 0 ){
+        montoValido = true
+      }
+      if( nota?.idCliente != Registry.genericCustomer && montoValido && (hasSV || hasMF) ){
+        if( nota.cliente != null && nota?.cliente?.fechaNacimiento != null ){
+          Date fechaActual = new Date();
+          SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+          String hoy = formato.format(fechaActual);
+          String[] dat1 = formato.format(nota?.cliente?.fechaNacimiento).split("/");
+          String[] dat2 = hoy.split("/");
+          Integer anos = Integer.parseInt(dat2[2]) - Integer.parseInt(dat1[2]);
+          Integer mes = Integer.parseInt(dat2[1]) - Integer.parseInt(dat1[1]);
+          if (mes < 0) {
+              anos = anos - 1;
+          } else if (mes == 0) {
+            int dia = Integer.parseInt(dat2[0]) - Integer.parseInt(dat1[0]);
+            if (dia > 0) {
+              anos = anos - 1;
+            }
+          }
+          if( hasSV ){
+            monto = new BigDecimal(anos).multiply(new BigDecimal(10) )
+          } else if( hasMF ){
+            monto = new BigDecimal(anos).multiply(new BigDecimal(20) )
+          }
+        }
+      }
+    }
+    return monto
+  }
+
+
 }

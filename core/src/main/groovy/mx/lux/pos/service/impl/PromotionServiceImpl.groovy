@@ -85,6 +85,12 @@ class PromotionServiceImpl implements PromotionService {
     return PromotionEngine.instance.applyOrderDiscount( pModel, pCorporateKey, pDiscountPercent )
   }
 
+  Boolean recoverOrderDiscount( PromotionModel pModel, String pCorporateKey, Double pDiscountPercent ) {
+    log.debug( String.format( "Request Order Discount (Key:%s, Discount:%,.1f%%)",
+            pCorporateKey, ( pDiscountPercent * 100.0 ) ) )
+    return PromotionEngine.instance.applyRecoverOrderDiscount( pModel, pCorporateKey, pDiscountPercent )
+  }
+
   void requestPersist( PromotionModel pModel, Boolean saveOrder ) {
     //log.debug( String.format( "Request Persist Promotions for Order:%s", pModel.order.orderNbr ) )
     PromotionCommit.writePromotions( pModel )

@@ -325,6 +325,39 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   }
 
 
+  void addPromoDiscountAge( Order order, BigDecimal discountAmt ){
+    Double discountAmount = 0.00
+    DescuentoClave descuentoClave = new DescuentoClave()
+    descuentoClave.clave_descuento = "PrEdad"
+    descuentoClave.porcenaje_descuento = discountAmt.doubleValue()
+    descuentoClave.tipo = "AP"
+    descuentoClave.descripcion_descuento = "Promocion Edad"
+    descuentoClave.vigente = true
+    BigDecimal total = BigDecimal.ZERO
+    for(OrderItem det : order.items){
+      if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(det.item.type)) ){
+        total = total.add(det.item.price.multiply(det.quantity))
+      }
+    }
+    if(discountAmt > new Double(total)){
+      discountAmount = new Double(total)
+    } else {
+      discountAmount = discountAmt
+    }
+    Double discount = discountAmount / total
+    Boolean apl = false
+    model.loadOrder( OrderController.findOrderByidOrder( StringUtils.trimToEmpty(order.id) ) )
+    apl = model.setupOrderCouponDiscount(descuentoClave,discount )
+    PromotionCommit.writeOrder( model )
+    if ( apl ) {
+      this.updatePromotionList()
+      view.refreshData()
+    } else {
+      println "No se pudo insertar el cupon en la nota ${order.id}"
+    }
+  }
+
+
     void addCouponDiscountTransf( Order order, BigDecimal discountAmt, String clave, BigDecimal montoCupon ){
         /*Double discountAmount = 0.00
         DescuentoClave descuentoClave = new DescuentoClave()
@@ -432,15 +465,21 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       }
       apl = model.setupOrderCouponDiscount(descuentoClave,discount )
       PromotionCommit.writeOrder( model )
-      if ( service.requestOrderDiscount( this.model, "", discount ) ) {
+      String clave = ""
+      if( StringUtils.trimToEmpty(desc?.clave).length() > 0 && StringUtils.trimToEmpty(desc?.clave).isNumber() ){
+        clave = StringUtils.trimToEmpty(desc?.clave)
+      }
+      if ( clave.trim().length() > 0 ) {
+        if( service.recoverOrderDiscount( this.model, clave, discount ) ){
+          log.debug( this.model.orderDiscount.toString() )
+          this.updatePromotionList()
+          view.refreshData()
+        }
+      } /*else if ( service.recoverOrderDiscount( this.model, desc?.clave, discount ) ) {
         log.debug( this.model.orderDiscount.toString() )
         this.updatePromotionList()
         view.refreshData()
-      } else if ( service.requestOrderDiscount( this.model, desc?.clave, discount ) ) {
-        log.debug( this.model.orderDiscount.toString() )
-        this.updatePromotionList()
-        view.refreshData()
-      } else if ( apl  ) {
+      }*/ else if ( apl  ) {
         this.updatePromotionList()
         view.refreshData()
       }

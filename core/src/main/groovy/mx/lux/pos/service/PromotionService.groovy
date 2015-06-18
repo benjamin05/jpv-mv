@@ -17,6 +17,8 @@ interface PromotionService {
 
   Boolean requestOrderDiscount( PromotionModel pModel, String pCorporateKey, Double pDiscountPercent )
 
+  Boolean recoverOrderDiscount( PromotionModel pModel, String pCorporateKey, Double pDiscountPercent )
+
   void requestPersist( PromotionModel pModel, Boolean saveOrder )
 
     void saveTipoDescuento(String idNotaVenta, String idTipoDescuento )
