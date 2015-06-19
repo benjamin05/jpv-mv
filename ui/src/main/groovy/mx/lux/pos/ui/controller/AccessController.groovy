@@ -80,7 +80,7 @@ class AccessController {
   }
 
   private static boolean isAuthorizer( EmpleadoJava empleado ) {
-    log.info( "verificando si empleado es autorizador: ${empleado?.id}" )
+    log.info( "verificando si empleado es autorizador: ${empleado?.idEmpleado}" )
     if ( empleado?.idEmpleado ) {
       if ( ( 1..2 ).contains( empleado.idPuesto ) ) {
         log.info( "usuario es autorizador" )
