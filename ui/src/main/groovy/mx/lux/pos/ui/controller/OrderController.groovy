@@ -3461,7 +3461,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               anos = anos - 1;
           } else if (mes == 0) {
             int dia = Integer.parseInt(dat2[0]) - Integer.parseInt(dat1[0]);
-            if (dia > 0) {
+            if (dia < 0) {
               anos = anos - 1;
             }
           }
