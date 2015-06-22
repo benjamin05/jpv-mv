@@ -606,24 +606,25 @@ class ShowOrderPanel extends JPanel {
             line = System.getenv("SSH_CLIENT");
         } catch ( Exception e ) { println e }
 
-        if( StringUtils.trimToEmpty(line).length() > 0 ){
-            String[] data = StringUtils.trimToEmpty(line).split(" ")
+        if( org.apache.commons.lang3.StringUtils.trimToEmpty(line).length() > 0 ){
+            String[] data = org.apache.commons.lang3.StringUtils.trimToEmpty(line).split(" ")
             if( data.length > 1 ){
                 ip = data[0]
-                println "Ip Maquina: "+ip
+                println "Var Ambiente Ip Maquina: "+ip
             }
         }
 
-        if(StringUtils.trimToEmpty(ip).length() <= 0){
+        if(org.apache.commons.lang3.StringUtils.trimToEmpty(ip).length() <= 0){
             Enumeration en = NetworkInterface.getNetworkInterfaces();
             while(en.hasMoreElements()){
                 NetworkInterface ni=(NetworkInterface) en.nextElement();
                 Enumeration ee = ni.getInetAddresses();
                 while(ee.hasMoreElements()) {
                     InetAddress ia= (InetAddress) ee.nextElement();
-                    if(StringUtils.trimToEmpty(ia.canonicalHostName).contains(InetAddress.getLocalHost().getHostName())){
+                    if(org.apache.commons.lang3.StringUtils.trimToEmpty(ia.canonicalHostName).contains(InetAddress.getLocalHost().getHostName())){
                         ip = ia.getHostAddress()
-                        println("Ip Maquina: "+ip)
+                        println("Local Ip Maquina: "+ip)
+                        break
                     }
                 }
             }
