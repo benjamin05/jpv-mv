@@ -1400,7 +1400,8 @@ class OrderController {
       surteSwitch?.surte = surte
       List<PreciosJava> lstPrecios = PreciosQuery.buscaPreciosPorArticulo(StringUtils.trimToEmpty(item?.name));
       PreciosJava precio = lstPrecios.size() > 0 ? lstPrecios.get(0) : new PreciosJava()
-      if( (item.subtype.startsWith('S') || item.typ.equalsIgnoreCase('O')) ||
+      if( ((StringUtils.trimToEmpty(item.subtype).startsWith('S') && !StringUtils.trimToEmpty(item.subtype).equalsIgnoreCase("SV"))
+              || item.typ.equalsIgnoreCase('O')) ||
                 (StringUtils.trimToEmpty(item?.type).equals('A') && StringUtils.trimToEmpty(precio?.surte).equals('P')) ){
         AcusesTipoJava acusesTipo = AcusesTipoQuery.buscaAcuseTipoPorIdTipo('AUT')
         String url = acusesTipo?.pagina + '?id_suc=' + StringUtils.trimToEmpty(branch?.id.toString()) + '&id_col=' + item?.color?.trim() + '&id_art=' + StringUtils.trimToEmpty(item?.name.toString())
