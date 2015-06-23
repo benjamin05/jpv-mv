@@ -649,6 +649,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           .createDialog(new JTextField(), "Articulo Invalido").show()
                 }
               } else {
+                if(log.equalsIgnoreCase("actionPerformed")){
+                  focusItem = true
+                }
                 SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, results)
                 dialog.show()
                 item = dialog.item
@@ -913,6 +916,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void validarVentaNegativa(Item item, Customer customer, Boolean holdPromo, String log) {
+      if(log.equalsIgnoreCase("actionPerformed")){
+        focusItem = true
+      }
       User u = Session.get(SessionItem.USER) as User
       order.setEmployee(u.username)
       Branch branch = Session.get(SessionItem.BRANCH) as Branch
