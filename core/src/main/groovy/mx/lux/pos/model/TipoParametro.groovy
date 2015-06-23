@@ -113,7 +113,7 @@ enum TipoParametro {
   ACTIVE_STORE_DISCOUNT( 'desc_tienda_activo', 'no' ),
   ARCHIVO_CONSULTA_WEB('archivo_consulta_web',''),
   URL_ACUSE_RECIBIDO_LC('url_acuse_recibido_lc',''),
-  PORT_LINUX('port','5432'),
+  PORT_LINUX('port','22'),
   PASSWORD_LINUX('password_linux','nomodem'),
   URL_CANCELACION_PEDIDO_LC('cancelacion_pedido_lc',''),
   URL_REUSO_PEDIDO_LC('reuso_pedido_lc',''),
