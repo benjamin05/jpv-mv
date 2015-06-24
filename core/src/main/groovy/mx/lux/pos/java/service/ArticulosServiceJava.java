@@ -278,4 +278,21 @@ public class ArticulosServiceJava {
   }
 
 
+  public void updateLenteContacto( String idFactura ) throws ParseException {
+    PedidoLcJava pedido = PedidoLcQuery.buscaPedidoLcPorId( idFactura );
+    List<PedidoLcDetJava> lstPedidosDet = PedidoLcQuery.buscaPedidoLcDetPorIdPedido(idFactura);
+    if( pedido != null && lstPedidosDet.size() > 0 ){
+      PedidoLcQuery.eliminaPedidoLc(pedido);
+      NotaVentaJava nv = NotaVentaQuery.busquedaNotaById(idFactura);
+      pedido.setIdPedido(StringUtils.trimToEmpty(nv.getFactura()));
+      pedido.setFechaEntrega(nv.getFechaEntrega());
+      PedidoLcQuery.savePedidoLc( pedido );
+      for(PedidoLcDetJava pedidoDet : lstPedidosDet){
+        pedidoDet.setIdPedido(nv.getFactura());
+        PedidoLcQuery.savePedidoLcDet( pedidoDet );
+      }
+    }
+  }
+
+
 }

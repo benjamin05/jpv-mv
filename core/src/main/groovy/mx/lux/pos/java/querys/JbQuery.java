@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.repository.*;
 import mx.lux.pos.model.Jb;
 import org.apache.commons.lang3.StringUtils;
@@ -299,4 +300,26 @@ public class JbQuery {
       db.close();
     }
 
+
+    public static JbJava saveJb(JbJava jbJava) throws ParseException {
+      Connections db = new Connections();
+      String sql = "";
+      String formatDate = "yyyy-MM-dd";
+      String formatTime = "HH:mm:ss.SSS";
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      JbJava jb = null;
+      sql = String.format("INSERT INTO descuentos (rx,estado,id_viaje,caja,id_cliente,roto,emp_atendio,num_llamada," +
+              "material,surte,saldo,jb_tipo,volver_llamar,fecha_promesa,cliente,obs_ext,ret_auto,tipo_venta,fecha_venta" +
+              "id_grupo,externo) VALUES('%s','%s','%s','%s','%s',%d,'%s',%d,'%s','%s',%s,'%s',%s,%s,'%s','%s','%s','%s'," +
+              "%s,'%s','%s');", jbJava.getRx(), jbJava.getEstado(), jbJava.getIdViaje(), jbJava.getCaja(), jbJava.getIdCliente(),
+              jbJava.getRoto(), jbJava.getEmpAtendio(), jbJava.getNumLlamada(), jbJava.getMaterial(), jbJava.getSurte(),
+              jbJava.getSaldo(), jbJava.getJbTipo(), jbJava.getVolverLlamar(), Utilities.toString(jbJava.getFechaPromesa(), formatDate),
+              jbJava.getCliente(), jbJava.getObsExt(), jbJava.getRetAuto(), jbJava.getTipoVenta(),
+              Utilities.toString(jbJava.getFechaVenta(), formatTimeStamp), jbJava.getIdGrupo(), jbJava.getExterno());
+      db.insertQuery(sql);
+      db.close();
+      jb = buscarPorRx( jbJava.getRx() );
+
+      return jb;
+    }
 }

@@ -330,7 +330,7 @@ class ItemController {
 
 
   static void updateLenteContacto( String idFactura ){
-    articuloService.updateLenteContacto( idFactura )
+    articulosServiceJava.updateLenteContacto( idFactura )
   }
 
 

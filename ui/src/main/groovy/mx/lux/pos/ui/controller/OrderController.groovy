@@ -1226,136 +1226,119 @@ class OrderController {
     }
 
     static Boolean creaJb(String idFactura, Boolean cSaldo) {
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket(idFactura)
-        List<DetalleNotaVenta> detalleVenta = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(notaVenta?.id)
-        Boolean creaJB = false
-        String articulos = ''
-        String surte = ''
-        String tipoJb = ''
-        Boolean genericoD = false
-        Iterator iterator = detalleVenta.iterator();
-        while (iterator.hasNext()) {
-            DetalleNotaVenta detalle = iterator.next()
-            Articulo articulo = articuloService.obtenerArticulo(detalle?.idArticulo)
-            articulos = articulos + articulo?.articulo + ', '
-            if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('A') || StringUtils.trimToEmpty(articulo?.idGenerico).equals('E')) {
-                surte = detalle?.surte
-            }
-            if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('D')) {
-                genericoD = true
-            }
-            if( notaVenta.fechaEntrega == null ){
-            //if (articulo?.idGenerico.trim().equals('B') || articulo?.idGenerico.trim().equals('C') || articulo?.idGenerico.trim().equals('H')) {
-                creaJB = true
-                if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('C') || StringUtils.trimToEmpty(articulo?.idGenerico).equals('H')) {
-                    tipoJb = 'LC'
-                } else if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('B')) {
-                    tipoJb = 'LAB'
-                }
-            }
-            String surt = StringUtils.trimToEmpty(detalle?.surte) != '' ? StringUtils.trimToEmpty(detalle?.surte) : ''
-            if (surt.equals('P')) {
-                creaJB = true
-            }
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura(idFactura)
+      List<DetalleNotaVentaJava> detalleVenta = detalleNotaVentaServiceJava.listarDetallesNotaVentaPorIdFactura(notaVenta?.idFactura)
+      Boolean creaJB = false
+      String articulos = ''
+      String surte = ''
+      String tipoJb = ''
+      Boolean genericoD = false
+      Iterator iterator = detalleVenta.iterator();
+      while (iterator.hasNext()) {
+        DetalleNotaVentaJava detalle = iterator.next()
+        ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(detalle?.idArticulo)
+        articulos = articulos + articulo?.articulo + ', '
+        if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('A') || StringUtils.trimToEmpty(articulo?.idGenerico).equals('E')) {
+          surte = detalle?.surte
         }
-
-        TmpServicios tmpServicios = tmpServiciosRepository.findbyIdFactura(notaVenta?.id)
-        if (tmpServicios?.id_serv != null) {
-            creaJB = true
+        if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('D')) {
+          genericoD = true
         }
-
-        if ( creaJB ) {
-            Jb jb = jbRepository.findOne(notaVenta?.factura)
-            println('JB: ' + jb?.rx)
-
-            Jb nuevoJb = new Jb()
-            JbTrack nuevojbTrack = new JbTrack()
-
-            if (jb == null) {
-                String factura = notaVenta.factura.replaceFirst("^0*", "")
-                nuevoJb?.rx = factura
-                nuevoJb?.estado = 'PE'
-                nuevoJb?.id_cliente = notaVenta?.idCliente
-                nuevoJb?.emp_atendio = notaVenta?.empleado?.id
-                nuevoJb?.fecha_promesa = notaVenta?.fechaPrometida
-                nuevoJb?.num_llamada = 0
-                nuevoJb?.material = articulos
-                nuevoJb?.surte = surte
-                nuevoJb?.saldo = notaVenta.ventaNeta - notaVenta?.sumaPagos
-                nuevoJb?.jb_tipo = tipoJb
-                nuevoJb?.cliente = notaVenta?.cliente?.nombreCompleto
-                nuevoJb?.fecha_venta = notaVenta?.fechaHoraFactura
-
-                nuevojbTrack?.rx = factura
-                nuevojbTrack?.estado = 'PE'
-                nuevojbTrack?.emp = notaVenta?.empleado?.id
-                nuevojbTrack?.obs = articulos
-
-                println('jbTipo: ' + nuevoJb?.jb_tipo)
-                println('LC: ' + StringUtils.trimToEmpty(nuevoJb?.jb_tipo).equals('LC'))
-                if (StringUtils.trimToEmpty(nuevoJb?.jb_tipo).equals('LC')) {
-                    nuevoJb?.estado = 'EP'
-                    nuevoJb?.id_viaje = '8'
-
-                    JbTrack nuevoJbTrack2 = new JbTrack()
-                    nuevoJbTrack2?.rx = factura
-                    nuevoJbTrack2?.estado = 'EP'
-                    nuevoJbTrack2?.obs = '8'
-                    nuevoJbTrack2?.id_viaje = '8'
-                    nuevoJbTrack2?.emp = notaVenta?.empleado?.id
-                    nuevoJbTrack2?.fecha = new Date()
-                    nuevoJbTrack2?.id_mod = '0'
-                    println('LC: ' + nuevoJbTrack2?.id_viaje)
-                    nuevoJbTrack2 = jbTrackService.saveJbTrack(nuevoJbTrack2)
-
-                }
-
-                Parametro convenioNomina = parametroRepository.findOne(TipoParametro.CONV_NOMINA.value)
-
-
-                String s = convenioNomina?.valor
-                StringTokenizer st = new StringTokenizer(s.trim(), ",")
-                Iterator its = st.iterator()
-                Boolean convenio = false
-                while (its.hasNext()) {
-                    if (its.next().toString().equals(notaVenta?.idConvenio)) {
-                        convenio = true
-                    }
-                }
-
-                if (convenio) {
-                    nuevoJb?.estado = 'RTN'
-                    if (genericoD) {
-                        nuevoJb?.jb_tipo = 'EMA'
-                    } else {
-                        nuevoJb?.jb_tipo = 'EMP'
-                    }
-
-                }
-
-
-            }
-
-            if (cSaldo) {
-                nuevoJb?.estado = 'RTN'
-                nuevojbTrack?.estado = 'RTN'
-                nuevojbTrack?.obs = 'Factura con Saldo'
-            }
-
-            nuevoJb?.fecha_mod = new Date()
-            nuevoJb?.id_mod = '0'
-            nuevojbTrack?.fecha = new Date()
-            nuevojbTrack?.id_mod = '0'
-            if( nuevoJb.rx != null ){
-              nuevoJb = jbRepository.save(nuevoJb)
-              jbRepository.flush()
-            }
-            if( nuevojbTrack.rx != null ){
-              nuevojbTrack = jbTrackService.saveJbTrack(nuevojbTrack)
-            }
-
+        if( notaVenta.fechaEntrega == null ){
+          //if (articulo?.idGenerico.trim().equals('B') || articulo?.idGenerico.trim().equals('C') || articulo?.idGenerico.trim().equals('H')) {
+          creaJB = true
+          if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('C') || StringUtils.trimToEmpty(articulo?.idGenerico).equals('H')) {
+            tipoJb = 'LC'
+          } else if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('B')) {
+            tipoJb = 'LAB'
+          }
         }
-        return creaJB
+        String surt = StringUtils.trimToEmpty(detalle?.surte) != '' ? StringUtils.trimToEmpty(detalle?.surte) : ''
+        if (surt.equals('P')) {
+          creaJB = true
+        }
+      }
+      TmpServiciosJava tmpServicios = TmpServiciosQuery.buscaTmpServiciosPorIdFactura(notaVenta?.idFactura)
+      if (tmpServicios?.idServ != null) {
+        creaJB = true
+      }
+      if ( creaJB ) {
+        JbJava jb = JbQuery.buscarPorRx(notaVenta?.factura)
+        println('JB: ' + jb?.rx)
+        JbJava nuevoJb = new JbJava()
+        mx.lux.pos.java.repository.JbTrack nuevojbTrack = new mx.lux.pos.java.repository.JbTrack()
+        if (jb == null) {
+          String factura = notaVenta.factura.replaceFirst("^0*", "")
+          nuevoJb?.rx = factura
+          nuevoJb?.estado = 'PE'
+          nuevoJb?.idCliente = notaVenta?.idCliente
+          nuevoJb?.empAtendio = notaVenta?.empleado?.idEmpleado
+          nuevoJb?.fechaPromesa = notaVenta?.fechaPrometida
+          nuevoJb?.numLlamada = 0
+          nuevoJb?.material = articulos
+          nuevoJb?.surte = surte
+          nuevoJb?.saldo = notaVenta.ventaNeta - notaVenta?.sumaPagos
+          nuevoJb?.jbTipo = tipoJb
+          nuevoJb?.cliente = notaVenta?.cliente?.nombreCompleto
+          nuevoJb?.fechaVenta = notaVenta?.fechaHoraFactura
+
+          nuevojbTrack?.rx = factura
+          nuevojbTrack?.estado = 'PE'
+          nuevojbTrack?.emp = notaVenta?.empleado?.idEmpleado
+          nuevojbTrack?.obs = articulos
+          println('jbTipo: ' + nuevoJb?.jbTipo)
+          println('LC: ' + StringUtils.trimToEmpty(nuevoJb?.jbTipo).equals('LC'))
+          if (StringUtils.trimToEmpty(nuevoJb?.jbTipo).equals('LC')) {
+            nuevoJb?.estado = 'EP'
+            nuevoJb?.idViaje = '8'
+            mx.lux.pos.java.repository.JbTrack nuevoJbTrack2 = new mx.lux.pos.java.repository.JbTrack()
+            nuevoJbTrack2?.rx = factura
+            nuevoJbTrack2?.estado = 'EP'
+            nuevoJbTrack2?.obs = '8'
+            nuevoJbTrack2?.idViaje = '8'
+            nuevoJbTrack2?.emp = notaVenta?.empleado?.idEmpleado
+            nuevoJbTrack2?.fecha = new Date()
+            nuevoJbTrack2?.idMod = '0'
+            println('LC: ' + nuevoJbTrack2?.idViaje)
+            JbTrackQuery.insertJbTrack(nuevoJbTrack2)
+          }
+          Parametros convenioNomina = ParametrosQuery.BuscaParametroPorId(TipoParametro.CONV_NOMINA.value)
+          String s = convenioNomina?.valor
+          StringTokenizer st = new StringTokenizer(s.trim(), ",")
+          Iterator its = st.iterator()
+          Boolean convenio = false
+          while (its.hasNext()) {
+            if (its.next().toString().equals(notaVenta?.idConvenio)) {
+              convenio = true
+            }
+          }
+          if (convenio) {
+            nuevoJb?.estado = 'RTN'
+            if (genericoD) {
+              nuevoJb?.jbTipo = 'EMA'
+            } else {
+              nuevoJb?.jbTipo = 'EMP'
+            }
+
+          }
+        }
+        if (cSaldo) {
+          nuevoJb?.estado = 'RTN'
+          nuevojbTrack?.estado = 'RTN'
+          nuevojbTrack?.obs = 'Factura con Saldo'
+        }
+        nuevoJb?.fechaMod = new Date()
+        nuevoJb?.idMod = '0'
+        nuevojbTrack?.fecha = new Date()
+        nuevojbTrack?.idMod = '0'
+        if( nuevoJb.rx != null ){
+          nuevoJb = JbQuery.saveJb(nuevoJb)
+        }
+        if( nuevojbTrack.rx != null ){
+          JbTrackQuery.insertJbTrack(nuevojbTrack)
+        }
+      }
+      return creaJB
     }
 
     static DescuentoClave descuentoClavexId(String idDescuentoClave) {
@@ -1892,9 +1875,9 @@ class OrderController {
       jbTrack.rx = jbRtn.rx
       jbTrack.estado = "RTN"
       jbTrack.obs = "PAGO CON CUPON"
-      jbTrack.emp = jbRtn.emp_atendio
+      jbTrack.emp = jbRtn.empAtendio
       jbTrack.fecha = new Date()
-      jbTrack.id_mod = '0'
+      jbTrack.idMod = '0'
       JbQuery.saveJbTrack( jbTrack )
     }
 

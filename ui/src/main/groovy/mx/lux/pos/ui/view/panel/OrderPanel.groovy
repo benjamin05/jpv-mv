@@ -1404,9 +1404,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       this.promotionDriver.requestPromotionJavaSave(newOrder?.id, true)
       Boolean cSaldo = false
       OrderController.validaEntrega(StringUtils.trimToEmpty(newOrder?.bill),newOrder?.branch?.id?.toString(), true)
-      Boolean needJb = OrderController.creaJb(StringUtils.trimToEmpty(newOrder?.ticket), cSaldo)
-
-        ItemController.updateLenteContacto( newOrder.id )
+      Boolean needJb = OrderController.creaJb(StringUtils.trimToEmpty(newOrder?.bill), cSaldo)
+      ItemController.updateLenteContacto( newOrder.id )
         if(isLc(newOrder)){
           OrderController.creaJbLc( newOrder.id )
         }

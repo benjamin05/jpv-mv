@@ -64,8 +64,12 @@ public class JbTrack {
 	public void setIdJbTrack(String idJbTrack) {
 		this.idJbTrack = idJbTrack;
 	}
-	
-	public static JbTrack setValores( String rx, String estado, String obs, String emp,
+
+    public void setIdMod(String idMod) {
+        this.idMod = idMod;
+    }
+
+    public static JbTrack setValores( String rx, String estado, String obs, String emp,
 			String idViaje, Date fecha, String idMod, String idJbTrack ){
 		JbTrack jbTrack = new JbTrack();
 		jbTrack.setRx(rx);

@@ -3,6 +3,7 @@ package mx.lux.pos.java.service;
 
 import mx.lux.pos.java.querys.*;
 import mx.lux.pos.java.repository.*;
+import mx.lux.pos.model.DetalleNotaVenta;
 import mx.lux.pos.model.LogSP;
 import mx.lux.pos.model.QArticulo;
 import mx.lux.pos.model.QLogSP;
@@ -14,10 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class DetalleNotaVentaServiceJava {
 
@@ -90,4 +88,21 @@ public class DetalleNotaVentaServiceJava {
   }
 
 
+
+  public List<DetalleNotaVentaJava> listarDetallesNotaVentaPorIdFactura( String idFactura ) throws ParseException {
+    log.info( "listando detallesNotaVenta con idFactura: "+ idFactura );
+    if ( StringUtils.isNotBlank(idFactura) ) {
+      List<DetalleNotaVentaJava> lstDetalles = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura( idFactura );
+      Collections.sort( lstDetalles, new Comparator<DetalleNotaVentaJava>() {
+        @Override
+        public int compare(DetalleNotaVentaJava o1, DetalleNotaVentaJava o2) {
+          return o1.getIdArticulo().compareTo(o2.getIdArticulo());
+        }
+      });
+      return lstDetalles;
+    } else {
+      log.warn( "no se listan detallesNotaVenta, parametros invalidos" );
+    }
+    return new ArrayList<DetalleNotaVentaJava>();
+  }
 }
