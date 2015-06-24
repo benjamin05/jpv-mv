@@ -114,12 +114,12 @@ class ArchiveTask {
         f.delete()
       }
 
-        String filename;
-        if ( Registry.getOperatingSystem().startsWith("Linux") ) {
-            filename = "empaqueta.sh"
-        }else{
-            filename = "empaqueta.bat"
-        }
+      String filename;
+      if ( Registry.getOperatingSystem().startsWith("Linux") ) {
+        filename = "empaqueta.sh"
+      }else{
+        filename = "empaqueta.bat"
+      }
 
       try {
           /*
@@ -172,14 +172,50 @@ class ArchiveTask {
 
           // Genera archivos Paso
           //sb1.append(Registry.getParametroOS("comando_zip") + " " + this.getArchiveFile() + ' ' + this.filePattern + ' ' + "*.inv")
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
           String command = Registry.getParametroOS("comando_tar") + " " + this.getArchiveFile()+' '+ Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' + "*.inv";
           logger.debug(command)
           Process p1 = Runtime.getRuntime().exec(command);
-
           // Genera archivos Mensajero
           command = Registry.getParametroOS("comando_tar") + " " + this.getArchiveFileMessenger() +' '+ Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' +"*.inv";
           logger.debug(command)
           Process p2 = Runtime.getRuntime().exec(command);
+        } else {
+            File file = new File( 'empaqueta.sh' )
+            if ( file.exists() ) {
+                file.delete()
+            }
+            PrintStream strOut = new PrintStream( file )
+            StringBuffer sb1 = new StringBuffer()
+            sb1.append('CIERRE_HOME='+Registry.dailyClosePath)
+            sb1.append( "\n" )
+            sb1.append('cd $CIERRE_HOME')
+            sb1.append( "\n" )
+            sb1.append('tar -cvf '+this.getArchiveFile()+' '+this.filePattern+' '+"*.inv")
+            sb1.append( "\n" )
+            sb1.append('tar -cvf '+this.getArchiveFileMessenger()+' '+this.filePattern+' '+"*.inv")
+            sb1.append( "\n" )
+            sb1.append('tar -cvf '+this.getArchiveFileDropbox()+' '+this.filePattern+' '+"*.inv")
+            strOut.println sb1.toString()
+            strOut.close()
+
+            String s = null
+            file.setExecutable( true )
+            file.setReadable( true )
+            file.setWritable( true )
+            Process p1 = Runtime.getRuntime().exec("chmod 777 empaqueta.sh");
+            Process p = Runtime.getRuntime().exec("./empaqueta.sh");
+
+            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+
+            while ((s = stdInput.readLine()) != null) {
+                println(s+"\n");
+            }
+            while ((s = stdError.readLine()) != null) {
+                println(s+"\n");
+            }
+        }
 
       } catch ( Exception e ) {
         logger.error( e.getMessage(), e )
