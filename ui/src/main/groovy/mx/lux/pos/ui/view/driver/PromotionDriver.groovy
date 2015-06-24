@@ -245,9 +245,6 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
         }
         item.price = total
       }
-      if( view.promoAmount > BigDecimal.ZERO ){
-        item.price = item.price.subtract( view.promoAmount )
-      }
       DiscountCouponDialog couponDiscount = new DiscountCouponDialog(true,view.order.id, item, title )
       couponDiscount.setOrderTotal( total )
       couponDiscount.setVerifier( this )
