@@ -6,6 +6,7 @@ import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.querys.*;
 import mx.lux.pos.java.repository.*;
 import mx.lux.pos.model.*;
+import mx.lux.pos.model.JbTrack;
 import mx.lux.pos.service.business.Registry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -15,10 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class NotaVentaServiceJava {
 
@@ -29,6 +27,7 @@ public class NotaVentaServiceJava {
     private static final String TAG_GENERICOS_B = "B";
     private static final String TAG_ARTICULO_COLOR = "COG";
     private static final String TAG_GENERICOS_H = "H";
+    private static final String TAG_GENERICOS_INVENTARIABLES = "A,E,H";
     static final Logger log = LoggerFactory.getLogger(NotaVentaQuery.class);
 
 
@@ -471,7 +470,7 @@ public class NotaVentaServiceJava {
   static String claveAleatoria(String factura, String numeroPar) {
     String digitos = "" + numeroPar+"0";
     String abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    String resultado = String.format("%010d", Integer.parseInt(digitos)) + factura;
+    String resultado = String.format("%01d", Integer.parseInt(digitos)) + factura;
     for (int i = 0; i < resultado.length(); i++) {
       int numAleatorio = (int) (Math.random() * abc.length());
       if (resultado.charAt(i) == '0') {
@@ -628,4 +627,231 @@ public class NotaVentaServiceJava {
   }
 
 
+
+  public void validaSurtePorGenericoInventariable( NotaVentaJava notaVenta ) throws ParseException {
+    List<DetalleNotaVentaJava> detalles = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(notaVenta.getIdFactura());
+    for(DetalleNotaVentaJava det : detalles){
+      if(!TAG_GENERICOS_INVENTARIABLES.contains(det.getArticulo().getIdGenerico())){
+        det.setSurte(" ");
+        DetalleNotaVentaQuery.updateDetalleNotaVenta(det);
+      }
+    }
+  }
+
+
+
+  public void insertaJbAnticipoInventariables( String idFactura ) throws ParseException {
+    log.debug( "insertaJbAnticipoInventariables( )" );
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(idFactura);
+    String articulos = "";
+    for(DetalleNotaVentaJava det : nota.getDetalles()){
+      articulos = articulos+","+StringUtils.trimToEmpty(det.getArticulo().getArticulo());
+    }
+    articulos = articulos.replaceFirst( ",", "" );
+    if( nota != null ){
+      JbJava jb = new JbJava();
+      jb.setRx(nota.getFactura());
+      jb.setEstado("RTN");
+      jb.setIdCliente(StringUtils.trimToEmpty(nota.getIdCliente().toString()));
+      jb.setEmpAtendio(nota.getIdEmpleado());
+      jb.setNumLlamada(0);
+      jb.setSaldo(nota.getVentaNeta().subtract(nota.getSumaPagos()));
+      jb.setMaterial(articulos);
+      jb.setFechaPromesa(nota.getFechaPrometida());
+      jb.setJbTipo("REF");
+      jb.setIdMod("0");
+      jb.setFechaMod(new Date());
+      jb.setCliente(nota.getCliente().getNombreCompleto());
+      jb.setFechaVenta(nota.getFechaHoraFactura());
+      jb = JbQuery.saveJb( jb );
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack();
+      jbTrack.setRx(jb.getRx());
+      jbTrack.setEstado("RTN");
+      jbTrack.setObs("TRABAJO CON SALDO");
+      jbTrack.setEmp(jb.getEmpAtendio());
+      jbTrack.setFecha(new Date());
+      jbTrack.setIdMod("0");
+      JbQuery.saveJbTrack(jbTrack);
+    }
+  }
+
+
+  public CuponMvJava obtenerCuponMvClave( String clave ){
+    return CuponMvQuery.buscaCuponMvPorClave(clave);
+  }
+
+
+  public String claveDescuentoNota( String idFactura ){
+    String clave = "";
+    List<DescuentosJava> descuento = DescuentosQuery.buscaDescuentosPorIdFactura(idFactura);
+    if( descuento.size() > 0 ){
+      clave = StringUtils.trimToEmpty(descuento.get(0).getClave());
+    }
+    return clave;
+  }
+
+
+  public Boolean cuponGeneraCupon( String claveCupon ){
+    Boolean generaCupon = true;
+    DescuentosClaveJava descuentoClave = DescuentosClaveQuery.buscaDescuentoClavePorClave( claveCupon );
+    if( descuentoClave != null ){
+      generaCupon = descuentoClave.getCupon();
+    }
+    return generaCupon;
+  }
+
+
+  public void actualizarCuponMvPorClave( String idFacturaDestino, String clave ) throws ParseException {
+    CuponMvJava cuponMv1 = CuponMvQuery.buscaCuponMvPorClave(clave);
+    if( cuponMv1 != null ){
+      NotaVentaJava notaVenta1 = NotaVentaQuery.busquedaNotaById(idFacturaDestino);
+      if( notaVenta1 != null ){
+        String factura = StringUtils.trimToEmpty(notaVenta1.getFactura()).length() > 0 ? StringUtils.trimToEmpty(notaVenta1.getFactura()) : notaVenta1.getIdFactura();
+        cuponMv1.setFacturaDestino(StringUtils.trimToEmpty( factura ));
+        cuponMv1.setFechaAplicacion(new Date());
+        CuponMvQuery.updateCuponMv(cuponMv1);
+      }
+    }
+  }
+
+
+  public BigDecimal obtenerMontoCupon( String idNotaVenta ) throws ParseException {
+    log.debug( "obtenerMontoCupon( )" );
+    BigDecimal montoCupon = BigDecimal.ZERO;
+    ArticulosJava articulo = new ArticulosJava();
+    Integer paqueteCant = 0;
+    String paqueteStr = "";
+    List<MontoCuponJava> lstMontosCupon = new ArrayList<MontoCuponJava>();
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(idNotaVenta);
+    if( nota != null){
+      List<DetalleNotaVentaJava> lstDet = new ArrayList<DetalleNotaVentaJava>(nota.getDetalles());
+      Collections.sort(lstDet, new Comparator<DetalleNotaVentaJava>() {
+        @Override
+        public int compare(DetalleNotaVentaJava o1, DetalleNotaVentaJava o2) {
+          return o1.getArticulo().getSubtipo().compareTo(o2.getArticulo().getSubtipo());
+        }
+      });
+      for( DetalleNotaVentaJava det : lstDet ){
+        List<PreciosJava> lstPrecios = PreciosQuery.buscaPreciosPorArticulo(det.getArticulo().getArticulo());
+        BigDecimal precio = det.getArticulo().getPrecio();//.multiply(det.cantidadFac)
+        if( lstPrecios.size() > 0 ){
+          precio = lstPrecios.get(0).getPrecio();//.multiply(det.cantidadFac)
+        }
+        MontoCuponJava montosCup = MontoCuponQuery.buscaMontoCuponPorGenericoTipoYMontoIgual(det.getArticulo().getIdGenerico(),
+                det.getArticulo().getTipo(), precio);
+        if( montosCup == null ){
+           montosCup = MontoCuponQuery.buscaMontoCuponPorGenericoTipoYMontoMenorMayor(articulo.getIdGenerico(),
+                   det.getArticulo().getTipo(), precio);
+        }
+        if( montosCup == null ){
+          montosCup = MontoCuponQuery.buscaMontoCuponPorGenericoTipoYMontoMenorMayor(articulo.getIdGenerico(),
+                  det.getArticulo().getTipo(), precio);
+        }
+        if( montosCup == null ){
+          montosCup = MontoCuponQuery.buscaMontoCuponPorGenericoYMontoMenorMayor(articulo.getIdGenerico(),
+                  precio);
+          if( montosCup != null && StringUtils.trimToEmpty(montosCup.getTipo()).length() > 0 ){
+            montosCup = null;
+          }
+        }
+        if( montosCup == null ){
+          List<MontoCuponJava> lstMontosCup = MontoCuponQuery.buscaMontoCuponPorGenericoYSubtipo(det.getArticulo().getIdGenerico(),
+                  det.getArticulo().getSubtipo());
+          montosCup = lstMontosCup.size() > 0 ? lstMontosCup.get(0) : null;
+          if( montosCup != null ){
+            if( StringUtils.trimToEmpty(paqueteStr).length() > 0 ){
+              if( StringUtils.trimToEmpty(paqueteStr).equalsIgnoreCase(StringUtils.trimToEmpty(det.getArticulo().getSubtipo())) ){
+                paqueteCant = paqueteCant+det.getCantidadFac().intValue();
+              } else {
+                paqueteStr = montosCup.getSubtipo();
+                paqueteCant = det.getCantidadFac().intValue();
+              }
+            } else {
+              paqueteStr = montosCup.getSubtipo();
+              paqueteCant = paqueteCant+det.getCantidadFac().intValue();
+            }
+            if( (montosCup.getCantidad() == 0 && StringUtils.trimToEmpty(montosCup.getSubtipo()).length() <= 0) || paqueteCant < montosCup.getCantidad() ){
+              montosCup = null;
+            }
+          }
+        }
+        if( montosCup != null ){
+          lstMontosCupon.add( montosCup );
+        }
+      }
+      montoCupon = montoCuponCalculo( lstMontosCupon );
+    }
+    return montoCupon;
+  }
+
+
+
+  static BigDecimal montoCuponCalculo( List<MontoCuponJava> lstMontos ){
+    BigDecimal montoCupon = BigDecimal.ZERO;
+    if( lstMontos.size() > 1 ){
+      montoCupon = lstMontos.get(0).getMonto().max(lstMontos.get(1).getMonto());
+    } else if(lstMontos.size() > 0){
+      montoCupon = lstMontos.get(0).getMonto();
+    }
+    return montoCupon;
+  }
+
+
+  public BigDecimal obtenerMontoCuponTercerPar( String idNotaVenta ) throws ParseException {
+    log.debug( "obtenerMontoCuponTercerPar( )" );
+    BigDecimal montoCupon = BigDecimal.ZERO;
+    ArticulosJava articulo = new ArticulosJava();
+    List<MontoCuponJava> lstMontosCupon = new ArrayList<MontoCuponJava>();
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(idNotaVenta);
+    if( nota != null){
+      for( DetalleNotaVentaJava det : nota.getDetalles() ){
+        List<PreciosJava> lstPrecios = PreciosQuery.buscaPreciosPorArticulo(det.getArticulo().getArticulo());
+        BigDecimal precio = det.getArticulo().getPrecio().multiply(new BigDecimal(det.getCantidadFac()));
+        if( lstPrecios.size() > 0 ){
+          precio = lstPrecios.get(0).getPrecio().multiply(new BigDecimal(det.getCantidadFac()));
+        }
+        MontoCuponJava montosCup = MontoCuponQuery.buscaMontoCuponPorGenericoTipoYMontoIgual(det.getArticulo().getIdGenerico(),
+                det.getArticulo().getTipo(), precio);
+        if( montosCup == null ){
+          montosCup = MontoCuponQuery.buscaMontoCuponPorGenericoTipoYMontoMenorMayor(det.getArticulo().getIdGenerico(),
+                  det.getArticulo().getTipo(), precio);
+        }
+        if( montosCup == null ){
+          montosCup = MontoCuponQuery.buscaMontoCuponPorGenericoTipoYMontoMenorMayor(det.getArticulo().getIdGenerico(),
+                  det.getArticulo().getTipo(), precio);
+        }
+        if( montosCup == null ){
+          montosCup = MontoCuponQuery.buscaMontoCuponPorGenericoYMontoMenorMayor(det.getArticulo().getIdGenerico(), precio);
+          if( montosCup != null && StringUtils.trimToEmpty(montosCup.getTipo()).length() > 0 ){
+            montosCup = null;
+          }
+        }
+        if( montosCup == null ){
+          List<MontoCuponJava> lstMontosCup = MontoCuponQuery.buscaMontoCuponPorGenericoYSubtipo( det.getArticulo().getIdGenerico(),
+                  StringUtils.trimToEmpty(det.getArticulo().getSubtipo()));
+          montosCup = lstMontosCup.size() > 0 ? lstMontosCup.get(0) : null;
+          if( montosCup != null && montosCup.getCantidad() < det.getCantidadFac() ){
+            montosCup = null;
+          }
+        }
+        if( montosCup != null ){
+          lstMontosCupon.add( montosCup );
+        }
+      }
+      montoCupon = montoCuponCalculoTercerPar( lstMontosCupon );
+    }
+    return montoCupon;
+  }
+
+
+
+  static BigDecimal montoCuponCalculoTercerPar( List<MontoCuponJava> lstMontos ){
+    BigDecimal montoCupon = BigDecimal.ZERO;
+    if( lstMontos.size() > 1 ){
+      montoCupon = lstMontos.get(0).getMontoTercerPar().max(lstMontos.get(1).getMontoTercerPar());
+    } else if(lstMontos.size() > 0){
+      montoCupon = lstMontos.get(0).getMontoTercerPar();
+    }
+    return montoCupon;
+  }
 }

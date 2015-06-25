@@ -1,13 +1,16 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.AcusesQuery
 import mx.lux.pos.java.querys.AcusesTipoQuery
 import mx.lux.pos.java.querys.DescuentosQuery
 import mx.lux.pos.java.querys.FormaContactoQuery
 import mx.lux.pos.java.querys.JbQuery
 import mx.lux.pos.java.querys.JbTrackQuery
 import mx.lux.pos.java.querys.ParametrosQuery
+import mx.lux.pos.java.querys.PedidoLcQuery
 import mx.lux.pos.java.querys.PreciosQuery
+import mx.lux.pos.java.repository.AcusesJava
 import mx.lux.pos.java.repository.AcusesTipoJava
 import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.java.repository.AutorizaMovJava
@@ -22,6 +25,7 @@ import mx.lux.pos.java.repository.JbJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.Parametros
+import mx.lux.pos.java.repository.PedidoLcJava
 import mx.lux.pos.java.repository.PreciosJava
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.java.repository.TmpServiciosJava
@@ -1431,59 +1435,49 @@ class OrderController {
     }
 
     static void insertaAcuseAPAR(Order order, Branch branch) {
-
-        List<DetalleNotaVenta> listarDetallesNotaVentaPorIdFactura = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(order?.id)
-        String parte = ''
-        int rx = 0
-        Item item =  new Item()
-        Boolean insertarAcuse = false
-        Iterator iterator = listarDetallesNotaVentaPorIdFactura.iterator();
-        while (iterator.hasNext()) {
-            DetalleNotaVenta detalleNotaVenta = new DetalleNotaVenta()
-            detalleNotaVenta = iterator.next()
-            if (detalleNotaVenta?.articulo?.idGenerico?.trim().equals('B')) {
-                rx = 1
-            }
-            if (detalleNotaVenta?.idTipoDetalle?.trim().equals('VD') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('VI.') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('FT') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('LD') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('LI') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('CI') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('CD') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('REM')
-            ) {
-                parte = parte + detalleNotaVenta?.idTipoDetalle?.trim() + ','
-            }
-
-            if (detalleNotaVenta?.surte?.trim().equals('P') && detalleNotaVenta?.articulo?.idGenerico?.trim().equals('A')) {
-                insertarAcuse = true
-                item = Item.toItem(detalleNotaVenta?.articulo)
-            }
-
-
-
-
+      List<DetalleNotaVentaJava> listarDetallesNotaVentaPorIdFactura = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(order?.id)
+      String parte = ''
+      int rx = 0
+      Item item =  new Item()
+      Boolean insertarAcuse = false
+      Iterator iterator = listarDetallesNotaVentaPorIdFactura.iterator();
+      while (iterator.hasNext()) {
+        DetalleNotaVentaJava detalleNotaVenta = new DetalleNotaVentaJava()
+        detalleNotaVenta = iterator.next()
+        if (StringUtils.trimToEmpty(detalleNotaVenta?.articulo?.idGenerico).equalsIgnoreCase('B')) {
+          rx = 1
         }
-
-        if (insertarAcuse) {
-
-            String contenidoAPAR = "parteVal=" + parte
-            contenidoAPAR = contenidoAPAR + "|facturaVal=" + order?.bill
-            contenidoAPAR = contenidoAPAR + "|rxVal=" + rx
-            contenidoAPAR = contenidoAPAR + "|id_colVal=" + item?.color
-            contenidoAPAR = contenidoAPAR + "|id_sucVal=" + branch?.id
-            contenidoAPAR = contenidoAPAR + "|id_artVal=" + item?.name
-            contenidoAPAR = contenidoAPAR + "|id_acuseVal=" + (acuseRepository?.nextIdAcuse() +1).toString() + '|'
-
-            Acuse acuseAPAR = new Acuse()
-            acuseAPAR?.contenido = contenidoAPAR
-            acuseAPAR?.idTipo = 'APAR'
-            acuseAPAR?.intentos = 0
-
-            acuseRepository.saveAndFlush(acuseAPAR)
-            insertarAcuse = false
+        if (StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('VD') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('VI.') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('FT') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('LD') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('LI') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('CI') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('CD') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('REM')
+        ) {
+          parte = parte + detalleNotaVenta?.idTipoDetalle?.trim() + ','
         }
+        if(StringUtils.trimToEmpty(detalleNotaVenta?.surte).equalsIgnoreCase('P') && StringUtils.trimToEmpty(detalleNotaVenta?.articulo?.idGenerico).equals('A')) {
+          insertarAcuse = true
+          item = Item.toItem(detalleNotaVenta?.articulo)
+        }
+      }
+      if (insertarAcuse) {
+        String contenidoAPAR = "parteVal=" + parte
+        contenidoAPAR = contenidoAPAR + "|facturaVal=" + order?.bill
+        contenidoAPAR = contenidoAPAR + "|rxVal=" + rx
+        contenidoAPAR = contenidoAPAR + "|id_colVal=" + item?.color
+        contenidoAPAR = contenidoAPAR + "|id_sucVal=" + branch?.id
+        contenidoAPAR = contenidoAPAR + "|id_artVal=" + item?.name
+        contenidoAPAR = contenidoAPAR + "|id_acuseVal=" + (acuseRepository?.nextIdAcuse() +1).toString() + '|'
+        AcusesJava acuseAPAR = new AcusesJava()
+        acuseAPAR?.contenido = contenidoAPAR
+        acuseAPAR?.idTipo = 'APAR'
+        acuseAPAR?.intentos = 0
+        AcusesQuery.saveAcuses(acuseAPAR)
+        insertarAcuse = false
+      }
     }
 
     static void generaAcuse(String contenido, String nombre) {
@@ -1581,8 +1575,8 @@ class OrderController {
     }
 
     static void validaSurtePorGenerico( Order order ){
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order.id)
-        notaVentaService.validaSurtePorGenericoInventariable( notaVenta )
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
+      notaVentaServiceJava.validaSurtePorGenericoInventariable( notaVenta )
     }
 
 
@@ -1652,12 +1646,12 @@ class OrderController {
 
 
     static Boolean revisaTmpservicios(String idNotaVenta) {
-        Boolean existe = false
-        Integer idTmpServicio = tmpServiciosRepository.tmpExiste(idNotaVenta)
-        if (idTmpServicio != null) {
-            existe = true
-        }
-        return existe
+      Boolean existe = false
+      TmpServiciosJava tmpServicio = TmpServiciosQuery.buscaTmpServiciosPorIdFactura(idNotaVenta)
+      if (tmpServicio != null) {
+        existe = true
+      }
+      return existe
     }
 
     static ArrayList<String> findAllServices() {
@@ -1713,7 +1707,7 @@ class OrderController {
 
   static void creaJbAnticipoInventariables( String idFactura ) {
     log.debug( "creaJbAnticipoInventariables( )" )
-    notaVentaService.insertaJbAnticipoInventariables( idFactura )
+    notaVentaServiceJava.insertaJbAnticipoInventariables( idFactura )
   }
 
 
@@ -2122,12 +2116,12 @@ class OrderController {
 
     static BigDecimal getCuponAmount(String idOrder) {
       log.debug( 'getCuponAmount( )' )
-      return notaVentaService.obtenerMontoCupon( idOrder )
+      return notaVentaServiceJava.obtenerMontoCupon( idOrder )
     }
 
     static BigDecimal getCuponAmountThirdPair(String idOrder) {
         log.debug( 'getCuponAmountThirdPair( )' )
-        return notaVentaService.obtenerMontoCuponTercerPar( idOrder )
+        return notaVentaServiceJava.obtenerMontoCuponTercerPar( idOrder )
     }
 
     static void creaJbAnticipoInventariablesMultypayment( String idFactura ) {
@@ -2359,14 +2353,14 @@ class OrderController {
     }
 
 
-    static Boolean hasOrderLc( String bill ){
-      Boolean hasOrderLc = false
-      PedidoLc pedidoLc = articuloService.buscaPedidoLc( StringUtils.trimToEmpty(bill) )
-      if( pedidoLc != null ){
-        hasOrderLc = true
-      }
-      return hasOrderLc
+  static Boolean hasOrderLc( String bill ){
+    Boolean hasOrderLc = false
+    PedidoLcJava pedidoLc = PedidoLcQuery.buscaPedidoLcPorId( StringUtils.trimToEmpty(bill) )
+    if( pedidoLc != null ){
+      hasOrderLc = true
     }
+    return hasOrderLc
+  }
 
 
     static void createAcuse( String idOrder ){
@@ -2468,6 +2462,10 @@ class OrderController {
         return notaVentaService.obtenerCuponMvClave( clave )
     }
 
+    static CuponMvJava obtenerCuponMvJavaByClave( String clave ){
+      return notaVentaServiceJava.obtenerCuponMvClave( clave )
+    }
+
     static List<CuponMv> obtenerCuponMvBySourceOrder( String order ){
         return notaVentaService.obtenerCuponMvFacturaOri( order )
     }
@@ -2478,6 +2476,10 @@ class OrderController {
 
     static CuponMv updateCuponMvByClave( String idFacturaDest, String clave ){
         return notaVentaService.actualizarCuponMvPorClave( idFacturaDest, clave )
+    }
+
+    static CuponMvJava updateCuponMvJavaByClave( String idFacturaDest, String clave ){
+      return notaVentaServiceJava.actualizarCuponMvPorClave( idFacturaDest, clave )
     }
 
 
@@ -2510,7 +2512,7 @@ class OrderController {
     }
 
     static Boolean generatesCoupon(String claveDescuento){
-      return notaVentaService.cuponGeneraCupon(claveDescuento)
+      return notaVentaServiceJava.cuponGeneraCupon(claveDescuento)
     }
 
 
@@ -2518,6 +2520,9 @@ class OrderController {
       return notaVentaService.claveDescuentoNota( StringUtils.trimToEmpty(idFactura) )
     }
 
+    static String descuentoClaveJavaPoridFactura( String idFactura ){
+      return notaVentaServiceJava.claveDescuentoNota( StringUtils.trimToEmpty(idFactura) )
+    }
 
     static String isReuseOrderLc(String idOrder) {
       return notaVentaService.esReusoPedidoLc( idOrder )

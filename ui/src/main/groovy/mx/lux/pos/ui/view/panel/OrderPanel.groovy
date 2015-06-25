@@ -3,6 +3,7 @@ package mx.lux.pos.ui.view.panel
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.CuponMvJava
 import mx.lux.pos.model.*
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.Parametros
@@ -1423,101 +1424,88 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           advanceOnlyInventariable = false
         }
         if (StringUtils.isNotBlank(newOrder?.id)) {
-
-            Branch branch = Session.get(SessionItem.BRANCH) as Branch
-            OrderController.insertaAcuseAPAR(newOrder, branch)
-
-            Boolean montaje = false
-            List<OrderItem> items = newOrder?.items
-            Iterator iterator = items.iterator()
-            while (iterator.hasNext()) {
-                Item item = iterator.next().item
-                if (item?.name.trim().equals('MONTAJE')) {
-                    montaje = true
-                }
+          Branch branch = Session.get(SessionItem.BRANCH) as Branch
+          OrderController.insertaAcuseAPAR(newOrder, branch)
+          Boolean montaje = false
+          List<OrderItem> items = newOrder?.items
+          Iterator iterator = items.iterator()
+          while (iterator.hasNext()) {
+            Item item = iterator.next().item
+            if(StringUtils.trimToEmpty(item?.name).equals('MONTAJE')) {
+              montaje = true
             }
-            if (montaje == true) {
-                Boolean registroTmp = OrderController.revisaTmpservicios(newOrder?.id)
-                User u = Session.get(SessionItem.USER) as User
-                if (registroTmp == false) {
-                    CapturaSuyoDialog capturaSuyoDialog = new CapturaSuyoDialog(order, u,false)
-                    capturaSuyoDialog.show()
-                }
-
-                OrderController.printSuyo(newOrder,u)
+          }
+          if (montaje == true) {
+            Boolean registroTmp = OrderController.revisaTmpservicios(newOrder?.id)
+            User u = Session.get(SessionItem.USER) as User
+            if (registroTmp == false) {
+              CapturaSuyoDialog capturaSuyoDialog = new CapturaSuyoDialog(order, u,false)
+              capturaSuyoDialog.show()
             }
-            /*if( needJb ){
-                OrderController.creaJb(newOrder?.ticket.trim(), cSaldo)
-            }*/
-            CuponMv cuponMv = null
-            Boolean validClave = true
-            Boolean ensureApply = false
-            Boolean ffApply = false
-            Boolean hasC1 = false
-            for(int i=0;i<promotionList.size();i++){
-              if(promotionList.get(i) instanceof PromotionDiscount){
-                cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(promotionList.get(i).discountType.description) )
-                if( cuponMv == null ){
-                  String clave = OrderController.descuentoClavePoridFactura( order.id )
-                  cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(clave) )
-                }
-                if( StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("Redencion de Seguro") ||
-                        (StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("DESCUENTO CUPON") &&
-                                StringUtils.trimToEmpty(promotionList.get(i).discountType.description).length() >= 11) ){
-                  ensureApply = true
-                }
-                if( cuponMv != null ){
-                  if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
-                    ffApply = true
-                  }
-                  break
-                } else if(!OrderController.generatesCoupon(promotionList.get(i).discountType.description)) {
-                  validClave = false
-                }
+            OrderController.printSuyo(newOrder,u)
+          }
+          CuponMvJava cuponMv = null
+          Boolean validClave = true
+          Boolean ensureApply = false
+          Boolean ffApply = false
+          Boolean hasC1 = false
+          for(int i=0;i<promotionList.size();i++){
+          if(promotionList.get(i) instanceof PromotionDiscount){
+            cuponMv = OrderController.obtenerCuponMvJavaByClave( StringUtils.trimToEmpty(promotionList.get(i).discountType.description) )
+            if( cuponMv == null ){
+              String clave = OrderController.descuentoClavePoridFactura( order.id )
+              cuponMv = OrderController.obtenerCuponMvJavaByClave( StringUtils.trimToEmpty(clave) )
+            }
+            if( StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("Redencion de Seguro") ||
+                    (StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("DESCUENTO CUPON") &&
+                            StringUtils.trimToEmpty(promotionList.get(i).discountType.description).length() >= 11) ){
+              ensureApply = true
+            }
+            if( cuponMv != null ){
+              if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+                ffApply = true
+              }
+              break
+            } else if(!OrderController.generatesCoupon(promotionList.get(i).discountType.description)) {
+              validClave = false
+            }
+          }
+          }
+          if( promotionList.size() <= 0 ){
+            validClave = true
+          }
+          if(validClave){
+            for(Payment payment : newOrder.payments){
+              if( Registry.paymentsTypeNoCupon.contains( payment.paymentTypeId ) ){
+                validClave = false
+              }
+              if( TAG_FORMA_PAGO_C1.equalsIgnoreCase( payment.paymentTypeId ) ){
+                hasC1 = true
               }
             }
-
-            if( promotionList.size() <= 0 ){
-                validClave = true
-            }
-
-            if(validClave){
-              for(Payment payment : newOrder.payments){
-                if( Registry.paymentsTypeNoCupon.contains( payment.paymentTypeId ) ){
-                  validClave = false
-                }
-                if( TAG_FORMA_PAGO_C1.equalsIgnoreCase( payment.paymentTypeId ) ){
-                  hasC1 = true
-                }
+          }
+          if( cuponMv != null ){
+            for(IPromotionAvailable promo : promotionList){
+              if( promo instanceof PromotionDiscount ){
+                OrderController.updateCuponMvJavaByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
               }
             }
-
+          }
+          if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
             if( cuponMv != null ){
               for(IPromotionAvailable promo : promotionList){
                 if( promo instanceof PromotionDiscount ){
-                  OrderController.updateCuponMvByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
+                  OrderController.updateCuponMvJavaByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
                 }
               }
-            }
-
-            if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
-              if( cuponMv != null ){
-                for(IPromotionAvailable promo : promotionList){
-                  if( promo instanceof PromotionDiscount ){
-                    OrderController.updateCuponMvByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
-                  }
-                }
-                if( Registry.tirdthPairValid() ){
-                  Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
-                  OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
-                }
-                /*if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
-                  generatedCoupons( validClave, newOrder )
-                }*/
-              } else if( !ensureApply && !ffApply ){
-                generatedCoupons( validClave, newOrder )
+              if( Registry.tirdthPairValid() ){
+                Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
+                OrderController.updateCuponMvJava( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
               }
+            } else if( !ensureApply && !ffApply ){
+              generatedCoupons( validClave, newOrder )
             }
+          }
             if( !ensureApply && !ffApply ){
               if( OrderController.insertSegKig && !hasC1 ){
                 Boolean hasLensKid = false
@@ -2336,7 +2324,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
             String titulo = i == 0 ? "CUPON SEGUNDO PAR LC" : "CUPON TERCER PAR LC"
             Integer numCupon = i == 0 ? 2 : 3
-            CuponMv cuponMv = new CuponMv()
+            CuponMvJava cuponMv = new CuponMvJava()
             cuponMv.facturaDestino = ""
             cuponMv.facturaOrigen = order.id
             cuponMv.fechaAplicacion = null
@@ -2344,7 +2332,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             calendar.setTime(new Date());
             calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
             cuponMv.fechaVigencia = calendar.getTime()
-            cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
+            cuponMv = OrderController.updateCuponMvJava( newOrder.id, "", montoCupon, numCupon, false )
             OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
           }
         }
