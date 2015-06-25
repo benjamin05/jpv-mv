@@ -104,27 +104,28 @@ public class JbQuery {
 	
 	
 	public static JbJava buscarPorRx( String rx ){
-		JbJava jb = new JbJava();
-		try {			
-            Connection con = Connections.doConnect();
-            stmt = con.createStatement();
-            String sql = "select * from jb where rx = '"+rx+"';";
-            rs = stmt.executeQuery(sql);                                
-            while (rs.next()) {
-            	Double saldo = 0.00;            	
-            	String saldoTmp = rs.getString("saldo");
-            	saldoTmp = saldoTmp != null ? saldoTmp.replace("$", "") : "0.00";
-            	saldoTmp = saldoTmp != null ? saldoTmp.replace(",", "") : "0.00";
-            	try{
-            		saldo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(saldoTmp)).doubleValue();
-            	} catch ( ParseException e ){ System.out.println( e );}
-            	jb.setValores( rs );
-            }            
-            con.close();
-        } catch (SQLException err) {
-            System.out.println( err );
-        }		
-		return jb;
+	JbJava jb = null;
+	try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "select * from jb where rx = '"+rx+"';";
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+          jb = new JbJava();
+          Double saldo = 0.00;
+          String saldoTmp = rs.getString("saldo");
+          saldoTmp = saldoTmp != null ? saldoTmp.replace("$", "") : "0.00";
+          saldoTmp = saldoTmp != null ? saldoTmp.replace(",", "") : "0.00";
+          try{
+            saldo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(saldoTmp)).doubleValue();
+          } catch ( ParseException e ){ System.out.println( e );}
+          jb.setValores( rs );
+        }
+        con.close();
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+	  return jb;
 	}
 	
 	public static JbEstados buscarEstadoPorId( String estado ){
@@ -308,12 +309,12 @@ public class JbQuery {
       String formatTime = "HH:mm:ss.SSS";
       String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
       JbJava jb = null;
-      sql = String.format("INSERT INTO descuentos (rx,estado,id_viaje,caja,id_cliente,roto,emp_atendio,num_llamada," +
-              "material,surte,saldo,jb_tipo,volver_llamar,fecha_promesa,cliente,obs_ext,ret_auto,tipo_venta,fecha_venta" +
+      sql = String.format("INSERT INTO jb (rx,estado,id_viaje,caja,id_cliente,roto,emp_atendio,num_llamada," +
+              "material,surte,saldo,jb_tipo,volver_llamar,fecha_promesa,cliente,obs_ext,ret_auto,tipo_venta,fecha_venta," +
               "id_grupo,externo) VALUES('%s','%s','%s','%s','%s',%d,'%s',%d,'%s','%s',%s,'%s',%s,%s,'%s','%s','%s','%s'," +
               "%s,'%s','%s');", jbJava.getRx(), jbJava.getEstado(), jbJava.getIdViaje(), jbJava.getCaja(), jbJava.getIdCliente(),
               jbJava.getRoto(), jbJava.getEmpAtendio(), jbJava.getNumLlamada(), jbJava.getMaterial(), jbJava.getSurte(),
-              jbJava.getSaldo(), jbJava.getJbTipo(), jbJava.getVolverLlamar(), Utilities.toString(jbJava.getFechaPromesa(), formatDate),
+              Utilities.toMoney(jbJava.getSaldo()), jbJava.getJbTipo(), jbJava.getVolverLlamar(), Utilities.toString(jbJava.getFechaPromesa(), formatDate),
               jbJava.getCliente(), jbJava.getObsExt(), jbJava.getRetAuto(), jbJava.getTipoVenta(),
               Utilities.toString(jbJava.getFechaVenta(), formatTimeStamp), jbJava.getIdGrupo(), jbJava.getExterno());
       db.insertQuery(sql);

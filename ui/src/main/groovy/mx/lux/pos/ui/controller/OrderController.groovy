@@ -27,6 +27,7 @@ import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.java.repository.TmpServiciosJava
 import mx.lux.pos.java.service.ArticulosServiceJava
 import mx.lux.pos.java.service.CancelacionServiceJava
+import mx.lux.pos.java.service.ClienteServiceJava
 import mx.lux.pos.java.service.CotizaServiceJava
 import mx.lux.pos.java.service.DetalleNotaVentaServiceJava
 import mx.lux.pos.java.service.ExamenServiceJava
@@ -150,6 +151,7 @@ class OrderController {
     private static CuponMvRepository cuponMvRepository
     private static NotaVentaRepository notaVentaRepository
     private static BancoDevRepository bancoDevRepository
+    private static ClienteServiceJava clienteServiceJava
     private static final String TAG_USD = "USD"
     private static Integer numberQuote = 0
 
@@ -228,6 +230,7 @@ class OrderController {
         ticketServiceJava = new TicketServiceJava()
         cancelacionServiceJava = new CancelacionServiceJava()
         detalleNotaVentaServiceJava = new DetalleNotaVentaServiceJava()
+        clienteServiceJava = new ClienteServiceJava()
     }
 
     private static Boolean canceledWarranty
@@ -1168,7 +1171,7 @@ class OrderController {
         }
         if(entregaInstante){
           if (surte || temp || !entregaBo) {
-            List<FormaContactoJava> result = FormaContactoQuery.buscaFormaContactoPorIdCliente(notaVenta?.idCliente)
+            List<FormaContactoJava> result = ContactController.findByIdCliente(notaVenta?.idCliente)
               if (result.size() == 0) {
                 ContactDialog contacto = new ContactDialog(notaVenta)
                 contacto.activate()
