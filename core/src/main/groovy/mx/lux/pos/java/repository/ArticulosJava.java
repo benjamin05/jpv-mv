@@ -292,4 +292,24 @@ public class ArticulosJava {
       genericosJava = GenericosQuery.buscaGenericosPorId(idGenerico);
       return genericosJava;
     }
+
+    public void trim(){
+      this.setArticulo( StringUtils.trimToEmpty(this.getArticulo()) );
+      this.setColorCode( StringUtils.trimToEmpty(this.getColorCode()) );
+      this.setDescArticulo(StringUtils.trimToEmpty(this.getDescArticulo()));
+      this.setIdGenerico(StringUtils.trimToEmpty(this.getIdGenerico()));
+      this.setIdGenTipo(StringUtils.trimToEmpty(this.getIdGenTipo()));
+      this.setIdGenSubtipo(StringUtils.trimToEmpty(this.getIdGenSubtipo()));
+      this.setsArticulo(StringUtils.trimToEmpty(this.getsArticulo()));
+      this.setIdSync(StringUtils.trimToEmpty(this.getIdSync()));
+      this.setIdMod(StringUtils.trimToEmpty(this.getIdMod()));
+      this.setColorDesc(StringUtils.trimToEmpty(this.getColorDesc()));
+      this.setIdCb(StringUtils.trimToEmpty(this.getIdCb()));
+      this.setIdDisenoLente(StringUtils.trimToEmpty(this.getIdDisenoLente()));
+      this.setTipo(StringUtils.trimToEmpty(this.getTipo()));
+      this.setSubtipo(StringUtils.trimToEmpty(this.getSubtipo()));
+      this.setMarca(StringUtils.trimToEmpty(this.getMarca()));
+      this.setProveedor(StringUtils.trimToEmpty(this.getProveedor()));
+      this.setIndiceDioptra(StringUtils.trimToEmpty(this.getIndiceDioptra()));
+    }
 }

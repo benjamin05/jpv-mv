@@ -154,13 +154,14 @@ public class ArticulosQuery {
       String formatDate = "yyyy-MM-dd";
       String formatTime = "HH:mm:ss.SSS";
       String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      articulosJava.trim();
       if( busquedaArticuloPorId(articulosJava.getIdArticulo()) != null ){
         sql = String.format("UPDATE articulos SET articulo = '%s', color_code = '%s', desc_articulo = '%s', id_generico = '%s'," +
                 "id_gen_tipo = '%s', id_gen_subtipo = '%s', precio = %s, precio_o = %s, s_articulo = '%s', color_desc = '%s'," +
                 "id_cb = '%s', id_diseno_lente = '%s', existencia = %d, tipo = '%s', subtipo = '%s', marca = '%s', proveedor = '%s'," +
                 "indice_dioptra = '%s' WHERE id_articulo = %d;", articulosJava.getArticulo(), articulosJava.getColorCode(),
                 articulosJava.getDescArticulo(), articulosJava.getIdGenerico(), articulosJava.getIdGenTipo(), articulosJava.getIdGenSubtipo(),
-                Utilities.toMoney(articulosJava.getPrecio()), Utilities.toMoney(articulosJava.getPrecioO()), articulosJava.getArticulo(),
+                Utilities.toMoney(articulosJava.getPrecio()), Utilities.toMoney(articulosJava.getPrecioO()), articulosJava.getsArticulo(),
                 articulosJava.getColorDesc(), articulosJava.getIdCb(), articulosJava.getIdDisenoLente(), articulosJava.getExistencia(),
                 articulosJava.getTipo(), articulosJava.getSubtipo(), articulosJava.getMarca(), articulosJava.getProveedor(),
                 articulosJava.getIndiceDioptra(), articulosJava.getIdArticulo());

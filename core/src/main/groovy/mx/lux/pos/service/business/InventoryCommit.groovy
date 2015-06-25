@@ -1,5 +1,6 @@
 package mx.lux.pos.service.business
 
+import mx.lux.pos.java.querys.ArticulosQuery
 import mx.lux.pos.java.querys.TransInvDetQuery
 import mx.lux.pos.java.querys.TransInvQuery
 import mx.lux.pos.java.repository.ArticulosJava
@@ -117,6 +118,7 @@ class InventoryCommit {
         TipoMov mov = TipoMov.parse( trDet.tipoMov )
         ArticulosJava part = ServiceFactory.partsJava.obtenerArticulo( trDet.sku, false )
         part.existencia += mov.factor * trDet.cantidad
+        ArticulosQuery.saveOrUpdateArticulos( part )
       }
       ServiceFactory.partsJava.registrarListaArticulos( list )
       println('Transaccion Folio: '+ pTrMstr?.folio)
