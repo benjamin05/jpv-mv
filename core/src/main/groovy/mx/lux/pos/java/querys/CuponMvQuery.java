@@ -135,9 +135,10 @@ public class CuponMvQuery {
     String formatDate = "yyyy-MM-dd";
     String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
     sql = String.format("UPDATE cupon_mv SET clave_descuento = '%s', factura_origen = '%s', factura_destino = '%s'," +
-            "fecha_aplicacion = %s, fecha_vigencia = %s, monto_cupon = %s;", StringUtils.trimToEmpty(cuponMvJava.getClaveDescuento()),
+            "fecha_aplicacion = %s, fecha_vigencia = %s, monto_cupon = %s WHERE clave_descuento = '%s';", StringUtils.trimToEmpty(cuponMvJava.getClaveDescuento()),
             cuponMvJava.getFacturaOrigen(), cuponMvJava.getFacturaDestino(), Utilities.toString(cuponMvJava.getFechaAplicacion(), formatTimeStamp),
-            Utilities.toString(cuponMvJava.getFechaVigencia(), formatDate), Utilities.toMoney(cuponMvJava.getMontoCupon()));
+            Utilities.toString(cuponMvJava.getFechaVigencia(), formatDate), Utilities.toMoney(cuponMvJava.getMontoCupon()),
+            StringUtils.trimToEmpty(cuponMvJava.getClaveDescuento()));
     db.insertQuery(sql);
     db.close();
   }
