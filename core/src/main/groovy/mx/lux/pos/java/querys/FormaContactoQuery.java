@@ -70,7 +70,7 @@ public class FormaContactoQuery {
       if( formaContactoJava != null ){
         sql = String.format("INSERT INTO forma_contacto (rx,id_cliente,id_tipo_contacto,contacto,observaciones,fecha_mod,id_sucursal)" +
                   "VALUES('%s',%d,%d,'%s','%s',%s,%d);", formaContactoJava.getRx(), formaContactoJava.getIdCliente(), formaContactoJava.getIdTipoContacto(),
-                  formaContactoJava.getContacto(), formaContactoJava.getObservaciones(), Utilities.toString(formaContactoJava.getFechaMod(), formatTimeStamp),
+                  formaContactoJava.getContacto(), StringUtils.trimToEmpty(formaContactoJava.getObservaciones()), Utilities.toString(formaContactoJava.getFechaMod(), formatTimeStamp),
                   formaContactoJava.getIdSucursal());
         db.insertQuery( sql );
         db.close();

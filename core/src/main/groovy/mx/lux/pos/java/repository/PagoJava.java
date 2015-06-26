@@ -328,4 +328,23 @@ public class PagoJava {
       notaVentaJava = NotaVentaQuery.busquedaNotaById( idFactura );
       return notaVentaJava;
     }*/
+
+    public void trim(){
+      this.setIdFactura(StringUtils.trimToEmpty(this.getIdFactura()));
+      this.setIdBanco(StringUtils.trimToEmpty(this.getIdBanco()));
+      this.setIdFormaPago(StringUtils.trimToEmpty(this.getIdFormaPago()));
+      this.setTipoPago(StringUtils.trimToEmpty(this.getTipoPago()));
+      this.setReferenciaPago(StringUtils.trimToEmpty(this.getReferenciaPago()));
+      this.setIdEmpleado(StringUtils.trimToEmpty(this.getIdEmpleado()));
+      this.setIdSync(StringUtils.trimToEmpty(this.getIdSync()));
+      this.setIdMod(StringUtils.trimToEmpty(this.getIdMod()));
+      this.setIdRecibo(StringUtils.trimToEmpty(this.getIdRecibo()));
+      this.setParcialidad(StringUtils.trimToEmpty(this.getParcialidad()));
+      this.setIdFPago(StringUtils.trimToEmpty(this.getIdFPago()));
+      this.setClaveP(StringUtils.trimToEmpty(this.getClaveP()));
+      this.setRefClave(StringUtils.trimToEmpty(this.getRefClave()));
+      this.setIdBancoEmi(StringUtils.trimToEmpty(this.getIdBancoEmi()));
+      this.setIdTerm(StringUtils.trimToEmpty(this.getIdTerm()));
+      this.setIdPlan(StringUtils.trimToEmpty(this.getIdPlan()));
+    }
 }

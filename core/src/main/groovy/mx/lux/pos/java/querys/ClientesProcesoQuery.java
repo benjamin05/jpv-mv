@@ -87,4 +87,17 @@ public class ClientesProcesoQuery {
     }
 
 
+    public static void eliminaClienteProceso( Integer idCliente ){
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("DELETE FROM clientes_proceso WHERE id_cliente = %d;", idCliente);
+        stmt.executeUpdate(sql);
+        con.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
+
+
 }

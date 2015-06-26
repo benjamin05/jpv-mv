@@ -3,6 +3,7 @@ package mx.lux.pos.ui.controller
 import groovy.util.logging.Slf4j
 import mx.lux.pos.java.service.ClienteServiceJava
 import mx.lux.pos.java.service.ContactoServiceJava
+import mx.lux.pos.java.service.NotaVentaServiceJava
 import mx.lux.pos.model.*
 import mx.lux.pos.java.querys.RecetaQuery
 import mx.lux.pos.java.repository.ClientesProcesoJava
@@ -36,6 +37,7 @@ class CustomerController {
     private static SucursalService sucursalService
     private static PaisesService paisesService
     private static NotaVentaService notaService
+    private static NotaVentaServiceJava notaServiceJava
     private static ContactoService contactoService
     private static ContactoServiceJava contactoServiceJava
     private static FormaContactoService formaContactoService
@@ -72,6 +74,7 @@ class CustomerController {
         this.formaContactoService = formaContactoService
         clienteServiceJava = new ClienteServiceJava()
         contactoServiceJava = new ContactoServiceJava()
+        notaServiceJava = new NotaVentaServiceJava()
     }
 
 
@@ -323,28 +326,28 @@ class CustomerController {
     }
 
     static Order requestOrderByCustomer(CustomerListener pListener, Customer customer) {
-        Order order = Order.toOrder(notaService.obtenerSiguienteNotaVenta(customer?.id))
-        if (order == null) {
-            Integer nueva = JOptionPane.showConfirmDialog(null, "Nueva Venta", "¿Desea abrir una nueva venta?", JOptionPane.YES_NO_OPTION);
-            if (nueva == 0) {
-                pListener.reset()
-                pListener.disableUI()
-                pListener.operationTypeSelected = OperationType.EDIT_PAYING
-                pListener.setCustomer(customer)
-                pListener.enableUI()
-            } else {
-                pListener.reset()
-            }
+      Order order = Order.toOrder(notaServiceJava.obtenerSiguienteNotaVenta(customer?.id))
+      if (order == null) {
+        Integer nueva = JOptionPane.showConfirmDialog(null, "Nueva Venta", "¿Desea abrir una nueva venta?", JOptionPane.YES_NO_OPTION);
+        if (nueva == 0) {
+          pListener.reset()
+          pListener.disableUI()
+          pListener.operationTypeSelected = OperationType.EDIT_PAYING
+          pListener.setCustomer(customer)
+          pListener.enableUI()
         } else {
-            pListener.reset()
-            pListener.disableUI()
-            pListener.operationTypeSelected = OperationType.PAYING
-            pListener.setCustomer(customer)
-            pListener.setOrder(order)
-            pListener.setPromotion(order)
-            pListener.enableUI()
+          pListener.reset()
         }
-        return order
+      } else {
+        pListener.reset()
+        pListener.disableUI()
+        pListener.operationTypeSelected = OperationType.PAYING
+        pListener.setCustomer(customer)
+        pListener.setOrder(order)
+        pListener.setPromotion(order)
+        pListener.enableUI()
+      }
+      return order
     }
 
     static void requestPayingCustomer(CustomerListener pListener, OperationType type ) {

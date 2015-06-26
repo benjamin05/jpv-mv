@@ -1,6 +1,11 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.NotaVentaQuery
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.service.CancelacionServiceJava
+import mx.lux.pos.java.service.NotaVentaServiceJava
 import mx.lux.pos.model.*
 import mx.lux.pos.service.CancelacionService
 import mx.lux.pos.service.IOService
@@ -31,6 +36,8 @@ class CancellationController {
   private static JbService jbService
   private static JbTrackService jbTrackService
   private static PagoService pagoService
+  private static CancelacionServiceJava cancelacionServiceJava
+  private static NotaVentaServiceJava notaVentaServiceJava
 
   private static final String TAG_REUSO = 'R'
   private static final String TAG_CUPON = 'C'
@@ -49,6 +56,8 @@ class CancellationController {
     this.jbService = jbService
     this.jbTrackService = jbTrackService
     this.pagoService = pagoService
+    cancelacionServiceJava = new CancelacionServiceJava()
+    notaVentaServiceJava = new NotaVentaServiceJava()
   }
 
   static List<String> findAllCancellationReasons( ) {
@@ -153,7 +162,7 @@ class CancellationController {
   static boolean orderHasTransfers( String orderId ) {
     log.info( "verificando transferencias para la orden id: ${orderId}" )
     if ( StringUtils.isNotBlank( orderId ) ) {
-      List<NotaVenta> results = cancelacionService.listarNotasVentaOrigenDeNotaVenta( orderId )
+      List<NotaVentaJava> results = cancelacionServiceJava.listarNotasVentaOrigenDeNotaVenta( orderId )
       return results?.any()
     } else {
       log.warn( 'no se verifican transferencias para la orden, parametros invalidos' )
@@ -164,12 +173,12 @@ class CancellationController {
   static List<String> findSourceOrdersWithCredit( String orderId ) {
     log.info( "obteniendo ordenes origen con credito a partir de la orden id: ${orderId}" )
     if ( StringUtils.isNotBlank( orderId ) ) {
-      List<NotaVenta> results = cancelacionService.listarNotasVentaOrigenDeNotaVenta( orderId )
+      List<NotaVentaJava> results = cancelacionServiceJava.listarNotasVentaOrigenDeNotaVenta( orderId )
       List<String> sources = [ ]
-      results?.each { NotaVenta tmp ->
-        BigDecimal credit = cancelacionService.obtenerCreditoDeNotaVenta( tmp?.id )
+      results?.each { NotaVentaJava tmp ->
+        BigDecimal credit = cancelacionServiceJava.obtenerCreditoDeNotaVenta( tmp?.idFactura )
         if ( credit != null && credit >= 1 ) {
-          sources.add( tmp?.id )
+          sources.add( tmp?.idFactura )
         }
       }
       return sources.any() ? sources : [ ]
@@ -201,14 +210,14 @@ class CancellationController {
     Boolean reuso = false
     log.info( "imprimiendo cancelaciones a partir de orden id: ${orderId}" )
     if ( StringUtils.isNotBlank( orderId ) ) {
-      List<NotaVenta> results = cancelacionService.listarNotasVentaOrigenDeNotaVenta( orderId )
+      List<NotaVentaJava> results = cancelacionServiceJava.listarNotasVentaOrigenDeNotaVenta( orderId )
       results?.each { NotaVenta tmp ->
         ticketService.imprimeCancelacion( tmp?.id )
       }
       Boolean isReuso = false
-      NotaVenta nv = notaVentaService.obtenerNotaVenta( orderId )
+      NotaVentaJava nv = NotaVentaQuery.busquedaNotaById( orderId )
       if(nv != null){
-        for(DetalleNotaVenta det : nv.detalles){
+        for(DetalleNotaVentaJava det : nv.detalles){
           if( TAG_REUSO.equalsIgnoreCase(det?.surte?.trim()) ){
             isReuso = true
           }
@@ -255,10 +264,15 @@ class CancellationController {
             cancelacionService.restablecerValoresDeCancelacion( idOrder )
     }
 
+  static void resetValuesofCancellationJava( String idOrder ) {
+    log.info( "restableciendo valores de cancelacion con id: ${idOrder}" )
+    cancelacionServiceJava.restablecerValoresDeCancelacion( idOrder )
+  }
+
   static List<Order> findOrderToResetValues( String idOrder ){
     log.info( "obteniendo notaventa para restablecer los montos de transferencia" )
-    List<NotaVenta> lstNotasVentas = cancelacionService.listarNotasVentaOrigenDeNotaVenta( idOrder )
-    return lstNotasVentas?.collect { NotaVenta tmp ->
+    List<NotaVentaJava> lstNotasVentas = cancelacionServiceJava.listarNotasVentaOrigenDeNotaVenta( idOrder )
+    return lstNotasVentas?.collect { NotaVentaJava tmp ->
       Order.toOrder( tmp )
     }
   }
@@ -345,8 +359,8 @@ class CancellationController {
 
   static String findSourceOrder( String orderId ) {
     log.debug( "findSourceOrder( )" )
-    NotaVenta notaOrig = notaVentaService.obtenerNotaVentaOrigen( orderId )
-    return notaOrig != null ? notaOrig.id : ''
+    NotaVentaJava notaOrig = notaVentaServiceJava.obtenerNotaVentaOrigen( orderId )
+    return notaOrig != null ? notaOrig.idFactura : ''
   }
 
 

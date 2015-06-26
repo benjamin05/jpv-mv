@@ -28,6 +28,7 @@ public class NotaVentaServiceJava {
     private static final String TAG_ARTICULO_COLOR = "COG";
     private static final String TAG_GENERICOS_H = "H";
     private static final String TAG_GENERICOS_INVENTARIABLES = "A,E,H";
+    private static final String TAG_TRANSFERENCIA = "TR";
     static final Logger log = LoggerFactory.getLogger(NotaVentaQuery.class);
 
 
@@ -854,4 +855,38 @@ public class NotaVentaServiceJava {
     }
     return montoCupon;
   }
+
+
+  public NotaVentaJava obtenerNotaVentaOrigen( String idNotaVenta ) throws ParseException {
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(idNotaVenta);
+    NotaVentaJava notaOrigen = null;
+    String idNotaOrigen = "";
+    for(PagoJava payment : nota.getPagos()){
+      if(TAG_TRANSFERENCIA.equalsIgnoreCase(payment.getIdFPago()) && StringUtils.trimToEmpty(payment.getReferenciaPago()).length() > 0){
+        idNotaOrigen = StringUtils.trimToEmpty(payment.getReferenciaPago());
+        notaOrigen = NotaVentaQuery.busquedaNotaById( idNotaOrigen );
+      }
+    }
+    return notaOrigen;
+  }
+
+
+
+  public NotaVentaJava obtenerSiguienteNotaVenta( Integer pIdCustomer ) throws ParseException {
+    Date fechaStart = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH );
+    Date fechaEnd = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 );
+    List<NotaVentaJava> orders = NotaVentaQuery.busquedaNotasPorIdClienteAndFecha(pIdCustomer, fechaStart, fechaEnd);
+    NotaVentaJava order = null;
+    for (NotaVentaJava o : orders) {
+      if ( o.getDetalles().size() > 0 && StringUtils.isBlank( o.getFactura() )) {
+        order = o;
+        break;
+      }
+    }
+    if (order == null) {
+      ClientesProcesoQuery.eliminaClienteProceso( pIdCustomer );
+    }
+    return order;
+  }
+
 }

@@ -836,31 +836,31 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void reviewForTransfers(String newOrderId) {
-        if (CancellationController.orderHasTransfers(newOrderId)) {
-            List<Order> lstOrders = CancellationController.findOrderToResetValues(newOrderId)
-            for (Order order : lstOrders) {
-                CancellationController.resetValuesofCancellation(order.id)
-            }
-            List<String> sources = CancellationController.findSourceOrdersWithCredit(newOrderId)
-            if (sources?.any()) {
-                new TotalCancellationDialog( this, sources.first(), true, false ).show()
-                //new RefundDialog(this, sources.first()).show()
-                Boolean reuse = CancellationController.printReUse( newOrderId )
-                if( !reuse ){
-                  //CancellationController.printMaterialReception( sources.first() )
-                  //CancellationController.printMaterialReturn( sources.first() )
-                }
-            } else {
-                Boolean reuse = CancellationController.printCancellationsFromOrder(newOrderId)
-                if( !reuse ){
-                  String idSource = CancellationController.findSourceOrder( newOrderId )
-                  if( idSource.trim().length() > 0 ){
-                      //CancellationController.printMaterialReception( idSource )
-                      //CancellationController.printMaterialReturn( idSource )
-                  }
-                }
-            }
+      if (CancellationController.orderHasTransfers(newOrderId)) {
+        List<Order> lstOrders = CancellationController.findOrderToResetValues(newOrderId)
+        for (Order order : lstOrders) {
+          CancellationController.resetValuesofCancellationJava(order.id)
         }
+        List<String> sources = CancellationController.findSourceOrdersWithCredit(newOrderId)
+        if (sources?.any()) {
+          new TotalCancellationDialog( this, sources.first(), true, false ).show()
+          //new RefundDialog(this, sources.first()).show()
+          Boolean reuse = CancellationController.printReUse( newOrderId )
+          if( !reuse ){
+            //CancellationController.printMaterialReception( sources.first() )
+            //CancellationController.printMaterialReturn( sources.first() )
+          }
+        } else {
+          Boolean reuse = CancellationController.printCancellationsFromOrder(newOrderId)
+          if( !reuse ){
+            String idSource = CancellationController.findSourceOrder( newOrderId )
+            if( idSource.trim().length() > 0 ){
+              //CancellationController.printMaterialReception( idSource )
+              //CancellationController.printMaterialReturn( idSource )
+            }
+          }
+        }
+      }
     }
 
     private RecetaJava validarGenericoB(Item item) {
@@ -1506,7 +1506,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               generatedCoupons( validClave, newOrder )
             }
           }
-            if( !ensureApply && !ffApply ){
+          if( !ensureApply && !ffApply ){
               if( OrderController.insertSegKig && !hasC1 ){
                 Boolean hasLensKid = false
                 Boolean hasEnsureKid = false
@@ -1527,28 +1527,28 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   OrderController.insertSegKig = false
                 }
               }
+          }
+          OrderController.printOrder(newOrder.id)
+          OrderController.printReuse( StringUtils.trimToEmpty(newOrder.id) )
+          if (ticketRx == true) {
+            OrderController.printRx(newOrder.id, false)
+            OrderController.fieldRX(newOrder.id)
+          }
+          reviewForTransfers(newOrder.id)
+          promoAmount = BigDecimal.ZERO
+          lblAmountPromo.text = promoAmount
+          sb.doOutside {
+            try{
+              OrderController.runScriptBckpOrder( newOrder )
+            } catch ( Exception e ){
+              println e
             }
-            OrderController.printOrder(newOrder.id)
-            OrderController.printReuse( StringUtils.trimToEmpty(newOrder.id) )
-            if (ticketRx == true) {
-              OrderController.printRx(newOrder.id, false)
-              OrderController.fieldRX(newOrder.id)
-            }
-            reviewForTransfers(newOrder.id)
-            promoAmount = BigDecimal.ZERO
-            lblAmountPromo.text = promoAmount
-            sb.doOutside {
-              try{
-                OrderController.runScriptBckpOrder( newOrder )
-              } catch ( Exception e ){
-                println e
-              }
-            }
-            // Flujo despues de imprimir nota de venta}
-            Order otherOrder = CustomerController.requestOrderByCustomer(this, customer)
-            if( otherOrder != null && otherOrder?.id != null ){
-              isPaying = true
-            }
+          }
+          // Flujo despues de imprimir nota de venta}
+          Order otherOrder = CustomerController.requestOrderByCustomer(this, customer)
+          if( otherOrder != null && otherOrder?.id != null ){
+            isPaying = true
+          }
         } else {
             sb.optionPane(
                     message: 'Ocurrio un error al registrar la venta, intentar nuevamente',
@@ -1769,15 +1769,15 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     void reset() {
-        order = new Order()
-        customer = CustomerController.findDefaultCustomer()
-        this.getPromotionDriver().init(this)
-        dioptra = new Dioptra()
-        antDioptra = new Dioptra()
-        order?.dioptra = null
-        promotionList.clear()
-        doBindings()
-        operationType.setSelectedItem(OperationType.DEFAULT)
+      order = new Order()
+      customer = CustomerController.findDefaultCustomer()
+      this.getPromotionDriver().init(this)
+      dioptra = new Dioptra()
+      antDioptra = new Dioptra()
+      order?.dioptra = null
+      promotionList.clear()
+      doBindings()
+      operationType.setSelectedItem(OperationType.DEFAULT)
     }
 
 
