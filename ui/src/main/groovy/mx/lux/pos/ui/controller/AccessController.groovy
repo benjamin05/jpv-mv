@@ -137,22 +137,22 @@ class AccessController {
   }
 
   static boolean validPassAudit( String user, String password ) {
-      log.info( "solicitando autorizacion de auditora por password: $password" )
-      Boolean valid = false
-      String validUsers = Registry.idAuditoras()
-      if ( validUsers != null && validUsers.trim().contains(user) ) {
-          String[] ids = validUsers.split( "," )
-          for(String id : ids){
-            Empleado emp = empleadoService.obtenerEmpleado( user )
-            if( StringUtils.trimToEmpty(emp.passwd).equalsIgnoreCase(password) ){
-              valid = true
-              break
-            }
-          }
-      } else {
-        log.info( "autorizacion rechazada, no es usuario autorizador" )
-      }
-      return valid
+    log.info( "solicitando autorizacion de auditora por password: $password" )
+    Boolean valid = false
+    Empleado emp = empleadoService.obtenerEmpleado( user )
+    Boolean validUser = validateUser( emp )
+    if ( validUser ) {
+      //String[] ids = validUsers.split( "," )
+      //for(String id : ids){
+        if( StringUtils.trimToEmpty(emp.passwd).equalsIgnoreCase(password) ){
+          valid = true
+          //break
+        }
+      //}
+    } else {
+      log.info( "autorizacion rechazada, no es usuario autorizador" )
+    }
+    return valid
   }
 
   static boolean validaDatos( String usuario, String password, String nuevoPass, String confirmPass ){
@@ -249,4 +249,17 @@ class AccessController {
     }
     return false
   }
+
+  static Boolean validateUser( Empleado emp ){
+    Boolean valid = false
+    String validUsers = Registry.idAuditoras()
+    if( validUsers != null && validUsers.trim().contains(StringUtils.trimToEmpty(emp.id)) ){
+      valid = true
+    } else if( emp.idPuesto == 15 ){
+      valid = true
+    }
+    return valid
+  }
+
+
 }
