@@ -58,6 +58,8 @@ class PaymentDialog extends JDialog {
   private OrderPanel orderPanel
   private CuponMvView cuponMvView
 
+  private BigDecimal promoAmount = BigDecimal.ZERO
+
   private Boolean hasDiscount
 
     Pago getPagoN() {
@@ -95,12 +97,16 @@ class PaymentDialog extends JDialog {
       doBindings()
   }
 
-  PaymentDialog( Component parent, Order order, final Payment payment, CuponMvView cuponMvView, OrderPanel orderPanel, Boolean hasDiscount ) {
+  PaymentDialog( Component parent, Order order, final Payment payment, CuponMvView cuponMvView, OrderPanel orderPanel,
+                 Boolean hasDiscount, BigDecimal promoAmount, Boolean  discountAgeApplied) {
     this.order = order
     this.payment = payment
     this.orderPanel = orderPanel
     this.cuponMvView = cuponMvView
     this.hasDiscount = hasDiscount
+    if( discountAgeApplied ){
+      this.promoAmount = promoAmount
+    }
     sb = new SwingBuilder()
     defaultPaymentType = PaymentController.findDefaultPaymentType()
     paymentTypes = PaymentController.findActivePaymentTypes( cuponMvView.amount, order.id, order.customer.id )
@@ -385,7 +391,7 @@ class PaymentDialog extends JDialog {
     NotEmptyVerifier notEmptyVerifier = new NotEmptyVerifier()
     IsSelectedVerifier isSelectedVerifier = new IsSelectedVerifier()
     if ( tmpPayment.amount > 0 ) {
-      Double diff = tmpPayment.amount.doubleValue() - order.due.doubleValue()
+      Double diff = tmpPayment.amount.doubleValue() - (order.due.subtract(promoAmount)).doubleValue()
       if ( diff < ZERO_TOLERANCE ) {
         if( PaymentController.findTypePaymentsDollar(tmpPayment?.paymentTypeId)){
           if(dollarsReceived.text != ''){
@@ -401,9 +407,9 @@ class PaymentDialog extends JDialog {
       } else {
           if( paymentType.selectedItem.equals(TAG_FORMA_PAGO_EFECTIVO) ){
               amount.text = order.due.toString()
-              BigDecimal cambio = tmpPayment.amount.subtract(order.due)
-              new ChangeDialog( cambio, tmpPayment.amount, order.due ).show()
-              tmpPayment.amount = order.due
+              BigDecimal cambio = tmpPayment.amount.subtract((order.due).subtract(promoAmount))
+              new ChangeDialog( cambio, tmpPayment.amount, order.due.subtract(promoAmount) ).show()
+              tmpPayment.amount = order.due.subtract(promoAmount)
               valid = true
           } else {
               messages.text = "- El pago debe ser menor al saldo pendiente"

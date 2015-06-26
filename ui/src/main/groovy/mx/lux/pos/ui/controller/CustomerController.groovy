@@ -333,7 +333,7 @@ class CustomerController {
         return order
     }
 
-    static void requestPayingCustomer(CustomerListener pListener) {
+    static void requestPayingCustomer(CustomerListener pListener, OperationType type ) {
         this.log.debug('Request Customer on Site ')
         List<ClienteProceso> clientes = clienteService.obtenerClientesEnCaja(true)
         OrderActiveSelectionDialog dialog = new OrderActiveSelectionDialog()
@@ -344,7 +344,7 @@ class CustomerController {
             Customer c = Customer.toCustomer(dialog.orderSelected.customer)
             pListener.reset()
             pListener.disableUI()
-            pListener.operationTypeSelected = OperationType.PAYING
+            pListener.operationTypeSelected = type//OperationType.PAYING
             pListener.setCustomer(c)
             pListener.setOrder(o)
             pListener.enableUI()
