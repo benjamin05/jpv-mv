@@ -1,5 +1,6 @@
 package mx.lux.pos.ui.controller
 
+import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.model.*
 import mx.lux.pos.service.ArticuloService
 import mx.lux.pos.service.InventarioService
@@ -91,6 +92,14 @@ class InvTrController {
 
   protected void dispatchPartsSelected( InvTrView pView, List<Articulo> pPartList ) {
     for ( Articulo part in pPartList ) {
+      pView.data.addPart( part )
+    }
+    pView.fireConsumePartSeed()
+    pView.fireRefreshUI()
+  }
+
+  protected void dispatchPartsJavaSelected( InvTrView pView, List<ArticulosJava> pPartList ) {
+    for ( ArticulosJava part in pPartList ) {
       pView.data.addPart( part )
     }
     pView.fireConsumePartSeed()
@@ -430,7 +439,7 @@ class InvTrController {
       String[] part = pView.data.partSeed.split(',')
       log.debug( String.format( "[Controller] Request Part with seed <%s>", part[0] ) )
     String seed = part[0]
-    List<Articulo> partList = ItemController.findPartsByQuery( seed, false )
+    List<ArticulosJava> partList = ItemController.findPartsByQuery( seed, false )
     if(seed.startsWith('00')){
       seed = seed.replaceFirst("^0*", "")
     }
@@ -471,16 +480,16 @@ class InvTrController {
           //valid = true
         }
         if(valid){
-            if( partList.first().cantExistencia <= 0 && pView.data.viewMode.trType.tipoMov.trim().equalsIgnoreCase('S') ){
+            if( partList.first().existencia <= 0 && pView.data.viewMode.trType.tipoMov.trim().equalsIgnoreCase('S') ){
                 Integer question =JOptionPane.showConfirmDialog( new JDialog(), pView.panel.MSG_NO_STOCK, pView.panel.TXT_NO_STOCK,
                         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE )
                 if( question == 0){
-                    dispatchPartsSelected( pView, partList )
+                    dispatchPartsJavaSelected( pView, partList )
                 } else {
                     pView.panel.stock = false
                 }
             } else {
-                dispatchPartsSelected( pView, partList )
+                dispatchPartsJavaSelected( pView, partList )
             }
         } else {
             JOptionPane.showMessageDialog( pView.panel, String.format( pView.panel.MSG_NO_VALID_FOUND, seed ),
