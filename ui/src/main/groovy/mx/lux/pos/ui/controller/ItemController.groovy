@@ -83,7 +83,7 @@ class ItemController {
   static List<Item> findItemsByQuery( final String query ) {
     log.debug( "buscando de articulos con query: $query" )
       if ( StringUtils.isNotBlank( query ) ) {
-      List<ArticulosJava> items = findPartsByQuery( query )
+      List<ArticulosJava> items = findPartsJavaByQuery( query )
       if (items.size() > 0) {
         log.debug( "Items:: ${items.first()?.dump()} " )
         return items?.collect { Item.toItem( it ) }
