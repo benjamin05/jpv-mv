@@ -62,6 +62,8 @@ class OrderController {
     private static final String TAG_MONTAJE = 'MONTAJE'
     private static String MSJ_ERROR_WARRANTY = ""
     private static String TXT_ERROR_WARRANTY = ""
+    private static final String TAG_FORMA_CARGO_EMP = 'FE'
+    private static final String TAG_FORMA_CARGO_MVIS = 'FM'
 
     private static Boolean insertSegKig
 
@@ -642,14 +644,27 @@ class OrderController {
         println('Factura: ' + notaVenta?.getFactura())
         String idFactura = notaVenta.getFactura()
         notaVentaService.saveOrder(notaVenta)
+        Boolean validPayments = true
+        for( NotaVenta nv : notaVenta ){
+          for(Pago pay : nv.pagos){
+            if(TAG_FORMA_CARGO_EMP.equalsIgnoreCase(StringUtils.trimToEmpty(pay.idFPago)) ||
+                    TAG_FORMA_CARGO_MVIS.equalsIgnoreCase(StringUtils.trimToEmpty(pay.idFPago))){
+              validPayments = false
+            }
+          }
+        }
         if( notaVenta.fechaEntrega != null ){
           if( Registry.isCouponFFActivated() && !alreadyDelivered ){
             if( !Registry.couponFFOtherDiscount() ){
               if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null ){
-                generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
+                if( validPayments ){
+                  generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
+                }
               }
             } else {
-              generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
+              if( validPayments ){
+                generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
+              }
             }
           }
           Boolean orderToday = StringUtils.trimToEmpty(notaVenta.fechaHoraFactura.format("dd/MM/yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd/MM/yyyy")))
