@@ -439,7 +439,7 @@ class InvTrController {
       String[] part = pView.data.partSeed.split(',')
       log.debug( String.format( "[Controller] Request Part with seed <%s>", part[0] ) )
     String seed = part[0]
-    List<ArticulosJava> partList = ItemController.findPartsByQuery( seed, false )
+    List<Articulo> partList = ItemController.findPartsByQuery( seed, false )
     if(seed.startsWith('00')){
       seed = seed.replaceFirst("^0*", "")
     }
@@ -484,12 +484,12 @@ class InvTrController {
                 Integer question =JOptionPane.showConfirmDialog( new JDialog(), pView.panel.MSG_NO_STOCK, pView.panel.TXT_NO_STOCK,
                         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE )
                 if( question == 0){
-                    dispatchPartsJavaSelected( pView, partList )
+                    dispatchPartsSelected( pView, partList )
                 } else {
                     pView.panel.stock = false
                 }
             } else {
-                dispatchPartsJavaSelected( pView, partList )
+                dispatchPartsSelected( pView, partList )
             }
         } else {
             JOptionPane.showMessageDialog( pView.panel, String.format( pView.panel.MSG_NO_VALID_FOUND, seed ),

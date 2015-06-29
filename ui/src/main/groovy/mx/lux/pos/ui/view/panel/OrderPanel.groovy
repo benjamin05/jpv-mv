@@ -605,7 +605,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             } else {
               article = input.trim()
             }
-            List<Item> results = ItemController.findItemsByQuery(article)
+            List<Item> results = ItemController.findPartsJavaByQuery(article)
             if (results?.any()) {
               Item item = new Item()
               if (results.size() == 1) {

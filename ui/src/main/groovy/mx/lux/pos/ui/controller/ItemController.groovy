@@ -93,11 +93,11 @@ class ItemController {
     return [ ]
   }
 
-  static List<ArticulosJava> findPartsByQuery( final String query ) {
-    return findPartsByQuery( query, true )
+  static List<ArticulosJava> findPartsJavaByQuery( final String query ) {
+    return findPartsJavaByQuery( query, true )
   }
 
-  static List<ArticulosJava> findPartsByQuery( final String query, Boolean incluyePrecio ) {
+  static List<ArticulosJava> findPartsJavaByQuery( final String query, Boolean incluyePrecio ) {
     List<ArticulosJava> items = [ ]
     if ( StringUtils.isNotBlank( query ) ) {
       def anyMatch = '*'
@@ -141,6 +141,63 @@ class ItemController {
     }
     return items
   }
+
+
+    static List<Articulo> findPartsByQuery( final String query ) {
+        return findPartsByQuery( query, true )
+    }
+
+    static List<Articulo> findPartsByQuery( final String query, Boolean incluyePrecio ) {
+        List<Articulo> items = [ ]
+        if ( StringUtils.isNotBlank( query ) ) {
+            /*if ( query.integer ) {
+              log.debug( "busqueda por articulo exacto ${query}" )
+              items.add( articuloService.obtenerArticulo( query.toInteger(), incluyePrecio ) )
+            } else {*/
+            def anyMatch = '*'
+            def colorMatch = ','
+            def typeMatch = '+'
+            if ( query.contains( anyMatch ) ) {
+                def tokens = query.tokenize( anyMatch )
+                def code = tokens?.first() ?: null
+                log.warn( "bien3" )
+                log.debug( "busqueda con codigo similar: ${code}" )
+
+                items = articuloService.listarArticulosPorCodigoSimilar( code, incluyePrecio ) ?: [ ]
+            } else {
+                def tokens = query.replaceAll( /[+|,]/, '|' ).tokenize( '|' )
+                def code = tokens?.first() ?: null
+                log.debug( "busqueda con codigo exacto: ${code}" )
+                items = articuloService.listarArticulosPorCodigo( code, incluyePrecio ) ?: [ ]
+            }
+            if ( query.contains( colorMatch ) ) {
+                String color = query.find( /\,(\w+)/ ) { m, c -> return c }
+                log.debug( "busqueda con color: ${color}" )
+                items = items.findAll { it?.codigoColor?.equalsIgnoreCase( color ) ||
+                        it?.idCb?.equalsIgnoreCase( color )}
+            }
+            if ( query.contains( typeMatch ) ) {
+                if( query.startsWith( typeMatch ) ){
+                    String type = query.replace("+","")
+                    log.debug( "busqueda con tipo: ${type}" )
+                    items = [ ]
+                    items = articuloService.obtenerListaArticulosPorIdGenerico( type )
+                } else if( query.startsWith( "D"+typeMatch ) ){
+                    String type = query.replace("D+","")
+                    log.debug( "busqueda con tipo: ${type}" )
+                    items = [ ]
+                    items = articuloService.obtenerListaArticulosPorDescripcion( type )
+                } else {
+                    String type = query.find( /\+(\w+)/ ) { m, t -> return t }
+                    log.debug( "busqueda con tipo: ${type}" )
+                    items = items.findAll { it?.idGenerico?.equalsIgnoreCase( type ) }
+                }
+            }
+            //}
+        }
+        return items
+    }
+
 
     static List<Item> findItemByArticleAndColor( String query, String color  ) {
         log.debug( "buscando de un articulo con query: $query" )
