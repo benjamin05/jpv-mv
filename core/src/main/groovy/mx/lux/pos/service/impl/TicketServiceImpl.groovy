@@ -1247,7 +1247,7 @@ class TicketServiceImpl implements TicketService {
 
       def ventasEmpleado = []
       List<Pago> lstVentasEmpleado = pagoRepository.findAll( pay.fecha.between(fechaStart,fechaEnd).and(pay.idFPago.eq('CRE')).
-          and(pay.notaVenta.factura.isNotEmpty()).and(pay.notaVenta.factura.isNotNull()))
+          and(pay.notaVenta.factura.isNotEmpty()).and(pay.notaVenta.factura.isNotNull())) as List<Pago>
       for(Pago pago: lstVentasEmpleado){
         String monto = formatter.format( pago.monto )
         def ventaEmpleadoTmp = [
@@ -1257,6 +1257,20 @@ class TicketServiceImpl implements TicketService {
         ]
         ventasEmpleado.add( ventaEmpleadoTmp )
       }
+
+
+      BigDecimal faltanteEmp = BigDecimal.ZERO
+      BigDecimal faltanteMv = BigDecimal.ZERO
+      List<Pago> lstPagosFaltante = pagoRepository.findAll( pay.fecha.between(fechaStart,fechaEnd).and(pay.idFPago.eq('FE').or(pay.idFPago.eq('FM'))).
+                and(pay.notaVenta.factura.isNotEmpty()).and(pay.notaVenta.factura.isNotNull())) as List<Pago>
+      for(Pago pagoFaltante : lstPagosFaltante){
+        if( StringUtils.trimToEmpty(pagoFaltante.idFPago).equalsIgnoreCase("FE") ){
+          faltanteEmp = faltanteEmp.add(pagoFaltante.monto)
+        } else if( StringUtils.trimToEmpty(pagoFaltante.idFPago).equalsIgnoreCase("FM") ){
+            faltanteMv = faltanteMv.add(pagoFaltante.monto)
+        }
+      }
+
 
       QExamen ex = QExamen.examen
       List<Examen> lstExamenes = examenRepository.findAll( ex.idAtendio.eq('9999').and(ex.observacionesEx.eq('SE')).
@@ -1315,7 +1329,9 @@ class TicketServiceImpl implements TicketService {
           observaciones: StringUtils.isNotBlank( cierreDiario.observaciones ) ? StringUtils.replace( cierreDiario.observaciones, '~', '\n' ) : '',
           entregadosExternos: entregadosExternosTmp.isEmpty() ? null : new ArrayList<EntregadoExterno>( entregadosExternosTmp.values() ),
           total_clientes_sinExamen: lstExamenes.size(),
-          clientes_sinExamen: lstExamenes]
+          clientes_sinExamen: lstExamenes,
+          montoFaltanteEmp: faltanteEmp.compareTo(BigDecimal.ZERO) > 0 ? formatter.format(faltanteEmp): "-",
+          montoFaltanteMv: faltanteMv.compareTo(BigDecimal.ZERO) > 0 ? formatter.format(faltanteMv): "-"]
 
       imprimeTicket( 'template/ticket-resumen-diario.vm', datos )
     } else {
