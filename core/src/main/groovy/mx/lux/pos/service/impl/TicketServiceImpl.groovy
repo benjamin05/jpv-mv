@@ -2717,75 +2717,85 @@ class TicketServiceImpl implements TicketService {
       log.debug( "imprimeGarantia( )" )
       DateFormat df = new SimpleDateFormat( "dd-MM-yy" )
       NotaVenta notaVenta = notaVentaRepository.findOne( idFactura )
-      Sucursal site = ServiceFactory.sites.obtenSucursalActual()
-      AddressAdapter companyAddress = Registry.companyAddress
-      Integer validity = 0
-      Calendar calendar = Calendar.getInstance();
-      if( notaVenta != null ){
-        if( tipoSeguro.equalsIgnoreCase("N") ){
-          validity = Registry.validityEnsureKid
-        } else if( tipoSeguro.equalsIgnoreCase("L") ){
-          validity = Registry.validityEnsureOpht
-        } else if( tipoSeguro.equalsIgnoreCase("S") ){
-          validity = Registry.validityEnsureFrame
+      Boolean validPayments = true
+      for(Pago pago : notaVenta.pagos){
+        if( StringUtils.trimToEmpty(pago.idFPago).equalsIgnoreCase("FE") || StringUtils.trimToEmpty(pago.idFPago).equalsIgnoreCase("FM") ){
+          validPayments = false
         }
-        Integer porcGar = Registry.percentageWarranty
-        BigDecimal porcentaje = montoGarantia.multiply(porcGar/100)
-        Integer monto = porcentaje.intValue()
-        String clave = ""
-        if( StringUtils.trimToEmpty(notaVenta.udf5).length() > 0 ){
-          if( doubleEnsure && !notaVenta.udf5.contains(",") ){
-            calendar.add(Calendar.YEAR, validity);
-            String date = df.format(calendar.getTime())
-            Integer fecha = 0
-            try{
-              fecha = NumberFormat.getInstance().parse(date.replace("-",""))
-            } catch ( NumberFormatException e ){ println e }
-            clave = claveAleatoria( fecha, monto )
-            clave = tipoSeguro+clave
-          } else {
-            if( notaVenta.udf5.contains(",") ){
-              String[] claves = notaVenta.udf5.split(",")
-              for(String cl : claves){
-                if( cl.charAt(0).equals(tipoSeguro.charAt(0)) ){
-                  clave = cl
-                }
+      }
+      if( validPayments ){
+          Sucursal site = ServiceFactory.sites.obtenSucursalActual()
+          AddressAdapter companyAddress = Registry.companyAddress
+          Integer validity = 0
+          Calendar calendar = Calendar.getInstance();
+          if( notaVenta != null ){
+              if( tipoSeguro.equalsIgnoreCase("N") ){
+                  validity = Registry.validityEnsureKid
+              } else if( tipoSeguro.equalsIgnoreCase("L") ){
+                  validity = Registry.validityEnsureOpht
+              } else if( tipoSeguro.equalsIgnoreCase("S") ){
+                  validity = Registry.validityEnsureFrame
               }
-            } else {
-              clave = StringUtils.trimToEmpty(notaVenta.udf5)
-            }
-            calendar.setTime(notaVenta.fechaEntrega);
-            calendar.add(Calendar.YEAR, validity);
+              Integer porcGar = Registry.percentageWarranty
+              BigDecimal porcentaje = montoGarantia.multiply(porcGar/100)
+              Integer monto = porcentaje.intValue()
+              String clave = ""
+              if( StringUtils.trimToEmpty(notaVenta.udf5).length() > 0 ){
+                  if( doubleEnsure && !notaVenta.udf5.contains(",") ){
+                      calendar.add(Calendar.YEAR, validity);
+                      String date = df.format(calendar.getTime())
+                      Integer fecha = 0
+                      try{
+                          fecha = NumberFormat.getInstance().parse(date.replace("-",""))
+                      } catch ( NumberFormatException e ){ println e }
+                      clave = claveAleatoria( fecha, monto )
+                      clave = tipoSeguro+clave
+                  } else {
+                      if( notaVenta.udf5.contains(",") ){
+                          String[] claves = notaVenta.udf5.split(",")
+                          for(String cl : claves){
+                              if( cl.charAt(0).equals(tipoSeguro.charAt(0)) ){
+                                  clave = cl
+                              }
+                          }
+                      } else {
+                          clave = StringUtils.trimToEmpty(notaVenta.udf5)
+                      }
+                      calendar.setTime(notaVenta.fechaEntrega);
+                      calendar.add(Calendar.YEAR, validity);
+                  }
+              } else {
+                  calendar.add(Calendar.YEAR, validity);
+                  String date = df.format(calendar.getTime())
+                  Integer fecha = 0
+                  try{
+                      fecha = NumberFormat.getInstance().parse(date.replace("-",""))
+                  } catch ( NumberFormatException e ){ println e }
+                  clave = claveAleatoria( fecha, monto )
+                  clave = tipoSeguro+clave
+              }
+
+              if( StringUtils.trimToEmpty(notaVenta.udf5).length() <= 0 ){
+                  notaVenta.udf5 = clave
+                  //notaVentaService.saveOrder( notaVenta )
+              } else if( doubleEnsure && !notaVenta.udf5.contains(",") ) {
+                  notaVenta.udf5 = notaVenta.udf5+","+clave
+                  //notaVentaService.saveOrder( notaVenta )
+              }
+
+              def data = [
+                      date: df.format( calendar.getTime() ),
+                      thisSite: site,
+                      compania: companyAddress,
+                      codaleatorio: clave,
+                      articulo: idArticulo
+              ]
+              imprimeTicket( "template/ticket-garantia.vm", data )
           }
-        } else {
-          calendar.add(Calendar.YEAR, validity);
-          String date = df.format(calendar.getTime())
-          Integer fecha = 0
-          try{
-                fecha = NumberFormat.getInstance().parse(date.replace("-",""))
-          } catch ( NumberFormatException e ){ println e }
-          clave = claveAleatoria( fecha, monto )
-          clave = tipoSeguro+clave
-        }
-
-        if( StringUtils.trimToEmpty(notaVenta.udf5).length() <= 0 ){
-          notaVenta.udf5 = clave
-          //notaVentaService.saveOrder( notaVenta )
-        } else if( doubleEnsure && !notaVenta.udf5.contains(",") ) {
-          notaVenta.udf5 = notaVenta.udf5+","+clave
-          //notaVentaService.saveOrder( notaVenta )
-        }
-
-          def data = [
-              date: df.format( calendar.getTime() ),
-              thisSite: site,
-              compania: companyAddress,
-              codaleatorio: clave,
-              articulo: idArticulo
-          ]
-          imprimeTicket( "template/ticket-garantia.vm", data )
-        }
-      return notaVenta
+          return notaVenta
+      } else {
+        return null
+      }
     }
 
 
