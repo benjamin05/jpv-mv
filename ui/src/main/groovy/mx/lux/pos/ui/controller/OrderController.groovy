@@ -1332,7 +1332,7 @@ class OrderController {
             } catch (ex) {
                 index = 1
             }
-            String[] result = resultado.split(/\|/)
+            String[] result = StringUtils.trimToEmpty(resultado).split(/\|/)
             String condicion = result[0]
 
             if (condicion.trim().equals('Si')) {
