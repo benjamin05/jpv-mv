@@ -61,6 +61,8 @@ enum TipoParametro {
   MONTO_GENERA_FF_CUPON( 'monto_genera_ff_cupon', '1000' ),
   MONTO_APLICA_FF_CUPON( 'monto_aplica_ff_cupon', '1000' ),
   MONTO_FF_CUPON( 'monto_ff_cupon', '200' ),
+  MONTO_PROMO_EDAD_MONOFOCAL('monto_promoedad_monofocal','10'),
+  MONTO_PROMO_EDAD_MULTIFOCAL('monto_promoedad_multifocal','20'),
   MONTO_VALIDO_PROMO_EDAD( 'monto_minimo_promo_edad', '1500' ),
   PAQUETES('paquetes','BRONCE,PLATA,ORO,PLATINO,DIAMANTE'),
   PEDIDO_LC( 'pedido_lc', '' ),

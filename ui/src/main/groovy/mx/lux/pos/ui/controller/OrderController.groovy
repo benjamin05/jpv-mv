@@ -3108,9 +3108,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             }
           }
           if( hasSV ){
-            monto = new BigDecimal(anos).multiply(new BigDecimal(10) )
+            monto = new BigDecimal( anos*Registry.amountPromoAgeMonofocal )
           } else if( hasMF ){
-            monto = new BigDecimal(anos).multiply(new BigDecimal(20) )
+            monto = new BigDecimal( anos*Registry.amountPromoAgeMultifocal )
           }
         }
       }
