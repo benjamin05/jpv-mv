@@ -642,13 +642,19 @@ class OrderController {
         println('Factura: ' + notaVenta?.getFactura())
         String idFactura = notaVenta.getFactura()
         notaVentaService.saveOrder(notaVenta)
+        Boolean hasRedEnsure = false
+        for(Pago pago : notaVenta.pagos){
+          if( StringUtils.trimToEmpty(pago.eTipoPago.id).equalsIgnoreCase(TAG_CUPON_SEGURO) ){
+            hasRedEnsure = true
+          }
+        }
         if( notaVenta.fechaEntrega != null ){
           if( Registry.isCouponFFActivated() && !alreadyDelivered ){
             if( !Registry.couponFFOtherDiscount() ){
-              if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null ){
+              if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null && !hasRedEnsure ){
                 generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
               }
-            } else {
+            } else if(!hasRedEnsure){
               generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
             }
           }
@@ -1326,7 +1332,7 @@ class OrderController {
             } catch (ex) {
                 index = 1
             }
-            String[] result = resultado.split(/\|/)
+            String[] result = StringUtils.trimToEmpty(resultado).split(/\|/)
             String condicion = result[0]
 
             if (condicion.trim().equals('Si')) {
@@ -1535,6 +1541,20 @@ class OrderController {
         notaVenta?.observacionesNv = dejo
         notaVentaService.saveOrder(notaVenta)
     }
+
+
+    static void deleteSuyo( Order order ){
+      QTmpServicios qTmpServicios = QTmpServicios.tmpServicios
+      List<TmpServicios> lstTmpServicio = tmpServiciosRepository.findAll( qTmpServicios.id_factura.eq(order.id) )
+      for(TmpServicios tmpServicios : lstTmpServicio){
+        tmpServiciosRepository.delete( tmpServicios.id_serv )
+        tmpServiciosRepository.flush()
+      }
+      NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+      notaVenta?.observacionesNv = ""
+      notaVentaService.saveOrder(notaVenta)
+    }
+
 
     static void printSuyo(Order order, User user) {
         TmpServicios servicios = tmpServiciosRepository.findOne( tmpServiciosRepository.tmpExiste(order?.id))
