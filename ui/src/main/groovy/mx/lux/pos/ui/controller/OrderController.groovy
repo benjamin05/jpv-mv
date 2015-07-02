@@ -62,6 +62,7 @@ class OrderController {
     private static final String TAG_MONTAJE = 'MONTAJE'
     private static String MSJ_ERROR_WARRANTY = ""
     private static String TXT_ERROR_WARRANTY = ""
+    private static final String TAG_CLAVE_DESCUENTO_EDAD = "PREDAD"
 
     private static Boolean insertSegKig
 
@@ -3122,6 +3123,34 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       }
     }
     return monto
+  }
+
+
+  static Boolean canApplyDiscountAge( Order order ) {
+    Boolean canApply = true
+    if( StringUtils.trimToEmpty(order.id).length() > 0 ){
+      Calendar cal = Calendar.getInstance();
+      cal.set(cal.get(Calendar.YEAR),
+      cal.getMinimum(Calendar.MONTH),
+      cal.getMinimum(Calendar.DAY_OF_YEAR),
+      cal.getMinimum(Calendar.HOUR_OF_DAY),
+      cal.getMinimum(Calendar.MINUTE),
+      cal.getMinimum(Calendar.SECOND));
+      Date fechaStart = cal.getTime()
+      Date fechaEnd = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 )
+      QNotaVenta qNotaVenta = QNotaVenta.notaVenta
+      List<NotaVenta> lstNotasClient = notaVentaRepository.findAll( qNotaVenta.idCliente.eq(order.customer.id).
+              and(qNotaVenta.fechaHoraFactura.between(fechaStart,fechaEnd)) ) as List<NotaVenta>
+      for(NotaVenta nv : lstNotasClient){
+        List<Descuento> descuento = RepositoryFactory.discounts.findByIdFactura(nv.id)
+        for(Descuento desc : descuento){
+          if(StringUtils.trimToEmpty(desc.clave).equalsIgnoreCase(TAG_CLAVE_DESCUENTO_EDAD)){
+            canApply = false
+          }
+        }
+      }
+    }
+    return canApply
   }
 
 
