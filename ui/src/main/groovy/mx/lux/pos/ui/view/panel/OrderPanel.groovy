@@ -2451,6 +2451,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
       }
     }
+
+    if( !applied ){
+      applied = OrderController.canApplyDiscountAge( order )
+    }
     println "Algo aplicado: "+applied
     return applied
   }

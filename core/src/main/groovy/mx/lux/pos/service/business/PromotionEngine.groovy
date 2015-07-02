@@ -77,7 +77,7 @@ class PromotionEngine {
       return result
   }
 
-  void updateOrder( PromotionModel pModel, String pOrderNbr ) {
+  static void updateOrderStr( PromotionModel pModel, String pOrderNbr ) {
     String orderNbr = StringUtils.trimToEmpty( pOrderNbr )
     if ( orderNbr.length() > 0 ) {
       NotaVenta order = RepositoryFactory.getOrders().findOne( StringUtils.trimToEmpty( pOrderNbr ).toUpperCase() )
@@ -87,7 +87,7 @@ class PromotionEngine {
     }
   }
 
-  void updateOrder( PromotionModel pModel, NotaVenta pOrder ) {
+  static void updateOrder( PromotionModel pModel, NotaVenta pOrder ) {
     if ( pOrder != null ) {
       if ( pModel.isOrderEquals( pOrder ) ) {
         pModel.updateOrder( pOrder )

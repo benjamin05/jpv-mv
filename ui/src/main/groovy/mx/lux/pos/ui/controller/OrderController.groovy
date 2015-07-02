@@ -62,6 +62,7 @@ class OrderController {
     private static final String TAG_MONTAJE = 'MONTAJE'
     private static String MSJ_ERROR_WARRANTY = ""
     private static String TXT_ERROR_WARRANTY = ""
+    private static final String TAG_CLAVE_DESCUENTO_EDAD = "PREDAD"
 
     private static Boolean insertSegKig
 
@@ -651,7 +652,13 @@ class OrderController {
         if( notaVenta.fechaEntrega != null ){
           if( Registry.isCouponFFActivated() && !alreadyDelivered ){
             if( !Registry.couponFFOtherDiscount() ){
-              if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null && !hasRedEnsure ){
+              Boolean hasNotDiscount = true
+              if( notaVenta.desc != null ){
+                if( !StringUtils.trimToEmpty(notaVenta.desc.clave).equalsIgnoreCase("PREDAD") ){
+                  hasNotDiscount = false
+                }
+              }
+              if( notaVenta.ordenPromDet.size() <= 0 && hasNotDiscount && !hasRedEnsure ){
                 generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
               }
             } else if(!hasRedEnsure){
@@ -3108,14 +3115,43 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             }
           }
           if( hasSV ){
-            monto = new BigDecimal(anos).multiply(new BigDecimal(10) )
+            monto = new BigDecimal( anos*Registry.amountPromoAgeMonofocal )
           } else if( hasMF ){
-            monto = new BigDecimal(anos).multiply(new BigDecimal(20) )
+            monto = new BigDecimal( anos*Registry.amountPromoAgeMultifocal )
           }
         }
       }
     }
     return monto
+  }
+
+
+  static Boolean canApplyDiscountAge( Order order ) {
+    Boolean smthApply = false
+    if( StringUtils.trimToEmpty(order.id).length() > 0 ){
+      Calendar cal = Calendar.getInstance();
+      cal.set(cal.get(Calendar.YEAR),
+      cal.getMinimum(Calendar.MONTH),
+      cal.getMinimum(Calendar.DAY_OF_YEAR),
+      cal.getMinimum(Calendar.HOUR_OF_DAY),
+      cal.getMinimum(Calendar.MINUTE),
+      cal.getMinimum(Calendar.SECOND));
+      Date fechaStart = cal.getTime()
+      Date fechaEnd = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 )
+      QNotaVenta qNotaVenta = QNotaVenta.notaVenta
+      List<NotaVenta> lstNotasClient = notaVentaRepository.findAll( qNotaVenta.idCliente.eq(order.customer.id).
+              and(qNotaVenta.fechaHoraFactura.between(fechaStart,fechaEnd)).and(qNotaVenta.factura.isNotNull().
+              and(qNotaVenta.factura.isNotEmpty())) ) as List<NotaVenta>
+      for(NotaVenta nv : lstNotasClient){
+        List<Descuento> descuento = RepositoryFactory.discounts.findByIdFactura(nv.id)
+        for(Descuento desc : descuento){
+          if(StringUtils.trimToEmpty(desc.clave).equalsIgnoreCase(TAG_CLAVE_DESCUENTO_EDAD)){
+            smthApply = true
+          }
+        }
+      }
+    }
+    return smthApply
   }
 
 
