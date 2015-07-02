@@ -3127,7 +3127,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
   static Boolean canApplyDiscountAge( Order order ) {
-    Boolean canApply = true
+    Boolean smthApply = false
     if( StringUtils.trimToEmpty(order.id).length() > 0 ){
       Calendar cal = Calendar.getInstance();
       cal.set(cal.get(Calendar.YEAR),
@@ -3140,17 +3140,18 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       Date fechaEnd = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 )
       QNotaVenta qNotaVenta = QNotaVenta.notaVenta
       List<NotaVenta> lstNotasClient = notaVentaRepository.findAll( qNotaVenta.idCliente.eq(order.customer.id).
-              and(qNotaVenta.fechaHoraFactura.between(fechaStart,fechaEnd)) ) as List<NotaVenta>
+              and(qNotaVenta.fechaHoraFactura.between(fechaStart,fechaEnd)).and(qNotaVenta.factura.isNotNull().
+              and(qNotaVenta.factura.isNotEmpty())) ) as List<NotaVenta>
       for(NotaVenta nv : lstNotasClient){
         List<Descuento> descuento = RepositoryFactory.discounts.findByIdFactura(nv.id)
         for(Descuento desc : descuento){
           if(StringUtils.trimToEmpty(desc.clave).equalsIgnoreCase(TAG_CLAVE_DESCUENTO_EDAD)){
-            canApply = false
+            smthApply = true
           }
         }
       }
     }
-    return canApply
+    return smthApply
   }
 
 

@@ -52,7 +52,7 @@ class PromotionServiceImpl implements PromotionService {
 
   public void updateOrder( PromotionModel pModel, String pOrderNbr ) {
     log.debug( "Update Order: ${ pOrderNbr } " )
-    PromotionEngine.instance.updateOrder( pModel, pOrderNbr )
+    PromotionEngine.instance.updateOrderStr( pModel, pOrderNbr )
   }
 
   @Transactional
