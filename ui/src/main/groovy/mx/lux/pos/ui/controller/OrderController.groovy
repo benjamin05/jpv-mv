@@ -651,7 +651,13 @@ class OrderController {
         if( notaVenta.fechaEntrega != null ){
           if( Registry.isCouponFFActivated() && !alreadyDelivered ){
             if( !Registry.couponFFOtherDiscount() ){
-              if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null && !hasRedEnsure ){
+              Boolean hasNotDiscount = true
+              if( notaVenta.desc != null ){
+                if( !StringUtils.trimToEmpty(notaVenta.desc.clave).equalsIgnoreCase("PREDAD") ){
+                  hasNotDiscount = false
+                }
+              }
+              if( notaVenta.ordenPromDet.size() <= 0 && hasNotDiscount && !hasRedEnsure ){
                 generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
               }
             } else if(!hasRedEnsure){
