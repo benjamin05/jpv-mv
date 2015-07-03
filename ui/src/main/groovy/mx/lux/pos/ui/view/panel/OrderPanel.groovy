@@ -1456,7 +1456,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 }
               }
             }
-
+          if( cuponMv != null ){
+            for(IPromotionAvailable promo : promotionList){
+              if( promo instanceof PromotionDiscount ){
+                OrderController.updateCuponMvByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
+              }
+            }
+          }
             if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
               if( cuponMv != null ){
                 for(IPromotionAvailable promo : promotionList){
