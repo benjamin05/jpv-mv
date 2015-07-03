@@ -1063,8 +1063,15 @@ class NotaVentaServiceImpl implements NotaVentaService {
                   }
               }
               if( montosCup == null ){
-                montosCup = montoCuponRepository.findOne( mc.generico.eq(det.articulo.idGenerico).
-                      and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) )
+                List<MontoCupon> lstMontosCup = montoCuponRepository.findAll( mc.generico.eq(det.articulo.idGenerico).
+                        and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) ) as List<MontoCupon>
+                if( lstMontosCup.size() > 0 ){
+                  for(MontoCupon monCup : lstMontosCup){
+                    if( StringUtils.trimToEmpty(monCup.tipo).length() <= 0 ){
+                      montosCup = monCup
+                    }
+                  }
+                }
                 if( montosCup != null && montosCup.cantidad < det.cantidadFac ){
                       montosCup = null
                 }
