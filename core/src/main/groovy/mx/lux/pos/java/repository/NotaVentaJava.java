@@ -67,6 +67,7 @@ public class NotaVentaJava {
     List<OrdenPromDetJava> ordenPromDet;
     EmpleadoJava empleado;
     EmpleadoJava empleadoEntrego;
+    DescuentosJava descuentosJava;
 
     public String getIdFactura() {
         return StringUtils.trimToEmpty(idFactura);
@@ -492,6 +493,14 @@ public class NotaVentaJava {
         this.ordenPromDet = ordenPromDet;
     }
 
+    public DescuentosJava getDescuentosJava() {
+        return descuentosJava;
+    }
+
+    public void setDescuentosJava(DescuentosJava descuentosJava) {
+        this.descuentosJava = descuentosJava;
+    }
+
     public NotaVentaJava setValores( ResultSet rs ) throws SQLException {
       try {
             this.setIdFactura(rs.getString("id_factura"));
@@ -546,6 +555,7 @@ public class NotaVentaJava {
             this.setPagos(pagos());
             this.setEmpleado(empleado());
             this.setOrdenPromDet(ordenPromDet());
+            this.setDescuentosJava(descuentosJava());
         } catch (SQLException e) {
           System.out.println( e );
           e.printStackTrace();
@@ -568,6 +578,13 @@ public class NotaVentaJava {
     ClientesJava clientesJava = new ClientesJava();
     clientesJava = ClientesQuery.busquedaClienteById( idCliente );
     return clientesJava;
+  }
+
+  private DescuentosJava descuentosJava( ) throws ParseException {
+    DescuentosJava descuentosJava1 = new DescuentosJava();
+    List<DescuentosJava> lstDesc = DescuentosQuery.buscaDescuentosPorIdFactura( idFactura );
+    descuentosJava1 = lstDesc.size() > 0 ? lstDesc.get(0) : null;
+    return descuentosJava1;
   }
 
   public EmpleadoJava empleado( ){

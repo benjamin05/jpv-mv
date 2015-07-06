@@ -593,6 +593,14 @@ class Registry {
     return asDouble( mx.lux.pos.java.TipoParametro.ACUSE_RETRASO )
   }
 
+  static Double getAmountPromoAgeMonofocal( ) {
+    return asDouble( TipoParametro.MONTO_PROMO_EDAD_MONOFOCAL )
+  }
+
+  static Double getAmountPromoAgeMultifocal( ) {
+    return asDouble( TipoParametro.MONTO_PROMO_EDAD_MULTIFOCAL )
+  }
+
   static Double getValidAmountPromoAge( ) {
     return asDouble( mx.lux.pos.java.TipoParametro.MONTO_VALIDO_PROMO_EDAD )
   }
