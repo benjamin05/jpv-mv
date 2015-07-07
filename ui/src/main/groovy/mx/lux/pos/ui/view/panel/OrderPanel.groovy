@@ -61,6 +61,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TAG_ARTICULO_P = 'P'
     private static final String TAG_PAQUETE = 'Q'
     private static final String TAG_FORMA_PAGO_C1 = 'C1'
+    private static final String TAG_FORMA_CARGO_EMP = 'FE'
+    private static final String TAG_FORMA_CARGO_MVIS = 'FM'
     private static final String TAG_REUSO = 'R'
     private static final String TAG_COTIZACION = 'Cotización'
     private static final String TAG_ARTICULO_NO_VIGENTE = 'C'
@@ -1475,14 +1477,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             validClave = true
           }
           if(validClave){
-            for(Payment payment : newOrder.payments){
-              if( Registry.paymentsTypeNoCupon.contains( payment.paymentTypeId ) ){
-                validClave = false
+              for(Payment payment : newOrder.payments){
+                  if( Registry.paymentsTypeNoCupon.contains( payment.paymentTypeId ) ){
+                      validClave = false
+                  }
+                  if( TAG_FORMA_PAGO_C1.equalsIgnoreCase( payment.paymentTypeId ) ||
+                          TAG_FORMA_CARGO_EMP.equalsIgnoreCase( payment.paymentTypeId ) ||
+                          TAG_FORMA_CARGO_MVIS.equalsIgnoreCase( payment.paymentTypeId )){
+                      hasC1 = true
+                  }
               }
-              if( TAG_FORMA_PAGO_C1.equalsIgnoreCase( payment.paymentTypeId ) ){
-                hasC1 = true
-              }
-            }
           }
           if( cuponMv != null ){
             for(IPromotionAvailable promo : promotionList){

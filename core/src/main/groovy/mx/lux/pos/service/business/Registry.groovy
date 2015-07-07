@@ -72,6 +72,21 @@ class Registry {
     return d
   }
 
+    static Double asDouble( TipoParametro pParametro ) {
+        Double d = 0
+        Parametro p = find( pParametro )
+        String value = StringUtils.trimToEmpty( p.valor )
+        if ( value.length() > 0 ) {
+            if ( NumberUtils.isNumber( p.valor ) ) {
+                d = NumberUtils.createDouble( p.valor )
+            } else if ( NumberUtils.isNumber( pParametro.defaultValue ) ) {
+                d = NumberUtils.createDouble( pParametro.defaultValue )
+            }
+        }
+        return d
+    }
+
+
   static String asString( TipoParametro pParametro ) {
     Parametro p = find( pParametro )
     return StringUtils.trimToEmpty( p.valor )

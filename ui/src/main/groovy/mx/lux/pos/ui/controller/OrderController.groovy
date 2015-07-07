@@ -109,6 +109,8 @@ class OrderController {
     private static String MSJ_ERROR_WARRANTY = ""
     private static String TXT_ERROR_WARRANTY = ""
     private static final String TAG_CLAVE_DESCUENTO_EDAD = "PREDAD"
+    private static final String TAG_FORMA_CARGO_EMP = 'FE'
+    private static final String TAG_FORMA_CARGO_MVIS = 'FM'
 
     private static Boolean insertSegKig
 
@@ -716,17 +718,17 @@ class OrderController {
         hasRedEnsure = true
       }
     }
+    Boolean validPayments = true
+    for( NotaVentaJava nv : notaVenta ){
+      for(PagoJava pay : nv.pagos){
+        if(TAG_FORMA_CARGO_EMP.equalsIgnoreCase(StringUtils.trimToEmpty(pay.idFPago)) ||
+                TAG_FORMA_CARGO_MVIS.equalsIgnoreCase(StringUtils.trimToEmpty(pay.idFPago))){
+          validPayments = false
+        }
+      }
+    }
     notaVentaServiceJava.saveOrder(notaVenta)
     if( notaVenta.fechaEntrega != null ){
-      if( Registry.isCouponFFActivated() && !alreadyDelivered ){
-        if( !Registry.couponFFOtherDiscount() ){
-          if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.descuento == null ){
-            generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
-          }
-        } else {
-          generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
-        }
-        if( notaVenta.fechaEntrega != null ){
           if( Registry.isCouponFFActivated() && !alreadyDelivered ){
             if( !Registry.couponFFOtherDiscount() ){
               Boolean hasNotDiscount = true
@@ -735,10 +737,10 @@ class OrderController {
                   hasNotDiscount = false
                 }
               }
-              if( notaVenta.ordenPromDet.size() <= 0 && hasNotDiscount && !hasRedEnsure ){
+              if( notaVenta.ordenPromDet.size() <= 0 && hasNotDiscount && !hasRedEnsure && validPayments){
                 generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
               }
-            } else if(!hasRedEnsure){
+            } else if(!hasRedEnsure && validPayments){
               generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
             }
           }
@@ -803,8 +805,6 @@ class OrderController {
           }
 
         }
-      }
-    }
     if (!entregaInstante) {
       Jb trabajo = JbQuery.getJbRxSimple(idFactura)
       if( trabajo == null ){
@@ -825,6 +825,7 @@ class OrderController {
       jbTrack?.idViaje = null
       jbTrack?.obs = user?.username
 
+      JbTrackQuery.insertJbTrack(jbTrack)
       JbTrackQuery.insertJbTrack(jbTrack)
       JbQuery.eliminaJbLLamada(order?.bill)
       cancelacionServiceJava.actualizaGrupo( notaVenta.idFactura, 'E' )
