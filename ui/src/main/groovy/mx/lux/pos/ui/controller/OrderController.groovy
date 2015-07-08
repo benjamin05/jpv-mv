@@ -3140,7 +3140,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       Date fechaEnd = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 )
       QNotaVenta qNotaVenta = QNotaVenta.notaVenta
       List<NotaVenta> lstNotasClient = notaVentaRepository.findAll( qNotaVenta.idCliente.eq(order.customer.id).
-              and(qNotaVenta.fechaHoraFactura.between(fechaStart,fechaEnd)).and(qNotaVenta.factura.isNotNull().
+              and(qNotaVenta.fechaHoraFactura.between(fechaStart,fechaEnd)).and(qNotaVenta.por100Descuento.gt(0)).and(qNotaVenta.factura.isNotNull().
               and(qNotaVenta.factura.isNotEmpty())) ) as List<NotaVenta>
       for(NotaVenta nv : lstNotasClient){
         List<Descuento> descuento = RepositoryFactory.discounts.findByIdFactura(nv.id)
