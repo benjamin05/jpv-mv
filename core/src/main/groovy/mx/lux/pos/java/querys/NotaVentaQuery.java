@@ -334,4 +334,31 @@ public class NotaVentaQuery {
       }
       return lstNotas;
     }
+
+
+    public static List<NotaVentaJava> busquedaNotaByIdClienteAndDate(Integer idCliente, Date fechaStart, Date fechaEnd) throws ParseException{
+      List<NotaVentaJava> lstNotas = new ArrayList<NotaVentaJava>();
+      NotaVentaJava notaVentaJava = null;
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      if( idCliente != null ){
+        try {
+          Connection con = Connections.doConnect();
+          stmt = con.createStatement();
+          String sql = "";
+          sql = String.format("SELECT * FROM nota_venta WHERE id_cliente = %d AND fecha_hora_factura between %s AND %s" +
+                  "AND por100_descuento > 0 AND factura != '' AND factura is not null;",
+                  idCliente, Utilities.toString(fechaStart, formatTimeStamp), Utilities.toString(fechaEnd, formatTimeStamp));
+          rs = stmt.executeQuery(sql);
+          while (rs.next()) {
+            notaVentaJava = new NotaVentaJava();
+            notaVentaJava.setValores( rs );
+            lstNotas.add( notaVentaJava );
+          }
+          con.close();
+        } catch (SQLException err) {
+          System.out.println( err );
+        }
+      }
+      return lstNotas;
+    }
 }

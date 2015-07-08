@@ -3511,13 +3511,10 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       cal.getMinimum(Calendar.SECOND));
       Date fechaStart = cal.getTime()
       Date fechaEnd = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 )
-      QNotaVenta qNotaVenta = QNotaVenta.notaVenta
-      List<NotaVenta> lstNotasClient = notaVentaRepository.findAll( qNotaVenta.idCliente.eq(order.customer.id).
-              and(qNotaVenta.fechaHoraFactura.between(fechaStart,fechaEnd)).and(qNotaVenta.factura.isNotNull().
-              and(qNotaVenta.factura.isNotEmpty())) ) as List<NotaVenta>
-      for(NotaVenta nv : lstNotasClient){
-        List<Descuento> descuento = RepositoryFactory.discounts.findByIdFactura(nv.id)
-        for(Descuento desc : descuento){
+      List<NotaVentaJava> lstNotasClient = NotaVentaQuery.busquedaNotaByIdClienteAndDate(order.customer.id, fechaStart, fechaEnd)
+      for(NotaVentaJava nv : lstNotasClient){
+        List<DescuentosJava> descuento = DescuentosQuery.buscaDescuentosPorIdFactura(nv.idFactura)
+        for(DescuentosJava desc : descuento){
           if(StringUtils.trimToEmpty(desc.clave).equalsIgnoreCase(TAG_CLAVE_DESCUENTO_EDAD)){
             smthApply = true
           }

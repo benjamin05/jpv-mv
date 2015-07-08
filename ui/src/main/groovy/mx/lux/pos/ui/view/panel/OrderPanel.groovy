@@ -2509,7 +2509,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
     }
 
-    if( !applied ){
+    if( !applied && Registry.genericCustomer.id != customer.id ){
       applied = OrderController.canApplyDiscountAge( order )
     }
     println "Algo aplicado: "+applied
