@@ -65,7 +65,7 @@ enum TipoParametro {
   MONTO_FF_CUPON( 'monto_ff_cupon', '200' ),
   MONTO_PROMO_EDAD_MONOFOCAL('monto_promoedad_monofocal','10'),
   MONTO_PROMO_EDAD_MULTIFOCAL('monto_promoedad_multifocal','20'),
-  MONTO_VALIDO_PROMO_EDAD( 'monto_minimo_promo_edad', '1500' ),
+  MONTO_VALIDO_PROMO_EDAD( 'monto_minimo_promo_edad', '1800' ),
   PAQUETES('paquetes','BRONCE,PLATA,ORO,PLATINO,DIAMANTE'),
   PEDIDO_LC( 'pedido_lc', '' ),
   PIDE_FACTURA( 'pide_factura', '' ),
