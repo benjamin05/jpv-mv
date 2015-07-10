@@ -25,7 +25,13 @@ public class Connections {
       URL url = null;
 
       try {
-        url = new ClassPathResource( "database.properties" ).getURL();
+        File f = new File("/usr/local/soi/local/database.properties");
+        if( f.exists() ){
+          url = new ClassPathResource( "/usr/local/soi/local/database.properties" ).getURL();
+        } else {
+          url = new ClassPathResource( "database.properties" ).getURL();
+        }
+        System.out.println( url != null );
         //System.out.println( "ruta del archivo de version: "+url.getPath() );
         if ( url != null ) {
           BufferedReader in = new BufferedReader( new InputStreamReader(url.openStream()) );
@@ -33,11 +39,12 @@ public class Connections {
           String[] elementos = line.split( "=" );
           if ( elementos.length >= 2 && elementos[0].equalsIgnoreCase("jdbc.url")) {
             database = String.format( "%s", elementos[ 1 ] );
+            System.out.println( String.format("Conectando a la base: "+ database) );
           } else {
             System.out.println( String.format("No se pudo leer el archivo database.properties") );
           }
         } else {
-          database = "jdbc:postgresql://localhost:5432/12004";
+          database = "jdbc:postgresql://localhost:5432/soi";
         }
       } catch ( Exception e ) {
         System.out.println( String.format("No se pudo leer el archivo database.properties \n%s", e.getMessage()) );
