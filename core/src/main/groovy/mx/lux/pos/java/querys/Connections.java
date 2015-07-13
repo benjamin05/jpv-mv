@@ -39,7 +39,6 @@ public class Connections {
           String[] elementos = line.split( "=" );
           if ( elementos.length >= 2 && elementos[0].equalsIgnoreCase("jdbc.url")) {
             database = String.format( "%s", elementos[ 1 ] );
-            System.out.println( String.format("Conectando a la base: "+ database) );
           } else {
             System.out.println( String.format("No se pudo leer el archivo database.properties") );
           }

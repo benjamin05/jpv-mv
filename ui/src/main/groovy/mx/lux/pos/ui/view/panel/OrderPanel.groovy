@@ -1269,7 +1269,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     messageType: JOptionPane.ERROR_MESSAGE
             ).createDialog(this, 'No se puede registrar la venta').show()
           }
-        } else if (order?.paid < (order?.total * pAnticipo)) {
+        } else if (order?.paid < ((order?.total.subtract(promoAmount)) * pAnticipo)) {
         sb.doOutside {
           Registry.getSolicitaGarbageColector()
         }
@@ -1282,7 +1282,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   } else {
                       validOrder = false
                       sb.optionPane(
-                              message: 'El monto del anticipo tiene que ser minimo de: $' + (order?.total * pAnticipo),
+                              message: 'El monto del anticipo tiene que ser minimo de: $' + ((order?.total.subtract(promoAmount)) * pAnticipo),
                               messageType: JOptionPane.ERROR_MESSAGE
                       ).createDialog(this, 'No se puede registrar la venta')
                               .show()
