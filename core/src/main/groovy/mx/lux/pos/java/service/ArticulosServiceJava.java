@@ -41,7 +41,7 @@ public class ArticulosServiceJava {
   }
 
 
-  private ArticulosJava establecerPrecio( ArticulosJava articulo ) {
+  public ArticulosJava establecerPrecio( ArticulosJava articulo ) {
     log.debug( "estableciendo precio para el articulo id: %d articulo: %s",articulo.getIdArticulo(), articulo.getArticulo() );
     if ( articulo.getIdArticulo() != null ) {
       Boolean hasOfert = false;

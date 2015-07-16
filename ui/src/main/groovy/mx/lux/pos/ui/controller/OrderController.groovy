@@ -371,7 +371,7 @@ class OrderController {
 
     static Dioptra generaDioptra(String dioString) {
         Dioptra nuevoDioptra = new Dioptra()
-        if (dioString == null) {
+        if (StringUtils.trimToEmpty(dioString).length() <= 0) {
         } else {
             ArrayList<String> caract = new ArrayList<String>()
             String s = dioString
@@ -752,7 +752,7 @@ class OrderController {
             if( validWarranty( notaVenta, false, null, "", false ) ){
               Boolean doubleEnsure = lstWarranty.size() > 1 ? true : false
               for(Warranty warranty : lstWarranty){
-                String idFac = StringUtils.trimToEmpty(idOrderEnsured).length() > 0 ? StringUtils.trimToEmpty(idOrderEnsured) : notaVenta.id
+                String idFac = StringUtils.trimToEmpty(idOrderEnsured).length() > 0 ? StringUtils.trimToEmpty(idOrderEnsured) : notaVenta.idFactura
                 ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, idFac, doubleEnsure )
               }
               idOrderEnsured = ""
@@ -798,7 +798,7 @@ class OrderController {
             if( lstWarranty.size() > 0 ){
               Boolean doubleEnsure = lstWarranty.size() > 1 ? true : false
               for(Warranty warranty1 : lstWarranty){
-                ItemController.printWarranty( warranty1.amount, warranty1.idItem, warranty1.typeEnsure, StringUtils.trimToEmpty(notaVenta.id), doubleEnsure )
+                ItemController.printWarranty( warranty1.amount, warranty1.idItem, warranty1.typeEnsure, StringUtils.trimToEmpty(notaVenta.idFactura), doubleEnsure )
               }
               lstWarranty.clear()
             }
@@ -3359,7 +3359,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         if( validWarranty( notaVenta, false, null, "", false ) ){
           Boolean doubleEnsure = lstWarranty.size() > 1
           for(Warranty warranty : lstWarranty){
-            ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.id), doubleEnsure )
+            ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.idFactura), doubleEnsure )
           }
           lstWarranty.clear()
         }

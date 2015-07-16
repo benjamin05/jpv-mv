@@ -1784,7 +1784,6 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       operationType.setSelectedItem(OperationType.DEFAULT)
     }
 
-
     void resetJava() {
       order = new Order()
       customer = CustomerController.findDefaultCustomerJava()

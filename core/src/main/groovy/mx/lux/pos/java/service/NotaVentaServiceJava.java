@@ -575,7 +575,7 @@ public class NotaVentaServiceJava {
           PreciosJava precioOferta = new PreciosJava();
           for(PreciosJava tmp : precios){
             if( "O".equalsIgnoreCase( StringUtils.trimToEmpty(tmp.getLista())) ){
-                    precioLista = tmp;
+              precioOferta = tmp;
             }
           }
           log.debug( "precio oferta: "+precioOferta.getPrecio() );
