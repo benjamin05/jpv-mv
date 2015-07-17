@@ -41,7 +41,7 @@ public class User {
     if ( empleado?.idEmpleado ) {
       def user = new User()
       user.name = StringUtils.trimToEmpty(empleado.nombreEmpleado)
-      user.fathersName = StringUtils.trimToEmpty(empleado.apMatEmpleado)
+      user.fathersName = StringUtils.trimToEmpty(empleado.apPatEmpleado)
       user.mothersName = StringUtils.trimToEmpty(empleado.apMatEmpleado)
       user.username = StringUtils.trimToEmpty(empleado.idEmpleado)
       user.password = StringUtils.trimToEmpty(empleado.passwd)

@@ -23,7 +23,7 @@ public class EmpleadoServiceJava {
     log.info( "obteniendo empleado id: ${id}" );
     if ( StringUtils.isNotBlank(id) ) {
       EmpleadoJava empleado = EmpleadoQuery.buscaEmpPorIdEmpleado( id );
-      if ( StringUtils.trimToEmpty(empleado.getIdEmpleado()).length() > 0 ) {
+      if ( empleado != null && StringUtils.trimToEmpty(empleado.getIdEmpleado()).length() > 0 ) {
         return empleado;
       } else {
         log.warn( "empleado no existe" );
