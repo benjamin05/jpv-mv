@@ -143,17 +143,15 @@ public class PedidoLcQuery {
     }
 
 
-    /*public static void updatePedidoLc(PedidoLcJava pedidoLcJava) throws ParseException {
+    public static void updatePedidoLc(PedidoLcJava pedidoLcJava) throws ParseException {
       Connections db = new Connections();
       String sql = "";
       String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
-      sql = String.format("UPDATE orden_prom SET id_factura = '%s', id_prom = %d, id_suc = %d, total_desc_monto = %s," +
-                    "WHERE id = %d;",
-                    ordenPromJava.getIdFactura(), ordenPromJava.getIdProm(), ordenPromJava.getIdSuc(),
-                    Utilities.toMoney(ordenPromJava.getTotalDescMonto()), ordenPromJava.getId() );
+      sql = String.format("UPDATE pedido_lc SET fecha_entrega = %s WHERE id_pedido = '%s';",
+              Utilities.toString(pedidoLcJava.getFechaEntrega(), formatTimeStamp), StringUtils.trimToEmpty(pedidoLcJava.getIdPedido()) );
       db.updateQuery(sql);
-        db.close();
-    }*/
+      db.close();
+    }
 
     public static void eliminaPedidoLcDet( PedidoLcDetJava pedidoLcDetJava ){
       try {

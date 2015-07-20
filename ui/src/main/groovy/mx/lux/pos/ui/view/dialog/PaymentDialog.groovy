@@ -3,6 +3,7 @@ package mx.lux.pos.ui.view.dialog
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.Pago
+import mx.lux.pos.ui.controller.AccessController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.controller.PaymentController
 import mx.lux.pos.ui.model.*
@@ -25,6 +26,7 @@ class PaymentDialog extends JDialog {
   private static Double ZERO_TOLERANCE = 0.005
   private static final String TAG_FORMA_PAGO_EFECTIVO = 'EFECTIVO'
   private static final String TAG_FORMA_PAGO_CUPON = 'CUPON'
+  private static final String TAG_FORMA_PAGO_FALTANTE_CARGO = 'FALTANTE CARGO'
   private static final String TAG_FORMA_PAGO_CUPON_C1 = 'C1'
 
   private SwingBuilder sb
@@ -239,6 +241,18 @@ class PaymentDialog extends JDialog {
           dispose()
         } else {
           tmpPayment.paymentTypeId = paymentType?.id
+          if( paymentType.description.contains(TAG_FORMA_PAGO_FALTANTE_CARGO) ){
+            User u = Session.get(SessionItem.USER) as User
+            Boolean isAudit = AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password))
+            if( !isAudit ){
+              AuthorizationAuditDialog authDialog = new AuthorizationAuditDialog(this, "Esta forma de pago requiere autorizaci\u00f3n")
+              authDialog.show()
+              if (!authDialog.authorized) {
+                OrderController.notifyAlert('Se requiere autorizacion para esta forma de pago', 'Se requiere autorizacion para esta forma de pago')
+                dispose()
+              }
+            }
+          }
           if ( StringUtils.isNotBlank( paymentType?.f1 ) ) {
             mediumLabel.visible = true
             mediumLabel.text = paymentType.f1

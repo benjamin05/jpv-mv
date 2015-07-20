@@ -499,7 +499,7 @@ public class NotaVentaServiceJava {
     PedidoLcJava pedidoLc = PedidoLcQuery.buscaPedidoLcPorId(idPedido);
     if( pedidoLc != null ){
       pedidoLc.setFechaEntrega(new Date());
-      PedidoLcQuery.savePedidoLc(pedidoLc);
+      PedidoLcQuery.updatePedidoLc(pedidoLc);
     }
   }
 

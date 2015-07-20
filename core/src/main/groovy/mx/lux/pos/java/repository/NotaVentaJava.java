@@ -543,7 +543,7 @@ public class NotaVentaJava {
             this.setReceta(rs.getInt("receta"));
             this.setEmpEntrego(rs.getString("emp_entrego"));
             this.setLc(rs.getString("lc"));
-            this.setHoraEntrega(rs.getDate("hora_entrega"));
+            this.setHoraEntrega(rs.getTime("hora_entrega"));
             this.setDescuento(Utilities.toBoolean(rs.getBoolean("descuento")));
             this.setPolEnt(Utilities.toBoolean(rs.getBoolean("pol_ent")));
             this.setTipoVenta(rs.getString("tipo_venta"));
