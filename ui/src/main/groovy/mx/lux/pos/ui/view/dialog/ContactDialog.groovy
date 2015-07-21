@@ -1,6 +1,8 @@
 package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
+import mx.lux.pos.java.repository.FormaContactoJava
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.model.FormaContacto
 import mx.lux.pos.model.Jb
 import mx.lux.pos.model.NotaVenta
@@ -24,14 +26,14 @@ class ContactDialog extends JDialog {
     private static JTextField infoTipo
     private static JTextField correo
     private static JTextArea txtObservaciones
-    private static NotaVenta nVenta
+    private static NotaVentaJava nVenta
 
-    ContactDialog(NotaVenta notaVenta) {
-        sb = new SwingBuilder()
-        nVenta = notaVenta
-        tipos = CustomerController.findAllContactTypes()
-        dominios = CustomerController.findAllCustomersDomains()
-        buildUI()
+    ContactDialog(NotaVentaJava notaVenta) {
+      sb = new SwingBuilder()
+      nVenta = notaVenta
+      tipos = CustomerController.findAllContactTypes()
+      dominios = CustomerController.findAllCustomersDomains()
+      buildUI()
     }
 
 
@@ -74,34 +76,31 @@ class ContactDialog extends JDialog {
 
 
     private void doSave(){
-        FormaContacto fc = ContactController.findFCbyRx(nVenta?.factura)
-
-        if( fc?.rx == null){
-            FormaContacto  formaContacto = new FormaContacto()
-             formaContacto.rx = nVenta?.factura
-             formaContacto.id_cliente = nVenta?.idCliente
-             formaContacto.fecha_mod = new Date()
-             formaContacto.id_sucursal = nVenta?.idSucursal
-
-           String valor = tipo?.selectedItem?.toString()
-            if(valor.equals('CORREO')){
-                formaContacto?.id_tipo_contacto =   1
-                formaContacto?.contacto = correo?.text + '@' + dominio?.selectedItem?.toString()
-            } else if (valor.equals('RECADOS')){
-                formaContacto?.id_tipo_contacto =  2
-                formaContacto?.contacto = infoTipo?.text
-            } else if (valor.equals('TELEFONO')){
-                formaContacto?.id_tipo_contacto =   4
-                formaContacto?.contacto = infoTipo?.text
-            }  else if (valor.equals('SMS')){
-                formaContacto?.id_tipo_contacto =   3
-                formaContacto?.contacto = infoTipo?.text
-            }
-
-            formaContacto?.observaciones =  txtObservaciones?.text
-            formaContacto = ContactController.saveFormaContacto(formaContacto)
+      FormaContactoJava fc = ContactController.findFCbyRx(nVenta?.factura)
+      if( fc?.rx == null){
+        FormaContactoJava  formaContacto = new FormaContactoJava()
+        formaContacto.rx = nVenta?.factura
+        formaContacto.idCliente = nVenta?.idCliente
+        formaContacto.fechaMod = new Date()
+        formaContacto.idSucursal = nVenta?.idSucursal
+        String valor = tipo?.selectedItem?.toString()
+        if(valor.equals('CORREO')){
+          formaContacto?.idTipoContacto =   1
+          formaContacto?.contacto = correo?.text + '@' + dominio?.selectedItem?.toString()
+        } else if (valor.equals('RECADOS')){
+          formaContacto?.idTipoContacto =  2
+          formaContacto?.contacto = infoTipo?.text
+        } else if (valor.equals('TELEFONO')){
+          formaContacto?.idTipoContacto =   4
+          formaContacto?.contacto = infoTipo?.text
+        } else if (valor.equals('SMS')){
+          formaContacto?.idTipoContacto =   3
+          formaContacto?.contacto = infoTipo?.text
         }
-        doCancel()
+        formaContacto?.observaciones =  txtObservaciones?.text
+        formaContacto = ContactController.saveFormaContacto(formaContacto)
+      }
+      doCancel()
     }
 
      private void doCancel(){

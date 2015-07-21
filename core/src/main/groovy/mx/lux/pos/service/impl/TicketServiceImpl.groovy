@@ -3,6 +3,11 @@ package mx.lux.pos.service.impl
 import com.ibm.icu.text.RuleBasedNumberFormat
 import com.mysema.query.BooleanBuilder
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.NotaVentaQuery
+import mx.lux.pos.java.repository.CuponMvJava
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
@@ -1247,7 +1252,7 @@ class TicketServiceImpl implements TicketService {
 
       def ventasEmpleado = []
       List<Pago> lstVentasEmpleado = pagoRepository.findAll( pay.fecha.between(fechaStart,fechaEnd).and(pay.idFPago.eq('CRE')).
-          and(pay.notaVenta.factura.isNotEmpty()).and(pay.notaVenta.factura.isNotNull()))
+          and(pay.notaVenta.factura.isNotEmpty()).and(pay.notaVenta.factura.isNotNull())) as List<Pago>
       for(Pago pago: lstVentasEmpleado){
         String monto = formatter.format( pago.monto )
         def ventaEmpleadoTmp = [
@@ -1257,6 +1262,20 @@ class TicketServiceImpl implements TicketService {
         ]
         ventasEmpleado.add( ventaEmpleadoTmp )
       }
+
+
+      BigDecimal faltanteEmp = BigDecimal.ZERO
+      BigDecimal faltanteMv = BigDecimal.ZERO
+      List<Pago> lstPagosFaltante = pagoRepository.findAll( pay.fecha.between(fechaStart,fechaEnd).and(pay.idFPago.eq('FE').or(pay.idFPago.eq('FM'))).
+                and(pay.notaVenta.factura.isNotEmpty()).and(pay.notaVenta.factura.isNotNull())) as List<Pago>
+      for(Pago pagoFaltante : lstPagosFaltante){
+        if( StringUtils.trimToEmpty(pagoFaltante.idFPago).equalsIgnoreCase("FE") ){
+          faltanteEmp = faltanteEmp.add(pagoFaltante.monto)
+        } else if( StringUtils.trimToEmpty(pagoFaltante.idFPago).equalsIgnoreCase("FM") ){
+            faltanteMv = faltanteMv.add(pagoFaltante.monto)
+        }
+      }
+
 
       QExamen ex = QExamen.examen
       List<Examen> lstExamenes = examenRepository.findAll( ex.idAtendio.eq('9999').and(ex.observacionesEx.eq('SE')).
@@ -1315,7 +1334,9 @@ class TicketServiceImpl implements TicketService {
           observaciones: StringUtils.isNotBlank( cierreDiario.observaciones ) ? StringUtils.replace( cierreDiario.observaciones, '~', '\n' ) : '',
           entregadosExternos: entregadosExternosTmp.isEmpty() ? null : new ArrayList<EntregadoExterno>( entregadosExternosTmp.values() ),
           total_clientes_sinExamen: lstExamenes.size(),
-          clientes_sinExamen: lstExamenes]
+          clientes_sinExamen: lstExamenes,
+          montoFaltanteEmp: faltanteEmp.compareTo(BigDecimal.ZERO) > 0 ? formatter.format(faltanteEmp): "-",
+          montoFaltanteMv: faltanteMv.compareTo(BigDecimal.ZERO) > 0 ? formatter.format(faltanteMv): "-"]
 
       imprimeTicket( 'template/ticket-resumen-diario.vm', datos )
     } else {
@@ -2554,6 +2575,48 @@ class TicketServiceImpl implements TicketService {
   }
 
 
+  void imprimeCupon( CuponMvJava cuponMv, String titulo, BigDecimal monto ){
+    log.debug( "imprimeCupon( )" )
+    SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
+    String restrictions = ""
+    String restrictions1 = ""
+    String titulo2 = ""
+    if( cuponMv != null ){
+      if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+        restrictions = 'APLICA EN LA COMPRA MINIMA DE $1000.00'
+        restrictions1 = 'CONSULTA CONDICIONES EN TIENDA.'
+      } else if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
+        restrictions = 'APLICAN RESTRICCIONES'
+      }
+    }
+    if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("H") ){
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(cuponMv.facturaOrigen) );
+      if( notaVenta != null ){
+        Integer contador = 0
+        for(DetalleNotaVentaJava det : notaVenta.detalles){
+          if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("H") ){
+            titulo2 = SubtypeCouponsUtils.getTitle2( det.articulo.subtipo )
+          }
+        }
+      }
+    }
+    if( cuponMv != null ){
+      def datos = [
+            titulo: titulo,
+            titulo2: titulo2,
+            monto: String.format('$%s', monto),
+            clave: StringUtils.trimToEmpty(cuponMv.claveDescuento),
+            fecha_vigencia: df.format(cuponMv.fechaVigencia),
+            restrictions: restrictions,
+            restrictions1: restrictions1
+      ]
+      this.imprimeTicket( 'template/ticket-cupon.vm', datos )
+    } else {
+      log.debug( String.format( 'Cupon (%s) not found.', cuponMv.claveDescuento ) )
+    }
+  }
+
+
     void imprimeResumenCuponCan( String idFactura, List<String> porDev ){
       NumberFormat formatterMoney = new DecimalFormat( '$#,##0.00' )
       log.debug( "imprimeResumenCuponCan( )" )
@@ -2697,79 +2760,89 @@ class TicketServiceImpl implements TicketService {
     }
 
 
-    NotaVenta imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure ){
+    NotaVentaJava imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure ){
       log.debug( "imprimeGarantia( )" )
       DateFormat df = new SimpleDateFormat( "dd-MM-yy" )
-      NotaVenta notaVenta = notaVentaRepository.findOne( idFactura )
-      Sucursal site = ServiceFactory.sites.obtenSucursalActual()
-      AddressAdapter companyAddress = Registry.companyAddress
-      Integer validity = 0
-      Calendar calendar = Calendar.getInstance();
-      if( notaVenta != null ){
-        if( tipoSeguro.equalsIgnoreCase("N") ){
-          validity = Registry.validityEnsureKid
-        } else if( tipoSeguro.equalsIgnoreCase("L") ){
-          validity = Registry.validityEnsureOpht
-        } else if( tipoSeguro.equalsIgnoreCase("S") ){
-          validity = Registry.validityEnsureFrame
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( idFactura )
+      Boolean validPayments = true
+      for(PagoJava pago : notaVenta.pagos){
+        if( StringUtils.trimToEmpty(pago.idFPago).equalsIgnoreCase("FE") || StringUtils.trimToEmpty(pago.idFPago).equalsIgnoreCase("FM") ){
+          validPayments = false
         }
-        Integer porcGar = Registry.percentageWarranty
-        BigDecimal porcentaje = montoGarantia.multiply(porcGar/100)
-        Integer monto = porcentaje.intValue()
-        String clave = ""
-        if( StringUtils.trimToEmpty(notaVenta.udf5).length() > 0 ){
-          if( doubleEnsure && !notaVenta.udf5.contains(",") ){
-            calendar.add(Calendar.YEAR, validity);
-            String date = df.format(calendar.getTime())
-            Integer fecha = 0
-            try{
-              fecha = NumberFormat.getInstance().parse(date.replace("-",""))
-            } catch ( NumberFormatException e ){ println e }
-            clave = claveAleatoria( fecha, monto )
-            clave = tipoSeguro+clave
-          } else {
-            if( notaVenta.udf5.contains(",") ){
-              String[] claves = notaVenta.udf5.split(",")
-              for(String cl : claves){
-                if( cl.charAt(0).equals(tipoSeguro.charAt(0)) ){
-                  clave = cl
-                }
+      }
+      if( validPayments ){
+          Sucursal site = ServiceFactory.sites.obtenSucursalActual()
+          AddressAdapter companyAddress = Registry.companyAddress
+          Integer validity = 0
+          Calendar calendar = Calendar.getInstance();
+          if( notaVenta != null ){
+              if( tipoSeguro.equalsIgnoreCase("N") ){
+                  validity = Registry.validityEnsureKid
+              } else if( tipoSeguro.equalsIgnoreCase("L") ){
+                  validity = Registry.validityEnsureOpht
+              } else if( tipoSeguro.equalsIgnoreCase("S") ){
+                  validity = Registry.validityEnsureFrame
               }
-            } else {
-              clave = StringUtils.trimToEmpty(notaVenta.udf5)
-            }
-            calendar.setTime(notaVenta.fechaEntrega);
-            calendar.add(Calendar.YEAR, validity);
+              Integer porcGar = Registry.percentageWarranty
+              BigDecimal porcentaje = montoGarantia.multiply(porcGar/100)
+              Integer monto = porcentaje.intValue()
+              String clave = ""
+              if( StringUtils.trimToEmpty(notaVenta.udf5).length() > 0 ){
+                  if( doubleEnsure && !notaVenta.udf5.contains(",") ){
+                      calendar.add(Calendar.YEAR, validity);
+                      String date = df.format(calendar.getTime())
+                      Integer fecha = 0
+                      try{
+                          fecha = NumberFormat.getInstance().parse(date.replace("-",""))
+                      } catch ( NumberFormatException e ){ println e }
+                      clave = claveAleatoria( fecha, monto )
+                      clave = tipoSeguro+clave
+                  } else {
+                      if( notaVenta.udf5.contains(",") ){
+                          String[] claves = notaVenta.udf5.split(",")
+                          for(String cl : claves){
+                              if( cl.charAt(0).equals(tipoSeguro.charAt(0)) ){
+                                  clave = cl
+                              }
+                          }
+                      } else {
+                          clave = StringUtils.trimToEmpty(notaVenta.udf5)
+                      }
+                      calendar.setTime(notaVenta.fechaEntrega);
+                      calendar.add(Calendar.YEAR, validity);
+                  }
+              } else {
+                  calendar.add(Calendar.YEAR, validity);
+                  String date = df.format(calendar.getTime())
+                  Integer fecha = 0
+                  try{
+                      fecha = NumberFormat.getInstance().parse(date.replace("-",""))
+                  } catch ( NumberFormatException e ){ println e }
+                  clave = claveAleatoria( fecha, monto )
+                  clave = tipoSeguro+clave
+              }
+
+              if( StringUtils.trimToEmpty(notaVenta.udf5).length() <= 0 ){
+                  notaVenta.udf5 = clave
+                  //notaVentaService.saveOrder( notaVenta )
+              } else if( doubleEnsure && !notaVenta.udf5.contains(",") ) {
+                  notaVenta.udf5 = notaVenta.udf5+","+clave
+                  //notaVentaService.saveOrder( notaVenta )
+              }
+
+              def data = [
+                      date: df.format( calendar.getTime() ),
+                      thisSite: site,
+                      compania: companyAddress,
+                      codaleatorio: clave,
+                      articulo: idArticulo
+              ]
+              imprimeTicket( "template/ticket-garantia.vm", data )
           }
-        } else {
-          calendar.add(Calendar.YEAR, validity);
-          String date = df.format(calendar.getTime())
-          Integer fecha = 0
-          try{
-                fecha = NumberFormat.getInstance().parse(date.replace("-",""))
-          } catch ( NumberFormatException e ){ println e }
-          clave = claveAleatoria( fecha, monto )
-          clave = tipoSeguro+clave
-        }
-
-        if( StringUtils.trimToEmpty(notaVenta.udf5).length() <= 0 ){
-          notaVenta.udf5 = clave
-          //notaVentaService.saveOrder( notaVenta )
-        } else if( doubleEnsure && !notaVenta.udf5.contains(",") ) {
-          notaVenta.udf5 = notaVenta.udf5+","+clave
-          //notaVentaService.saveOrder( notaVenta )
-        }
-
-          def data = [
-              date: df.format( calendar.getTime() ),
-              thisSite: site,
-              compania: companyAddress,
-              codaleatorio: clave,
-              articulo: idArticulo
-          ]
-          imprimeTicket( "template/ticket-garantia.vm", data )
-        }
-      return notaVenta
+          return notaVenta
+      } else {
+        return null
+      }
     }
 
 

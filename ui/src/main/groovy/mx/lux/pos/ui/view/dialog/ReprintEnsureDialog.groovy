@@ -71,7 +71,7 @@ class ReprintEnsureDialog extends JDialog {
        ).createDialog(this, 'No se puede registrar el seguro')
          .show()
       } else {
-        OrderController.reprintEnsure( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)) )
+        OrderController.reprintEnsure( OrderController.findOrderJavaByidOrder(StringUtils.trimToEmpty(order.id)) )
        doCancel()
       }
     }

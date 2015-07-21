@@ -2,7 +2,12 @@ package mx.lux.pos.ui.view.panel
 
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
+import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.CuponMvJava
 import mx.lux.pos.model.*
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.Parametros
+import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.controller.*
@@ -14,7 +19,6 @@ import mx.lux.pos.ui.view.driver.PromotionDriver
 import mx.lux.pos.ui.view.renderer.MoneyCellRenderer
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang3.StringUtils
-import org.codehaus.groovy.runtime.InvokerInvocationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -57,6 +61,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String TAG_ARTICULO_P = 'P'
     private static final String TAG_PAQUETE = 'Q'
     private static final String TAG_FORMA_PAGO_C1 = 'C1'
+    private static final String TAG_FORMA_CARGO_EMP = 'FE'
+    private static final String TAG_FORMA_CARGO_MVIS = 'FM'
     private static final String TAG_REUSO = 'R'
     private static final String TAG_COTIZACION = 'Cotización'
     private static final String TAG_ARTICULO_NO_VIGENTE = 'C'
@@ -99,15 +105,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private JLabel paid
     private JLabel due
     private JLabel change
+    private JLabel lblPromo
+    private JLabel lblAmountPromo
 
     private Integer flag = 0
-
+    private Boolean focusItem = false
+    private BigDecimal promoAmount = BigDecimal.ZERO
     private Boolean isPaying = false
 
     private DiscountContextMenu discountMenu
     private OperationType currentOperationType
     private Boolean uiEnabled
-    private Receta rec
+    private RecetaJava rec
     private Dioptra dioptra
     private Dioptra antDioptra
     private static boolean ticketRx
@@ -116,9 +125,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private Boolean activeDialogBusquedaCliente = true
     private Boolean advanceOnlyInventariable
     private Boolean canceledWarranty
+    private Boolean discountAgeApplied
     private String sComments = ''
-    private String ip
+    private static final String ip = Registry.ipCurrentMachine()
     private HelpItemSearchDialog helpItemSearchDialog
+
+    private Boolean promoAgeActive
 
     private String MSJ_ERROR_WARRANTY = ""
     private String TXT_ERROR_WARRANTY = ""
@@ -136,7 +148,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                customerTypes.add(customer)
             }
         }
-        ip = ipCurrentMachine()
+        promoAgeActive = Registry.promoAgeActive
         customer = CustomerController.findDefaultCustomer()
         promotionList = new ArrayList<PromotionAvailable>()
         promotionListTmp = new ArrayList<PromotionAvailable>()
@@ -172,6 +184,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     folio = label()
                     label('Factura')
                     bill = label()
+                    lblPromo = label('Descuento:', constraints: 'hidemode 3', visible: promoAgeActive )
+                    lblAmountPromo = label( constraints: 'hidemode 3', visible: promoAgeActive)
                 }
 
                 panel(border: loweredEtchedBorder(), layout: new MigLayout('wrap 2', '[][grow,right]', '[top]')) {
@@ -186,7 +200,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
 
             button( text: "?", actionPerformed: doHelp )
-            itemSearch = textField(font: new Font('', Font.BOLD, 16), document: new UpperCaseDocument(), actionPerformed: { doItemSearch( false ) })
+            itemSearch = textField(font: new Font('', Font.BOLD, 16), document: new UpperCaseDocument(), actionPerformed: { doItemSearch( false, "actionPerformed" ) })
             itemSearch.addFocusListener(this)
 
             scrollPane(border: titledBorder(title: 'Art\u00edculos'), constraints: 'span') {
@@ -321,14 +335,31 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void doBindings() {
+      if(promoAgeActive){
+        calculatedPromoAge()
+      }
         sb.build {
             bean(customerName, text: bind { customer?.fullName })
             bean(folio, text: bind { order.id })
             bean(bill, text: bind { order.bill })
             bean(date, text: bind(source: order, sourceProperty: 'date', converter: dateConverter), alignmentX: CENTER_ALIGNMENT)
-            bean(total, text: bind(source: order, sourceProperty: 'total', converter: currencyConverter))
+            if( promoAmount.compareTo(BigDecimal.ZERO) > 0 && !promoApplied() ){
+                BigDecimal amountParcial = BigDecimal.ZERO
+                BigDecimal amountEnsure = BigDecimal.ZERO
+                for(OrderItem orderItem : order.items){
+                    if( StringUtils.trimToEmpty(orderItem.item.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                        amountEnsure = amountEnsure.add(orderItem.item.price)
+                    } else {
+                        amountParcial = amountParcial.add(orderItem.item.price)
+                    }
+                }
+                total.text = NumberFormat.getCurrencyInstance(Locale.US).format((amountParcial.subtract(promoAmount)).add(amountEnsure))
+                due.text = NumberFormat.getCurrencyInstance(Locale.US).format(((amountParcial.subtract(promoAmount)).add(amountEnsure)).subtract(order.paid))
+            } else {
+              bean(total, text: bind(source: order, sourceProperty: 'total', converter: currencyConverter))
+              bean(due, text: bind(source: order, sourceProperty: 'dueString'))
+            }
             bean(paid, text: bind(source: order, sourceProperty: 'paid', converter: currencyConverter))
-            bean(due, text: bind(source: order, sourceProperty: 'dueString'))
             bean(itemsModel.rowsModel, value: bind(source: order, sourceProperty: 'items', mutual: true))
             bean(paymentsModel.rowsModel, value: bind(source: order, sourceProperty: 'payments', mutual: true))
             bean(comments, text: bind(source: order, sourceProperty: 'comments', mutual: true))
@@ -337,31 +368,31 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         itemsModel.fireTableDataChanged()
         paymentsModel.fireTableDataChanged()
 
-        if (order?.id != null) {
-          change.text = OrderController.requestEmployee(order?.id)
-        } else {
-            change.text = ''
-        }
-        if( isPaying ){
-          for(IPromotionAvailable prom : promotionList){
-            if( prom instanceof PromotionAvailable ){
-              if( OrderController.esPromocionValida( order.id, prom.promotion.idPromotion ) ){
-                println "Promocion activar: "+prom.promotion.dump()
-                prom.applied = true
-              }
+      if (order?.id != null) {
+        change.text = OrderController.requestEmployee(order?.id)
+      } else {
+        change.text = ''
+      }
+      if( isPaying ){
+        for(IPromotionAvailable prom : promotionList){
+          if( prom instanceof PromotionAvailable ){
+            if( OrderController.esPromocionValida( order.id, prom.promotion.idPromotion ) ){
+              println "Promocion activar: "+prom.promotion.dump()
+              prom.applied = true
             }
           }
-          isPaying = false
         }
-        currentOperationType = (OperationType) operationType.getSelectedItem()
-        if( currentOperationType.equals(OperationType.PAYING) ){
-          itemSearch.enabled = false
-        } else {
-          itemSearch.enabled = true
-        }
-        this.printButton.setVisible(!this.isPaymentListEmpty() ||
-                this.promotionDriver.model?.orderDiscount?.discountPercent == 1.0 ||
-                ( order.due.compareTo(BigDecimal.ZERO) <= 0 && this.promotionDriver.model?.isAnyApplied()) )
+        isPaying = false
+      }
+      currentOperationType = (OperationType) operationType.getSelectedItem()
+      if( currentOperationType.equals(OperationType.PAYING) ){
+        itemSearch.enabled = false
+      } else {
+        itemSearch.enabled = true
+      }
+      this.printButton.setVisible(!this.isPaymentListEmpty() ||
+              this.promotionDriver.model?.orderDiscount?.discountPercent == 1.0 ||
+              ( order.due.compareTo(BigDecimal.ZERO) <= 0 && this.promotionDriver.model?.isAnyApplied()) )
         this.continueButton.setVisible( !this.printButton.visible )
         if( order.items.size() > 0 ){
           cancelOrderButton.visible = true
@@ -371,19 +402,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     void updateOrder(String pOrderId) {
-        String comments = ''
-        if( order.comments != null && order.comments != '' ){
-          comments = order.comments
+      String comments = ''
+      if( order.comments != null && order.comments != '' ){
+        comments = order.comments
+      }
+      Order tmp = OrderController.getOrder(pOrderId)
+      if (tmp?.id) {
+        if( comments.length() > 0 ){
+          tmp?.comments = comments
         }
-        Order tmp = OrderController.getOrder(pOrderId)
-        if (tmp?.id) {
-            if( comments.length() > 0 ){
-              tmp?.comments = comments
-            }
-            order = tmp
-            doBindings()
-        }
-
+        order = tmp
+        doBindings()
+      }
     }
 
     private def dateConverter = { Date val ->
@@ -492,7 +522,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         }
                       }
                       if( valid ){
-                        CustomerController.requestPayingCustomer(this)
+                        sb.doOutside {
+                          Registry.getSolicitaGarbageColector()
+                        }
+                        CustomerController.requestPayingCustomer(this, OperationType.PAYING)
                         isPaying = true
                       } else {
                           sb.optionPane(
@@ -516,7 +549,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       }
                     }
                     if( valid ){
-                      CustomerController.requestEditPayingCustomer(this)
+                      CustomerController.requestPayingCustomer(this, OperationType.EDIT_PAYING)
+                      isPaying = true
                     } else {
                       sb.optionPane(
                                   message: 'Opcion valida solo en caja',
@@ -534,6 +568,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     }
                     break*/
             }
+            sb.doOutside {
+              Registry.getSolicitaGarbageColector()
+            }
             if(!operationType.selectedItem.equals(OperationType.DOMESTIC)){
               operationType.removeItem( OperationType.DOMESTIC )
             }
@@ -545,141 +582,180 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
 
-    private def doItemSearch( Boolean holdPromo ) {
+    private def doItemSearch( Boolean holdPromo, String log ) {
+      Registry.getSolicitaGarbageColector()
       println "holdPromo: "+holdPromo
-        Receta rec = new Receta()
-        String input = itemSearch.text
-        String article = input
-        Boolean newOrder = false
-        if (order?.id != null) {
-            newOrder = StringUtils.isBlank(order.id)
-        }
+      println "log: "+log
+      Receta rec = new Receta()
+      itemSearch.enabled = false
+      String input = itemSearch.text
+      String article = input
+      Boolean newOrder = false
+      if (order?.id != null) {
+        newOrder = StringUtils.isBlank(order.id)
+      }
       if( OrderController.dayIsOpen() ){
         if (StringUtils.isNotBlank(input)) {
-            sb.doOutside {
-                if( input.contains(/$/) ){
-                  String[] inputTmp = input.split(/\$/)
-                  if( input.trim().contains(/$$/) ) {
-                      article = inputTmp[0]
-                  } else {
-                      article = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
-                  }
-                } else {
-                  article = input.trim()
-                }
-                List<Item> results = ItemController.findItemsByQuery(article)
-                if (results?.any()) {
-                    Item item = new Item()
-                    if (results.size() == 1) {
-                        item = results.first()
-                        Articulo art = ItemController.findArticle( item.id )
-                        if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
-                            if( OrderController.validArticleGenericNoDelivered(item.id) ||
-                                    StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
-                                if( customer.id != CustomerController.findDefaultCustomer().id ){
-                                  if( !appliedEnsure( art ) ){
-                                    validarVentaNegativa(item, customer, holdPromo)
-                                  } else {
-                                    optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
-                                              .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
-                                              .show()
-                                  }
-                                } else {
-                                    optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
-                                            .createDialog(new JTextField(), "Articulo Invalido")
-                                            .show()
-                                }
-                            } else {
-                              if( !appliedEnsure( art ) ){
-                                validarVentaNegativa(item, customer, holdPromo)
-                              } else {
-                                optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
-                                    .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
-                                    .show()
-                              }
-                            }
-                        } else {
-                            optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
-                                    .createDialog(new JTextField(), "Articulo Invalido")
-                                    .show()
+          //sb.doOutside {
+            if( input.contains(/$/) ){
+              String[] inputTmp = input.split(/\$/)
+              if( input.trim().contains(/$$/) ) {
+                article = inputTmp[0]
+              } else {
+                article = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
+              }
+            } else {
+              article = input.trim()
+            }
+            List<Item> results = ItemController.findItemsByQuery(article)
+            if (results?.any()) {
+              Item item = new Item()
+              if (results.size() == 1) {
+                item = results.first()
+                ArticulosJava art = ItemController.findArticleJava( item.id )
+                if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
+                  if( OrderController.validArticleGenericNoDelivered(item.id) ||
+                          StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+                    if( customer.id != CustomerController.findDefaultCustomer().id ){
+                      if( !appliedEnsure( art ) ){
+                        validarVentaNegativa(item, customer, holdPromo, log)
+                      } else {
+                        if(log.equalsIgnoreCase("actionPerformed")){
+                          focusItem = true
                         }
+                        sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                                .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO).show()
+                      }
                     } else {
-                        SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, results)
-                        dialog.show()
-                        item = dialog.item
-                        if (item?.id) {
-                          Articulo art = ItemController.findArticle( item.id )
-                          if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
-                              if( OrderController.validArticleGenericNoDelivered(item.id) ||
-                                      StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO)){
-                                  if(customer.id != CustomerController.findDefaultCustomer().id){
-                                    if( !appliedEnsure( art ) ){
-                                      validarVentaNegativa(item, customer, holdPromo)
-                                    } else {
-                                      optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
-                                          .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
-                                          .show()
-                                    }
-                                  } else {
-                                      optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
-                                              .createDialog(new JTextField(), "Articulo Invalido")
-                                              .show()
-                                  }
-                              } else {
-                                if( !appliedEnsure( art ) ){
-                                  validarVentaNegativa(item, customer, holdPromo)
-                                } else {
-                                  optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
-                                      .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO)
-                                      .show()
-                                }
-                              }
-                          }else {
-                              optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
-                                      .createDialog(new JTextField(), "Articulo Invalido")
-                                      .show()
-                          }
-                        }
+                      if(log.equalsIgnoreCase("actionPerformed")){
+                        focusItem = true
+                      }
+                      sb.optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
+                              .createDialog(new JTextField(), "Articulo Invalido").show()
                     }
-                } else if( StringUtils.trimToEmpty(article).equalsIgnoreCase(TAG_RECETA_LC) ){
-                  if( customer.id != CustomerController.findDefaultCustomer().id ){
-                    if( order?.id == null ){
-                      order = OrderController.openOrder(StringUtils.trimToEmpty(customer.id.toString()), order.employee)
-                      updateOrder( StringUtils.trimToEmpty(order.id) )
-                    }
-                    Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                    EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, false)
-                    editRx.show()
-                    OrderController.saveRxOrder(order?.id, this.rec.id)
                   } else {
-                      optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
-                              .createDialog(new JTextField(), "Articulo Invalido")
-                              .show()
+                    if( !appliedEnsure( art ) ){
+                      validarVentaNegativa(item, customer, holdPromo, log)
+                    } else {
+                      if(log.equalsIgnoreCase("actionPerformed")){
+                        focusItem = true
+                      }
+                      sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                              .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO).show()
+                    }
                   }
                 } else {
-                    optionPane(message: "No se encontraron resultados para: ${article}", optionType: JOptionPane.DEFAULT_OPTION)
-                            .createDialog(new JTextField(), "B\u00fasqueda: ${article}")
-                            .show()
+                  if(log.equalsIgnoreCase("actionPerformed")){
+                    focusItem = true
+                  }
+                  sb.optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
+                          .createDialog(new JTextField(), "Articulo Invalido").show()
                 }
-                if (newOrder && (StringUtils.trimToNull(order?.id) != null) && (StringUtils.trimToNull(customer?.id) != null)) {
-                    this.setCustomerInOrder()
+              } else {
+                if(log.equalsIgnoreCase("actionPerformed")){
+                  focusItem = true
                 }
+                SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, results)
+                dialog.show()
+                item = dialog.item
+                if (item?.id) {
+                  ArticulosJava art = ItemController.findArticleJava( item.id )
+                  if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
+                    if( OrderController.validArticleGenericNoDelivered(item.id) ||
+                            StringUtils.trimToEmpty(art.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO)){
+                      if(customer.id != CustomerController.findDefaultCustomer().id){
+                        if( !appliedEnsure( art ) ){
+                          validarVentaNegativa(item, customer, holdPromo, log)
+                        } else {
+                          if(log.equalsIgnoreCase("actionPerformed")){
+                            focusItem = true
+                          }
+                          sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                                  .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO).show()
+                        }
+                      } else {
+                        if(log.equalsIgnoreCase("actionPerformed")){
+                          focusItem = true
+                        }
+                        if(log.equalsIgnoreCase("actionPerformed")){
+                          focusItem = true
+                        }
+                        sb.optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
+                                .createDialog(new JTextField(), "Articulo Invalido").show()
+                      }
+                    } else {
+                      if( !appliedEnsure( art ) ){
+                        validarVentaNegativa(item, customer, holdPromo, log)
+                      } else {
+                        if(log.equalsIgnoreCase("actionPerformed")){
+                          focusItem = true
+                        }
+                        sb.optionPane(message: MSJ_SEGURO_APLICADO, optionType: JOptionPane.DEFAULT_OPTION)
+                                .createDialog(new JTextField(), TXT_VENTA_NEGATIVA_TITULO).show()
+                      }
+                    }
+                  } else {
+                    if(log.equalsIgnoreCase("actionPerformed")){
+                      focusItem = true
+                    }
+                    sb.optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
+                            .createDialog(new JTextField(), "Articulo Invalido").show()
+                  }
+                }
+              }
+            } else if( StringUtils.trimToEmpty(article).equalsIgnoreCase(TAG_RECETA_LC) ){
+              if( customer.id != CustomerController.findDefaultCustomer().id ){
+                if( order?.id == null ){
+                  order = OrderController.openOrder(StringUtils.trimToEmpty(customer.id.toString()), order.employee)
+                  updateOrder( StringUtils.trimToEmpty(order.id) )
+                }
+                Branch branch = Session.get(SessionItem.BRANCH) as Branch
+                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, false)
+                editRx.show()
+                OrderController.saveRxOrder(order?.id, this.rec.idReceta)
+              } else {
+                if(log.equalsIgnoreCase("actionPerformed")){
+                  focusItem = true
+                }
+                sb.optionPane(message: "Cliente invalido, dar de alta datos", optionType: JOptionPane.DEFAULT_OPTION)
+                        .createDialog(new JTextField(), "Articulo Invalido").show()
+              }
+            } else {
+              if(log.equalsIgnoreCase("actionPerformed")){
+                focusItem = true
+              }
+              sb.optionPane(message: "No se encontraron resultados para: ${article}", optionType: JOptionPane.DEFAULT_OPTION)
+                      .createDialog(new JTextField(), "B\u00fasqueda: ${article}").show()
+            }
+            if (newOrder && (StringUtils.trimToNull(order?.id) != null) && (customer?.id != null)) {
+              this.setCustomerInOrder()
+            }
 
-            }
-            sb.doLater {
-                itemSearch.text = null
-            }
+          //}
+          //sb.doLater {
+            itemSearch.text = null
+          //}
 
         } else {
+          if(log.equalsIgnoreCase("actionPerformed")){
+            focusItem = true
+          }
           sb.optionPane(message: 'Es necesario ingresar una b\u00fasqeda v\u00e1lida', optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "B\u00fasqueda inv\u00e1lida")
                 .show()
         }
       } else {
-          sb.optionPane(message: 'No se pueden realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
-                  .createDialog(new JTextField(), "Dia cerrado")
-                  .show()
+        if(log.equalsIgnoreCase("actionPerformed")){
+          focusItem = true
+        }
+        sb.optionPane(message: 'No se pueden realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+                .createDialog(new JTextField(), "Dia cerrado").show()
       }
+      itemSearch.enabled = true
+      if(log.equalsIgnoreCase("actionPerformed")){
+        focusItem = true
+      }
+      itemSearch.requestFocus()
     }
 
     private def doShowItemClick = { MouseEvent ev ->
@@ -725,7 +801,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     }
                   }
                     CuponMvView cuponMvView = OrderController.cuponValid( order.customer.id )
-                    new PaymentDialog(ev.component, order, null, cuponMvView, this, hasDiscount).show()
+                    println "PromoAmount: "+promoAmount
+                    new PaymentDialog(ev.component, order, null, cuponMvView, this, hasDiscount, promoAmount, discountAgeApplied).show()
                     updateOrder(order?.id)
                     //validTransferCuponMv()
                     doBindings()
@@ -754,194 +831,202 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
             if (ev.clickCount == 2 && valid && (!operationType1.equals(OperationType.PENDING) &&
                     !operationType1.equals(OperationType.EDIT_PAYING) && !operationType1.equals(OperationType.QUOTE))) {
-                new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false).show()
+                new PaymentDialog(ev.component, order, ev.source.selectedElement, new CuponMvView(), this, false, promoAmount, discountAgeApplied).show()
                 updateOrder(order?.id)
             }
         }
     }
 
     private void reviewForTransfers(String newOrderId) {
-        if (CancellationController.orderHasTransfers(newOrderId)) {
-            List<Order> lstOrders = CancellationController.findOrderToResetValues(newOrderId)
-            for (Order order : lstOrders) {
-                CancellationController.resetValuesofCancellation(order.id)
-            }
-            List<String> sources = CancellationController.findSourceOrdersWithCredit(newOrderId)
-            if (sources?.any()) {
-                new TotalCancellationDialog( this, sources.first(), true, false ).show()
-                //new RefundDialog(this, sources.first()).show()
-                Boolean reuse = CancellationController.printReUse( newOrderId )
-                if( !reuse ){
-                  //CancellationController.printMaterialReception( sources.first() )
-                  //CancellationController.printMaterialReturn( sources.first() )
-                }
-            } else {
-                Boolean reuse = CancellationController.printCancellationsFromOrder(newOrderId)
-                if( !reuse ){
-                  String idSource = CancellationController.findSourceOrder( newOrderId )
-                  if( idSource.trim().length() > 0 ){
-                      //CancellationController.printMaterialReception( idSource )
-                      //CancellationController.printMaterialReturn( idSource )
-                  }
-                }
-            }
+      if (CancellationController.orderHasTransfers(newOrderId)) {
+        List<Order> lstOrders = CancellationController.findOrderToResetValues(newOrderId)
+        for (Order order : lstOrders) {
+          CancellationController.resetValuesofCancellationJava(order.id)
         }
+        List<String> sources = CancellationController.findSourceOrdersWithCredit(newOrderId)
+        if (sources?.any()) {
+          new TotalCancellationDialog( this, sources.first(), true, false ).show()
+          //new RefundDialog(this, sources.first()).show()
+          Boolean reuse = CancellationController.printReUse( newOrderId )
+          if( !reuse ){
+            //CancellationController.printMaterialReception( sources.first() )
+            //CancellationController.printMaterialReturn( sources.first() )
+          }
+        } else {
+          Boolean reuse = CancellationController.printCancellationsFromOrder(newOrderId)
+          if( !reuse ){
+            String idSource = CancellationController.findSourceOrder( newOrderId )
+            if( idSource.trim().length() > 0 ){
+              //CancellationController.printMaterialReception( idSource )
+              //CancellationController.printMaterialReturn( idSource )
+            }
+          }
+        }
+      }
     }
 
-    private Receta validarGenericoB(Item item) {
-        rec = null
-        try {
-            //Receta Nueva
-            String artString = item.name
-            if (artString.equals('SV') || artString.equals('P') || artString.equals('B')) {
-                Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', item.description, false, false)
-                editRx.show()
+    private RecetaJava validarGenericoB(Item item) {
+      rec = null
+      try {
+        //Receta Nueva
+        String artString = item.name
+        if (artString.equals('SV') || artString.equals('P') || artString.equals('B')) {
+          Branch branch = Session.get(SessionItem.BRANCH) as Branch
+          EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', item.description, false, false)
+          editRx.show()
 
-                this.disableUI()
-                this.setCustomer(customer)
-                this.setOrder(order)
-                this.enableUI()
-
-            } else {
-                rec = null
-                this.disableUI()
-                this.setCustomer(customer)
-                this.setOrder(order)
-                this.enableUI()
-            }
-        } catch (Exception ex) {
-            println ex
-            rec = null
+          this.disableUI()
+          this.setCustomer(customer)
+          this.setOrder(order)
+          this.enableUI()
+        } else {
+          rec = null
+          this.disableUI()
+          this.setCustomer(customer)
+          this.setOrder(order)
+          this.enableUI()
         }
-        return rec
+      } catch (Exception ex) {
+        println ex
+        rec = null
+      }
+      return rec
     }
 
     private SurteSwitch surteSu(Item item,SurteSwitch surteSwitch) {
-        if (surteSwitch?.surteSucursal == false) {
-            if (item?.type?.trim().equals('A') && item?.stock > 0) {
-                surteSwitch?.surteSucursal = true
+      if (!surteSwitch?.surteSucursal) {
+        if (StringUtils.trimToEmpty(item?.type).equals('A') && item?.stock > 0) {
+          surteSwitch?.surteSucursal = true
+        } else {
+          SalesWithNoInventory onSalesWithNoInventory = OrderController.requestConfigSalesWithNoInventory()
+          if (SalesWithNoInventory.ALLOWED.equals(onSalesWithNoInventory)) {
+            surteSwitch?.surteSucursal = true
+          } else if (SalesWithNoInventory.REQUIRE_AUTHORIZATION.equals(onSalesWithNoInventory)){
+            AuthorizationDialog authDialog = new AuthorizationDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+            authDialog.show()
+            logger.debug('Autorizado: ' + authDialog.authorized)
+            if (authDialog.authorized) {
+              surteSwitch?.surteSucursal = true
             } else {
-                SalesWithNoInventory onSalesWithNoInventory = OrderController.requestConfigSalesWithNoInventory()
-                if (SalesWithNoInventory.ALLOWED.equals(onSalesWithNoInventory)) {
-                  surteSwitch?.surteSucursal = true
-                } else if (SalesWithNoInventory.REQUIRE_AUTHORIZATION.equals(onSalesWithNoInventory)){
-                  AuthorizationDialog authDialog = new AuthorizationDialog(this, "Esta operacion requiere autorizaci\u00f3n")
-                  authDialog.show()
-                  logger.debug('Autorizado: ' + authDialog.authorized)
-                  if (authDialog.authorized) {
-                    surteSwitch?.surteSucursal = true
-                  } else {
-                    OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
-                  }
-                } else if (SalesWithNoInventory.RESTRICTED.equals(onSalesWithNoInventory)){
-                  surteSwitch?.surteSucursal = true
-                }
+              OrderController.notifyAlert('Se requiere autorizacion para esta operacion', 'Se requiere autorizacion para esta operacion')
             }
+          } else if (SalesWithNoInventory.RESTRICTED.equals(onSalesWithNoInventory)){
+            surteSwitch?.surteSucursal = true
+          }
         }
-        return surteSwitch
+      }
+      return surteSwitch
     }
 
-    private void validarVentaNegativa(Item item, Customer customer, Boolean holdPromo) {
-        User u = Session.get(SessionItem.USER) as User
-        order.setEmployee(u.username)
-        Branch branch = Session.get(SessionItem.BRANCH) as Branch
-        Boolean isOnePackage = OrderController.validOnlyOnePackage( order.items, item.id )
-        Boolean isOneLens = OrderController.validOnlyOneLens( order.items, item.id )
-        SurteSwitch surteSwitch = OrderController.surteCallWS(branch, item, 'S', order)
-        surteSwitch = surteSu(item, surteSwitch)
-        Boolean esInventariable = ItemController.esInventariable( item.id )
-        if( isOnePackage ){
-          if( isOneLens ){
-              if (surteSwitch?.agregaArticulo == true && surteSwitch?.surteSucursal == true) {
-                  String surte = surteSwitch?.surte
-                  if (item.stock > 0) {
-                      order = OrderController.addItemToOrder(order, item, surte)
-                      updateOrder( order.id )
-                      validaLC(item, false)
-                      controlItem(item, false)
-                      List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
-                      promotionsListTmp.addAll(promotionList)
-                      if( !holdPromo ){
-                        for(IPromotionAvailable promo : promotionsListTmp){
-                          this.promotionDriver.requestCancelPromotion(promo)
-                          OrderController.deleteCuponMv( order.id )
-                        }
-                      }
-                      if (customer != null) {
-                          order.customer = customer
-                      }
-                  } else {
-                      if( esInventariable ){
-                          SalesWithNoInventory onSalesWithNoInventory = OrderController.requestConfigSalesWithNoInventory()
-                          order.customer = customer
-                          if (SalesWithNoInventory.ALLOWED.equals(onSalesWithNoInventory)) {
-                              order = OrderController.addItemToOrder(order, item, surte)
-                              updateOrder( order.id )
-                              validaLC(item, false)
-                              controlItem(item, false)
-                              List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
-                              promotionsListTmp.addAll(promotionList)
-                              if( !holdPromo ){
-                                for(IPromotionAvailable promo : promotionsListTmp){
-                                  this.promotionDriver.requestCancelPromotion(promo)
-                                  OrderController.deleteCuponMv( order.id )
-                                }
-                              }
-                          } else if (SalesWithNoInventory.REQUIRE_AUTHORIZATION.equals(onSalesWithNoInventory)) {
-                              boolean authorized
-                              if (AccessController.authorizerInSession) {
-                                  authorized = true
-                              } else {
-                                  AuthorizationDialog authDialog = new AuthorizationDialog(this, " ")
-                                  authDialog.show()
-                                  authorized = authDialog.authorized
-                              }
-                              if (authorized) {
-                                  order = OrderController.addItemToOrder(order, item, surte)
-                                  updateOrder( order.id )
-                                  validaLC(item, false)
-                                  controlItem(item, false)
-                                  List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
-                                  promotionsListTmp.addAll(promotionList)
-                                  if( !holdPromo ){
-                                    for(IPromotionAvailable promo : promotionsListTmp){
-                                      this.promotionDriver.requestCancelPromotion(promo)
-                                      OrderController.deleteCuponMv( order.id )
-                                    }
-                                  }
-                              }
-                          } else {
-                              sb.optionPane(message: MSJ_VENTA_NEGATIVA, messageType: JOptionPane.ERROR_MESSAGE,)
-                                      .createDialog(this, TXT_VENTA_NEGATIVA_TITULO)
-                                      .show()
-                          }
-                      } else {
-                          order = OrderController.addItemToOrder(order, item, surte)
-                          updateOrder( order.id )
-                          validaLC(item, false)
-                          controlItem(item, false)
-                          List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
-                          promotionsListTmp.addAll(promotionList)
-                          if( !holdPromo ){
-                            for(IPromotionAvailable promo : promotionsListTmp){
-                              this.promotionDriver.requestCancelPromotion(promo)
-                              OrderController.deleteCuponMv( order.id )
-                            }
-                          }
-                      }
-                  }
+    private void validarVentaNegativa(Item item, Customer customer, Boolean holdPromo, String log) {
+      if(log.equalsIgnoreCase("actionPerformed")){
+        focusItem = true
+      }
+      User u = Session.get(SessionItem.USER) as User
+      order.setEmployee(u.username)
+      Branch branch = Session.get(SessionItem.BRANCH) as Branch
+      Boolean isOnePackage = OrderController.validOnlyOnePackage( order.items, item.id )
+      Boolean isOneLens = OrderController.validOnlyOneLens( order.items, item.id )
+      SurteSwitch surteSwitch = OrderController.surteCallWS(branch, item, 'S', order)
+      surteSwitch = surteSu(item, surteSwitch)
+      Boolean esInventariable = ItemController.esInventariable( item.id )
+      if( isOnePackage ){
+        if( isOneLens ){
+          if (surteSwitch?.agregaArticulo && surteSwitch?.surteSucursal) {
+            String surte = surteSwitch?.surte
+            if (item.stock > 0) {
+              order = OrderController.addItemToOrder(order, item, surte)
+              updateOrder( order.id )
+              validaLC(item, false)
+              controlItem(item, false, log)
+              List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
+              promotionsListTmp.addAll(promotionList)
+              if( !holdPromo ){
+                for(IPromotionAvailable promo : promotionsListTmp){
+                  this.promotionDriver.requestCancelPromotion(promo)
+                  OrderController.deleteCuponMv( order.id )
+                }
               }
-          } else {
-            sb.optionPane(message: MSJ_LENTE_INVALIDO, messageType: JOptionPane.ERROR_MESSAGE,)
-                .createDialog(this, TXT_LENTE_INVALIDO)
-                .show()
+              if (customer != null) {
+                order.customer = customer
+              }
+            } else {
+              if( esInventariable ){
+                SalesWithNoInventory onSalesWithNoInventory = OrderController.requestConfigSalesWithNoInventory()
+                order.customer = customer
+                if (SalesWithNoInventory.ALLOWED.equals(onSalesWithNoInventory)) {
+                  order = OrderController.addItemToOrder(order, item, surte)
+                  updateOrder( order.id )
+                  validaLC(item, false)
+                  controlItem(item, false, log)
+                  List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
+                  promotionsListTmp.addAll(promotionList)
+                  if( !holdPromo ){
+                    for(IPromotionAvailable promo : promotionsListTmp){
+                      this.promotionDriver.requestCancelPromotion(promo)
+                      OrderController.deleteCuponMv( order.id )
+                    }
+                  }
+                } else if (SalesWithNoInventory.REQUIRE_AUTHORIZATION.equals(onSalesWithNoInventory)) {
+                  boolean authorized
+                  if (AccessController.authorizerInSession) {
+                    authorized = true
+                  } else {
+                    AuthorizationDialog authDialog = new AuthorizationDialog(this, " ")
+                    authDialog.show()
+                    authorized = authDialog.authorized
+                  }
+                  if (authorized) {
+                    order = OrderController.addItemToOrder(order, item, surte)
+                    updateOrder( order.id )
+                    validaLC(item, false)
+                    controlItem(item, false, log)
+                    List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
+                    promotionsListTmp.addAll(promotionList)
+                    if( !holdPromo ){
+                      for(IPromotionAvailable promo : promotionsListTmp){
+                        this.promotionDriver.requestCancelPromotion(promo)
+                        OrderController.deleteCuponMv( order.id )
+                      }
+                    }
+                  }
+                } else {
+                  if(log.equalsIgnoreCase("actionPerformed")){
+                    focusItem = true
+                  }
+                  sb.optionPane(message: MSJ_VENTA_NEGATIVA, messageType: JOptionPane.ERROR_MESSAGE,)
+                          .createDialog(this, TXT_VENTA_NEGATIVA_TITULO).show()
+                }
+              } else {
+                order = OrderController.addItemToOrder(order, item, surte)
+                updateOrder( order.id )
+                validaLC(item, false)
+                controlItem(item, false, log)
+                List<IPromotionAvailable> promotionsListTmp = new ArrayList<>()
+                promotionsListTmp.addAll(promotionList)
+                if( !holdPromo ){
+                  for(IPromotionAvailable promo : promotionsListTmp){
+                    this.promotionDriver.requestCancelPromotion(promo)
+                    OrderController.deleteCuponMv( order.id )
+                  }
+                }
+              }
+            }
           }
         } else {
-          sb.optionPane(message: MSJ_PAQUETE_INVALIDO, messageType: JOptionPane.ERROR_MESSAGE,)
-                  .createDialog(this, TXT_PAQUETE_INVALIDO)
-                  .show()
+          if(log.equalsIgnoreCase("actionPerformed")){
+            focusItem = true
+          }
+          sb.optionPane(message: MSJ_LENTE_INVALIDO, messageType: JOptionPane.ERROR_MESSAGE,)
+                  .createDialog(this, TXT_LENTE_INVALIDO).show()
         }
+      } else {
+        if(log.equalsIgnoreCase("actionPerformed")){
+          focusItem = true
+        }
+        sb.optionPane(message: MSJ_PAQUETE_INVALIDO, messageType: JOptionPane.ERROR_MESSAGE,)
+                .createDialog(this, TXT_PAQUETE_INVALIDO).show()
+      }
     }
 
     private def doClose = {
@@ -975,6 +1060,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private def doPrint = { ActionEvent ev ->
+      Registry.getSolicitaGarbageColector()
       if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         dioptra = new Dioptra()
@@ -983,7 +1069,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
-              controlItem( result, true )
+              if( StringUtils.trimToEmpty(it.item.indexDiotra).length() <= 0 || it.item.indexDiotra.contains("@")) {
+                controlItem( result, true, "" )
+              }
               if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
                 hasDioptra = true
               }
@@ -991,6 +1079,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
               hasLc = true
             }
+        }
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
         }
         if( !hasDioptra ){
           order.dioptra = null
@@ -1005,22 +1096,25 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         Boolean warranty = false
         if( true ){
-            NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-            warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, true )
+            NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+            warranty = OrderController.validWarranty( OrderController.findOrderJavaByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, true )
         } else {
           warranty = true
+        }
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
         }
         if( warranty ){
           if( validLensesPack() ){
             Boolean continueSave = true
             rec = OrderController.findRx(order, customer)
-            if( hasLc && (rec == null || rec.id == null) ){
+            if( hasLc && (rec == null || rec.idReceta == null) ){
               Branch branch = Session.get(SessionItem.BRANCH) as Branch
               EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
               editRx.show()
               try {
                 if( rec != null ){
-                  OrderController.saveRxOrder(order?.id, this.rec.id)
+                  OrderController.saveRxOrder(order?.id, this.rec.idReceta)
                 } else {
                   continueSave = false
                 }
@@ -1055,12 +1149,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         } else {
                             rec = OrderController.findRx(order, customer)
                             Order armOrder = OrderController.getOrder(order?.id)
-                            if (rec.id == null) {   //Receta Nueva
+                            if (rec.idReceta == null) {   //Receta Nueva
                                 Branch branch = Session.get(SessionItem.BRANCH) as Branch
                                 EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, true)
                                 editRx.show()
                                 try {
-                                    OrderController.saveRxOrder(order?.id, rec.id)
+                                    OrderController.saveRxOrder(order?.id, rec.idReceta)
                                     JButton source = ev.source as JButton
                                     source.enabled = false
                                     ticketRx = true
@@ -1122,69 +1216,64 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
     }
 
-    private void controlItem(Item item, Boolean itemDelete) {
-        String indexDioptra = item?.indexDiotra
-        logger.debug('Index Dioptra del Articulo : ' + item?.indexDiotra)
-        if (!StringUtils.trimToNull(indexDioptra).equals(null) && !StringUtils.trimToNull(item?.indexDiotra).equals(null)) {
-            Dioptra nuevoDioptra = OrderController.generaDioptra(item?.indexDiotra)
-            logger.debug('Nuevo Objeto Dioptra :' + nuevoDioptra)
-            logger.debug('Dioptra :' + dioptra?.material)
-            logger.debug('Dioptra :' + dioptra?.lente)
-            logger.debug('Dioptra :' + dioptra?.tratamiento)
-            logger.debug('Dioptra :' + dioptra?.color)
-            logger.debug('Dioptra :' + dioptra?.especial)
-            logger.debug('Dioptra :' + dioptra?.tipo)
-            dioptra = OrderController.validaDioptra(dioptra, nuevoDioptra)
-            logger.debug('Dioptra Generado :' + dioptra)
-                antDioptra = OrderController.addDioptra(order, OrderController.codigoDioptra(dioptra))
-            order?.dioptra = OrderController.codigoDioptra(antDioptra)
-        } else {
-            order?.dioptra = OrderController.codigoDioptra(antDioptra)
-        }
-        logger.debug('Codigo Dioptra :' + antDioptra)
-
-        if (item?.name.trim().equals('MONTAJE') && !itemDelete) {
-            User u = Session.get(SessionItem.USER) as User
-            CapturaSuyoDialog capturaSuyoDialog = new CapturaSuyoDialog(order, u,true)
-            capturaSuyoDialog.show()
-        }
-
-        if( !itemDelete && !StringUtils.trimToNull(indexDioptra).equals(null)){
-          rec = validarGenericoB(item)
-          OrderController.saveRxOrder(order?.id, rec?.id)
-        }
-        updateOrder(order?.id)
-        if (!order.customer.equals(customer)) {
-            order.customer = customer
-        }
+    private void controlItem(Item item, Boolean itemDelete, String log) {
+      String indexDioptra = item?.indexDiotra
+      if(log.equalsIgnoreCase("actionPerformed")){
+        focusItem = true
+      }
+      logger.debug('Index Dioptra del Articulo : ' + item?.indexDiotra)
+      if (!StringUtils.trimToNull(indexDioptra).equals(null) && !StringUtils.trimToNull(item?.indexDiotra).equals(null)) {
+        Dioptra nuevoDioptra = OrderController.generaDioptra(item?.indexDiotra)
+        dioptra = OrderController.validaDioptra(dioptra, nuevoDioptra)
+        logger.debug('Dioptra Generado :' + dioptra)
+        antDioptra = OrderController.addDioptra(order, OrderController.codigoDioptra(dioptra))
+        order?.dioptra = OrderController.codigoDioptra(antDioptra)
+      } else {
+        order?.dioptra = OrderController.codigoDioptra(antDioptra)
+      }
+      logger.debug('Codigo Dioptra :' + antDioptra)
+      if (StringUtils.trimToEmpty(item?.name).equals('MONTAJE') && !itemDelete) {
+        User u = Session.get(SessionItem.USER) as User
+        CapturaSuyoDialog capturaSuyoDialog = new CapturaSuyoDialog(order, u,true)
+        capturaSuyoDialog.show()
+      }
+      if( !itemDelete && !StringUtils.trimToNull(indexDioptra).equals(null)){
+        rec = validarGenericoB(item)
+        OrderController.saveRxOrder(order?.id, rec?.idReceta)
+      }
+      updateOrder(order?.id)
+      if (!order.customer.equals(customer)) {
+        order.customer = customer
+      }
     }
 
     private void flujoImprimir(int artCount) {
-        armazonString = null
-        Boolean validOrder = isValidOrder()
-        if (artCount != 0) {
-            Parametro diaIntervalo = Registry.find(TipoParametro.DIA_PRO)
-            Date diaPrometido = new Date() + diaIntervalo?.valor.toInteger()
-            OrderController.savePromisedDate(order?.id, diaPrometido)
-            Double pAnticipo = Registry.getAdvancePct()
-
-            Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
-            if( onlyInventariable && order?.paid < order?.total ){
-              AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo requiere autorizaci\u00f3n")
-              authDialog.show()
-              if (authDialog.authorized) {
-                  advanceOnlyInventariable = true
-                  validOrder = isValidOrder()
-              } else {
-                  validOrder = false
-                  sb.optionPane(
-                          message: 'Datos no validos',
-                          messageType: JOptionPane.ERROR_MESSAGE
-                  ).createDialog(this, 'No se puede registrar la venta')
-                          .show()
-              }
-            } else if (order?.paid < (order?.total * pAnticipo)) {
-                Boolean requierAuth = OrderController.requiereAuth( order )
+      armazonString = null
+      Boolean validOrder = isValidOrder()
+      if (artCount != 0) {
+        Parametros diaIntervalo = Registry.find(mx.lux.pos.java.TipoParametro.DIA_PRO)
+        Date diaPrometido = new Date() + (diaIntervalo != null ? diaIntervalo?.valor?.toInteger() : 0)
+        OrderController.savePromisedDate(order?.id, diaPrometido)
+        Double pAnticipo = Registry.getAdvancePct()
+        Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
+        if( onlyInventariable && order?.paid < order?.total ){
+          AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo requiere autorizaci\u00f3n")
+          authDialog.show()
+          if (authDialog.authorized) {
+            advanceOnlyInventariable = true
+            validOrder = isValidOrder()
+          } else {
+            validOrder = false
+            sb.optionPane(
+                    message: 'Datos no validos',
+                    messageType: JOptionPane.ERROR_MESSAGE
+            ).createDialog(this, 'No se puede registrar la venta').show()
+          }
+        } else if (order?.paid < ((order?.total.subtract(promoAmount)) * pAnticipo)) {
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
+        }
+        Boolean requierAuth = OrderController.requiereAuth( order )
                 if( requierAuth ){
                   AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo menor al permitido, esta operacion requiere autorizaci\u00f3n")
                   authDialog.show()
@@ -1193,7 +1282,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   } else {
                       validOrder = false
                       sb.optionPane(
-                              message: 'El monto del anticipo tiene que ser minimo de: $' + (order?.total * pAnticipo),
+                              message: 'El monto del anticipo tiene que ser minimo de: $' + ((order?.total.subtract(promoAmount)) * pAnticipo),
                               messageType: JOptionPane.ERROR_MESSAGE
                       ).createDialog(this, 'No se puede registrar la venta')
                               .show()
@@ -1206,116 +1295,120 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     ).createDialog(this, 'No se puede registrar la venta')
                             .show()
                 }
-              } else {
-                validOrder = isValidOrder()
-              }
         } else {
+          validOrder = isValidOrder()
+        }
+      } else {
             if( OrderController.validGenericNoDelivered( order.id ) ){
-                Double pAnticipo = Registry.getAdvancePct()
-                Boolean requierAuth = OrderController.requiereAuth( order )
-                if(order?.paid < (order?.total * pAnticipo)){
-                    if( requierAuth ){
-                        AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo menor al permitido, esta operacion requiere autorizaci\u00f3n")
-                        authDialog.show()
-                        if (authDialog.authorized) {
-                            validOrder = isValidOrder()
-                        } else {
-                            validOrder = false
-                            sb.optionPane(
-                                    message: 'El monto del anticipo tiene que ser minimo de: $' + (order?.total * pAnticipo),
-                                    messageType: JOptionPane.ERROR_MESSAGE
-                            ).createDialog(this, 'No se puede registrar la venta')
-                                    .show()
-                        }
-                    } else {
-                        validOrder = false
-                        sb.optionPane(
-                                message: 'El monto del anticipo tiene que ser minimo de: $' + (order?.total * pAnticipo),
-                                messageType: JOptionPane.ERROR_MESSAGE
-                        ).createDialog(this, 'No se puede registrar la venta')
-                                .show()
-                    }
-                } else {
+              Double pAnticipo = Registry.getAdvancePct()
+              Boolean requierAuth = OrderController.requiereAuth( order )
+              if(order?.paid < (order?.total * pAnticipo)){
+                if( requierAuth ){
+                  AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo menor al permitido, esta operacion requiere autorizaci\u00f3n")
+                  authDialog.show()
+                  if (authDialog.authorized) {
                     validOrder = isValidOrder()
-                }
-            } else {
-              validOrder = isValidOrder()
-            }
-        }
-        if( !validLenses() ){
-            order.dioptra = null
-        }
-        if (validOrder) {
-            Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
-            Boolean noDelivered = OrderController.validGenericNoDelivered( order.id )
-            if( onlyInventariable && order?.paid < order?.total && !noDelivered ){
-                AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo requiere autorizaci\u00f3n")
-                authDialog.show()
-                if (authDialog.authorized) {
-                    advanceOnlyInventariable = true
-                    doBindings()
-                    refreshDioptra()
-                    if( dioptra != null ){
-                      if( OrderController.validDioptra( StringUtils.trimToEmpty(order.id) ) ){
-                        saveOrder()
-                      } else {
-                        refreshDioptra()
-                        saveOrder()
-                      }
-                    } else {
-                      saveOrder()
-                    }
-                } else {
+                  } else {
                     validOrder = false
                     sb.optionPane(
-                            message: 'Datos no validos',
+                            message: 'El monto del anticipo tiene que ser minimo de: $' + (order?.total * pAnticipo),
                             messageType: JOptionPane.ERROR_MESSAGE
                     ).createDialog(this, 'No se puede registrar la venta')
                             .show()
-                }
-            } else {
-              doBindings()
-              if( dioptra.material != null || dioptra.lente != null || dioptra.tipo != null || dioptra.especial != null ||
-                      dioptra.tratamiento != null || dioptra.color != null ){
-                if( OrderController.validDioptra( StringUtils.trimToEmpty(order.id) ) ){
-                  saveOrder()
+                  }
                 } else {
-                  refreshDioptra()
-                  saveOrder()
+                  validOrder = false
+                  sb.optionPane(
+                          message: 'El monto del anticipo tiene que ser minimo de: $' + (order?.total * pAnticipo),
+                          messageType: JOptionPane.ERROR_MESSAGE
+                  ).createDialog(this, 'No se puede registrar la venta')
+                          .show()
                 }
               } else {
-                  saveOrder()
+                validOrder = isValidOrder()
               }
+            } else {
+              validOrder = isValidOrder()
             }
+      }
+      if( !validLenses() ){
+        order.dioptra = null
+      }
+      if (validOrder) {
+        Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
+        Boolean noDelivered = OrderController.validGenericNoDelivered( order.id )
+        if( onlyInventariable && order?.paid < order?.total && !noDelivered ){
+          AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo requiere autorizaci\u00f3n")
+          authDialog.show()
+          if (authDialog.authorized) {
+            advanceOnlyInventariable = true
+            doBindings()
+            refreshDioptra()
+            if( dioptra != null ){
+              if( OrderController.validDioptra( StringUtils.trimToEmpty(order.id) ) ){
+                saveOrder()
+              } else {
+                refreshDioptra()
+                saveOrder()
+              }
+            } else {
+              saveOrder()
+            }
+          } else {
+            validOrder = false
+            sb.optionPane(
+                    message: 'Datos no validos',
+                    messageType: JOptionPane.ERROR_MESSAGE
+            ).createDialog(this, 'No se puede registrar la venta')
+                    .show()
+          }
+        } else {
+          doBindings()
+          if( dioptra.material != null || dioptra.lente != null || dioptra.tipo != null || dioptra.especial != null ||
+                  dioptra.tratamiento != null || dioptra.color != null ){
+            if( OrderController.validDioptra( StringUtils.trimToEmpty(order.id) ) ){
+              saveOrder()
+            } else {
+              refreshDioptra()
+              saveOrder()
+            }
+          } else {
+            saveOrder()
+          }
         }
+      }
     }
 
     private void saveOrder() {
-        User user = Session.get(SessionItem.USER) as User
-        String vendedor = user.username
-        if( OrderController.showValidEmployee() ){
-          CambiaVendedorDialog cambiaVendedor = new CambiaVendedorDialog(this,user?.username)
-          cambiaVendedor.show()
-          vendedor = cambiaVendedor?.vendedor
+      User user = Session.get(SessionItem.USER) as User
+      String vendedor = user.username
+      if( OrderController.showValidEmployee() ){
+        CambiaVendedorDialog cambiaVendedor = new CambiaVendedorDialog(this,user?.username)
+        cambiaVendedor.show()
+        vendedor = cambiaVendedor?.vendedor
+      }
+      sb.doOutside {
+        Registry.getSolicitaGarbageColector()
+      }
+        if( discountAgeApplied && promoAgeActive && promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
+          promotionDriver.addPromoDiscountAge( order, promoAmount )
         }
-
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
-        Order newOrder = OrderController.placeOrder(order, vendedor, false)
-        OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
-        if( newOrder.rx != null ){
-          OrderController.updateExam( newOrder )
-        }
+      Order newOrder = OrderController.placeOrder(order, vendedor, false)
+      OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
+      if( newOrder.rx != null ){
+        OrderController.updateExam( newOrder )
+      }
 
-        if(numQuote > 0){
-          OrderController.updateQuote( newOrder, numQuote )
-          numQuote = 0
-        }
-        this.promotionDriver.requestPromotionSave(newOrder?.id, true)
-        Boolean cSaldo = false
-        OrderController.validaEntrega(StringUtils.trimToEmpty(newOrder?.bill),newOrder?.branch?.id?.toString(), true)
-        Boolean needJb = OrderController.creaJb(StringUtils.trimToEmpty(newOrder?.ticket), cSaldo)
-
-        ItemController.updateLenteContacto( newOrder.id )
+      if(numQuote > 0){
+        OrderController.updateQuote( newOrder, numQuote )
+        numQuote = 0
+      }
+      this.promotionDriver.requestPromotionJavaSave(newOrder?.id, true)
+      Boolean cSaldo = false
+      OrderController.validaEntrega(StringUtils.trimToEmpty(newOrder?.bill),newOrder?.branch?.id?.toString(), true)
+      Boolean needJb = OrderController.creaJb(StringUtils.trimToEmpty(newOrder?.bill), cSaldo)
+      ItemController.updateLenteContacto( newOrder.id )
         if(isLc(newOrder)){
           OrderController.creaJbLc( newOrder.id )
         }
@@ -1333,87 +1426,91 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           advanceOnlyInventariable = false
         }
         if (StringUtils.isNotBlank(newOrder?.id)) {
-
-            Branch branch = Session.get(SessionItem.BRANCH) as Branch
-            OrderController.insertaAcuseAPAR(newOrder, branch)
-
-            Boolean montaje = false
-            List<OrderItem> items = newOrder?.items
-            Iterator iterator = items.iterator()
-            while (iterator.hasNext()) {
-                Item item = iterator.next().item
-                if (item?.name.trim().equals('MONTAJE')) {
-                    montaje = true
-                }
+          Branch branch = Session.get(SessionItem.BRANCH) as Branch
+          OrderController.insertaAcuseAPAR(newOrder, branch)
+          Boolean montaje = false
+          List<OrderItem> items = newOrder?.items
+          Iterator iterator = items.iterator()
+          while (iterator.hasNext()) {
+            Item item = iterator.next().item
+            if(StringUtils.trimToEmpty(item?.name).equals('MONTAJE')) {
+              montaje = true
             }
-            if (montaje == true) {
-                Boolean registroTmp = OrderController.revisaTmpservicios(newOrder?.id)
-                User u = Session.get(SessionItem.USER) as User
-                if (registroTmp == false) {
-                    CapturaSuyoDialog capturaSuyoDialog = new CapturaSuyoDialog(order, u,false)
-                    capturaSuyoDialog.show()
-                }
-
-                OrderController.printSuyo(newOrder,u)
+          }
+          if (montaje == true) {
+            Boolean registroTmp = OrderController.revisaTmpservicios(newOrder?.id)
+            User u = Session.get(SessionItem.USER) as User
+            if (registroTmp == false) {
+              CapturaSuyoDialog capturaSuyoDialog = new CapturaSuyoDialog(order, u,false)
+              capturaSuyoDialog.show()
             }
-            /*if( needJb ){
-                OrderController.creaJb(newOrder?.ticket.trim(), cSaldo)
-            }*/
-            CuponMv cuponMv = null
-            Boolean validClave = true
-            Boolean ensureApply = false
-            Boolean ffApply = false
-            Boolean hasC1 = false
-            for(int i=0;i<promotionList.size();i++){
-              if(promotionList.get(i) instanceof PromotionDiscount){
-                cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(promotionList.get(i).discountType.description) )
-                if( cuponMv == null ){
-                  String clave = OrderController.descuentoClavePoridFactura( order.id )
-                  cuponMv = OrderController.obtenerCuponMvByClave( StringUtils.trimToEmpty(clave) )
-                }
-                if( StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("Redencion de Seguro") ||
-                        (StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("DESCUENTO CUPON") &&
-                                StringUtils.trimToEmpty(promotionList.get(i).discountType.description).length() >= 11) ){
-                  ensureApply = true
-                }
-                if( cuponMv != null ){
-                  if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
-                    ffApply = true
-                  }
-                  break
-                } else if(!OrderController.generatesCoupon(promotionList.get(i).discountType.description)) {
-                  validClave = false
-                }
+            OrderController.printSuyo(newOrder,u)
+          }
+          CuponMvJava cuponMv = null
+          Boolean validClave = true
+          Boolean ensureApply = false
+          Boolean ffApply = false
+          Boolean hasC1 = false
+          for(int i=0;i<promotionList.size();i++){
+          if(promotionList.get(i) instanceof PromotionDiscount){
+            cuponMv = OrderController.obtenerCuponMvJavaByClave( StringUtils.trimToEmpty(promotionList.get(i).discountType.description) )
+            if( cuponMv == null ){
+              String clave = OrderController.descuentoClavePoridFactura( order.id )
+              cuponMv = OrderController.obtenerCuponMvJavaByClave( StringUtils.trimToEmpty(clave) )
+            }
+            if( StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("Redencion de Seguro") ||
+                    (StringUtils.trimToEmpty(promotionList.get(i).discountType.text).equalsIgnoreCase("DESCUENTO CUPON") &&
+                            StringUtils.trimToEmpty(promotionList.get(i).discountType.description).length() >= 11) ){
+              ensureApply = true
+            }
+            if( cuponMv != null ){
+              if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
+                ffApply = true
               }
+              break
+            } else if(!OrderController.generatesCoupon(promotionList.get(i).discountType.description)) {
+              validClave = false
             }
-
-            if( promotionList.size() <= 0 ){
-                validClave = true
-            }
-
-            if(validClave){
+          }
+          }
+          if( promotionList.size() <= 0 ){
+            validClave = true
+          }
+          if(validClave){
               for(Payment payment : newOrder.payments){
-                if( Registry.paymentsTypeNoCupon.contains( payment.paymentTypeId ) ){
-                  validClave = false
-                }
-                if( TAG_FORMA_PAGO_C1.equalsIgnoreCase( payment.paymentTypeId ) ){
-                  hasC1 = true
-                }
+                  if( Registry.paymentsTypeNoCupon.contains( payment.paymentTypeId ) ){
+                      validClave = false
+                  }
+                  if( TAG_FORMA_PAGO_C1.equalsIgnoreCase( payment.paymentTypeId ) ||
+                          TAG_FORMA_CARGO_EMP.equalsIgnoreCase( payment.paymentTypeId ) ||
+                          TAG_FORMA_CARGO_MVIS.equalsIgnoreCase( payment.paymentTypeId )){
+                      hasC1 = true
+                  }
+              }
+          }
+          if( cuponMv != null ){
+            for(IPromotionAvailable promo : promotionList){
+              if( promo instanceof PromotionDiscount ){
+                OrderController.updateCuponMvJavaByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
               }
             }
-
-            if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
-              if( cuponMv != null ){
+          }
+          if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
+            if( cuponMv != null ){
+              for(IPromotionAvailable promo : promotionList){
+                if( promo instanceof PromotionDiscount ){
+                  OrderController.updateCuponMvJavaByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
+                }
+              }
+              if( Registry.tirdthPairValid() ){
                 Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
-                OrderController.updateCuponMv( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
-                /*if( StringUtils.trimToEmpty(cuponMv.claveDescuento).startsWith("F") ){
-                  generatedCoupons( validClave, newOrder )
-                }*/
-              } else if( !ensureApply && !ffApply ){
-                generatedCoupons( validClave, newOrder )
+                OrderController.updateCuponMvJava( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
               }
+            } else if( !ensureApply && !ffApply ){
+              generatedCoupons( validClave, newOrder )
             }
-            if( !ensureApply && !ffApply ){
+          }
+          if( !ensureApply && !ffApply ){
               if( OrderController.insertSegKig && !hasC1 ){
                 Boolean hasLensKid = false
                 Boolean hasEnsureKid = false
@@ -1429,31 +1526,33 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 }
                 if( hasLensKid && !hasEnsureKid ){
                   itemSearch.text = "SEG"
-                  doItemSearch( true )
+                  doItemSearch( true, "" )
                   newOrder = OrderController.placeOrder(newOrder, vendedor, false)
                   OrderController.insertSegKig = false
                 }
               }
+          }
+          OrderController.printOrder(newOrder.id)
+          OrderController.printReuse( StringUtils.trimToEmpty(newOrder.id) )
+          if (ticketRx == true) {
+            OrderController.printRx(newOrder.id, false)
+            OrderController.fieldRX(newOrder.id)
+          }
+          reviewForTransfers(newOrder.id)
+          promoAmount = BigDecimal.ZERO
+          lblAmountPromo.text = promoAmount
+          sb.doOutside {
+            try{
+              OrderController.runScriptBckpOrder( newOrder )
+            } catch ( Exception e ){
+              println e
             }
-            OrderController.printOrder(newOrder.id)
-            OrderController.printReuse( StringUtils.trimToEmpty(newOrder.id) )
-            if (ticketRx == true) {
-              OrderController.printRx(newOrder.id, false)
-              OrderController.fieldRX(newOrder.id)
-            }
-            reviewForTransfers(newOrder.id)
-            sb.doOutside {
-              try{
-                OrderController.runScriptBckpOrder( newOrder )
-              } catch ( Exception e ){
-                println e
-              }
-            }
-            // Flujo despues de imprimir nota de venta}
-            Order otherOrder = CustomerController.requestOrderByCustomer(this, customer)
-            if( otherOrder != null && otherOrder?.id != null ){
-              isPaying = true
-            }
+          }
+          // Flujo despues de imprimir nota de venta}
+          Order otherOrder = CustomerController.requestOrderByCustomer(this, customer)
+          if( otherOrder != null && otherOrder?.id != null ){
+            isPaying = true
+          }
         } else {
             sb.optionPane(
                     message: 'Ocurrio un error al registrar la venta, intentar nuevamente',
@@ -1528,23 +1627,31 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           .show()
               }
           } else {
+            Boolean canDelete = true
+              if( pPromotion instanceof PromotionDiscount){
+                if( StringUtils.trimToEmpty(pPromotion.discountType.description).equalsIgnoreCase("PREDAD") ){
+                  canDelete = false
+                }
+              }
+            if( canDelete ){
               this.promotionDriver.requestCancelPromotion(pPromotion)
 
               Payment payment = null
               for(Payment pay : order.payments){
-                  if( StringUtils.trimToEmpty(pay.paymentTypeId).equalsIgnoreCase(TAG_PAYMENT_TYPE_TRANSF) ){
-                      payment = pay
-                  }
+                if( StringUtils.trimToEmpty(pay.paymentTypeId).equalsIgnoreCase(TAG_PAYMENT_TYPE_TRANSF) ){
+                  payment = pay
+                }
               }
               if( payment != null ){
-                  List<CuponMv> lstCupons = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(order.id) )
-                  if( lstCupons.size() > 0 ){
-                      OrderController.existDiscountKey( StringUtils.trimToEmpty(lstCupons.first().claveDescuento),
-                              StringUtils.trimToEmpty(payment.paymentReference) )
-                  }
+                List<CuponMv> lstCupons = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(order.id) )
+                if( lstCupons.size() > 0 ){
+                  OrderController.existDiscountKey( StringUtils.trimToEmpty(lstCupons.first().claveDescuento),
+                      StringUtils.trimToEmpty(payment.paymentReference) )
+                }
               }
 
               OrderController.deleteCuponMv( order.id )
+            }
           }
           for(Payment payment : order.payments){
               OrderController.removePaymentFromOrder( order.id, payment )
@@ -1594,10 +1701,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     public void focusLost(FocusEvent e) {
-        if (itemSearch.text.length() > 0) {
-            doItemSearch( false )
-            itemSearch.requestFocus()
-        }
+      if (itemSearch.text.length() > 0 && !focusItem) {
+        doItemSearch( false, "focusLost" )
+        itemSearch.requestFocus()
+      } else if( focusItem ){
+        focusItem = false
+        //itemSearch.requestFocus()
+
+      }
     }
 
     private void fireRequestQuote() {
@@ -1662,15 +1773,28 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     void reset() {
-        order = new Order()
-        customer = CustomerController.findDefaultCustomer()
-        this.getPromotionDriver().init(this)
-        dioptra = new Dioptra()
-        antDioptra = new Dioptra()
-        order?.dioptra = null
-        doBindings()
-        operationType.setSelectedItem(OperationType.DEFAULT)
+      order = new Order()
+      customer = CustomerController.findDefaultCustomer()
+      this.getPromotionDriver().init(this)
+      dioptra = new Dioptra()
+      antDioptra = new Dioptra()
+      order?.dioptra = null
+      promotionList.clear()
+      doBindings()
+      operationType.setSelectedItem(OperationType.DEFAULT)
     }
+
+    void resetJava() {
+      order = new Order()
+      customer = CustomerController.findDefaultCustomerJava()
+      this.getPromotionDriver().init(this)
+      dioptra = new Dioptra()
+      antDioptra = new Dioptra()
+      order?.dioptra = null
+      doBindings()
+      operationType.setSelectedItem(OperationType.DEFAULT)
+    }
+
 
     void setCustomer(Customer pCustomer) {
         this.logger.debug(String.format('Assign Customer: %s', pCustomer.toString()))
@@ -1702,6 +1826,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void fireRequestContinue(DefaultTableModel itemsModel) {
+      Registry.getSolicitaGarbageColector()
       if( OrderController.validOrderNotCancelled( StringUtils.trimToEmpty(order?.id) ) ){
         int artCount = 0
         Boolean hasLc = false
@@ -1711,7 +1836,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
-                controlItem( result, true )
+              if( StringUtils.trimToEmpty(it.item.indexDiotra).length() <= 0 || it.item.indexDiotra.contains("@")){
+                controlItem( result, true, "" )
+              }
                 if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
                     hasDioptra = true
                 }
@@ -1723,6 +1850,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             hasLc = true
           }
         }
+        sb.doOutside {
+          Registry.getSolicitaGarbageColector()
+        }
         if( !hasDioptra ){
             order.dioptra = null
         }
@@ -1730,9 +1860,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         String dio = OrderController.codigoDioptra(dioptra)
         List<Item> itemLc = OrderController.existeLenteContacto(order)
         if( itemLc.size() > 0 ) {
-            for(Item it : itemLc){
-                validaLC( it, true )
-            }
+          for(Item it : itemLc){
+            validaLC( it, true )
+          }
         }
       Boolean warranty = true
       if( hasOnlyEnsure ){
@@ -1742,8 +1872,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( !hasOnlyEnsure ){
         if( true ){
-          NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-          warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
+          NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+          warranty = OrderController.validWarranty( OrderController.findOrderJavaByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, false )
         } else {
           warranty = true
         }
@@ -1752,13 +1882,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if( validLensesPack() ){
           rec = OrderController.findRx(order, customer)
           Boolean continueSave = true
-          if( hasLc && (rec == null || rec.id == null) ){
+          if( hasLc && (rec == null || rec.idReceta == null) ){
             Branch branch = Session.get(SessionItem.BRANCH) as Branch
             EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
             editRx.show()
             try {
               if( rec != null ){
-                OrderController.saveRxOrder(order?.id, this.rec.id)
+                OrderController.saveRxOrder(order?.id, this.rec.idReceta)
               } else {
                 continueSave = false
               }
@@ -1790,12 +1920,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       } else {
                           rec = OrderController.findRx(order, customer)
                           Order armOrder = OrderController.getOrder(order?.id)
-                          if (rec.id == null) {   //Receta Nueva
+                          if (rec.idReceta == null) {   //Receta Nueva
                               Branch branch = Session.get(SessionItem.BRANCH) as Branch
                               EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false)
                               editRx.show()
                               try {
-                                  OrderController.saveRxOrder(order?.id, rec.id)
+                                  OrderController.saveRxOrder(order?.id, rec.idReceta)
                                   ticketRx = true
                                   if (armOrder?.udf2.equals('')) {
                                       ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
@@ -1847,26 +1977,26 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
 
     private void flujoContinuar() {
-        if (isPaymentListEmpty()) {
-            sb.doLater {
-                if( !validLenses() ){
-                  order.dioptra = null
-                }
-                Order newOrder = OrderController.saveOrder(order)
-                CustomerController.updateCustomerInSite(this.customer.id)
-                this.promotionDriver.requestPromotionSave(newOrder?.id, false)
-                for(IPromotionAvailable promo : promotionList){
-                  if( promo instanceof PromotionDiscount ){
-                    OrderController.updateCuponMvByClave(order.id, StringUtils.trimToEmpty(promo.discountType.description))
-                  }
-                }
-                this.reset()
+      if (isPaymentListEmpty()) {
+        sb.doLater {
+          if( !validLenses() ){
+            order.dioptra = null
+          }
+          Order newOrder = OrderController.saveOrderJava(order)
+          CustomerController.updateCustomerInSite(this.customer.id)
+          this.promotionDriver.requestPromotionJavaSave(newOrder?.id, false)
+          for(IPromotionAvailable promo : promotionList){
+            if( promo instanceof PromotionDiscount ){
+              OrderController.updateCuponMvByClave(order.id, StringUtils.trimToEmpty(promo.discountType.description))
             }
-        } else {
-            sb.doLater {
-                OrderController.notifyAlert(TXT_REQUEST_CONTINUE, TXT_PAYMENTS_PRESENT)
-            }
+          }
+          this.reset()
         }
+      } else {
+        sb.doLater {
+          OrderController.notifyAlert(TXT_REQUEST_CONTINUE, TXT_PAYMENTS_PRESENT)
+        }
+      }
     }
 
 
@@ -1893,7 +2023,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         for(OrderItem it : order.items){
             Item result = ItemController.findItemsById(it.item.id)
             if( result != null ){
-                controlItem( result, true )
+              if( StringUtils.trimToEmpty(it.item.indexDiotra).length() <= 0 || it.item.indexDiotra.contains("@")){
+                controlItem( result, true, "" )
+              }
                 if( result.indexDiotra != null && result.indexDiotra.trim().length() > 0 ){
                     hasDioptra = true
                 }
@@ -1924,8 +2056,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( !hasOnlyEnsure ){
         if( true ){
-          NotaVenta notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
-          warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.id, false )
+          NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+          warranty = OrderController.validWarranty( OrderController.findOrderByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, false )
         } else {
           warranty = true
         }
@@ -1934,13 +2066,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if( validLensesPack() ){
           Boolean continueSave = true
           rec = OrderController.findRx(order, customer)
-          if( hasLc && (rec == null || rec.id == null) ){
+          if( hasLc && (rec == null || rec.idReceta == null) ){
             Branch branch = Session.get(SessionItem.BRANCH) as Branch
             EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
             editRx.show()
             try {
               if( rec != null ){
-                OrderController.saveRxOrder(order?.id, this.rec.id)
+                OrderController.saveRxOrder(order?.id, this.rec.idReceta)
               } else {
                 continueSave = false
               }
@@ -1972,12 +2104,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       } else {
                           rec = OrderController.findRx(order, customer)
                           Order armOrder = OrderController.getOrder(order?.id)
-                          if (rec.id == null) {   //Receta Nueva
+                          if (rec.idReceta == null) {   //Receta Nueva
                               Branch branch = Session.get(SessionItem.BRANCH) as Branch
                               EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false)
                               editRx.show()
                               try {
-                                  OrderController.saveRxOrder(order?.id, rec.id)
+                                  OrderController.saveRxOrder(order?.id, rec.idReceta)
                                   ticketRx = true
                                   if (armOrder?.udf2.equals('')) {
                                       ArmRxDialog armazon = new ArmRxDialog(this, order, armazonString)
@@ -2171,7 +2303,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     for(OrderItem it : order.items){
       Item result = ItemController.findItemsById(it.item.id)
       if( result != null ){
-        controlItem( result, true )
+        controlItem( result, true, "" )
       }
     }
   }
@@ -2195,7 +2327,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           if(montoCupon.compareTo(BigDecimal.ZERO) > 0){
             String titulo = i == 0 ? "CUPON SEGUNDO PAR LC" : "CUPON TERCER PAR LC"
             Integer numCupon = i == 0 ? 2 : 3
-            CuponMv cuponMv = new CuponMv()
+            CuponMvJava cuponMv = new CuponMvJava()
             cuponMv.facturaDestino = ""
             cuponMv.facturaOrigen = order.id
             cuponMv.fechaAplicacion = null
@@ -2203,7 +2335,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             calendar.setTime(new Date());
             calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCupon)
             cuponMv.fechaVigencia = calendar.getTime()
-            cuponMv = OrderController.updateCuponMv( newOrder.id, "", montoCupon, numCupon, false )
+            cuponMv = OrderController.updateCuponMvJava( newOrder.id, "", montoCupon, numCupon, false )
             OrderController.printCuponTicket( cuponMv, titulo, montoCupon )
           }
         }
@@ -2259,7 +2391,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
   }
 
 
-  private Boolean appliedEnsure( Articulo articulo ){
+  private Boolean appliedEnsure( ArticulosJava articulo ){
     Boolean valid = false
     for(int i=0;i<promotionList.size();i++){
       if(promotionList.get(i) instanceof PromotionDiscount){
@@ -2274,11 +2406,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
 
 
-  private String ipCurrentMachine( ){
+  /*private String ipCurrentMachine( ){
     String line = ""
     String ip = ""
     try{
-          line = System.getenv("SSH_CLIENT");
+      line = System.getenv("SSH_CLIENT");
     } catch ( Exception e ) { println e }
 
     if( StringUtils.trimToEmpty(line).length() > 0 ){
@@ -2304,6 +2436,83 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
     }
     return ip
+  }*/
+
+
+
+  private void calculatedPromoAge( ){
+    promoAmount = BigDecimal.ZERO
+    Boolean promoApplied = promoApplied()
+    //BigDecimal promoAmount = BigDecimal.ZERO
+    /*for(IPromotionAvailable promo : promotionList){
+      if( promo.applied ){
+        promoApplied = true
+        promoAmount = promo.discountAmount
+      }
+    }
+    if( promoAmount.compareTo(BigDecimal.ZERO) <= 0  ){
+      for(OrderLinePromotion promo : order.deals){
+        promoApplied = true
+        promoAmount = promo.promotionItem.descuentoMonto
+      }
+    }*/
+    if( !promoApplied ){
+      promoAmount = OrderController.amountPromoAge( order.id )
+      discountAgeApplied = true
+    } else {
+      discountAgeApplied = false
+    }
+
+    lblAmountPromo.text = NumberFormat.getCurrencyInstance(Locale.US).format(promoAmount != null ? promoAmount : BigDecimal.ZERO)
+    String comments = ''
+    if( order.comments != null && order.comments != '' ){
+      comments = order.comments
+    }
+    Order tmp = OrderController.getOrder(order.id)
+    if (tmp?.id) {
+      if( comments.length() > 0 ){
+        tmp?.comments = comments
+      }
+      order = tmp
+    }
+  }
+
+
+  private Boolean promoApplied (){
+    Boolean applied = false
+    println "Monto promocion por EdadAntes : "+promoAmount
+    for(int i=0;i<promotionList.size();i++){
+      BigDecimal monto = promotionList.get(i).discountAmount
+      if(promotionList.get(i) instanceof PromotionAvailable){
+        if( promotionList.get(i).applied ){
+          applied= true
+          promoAmount = monto != null ? monto : BigDecimal.ZERO
+        }
+      } else if(promotionList.get(i) instanceof PromotionDiscount){
+        applied = true
+        promoAmount = monto != null ? monto : BigDecimal.ZERO
+      }
+    }
+
+    if( !applied  ){
+      for(int i = 0;i< order.deals.size();i++){
+        if( order.deals.get(i) instanceof OrderLinePromotion ){
+          applied = true
+          BigDecimal monto = order.deals.get(i).promotionItem.descuentoMonto
+          promoAmount = monto != null ? monto : BigDecimal.ZERO
+        } else if( order.deals.get(i) instanceof OrderDiscount ){
+          applied = true
+          BigDecimal monto = order.deals.get(i).getDescuento()
+          promoAmount = monto != null ? monto : BigDecimal.ZERO
+        }
+      }
+    }
+
+    if( !applied && Registry.genericCustomer.id != customer.id ){
+      applied = OrderController.canApplyDiscountAge( order )
+    }
+    println "Algo aplicado: "+applied
+    return applied
   }
 
 

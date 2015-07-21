@@ -3,6 +3,7 @@ package mx.lux.pos.ui.view.dialog
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.Pago
+import mx.lux.pos.ui.controller.AccessController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.controller.PaymentController
 import mx.lux.pos.ui.model.*
@@ -25,6 +26,7 @@ class PaymentDialog extends JDialog {
   private static Double ZERO_TOLERANCE = 0.005
   private static final String TAG_FORMA_PAGO_EFECTIVO = 'EFECTIVO'
   private static final String TAG_FORMA_PAGO_CUPON = 'CUPON'
+  private static final String TAG_FORMA_PAGO_FALTANTE_CARGO = 'FALTANTE CARGO'
   private static final String TAG_FORMA_PAGO_CUPON_C1 = 'C1'
 
   private SwingBuilder sb
@@ -57,6 +59,8 @@ class PaymentDialog extends JDialog {
   private ShowOrderPanel orderP
   private OrderPanel orderPanel
   private CuponMvView cuponMvView
+
+  private BigDecimal promoAmount = BigDecimal.ZERO
 
   private Boolean hasDiscount
 
@@ -95,12 +99,16 @@ class PaymentDialog extends JDialog {
       doBindings()
   }
 
-  PaymentDialog( Component parent, Order order, final Payment payment, CuponMvView cuponMvView, OrderPanel orderPanel, Boolean hasDiscount ) {
+  PaymentDialog( Component parent, Order order, final Payment payment, CuponMvView cuponMvView, OrderPanel orderPanel,
+                 Boolean hasDiscount, BigDecimal promoAmount, Boolean  discountAgeApplied) {
     this.order = order
     this.payment = payment
     this.orderPanel = orderPanel
     this.cuponMvView = cuponMvView
     this.hasDiscount = hasDiscount
+    if( discountAgeApplied ){
+      this.promoAmount = promoAmount
+    }
     sb = new SwingBuilder()
     defaultPaymentType = PaymentController.findDefaultPaymentType()
     paymentTypes = PaymentController.findActivePaymentTypes( cuponMvView.amount, order.id, order.customer.id )
@@ -233,6 +241,18 @@ class PaymentDialog extends JDialog {
           dispose()
         } else {
           tmpPayment.paymentTypeId = paymentType?.id
+          if( paymentType.description.contains(TAG_FORMA_PAGO_FALTANTE_CARGO) ){
+            User u = Session.get(SessionItem.USER) as User
+            Boolean isAudit = AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password))
+            if( !isAudit ){
+              AuthorizationAuditDialog authDialog = new AuthorizationAuditDialog(this, "Esta forma de pago requiere autorizaci\u00f3n")
+              authDialog.show()
+              if (!authDialog.authorized) {
+                OrderController.notifyAlert('Se requiere autorizacion para esta forma de pago', 'Se requiere autorizacion para esta forma de pago')
+                dispose()
+              }
+            }
+          }
           if ( StringUtils.isNotBlank( paymentType?.f1 ) ) {
             mediumLabel.visible = true
             mediumLabel.text = paymentType.f1
@@ -385,7 +405,7 @@ class PaymentDialog extends JDialog {
     NotEmptyVerifier notEmptyVerifier = new NotEmptyVerifier()
     IsSelectedVerifier isSelectedVerifier = new IsSelectedVerifier()
     if ( tmpPayment.amount > 0 ) {
-      Double diff = tmpPayment.amount.doubleValue() - order.due.doubleValue()
+      Double diff = tmpPayment.amount.doubleValue() - (order.due.subtract(promoAmount)).doubleValue()
       if ( diff < ZERO_TOLERANCE ) {
         if( PaymentController.findTypePaymentsDollar(tmpPayment?.paymentTypeId)){
           if(dollarsReceived.text != ''){
@@ -401,9 +421,9 @@ class PaymentDialog extends JDialog {
       } else {
           if( paymentType.selectedItem.equals(TAG_FORMA_PAGO_EFECTIVO) ){
               amount.text = order.due.toString()
-              BigDecimal cambio = tmpPayment.amount.subtract(order.due)
-              new ChangeDialog( cambio, tmpPayment.amount, order.due ).show()
-              tmpPayment.amount = order.due
+              BigDecimal cambio = tmpPayment.amount.subtract((order.due).subtract(promoAmount))
+              new ChangeDialog( cambio, tmpPayment.amount, order.due.subtract(promoAmount) ).show()
+              tmpPayment.amount = order.due.subtract(promoAmount)
               valid = true
           } else {
               messages.text = "- El pago debe ser menor al saldo pendiente"

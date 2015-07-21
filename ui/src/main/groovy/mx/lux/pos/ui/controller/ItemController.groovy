@@ -1,6 +1,14 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.querys.NotaVentaQuery
+import mx.lux.pos.java.querys.PedidoLcQuery
+import mx.lux.pos.java.repository.ModeloLcJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.PedidoLcDetJava
+import mx.lux.pos.java.repository.PedidoLcJava
+import mx.lux.pos.java.service.NotaVentaServiceJava
 import mx.lux.pos.model.Articulo
 import mx.lux.pos.model.Generico
 import mx.lux.pos.model.ModeloLc
@@ -9,8 +17,11 @@ import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.model.PedidoLc
 import mx.lux.pos.model.PedidoLcDet
 import mx.lux.pos.model.Precio
-import mx.lux.pos.model.QArticulo
+import mx.lux.pos.java.querys.MontoGarantiaQuery
+import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.MontoGarantiaJava
 import mx.lux.pos.service.ArticuloService
+import mx.lux.pos.java.service.ArticulosServiceJava
 import mx.lux.pos.service.NotaVentaService
 import mx.lux.pos.service.TicketService
 import mx.lux.pos.service.business.Registry
@@ -34,14 +45,18 @@ class ItemController {
   private static final String TAG_GENERICO_H = 'H'
   private static final String TAG_GEN_TIPO_C = 'C'
   private static ArticuloService articuloService
+  private static ArticulosServiceJava articulosServiceJava
   private static TicketService ticketService
   private static NotaVentaService notaVentaService
+  private static NotaVentaServiceJava notaVentaServiceJava
 
   @Autowired
   public ItemController( ArticuloService articuloService, TicketService ticketService, NotaVentaService notaVentaService ) {
     this.articuloService = articuloService
     this.ticketService = ticketService
     this.notaVentaService = notaVentaService
+    this.articulosServiceJava = new ArticulosServiceJava()
+    notaVentaServiceJava = new NotaVentaServiceJava()
   }
 
   static Item findItem( Integer id ) {
@@ -68,7 +83,7 @@ class ItemController {
   static List<Item> findItemsByQuery( final String query ) {
     log.debug( "buscando de articulos con query: $query" )
       if ( StringUtils.isNotBlank( query ) ) {
-      List<Articulo> items = findPartsByQuery( query )
+      List<ArticulosJava> items = findPartsJavaByQuery( query )
       if (items.size() > 0) {
         log.debug( "Items:: ${items.first()?.dump()} " )
         return items?.collect { Item.toItem( it ) }
@@ -78,60 +93,111 @@ class ItemController {
     return [ ]
   }
 
-  static List<Articulo> findPartsByQuery( final String query ) {
-    return findPartsByQuery( query, true )
+  static List<ArticulosJava> findPartsJavaByQuery( final String query ) {
+    return findPartsJavaByQuery( query, true )
   }
 
-  static List<Articulo> findPartsByQuery( final String query, Boolean incluyePrecio ) {
-    List<Articulo> items = [ ]
+  static List<ArticulosJava> findPartsJavaByQuery( final String query, Boolean incluyePrecio ) {
+    List<ArticulosJava> items = [ ]
     if ( StringUtils.isNotBlank( query ) ) {
-      /*if ( query.integer ) {
-        log.debug( "busqueda por articulo exacto ${query}" )
-        items.add( articuloService.obtenerArticulo( query.toInteger(), incluyePrecio ) )
-      } else {*/
-        def anyMatch = '*'
-        def colorMatch = ','
-        def typeMatch = '+'
-        if ( query.contains( anyMatch ) ) {
-          def tokens = query.tokenize( anyMatch )
-          def code = tokens?.first() ?: null
-            log.warn( "bien3" )
-            log.debug( "busqueda con codigo similar: ${code}" )
-
-          items = articuloService.listarArticulosPorCodigoSimilar( code, incluyePrecio ) ?: [ ]
-        } else {
-          def tokens = query.replaceAll( /[+|,]/, '|' ).tokenize( '|' )
-          def code = tokens?.first() ?: null
-          log.debug( "busqueda con codigo exacto: ${code}" )
-          items = articuloService.listarArticulosPorCodigo( code, incluyePrecio ) ?: [ ]
-        }
-        if ( query.contains( colorMatch ) ) {
-          String color = query.find( /\,(\w+)/ ) { m, c -> return c }
-          log.debug( "busqueda con color: ${color}" )
-          items = items.findAll { it?.codigoColor?.equalsIgnoreCase( color ) ||
+      def anyMatch = '*'
+      def colorMatch = ','
+      def typeMatch = '+'
+      if ( query.contains( anyMatch ) ) {
+        def tokens = query.tokenize( anyMatch )
+        def code = tokens?.first() ?: null
+        log.warn( "bien3" )
+        log.debug( "busqueda con codigo similar: ${code}" )
+        items = articulosServiceJava.listarArticulosPorCodigoSimilar( code, incluyePrecio ) ?: [ ]
+      } else {
+        def tokens = query.replaceAll( /[+|,]/, '|' ).tokenize( '|' )
+        def code = tokens?.first() ?: null
+        log.debug( "busqueda con codigo exacto: ${code}" )
+        items = articulosServiceJava.listarArticulosPorCodigo( code, incluyePrecio ) ?: [ ]
+      }
+      if ( query.contains( colorMatch ) ) {
+        String color = query.find( /\,(\w+)/ ) { m, c -> return c }
+        log.debug( "busqueda con color: ${color}" )
+        items = items.findAll { it?.colorCode?.equalsIgnoreCase( color ) ||
                   it?.idCb?.equalsIgnoreCase( color )}
+      }
+      if ( query.contains( typeMatch ) ) {
+        if( query.startsWith( typeMatch ) ){
+          String type = query.replace("+","")
+          log.debug( "busqueda con tipo: ${type}" )
+          items = [ ]
+          items = articulosServiceJava.obtenerListaArticulosPorIdGenerico( type )
+        } else if( query.startsWith( "D"+typeMatch ) ){
+          String type = query.replace("D+","")
+          log.debug( "busqueda con tipo: ${type}" )
+          items = [ ]
+          items = articulosServiceJava.obtenerListaArticulosPorDescripcion( type )
+        } else {
+          String type = query.find( /\+(\w+)/ ) { m, t -> return t }
+          log.debug( "busqueda con tipo: ${type}" )
+          items = items.findAll { it?.idGenerico?.equalsIgnoreCase( type ) }
         }
-        if ( query.contains( typeMatch ) ) {
-          if( query.startsWith( typeMatch ) ){
-            String type = query.replace("+","")
-            log.debug( "busqueda con tipo: ${type}" )
-            items = [ ]
-            items = articuloService.obtenerListaArticulosPorIdGenerico( type )
-          } else if( query.startsWith( "D"+typeMatch ) ){
-            String type = query.replace("D+","")
-            log.debug( "busqueda con tipo: ${type}" )
-            items = [ ]
-            items = articuloService.obtenerListaArticulosPorDescripcion( type )
-          } else {
-            String type = query.find( /\+(\w+)/ ) { m, t -> return t }
-            log.debug( "busqueda con tipo: ${type}" )
-            items = items.findAll { it?.idGenerico?.equalsIgnoreCase( type ) }
-          }
-        }
-      //}
+      }
     }
     return items
   }
+
+
+    static List<Articulo> findPartsByQuery( final String query ) {
+        return findPartsByQuery( query, true )
+    }
+
+    static List<Articulo> findPartsByQuery( final String query, Boolean incluyePrecio ) {
+        List<Articulo> items = [ ]
+        if ( StringUtils.isNotBlank( query ) ) {
+            /*if ( query.integer ) {
+              log.debug( "busqueda por articulo exacto ${query}" )
+              items.add( articuloService.obtenerArticulo( query.toInteger(), incluyePrecio ) )
+            } else {*/
+            def anyMatch = '*'
+            def colorMatch = ','
+            def typeMatch = '+'
+            if ( query.contains( anyMatch ) ) {
+                def tokens = query.tokenize( anyMatch )
+                def code = tokens?.first() ?: null
+                log.warn( "bien3" )
+                log.debug( "busqueda con codigo similar: ${code}" )
+
+                items = articuloService.listarArticulosPorCodigoSimilar( code, incluyePrecio ) ?: [ ]
+            } else {
+                def tokens = query.replaceAll( /[+|,]/, '|' ).tokenize( '|' )
+                def code = tokens?.first() ?: null
+                log.debug( "busqueda con codigo exacto: ${code}" )
+                items = articuloService.listarArticulosPorCodigo( code, incluyePrecio ) ?: [ ]
+            }
+            if ( query.contains( colorMatch ) ) {
+                String color = query.find( /\,(\w+)/ ) { m, c -> return c }
+                log.debug( "busqueda con color: ${color}" )
+                items = items.findAll { it?.codigoColor?.equalsIgnoreCase( color ) ||
+                        it?.idCb?.equalsIgnoreCase( color )}
+            }
+            if ( query.contains( typeMatch ) ) {
+                if( query.startsWith( typeMatch ) ){
+                    String type = query.replace("+","")
+                    log.debug( "busqueda con tipo: ${type}" )
+                    items = [ ]
+                    items = articuloService.obtenerListaArticulosPorIdGenerico( type )
+                } else if( query.startsWith( "D"+typeMatch ) ){
+                    String type = query.replace("D+","")
+                    log.debug( "busqueda con tipo: ${type}" )
+                    items = [ ]
+                    items = articuloService.obtenerListaArticulosPorDescripcion( type )
+                } else {
+                    String type = query.find( /\+(\w+)/ ) { m, t -> return t }
+                    log.debug( "busqueda con tipo: ${type}" )
+                    items = items.findAll { it?.idGenerico?.equalsIgnoreCase( type ) }
+                }
+            }
+            //}
+        }
+        return items
+    }
+
 
     static List<Item> findItemByArticleAndColor( String query, String color  ) {
         log.debug( "buscando de un articulo con query: $query" )
@@ -174,20 +240,21 @@ class ItemController {
   }
 
   static Boolean esInventariable( Integer idArticulo ){
-    Boolean esInventariable = articuloService.esInventariable( idArticulo )
+    Boolean esInventariable = articulosServiceJava.esInventariable( idArticulo )
     return esInventariable
   }
 
 
 
   static Item findItemsById( Integer idItem ) {
-      log.debug( "buscando de articulos con id: $idItem" )
-      Articulo items = articuloService.obtenerArticulo( idItem )
-        if (items != null) {
-            log.debug( "Item: ${items?.dump()} " )
-            return Item.toItem( items )
-        }
-      return [ ]
+    log.debug( "buscando de articulos con id: $idItem" )
+    //Articulo items = articuloService.obtenerArticulo( idItem )
+    ArticulosJava items = articulosServiceJava.obtenerArticulo( idItem )
+    if (items != null) {
+      log.debug( "Item: ${items?.dump()} " )
+      return Item.toItem( items )
+    }
+    return [ ]
   }
 
 
@@ -196,14 +263,19 @@ class ItemController {
     return articuloService.obtenerArticulo( id )
   }
 
+  static ArticulosJava findArticleJava( Integer id ) {
+    log.debug( "obteniendo articulo con id: ${id}" )
+    return ArticulosQuery.busquedaArticuloPorId( id )
+  }
+
   static Boolean esLenteContacto( Integer idArticulo ){
-    Boolean esLenteContacto = articuloService.esLenteContacto( idArticulo )
+    Boolean esLenteContacto = articulosServiceJava.esLenteContacto( idArticulo )
     return esLenteContacto
   }
 
   static ModelLc findLenteContacto( Integer idArticulo ){
-    ModeloLc model = articuloService.findLenteContacto( idArticulo )
-    if( model != null && model.id != null ){
+    ModeloLcJava model = articulosServiceJava.findLenteContacto( idArticulo )
+    if( model != null && model.idModelo != null ){
       return ModelLc.toModelLc( model )
     } else {
       return null
@@ -253,23 +325,23 @@ class ItemController {
 
     static Order saveRequest( String idOrder, String curva, String diametro, String esfera, String cilindro, String modelo,
                            String eje, String color, String quantity, Integer idCliente){
-    PedidoLc pedido = articuloService.buscaPedidoLc( idOrder )
+    PedidoLcJava pedido = articulosServiceJava.buscaPedidoLc( idOrder )
     if( pedido == null ){
-      pedido = new PedidoLc()
-      pedido.id = idOrder
+      pedido = new PedidoLcJava()
+      pedido.idPedido = idOrder
       //pedido.folio = respuesta de liga
       pedido.cliente = idCliente.toString()
       pedido.sucursal = Registry.currentSite
       pedido.fechaAlta = new Date()
-      articuloService.guardarPedidoLc( pedido )
+      PedidoLcQuery.savePedidoLc( pedido )
     }
 
     Integer cantidad = 0
     try{
       cantidad = NumberFormat.getInstance().parse( quantity )
     } catch ( NumberFormatException e ){ println e }
-    PedidoLcDet pedidoDet = new PedidoLcDet()
-    pedidoDet.id = idOrder
+    PedidoLcDetJava pedidoDet = new PedidoLcDetJava()
+    pedidoDet.idPedido = idOrder
     pedidoDet.curvaBase = curva
     pedidoDet.diametro = diametro
     pedidoDet.esfera = esfera
@@ -278,25 +350,25 @@ class ItemController {
     pedidoDet.eje = eje
     pedidoDet.color = StringUtils.trimToEmpty(color).equalsIgnoreCase("null") ? "" : StringUtils.trimToEmpty(color)
     pedidoDet.cantidad = cantidad
-    articuloService.guardarPedidoLcDet( pedidoDet )
+    PedidoLcQuery.savePedidoLcDet( pedidoDet )
 
-    pedido = articuloService.buscaPedidoLc(idOrder)
+    pedido = articulosServiceJava.buscaPedidoLc(idOrder)
     Integer quant = 0
-    for(PedidoLcDet pedLcDet : pedido.pedidoLcDets){
+    for(PedidoLcDetJava pedLcDet : pedido.pedidoLcDets){
       if(StringUtils.trimToEmpty(pedLcDet.modelo).equalsIgnoreCase(modelo)){
         quant = quant+pedLcDet.cantidad
       }
     }
-    NotaVenta nota = new NotaVenta()
+    NotaVentaJava nota = new NotaVentaJava()
     if( quant > 0 ){
-      nota = articuloService.actualizaCantidadLc( quant, modelo, idOrder )
+      nota = articulosServiceJava.actualizaCantidadLc( quant, modelo, idOrder )
     }
-    return Order.toOrder( nota != null ? nota : new NotaVenta() )
+    return Order.toOrder( nota != null ? nota : new NotaVentaJava() )
   }
 
     static void updateRequest( String idOrder, String curva, String diametro, String esfera, String cilindro, String modelo,
                               String eje, String color, String quantity, Integer idCliente, Integer idRegistroPedido){
-      PedidoLcDet pedidoLcDet = articuloService.buscaPedidoLcDet( idRegistroPedido )
+      PedidoLcDetJava pedidoLcDet = PedidoLcQuery.buscaPedidoLcDetPorId( idRegistroPedido )
       if( pedidoLcDet != null ){
         pedidoLcDet.curvaBase = curva
         pedidoLcDet.diametro = diametro
@@ -304,7 +376,7 @@ class ItemController {
         pedidoLcDet.cilindro = cilindro
         pedidoLcDet.eje = eje
         pedidoLcDet.color = color
-        articuloService.guardarPedidoLcDet( pedidoLcDet )
+        PedidoLcQuery.updatePedidoLcDet( pedidoLcDet )
       }
     }
 
@@ -315,20 +387,20 @@ class ItemController {
 
 
   static void updateLenteContacto( String idFactura ){
-    articuloService.updateLenteContacto( idFactura )
+    articulosServiceJava.updateLenteContacto( idFactura )
   }
 
 
 
-    static Boolean findLenteContactoStock( Integer idArticulo ){
-       Articulo articulo = articuloService.obtenerArticulo( idArticulo )
-        if( articulo != null ){
-            return (StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_H)
-            && StringUtils.trimToEmpty(articulo.tipo).equalsIgnoreCase(TAG_GEN_TIPO_C))
-        } else {
-            return null
-        }
+  static Boolean findLenteContactoStock( Integer idArticulo ){
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( idArticulo )
+    if( articulo != null ){
+      return (StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_H)
+      && StringUtils.trimToEmpty(articulo.tipo).equalsIgnoreCase(TAG_GEN_TIPO_C))
+    } else {
+      return null
     }
+  }
 
 
 
@@ -371,10 +443,28 @@ class ItemController {
   }
 
 
+  static BigDecimal warrantyValidJava( BigDecimal priceItem, Integer idWarranty ){
+    BigDecimal warrantyAmount = BigDecimal.ZERO
+    ArticulosJava warranty = articulosServiceJava.obtenerArticulo( idWarranty, true )
+    if( warranty != null ){
+      MontoGarantiaJava montoGarantia = MontoGarantiaQuery.buscaMontoGarantiaPorMontoGarantia( warranty.precio )
+      if( montoGarantia != null ){
+        if( montoGarantia.montoGarantia.compareTo(BigDecimal.ZERO) == 0 ){
+          warrantyAmount = new BigDecimal(100)
+        } else if(montoGarantia.montoMinimo.compareTo(priceItem) <= 0
+                && montoGarantia.montoMaximo.compareTo(priceItem) >= 0 ){
+          warrantyAmount = montoGarantia.montoGarantia
+        }
+      }
+    }
+    return warrantyAmount
+  }
+
+
   static void printWarranty( BigDecimal amount, String idItem, String typeWarranty, String idFactura, Boolean doubleEnsure ){
-    NotaVenta nota = ticketService.imprimeGarantia( amount, idItem, typeWarranty, idFactura, doubleEnsure )
+    NotaVentaJava nota = ticketService.imprimeGarantia( amount, idItem, typeWarranty, idFactura, doubleEnsure )
     if( nota != null ){
-      notaVentaService.saveOrder( nota )
+      NotaVentaQuery.updateNotaVenta( nota )
     }
   }
 

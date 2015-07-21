@@ -11,22 +11,18 @@ import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.NotaVentaService
 import mx.lux.pos.service.business.EliminarNotaVentaTask
 import mx.lux.pos.service.business.Registry
-import mx.lux.pos.service.io.PromotionsAdapter
-import mx.lux.pos.util.StringList
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.time.DateUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 import javax.annotation.Resource
-import java.sql.Timestamp
 import java.text.NumberFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
-import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 @Slf4j
@@ -1063,8 +1059,15 @@ class NotaVentaServiceImpl implements NotaVentaService {
                   }
               }
               if( montosCup == null ){
-                montosCup = montoCuponRepository.findOne( mc.generico.eq(det.articulo.idGenerico).
-                      and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) )
+                List<MontoCupon> lstMontosCup = montoCuponRepository.findAll( mc.generico.eq(det.articulo.idGenerico).
+                        and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) ) as List<MontoCupon>
+                if( lstMontosCup.size() > 0 ){
+                  for(MontoCupon monCup : lstMontosCup){
+                    if( StringUtils.trimToEmpty(monCup.tipo).length() <= 0 ){
+                      montosCup = monCup
+                    }
+                  }
+                }
                 if( montosCup != null && montosCup.cantidad < det.cantidadFac ){
                       montosCup = null
                 }

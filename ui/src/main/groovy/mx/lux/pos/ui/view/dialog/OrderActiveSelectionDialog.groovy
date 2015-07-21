@@ -2,8 +2,8 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
-import mx.lux.pos.model.ClienteProceso
-import mx.lux.pos.model.NotaVenta
+import mx.lux.pos.java.repository.ClientesProcesoJava
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.ui.model.OrderActive
 import mx.lux.pos.ui.resources.UI_Standards
 import org.slf4j.Logger
@@ -116,11 +116,11 @@ class OrderActiveSelectionDialog extends JDialog {
       return selection
   }
 
-  void setCustomerList( List<ClienteProceso> pCustomerList ) {
+  void setCustomerList( List<ClientesProcesoJava> pCustomerList ) {
     this.orderList.clear()
     SimpleDateFormat fecha = new SimpleDateFormat("dd/MM/yyyy")
-    for (ClienteProceso c : pCustomerList) {
-      for (NotaVenta o : c.notaVentas) {
+    for (ClientesProcesoJava c : pCustomerList) {
+      for (NotaVentaJava o : c.notaVentas) {
         String fechaFactura = fecha.format(o.fechaHoraFactura)
         String fechaActual = fecha.format(new Date())
         if (o.detalles.size() > 0 && fechaActual.trim().equalsIgnoreCase(fechaFactura)) {
@@ -135,7 +135,7 @@ class OrderActiveSelectionDialog extends JDialog {
     private def doSelectOrderClick = { MouseEvent ev ->
       if ( SwingUtilities.isLeftMouseButton( ev ) ) {
         OrderActive  selection = ev.source.selectedElement as OrderActive
-        if ( ev.clickCount == 2 && selection?.order.id ) {
+        if ( ev.clickCount == 2 && selection?.order.idFactura ) {
           onSelection()
         }
       }

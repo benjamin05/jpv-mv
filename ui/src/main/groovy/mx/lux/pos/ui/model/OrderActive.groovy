@@ -1,24 +1,24 @@
 package mx.lux.pos.ui.model
 
-import mx.lux.pos.model.Cliente
-import mx.lux.pos.model.DetalleNotaVenta
-import mx.lux.pos.model.NotaVenta
+import mx.lux.pos.java.repository.ClientesJava
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.NotaVentaJava
 import org.apache.commons.lang3.StringUtils
 
 class OrderActive implements Comparable<OrderActive> {
 
-  private NotaVenta order
-  private Cliente customer
-  OrderActive(NotaVenta pOrder, Cliente pCustomer) {
+  private NotaVentaJava order
+  private ClientesJava customer
+  OrderActive(NotaVentaJava pOrder, ClientesJava pCustomer) {
     this.order = pOrder
     this.customer = pCustomer
   }
 
-  NotaVenta getOrder() {
+  NotaVentaJava getOrder() {
     return this.order
   }
 
-  Cliente getCustomer() {
+  ClientesJava getCustomer() {
     return this.customer
   }
 
@@ -28,7 +28,7 @@ class OrderActive implements Comparable<OrderActive> {
 
   String getPartList() {
     StringBuffer sb = new StringBuffer()
-    for (DetalleNotaVenta orderLine : this.order.detalles) {
+    for (DetalleNotaVentaJava orderLine : this.order.detalles) {
       if (sb.length() > 0) {
         sb.append( ', ')
       }

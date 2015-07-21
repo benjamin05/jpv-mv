@@ -4,7 +4,7 @@ import groovy.beans.Bindable
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.Pago
-import org.apache.commons.lang3.math.NumberUtils
+import mx.lux.pos.java.repository.PagoJava
 
 import java.text.NumberFormat
 
@@ -74,5 +74,32 @@ class Payment {
       return payment
     }
     return null
+  }
+
+  static toPaymment( PagoJava pago ) {
+        if ( pago?.idPago ) {
+            Payment payment = new Payment(
+                    id: pago.idPago,
+                    order: pago.idFactura,
+                    paymentReference: pago.referenciaPago,
+                    codeReference: pago.refClave,
+                    username: pago.idEmpleado,
+                    paymentType: pago.eTipoPago?.descripcion,
+                    paymentTypeId: pago.idFPago,
+                    paymentTypeOri: pago.idFormaPago,
+                    terminal: pago.terminal?.descripcion,
+                    terminalId: pago.idTerm,
+                    plan: pago.plan?.descripcion,
+                    planId: pago.idPlan,
+                    issuerBankId: pago.idBancoEmi,
+                    factura: pago.factura,
+                    amount: pago.montoPago,
+                    refundable: pago.porDev,
+                    date: pago.fechaPago
+                    //pOrder: Order.toOrder(pago.notaVenta)
+            )
+            return payment
+        }
+        return null
   }
 }

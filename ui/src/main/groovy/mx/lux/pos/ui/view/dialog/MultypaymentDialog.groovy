@@ -849,7 +849,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
             println order.deals.first().descripcion
           }
           if( hasKidFrame && !hasEnsureKid && !hasC1 ){
-            List<Item> results = ItemController.findItemsByQuery("SEG")
+            List<Item> results = ItemController.findPartsJavaByQuery("SEG")
             if (results?.any()) {
               User user = Session.get(SessionItem.USER) as User
               String vendedor = user.username

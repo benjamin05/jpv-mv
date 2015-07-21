@@ -1,9 +1,8 @@
 package mx.lux.pos.ui.view.dialog;
 
-import mx.lux.pos.querys.JbQuery;
-import mx.lux.pos.repository.JbTrack;
-import mx.lux.pos.querys.JbTrackQuery;
-import mx.lux.pos.ui.model.Branch;
+import mx.lux.pos.java.querys.JbQuery;
+import mx.lux.pos.java.repository.JbTrack;
+import mx.lux.pos.java.querys.JbTrackQuery;
 import mx.lux.pos.ui.model.Session;
 import mx.lux.pos.ui.model.SessionItem;
 import mx.lux.pos.ui.model.User;
@@ -14,8 +13,6 @@ import org.dyno.visual.swing.layouts.GroupLayout;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.Frame;
-import java.awt.Dialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 

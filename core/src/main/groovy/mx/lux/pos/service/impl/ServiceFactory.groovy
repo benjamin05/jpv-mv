@@ -1,5 +1,7 @@
 package mx.lux.pos.service.impl
 
+import mx.lux.pos.java.service.ArticulosServiceJava
+import mx.lux.pos.java.service.InventarioServiceJava
 import mx.lux.pos.service.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -19,6 +21,8 @@ class ServiceFactory {
   private static MensajeService messages
   private static CotizacionService quotes
   private static ClienteService customers
+  private static InventarioServiceJava inventarioServiceJava
+  private static ArticulosServiceJava articulosServiceJava
 
   @Autowired
   ServiceFactory( ArticuloService pArticuloService, InventarioService pInventarioService,
@@ -39,6 +43,8 @@ class ServiceFactory {
     messages = pMensajeService
     quotes = pCotizacionService
     customers = pClienteService
+    inventarioServiceJava = new InventarioServiceJava();
+    articulosServiceJava = new ArticulosServiceJava()
   }
 
   static EmpleadoService getEmployeeCatalog( ) {
@@ -47,6 +53,14 @@ class ServiceFactory {
 
   static InventarioService getInventory( ) {
     return inventory
+  }
+
+  static InventarioServiceJava getInventoryJava( ) {
+    return inventarioServiceJava
+  }
+
+  static ArticulosServiceJava getPartsJava( ) {
+    return articulosServiceJava
   }
 
   static NotaVentaService getSalesOrders( ) {

@@ -1,5 +1,6 @@
 package mx.lux.pos.service.io
 
+import mx.lux.pos.java.repository.TransInvJava
 import mx.lux.pos.model.*
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.business.ResourceManager
@@ -177,6 +178,10 @@ class ShippingNoticeFile {
   }
 
   String write( TransInv pIssueTr ) {
+    return new InvTrFile().write( pIssueTr )
+  }
+
+  String write( TransInvJava pIssueTr ) {
     return new InvTrFile().write( pIssueTr )
   }
 

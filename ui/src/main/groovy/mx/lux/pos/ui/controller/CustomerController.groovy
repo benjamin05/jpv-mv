@@ -1,7 +1,13 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.service.ClienteServiceJava
+import mx.lux.pos.java.service.ContactoServiceJava
+import mx.lux.pos.java.service.NotaVentaServiceJava
 import mx.lux.pos.model.*
+import mx.lux.pos.java.querys.RecetaQuery
+import mx.lux.pos.java.repository.ClientesProcesoJava
+import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.service.*
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.impl.FormaContactoService
@@ -31,8 +37,11 @@ class CustomerController {
     private static SucursalService sucursalService
     private static PaisesService paisesService
     private static NotaVentaService notaService
+    private static NotaVentaServiceJava notaServiceJava
     private static ContactoService contactoService
+    private static ContactoServiceJava contactoServiceJava
     private static FormaContactoService formaContactoService
+    private static ClienteServiceJava clienteServiceJava
 
     @Autowired
     public CustomerController(
@@ -63,6 +72,9 @@ class CustomerController {
         this.notaService = notaService
         this.contactoService = contactoService
         this.formaContactoService = formaContactoService
+        clienteServiceJava = new ClienteServiceJava()
+        contactoServiceJava = new ContactoServiceJava()
+        notaServiceJava = new NotaVentaServiceJava()
     }
 
 
@@ -192,8 +204,13 @@ class CustomerController {
     }
 
     static Customer findDefaultCustomer() {
-        log.debug("obteniendo customer por default")
-        Customer.toCustomer(clienteService.obtenerClientePorDefecto())
+      log.debug("obteniendo customer por default")
+      Customer.toCustomer(clienteServiceJava.obtenerClientePorDefecto())
+    }
+
+    static Customer findDefaultCustomerJava() {
+      log.debug("obteniendo customer por default")
+      Customer.toCustomer(clienteServiceJava.obtenerClientePorDefecto())
     }
 
     static List<LinkedHashMap<String, Object>> findAllCustomersTitles() {
@@ -208,11 +225,11 @@ class CustomerController {
     }
 
     static List<String> findAllCustomersDomains() {
-        log.debug("obteniendo lista de dominios")
-        def results = clienteService.listarDominiosClientes()
-        results?.collect {
-            it?.nombre
-        }
+      log.debug("obteniendo lista de dominios")
+      def results = clienteServiceJava.listarDominiosClientes()
+      results?.collect {
+        it?.nombre
+      }
     }
 
 
@@ -309,50 +326,51 @@ class CustomerController {
     }
 
     static Order requestOrderByCustomer(CustomerListener pListener, Customer customer) {
-        Order order = Order.toOrder(notaService.obtenerSiguienteNotaVenta(customer?.id))
-        if (order == null) {
-            Integer nueva = JOptionPane.showConfirmDialog(null, "Nueva Venta", "¿Desea abrir una nueva venta?", JOptionPane.YES_NO_OPTION);
-            if (nueva == 0) {
-                pListener.reset()
-                pListener.disableUI()
-                pListener.operationTypeSelected = OperationType.EDIT_PAYING
-                pListener.setCustomer(customer)
-                pListener.enableUI()
-            } else {
-                pListener.reset()
-            }
+      Order order = Order.toOrder(notaServiceJava.obtenerSiguienteNotaVenta(customer?.id))
+      if (order == null) {
+        Integer nueva = JOptionPane.showConfirmDialog(null, "Nueva Venta", "¿Desea abrir una nueva venta?", JOptionPane.YES_NO_OPTION);
+        if (nueva == 0) {
+          pListener.reset()
+          pListener.disableUI()
+          pListener.operationTypeSelected = OperationType.EDIT_PAYING
+          pListener.setCustomer(customer)
+          pListener.enableUI()
         } else {
-            pListener.reset()
-            pListener.disableUI()
-            pListener.operationTypeSelected = OperationType.PAYING
-            pListener.setCustomer(customer)
-            pListener.setOrder(order)
-            pListener.setPromotion(order)
-            pListener.enableUI()
+          pListener.reset()
         }
-        return order
+      } else {
+        pListener.reset()
+        pListener.disableUI()
+        pListener.operationTypeSelected = OperationType.PAYING
+        pListener.setCustomer(customer)
+        pListener.setOrder(order)
+        pListener.setPromotion(order)
+        pListener.enableUI()
+      }
+      return order
     }
 
-    static void requestPayingCustomer(CustomerListener pListener) {
-        this.log.debug('Request Customer on Site ')
-        List<ClienteProceso> clientes = clienteService.obtenerClientesEnCaja(true)
-        OrderActiveSelectionDialog dialog = new OrderActiveSelectionDialog()
-        dialog.customerList = clientes
-        dialog.activate()
-        if (dialog.orderSelected != null) {
-            Order o = Order.toOrder(dialog.orderSelected.order)
-            Customer c = Customer.toCustomer(dialog.orderSelected.customer)
-            pListener.reset()
-            pListener.disableUI()
-            pListener.operationTypeSelected = OperationType.PAYING
-            pListener.setCustomer(c)
-            pListener.setOrder(o)
-            pListener.enableUI()
-            pListener.setPromotion(o)
-        } else {
-            pListener.operationTypeSelected = OperationType.DEFAULT
-        }
-        dialog.dispose()
+    static void requestPayingCustomer(CustomerListener pListener, OperationType type ) {
+      log.debug('Request Customer on Site ')
+      //List<ClienteProceso> clientes = clienteService.obtenerClientesEnCaja(true)
+      List<ClientesProcesoJava> clientes = clienteServiceJava.obtenerClientesEnCaja(true)
+      OrderActiveSelectionDialog dialog = new OrderActiveSelectionDialog()
+      dialog.customerList = clientes
+      dialog.activate()
+      if (dialog.orderSelected != null) {
+        Order o = Order.toOrder(dialog.orderSelected.order)
+        Customer c = Customer.toCustomer(dialog.orderSelected.customer)
+        pListener.resetJava()
+        pListener.disableUI()
+        pListener.operationTypeSelected = type//OperationType.PAYING
+        pListener.setCustomer(c)
+        pListener.setOrder(o)
+        pListener.setPromotion(o)
+        pListener.enableUI()
+      } else {
+        pListener.operationTypeSelected = OperationType.DEFAULT
+      }
+      dialog.dispose()
     }
 
 
@@ -385,12 +403,14 @@ class CustomerController {
     }
 
     static void updateCustomerInSite(Integer idCliente) {
-        clienteService.actualizarClienteEnProceso(idCliente)
+      //clienteService.actualizarClienteEnProceso(idCliente)
+      clienteServiceJava.actualizarClienteEnProceso( idCliente )
     }
 
     static List<Rx> findAllPrescriptions(Integer idCliente) {
         log.debug("obteniendo recetas")
-        def results = clienteService.obtenerRecetas(idCliente)
+        //def results = clienteService.obtenerRecetas(idCliente)
+        def results = RecetaQuery.buscaRecetasPorIdCliente(idCliente)
         results.collect {
             Rx.toRx(it)
         }
@@ -410,11 +430,11 @@ class CustomerController {
     }
 
 
-    public static Receta saveRx(Rx receta, String tipo) {
-        log.debug("salvando Receta")
-        Receta rec = new Receta()
-        if (receta?.id != null) {
-            rec.setId(receta.id)
+    public static RecetaJava saveRx(Rx receta, String tipo) {
+      log.debug("salvando Receta")
+      RecetaJava rec = new RecetaJava()
+      if (receta?.id != null) {
+            rec.setIdReceta(receta.id)
             rec.setExamen(receta.exam)
             rec.setFechaReceta(receta.rxDate)
             rec.setTipoOpt(receta.typeOpt)
@@ -424,7 +444,7 @@ class CustomerController {
             rec.setFechaMod(new Date())
             rec.setIdMod(receta.modId)
             rec.setIdSucursal(receta.idStore)
-            rec.setMaterial_arm(receta.materialArm)
+            rec.setMaterialArm(receta.materialArm)
             rec.setTratamientos(receta.treatment)
             rec.setUdf5(receta.udf5)
             rec.setUdf6(receta.udf6)
@@ -454,8 +474,9 @@ class CustomerController {
             rec.setDiCercaR(receta.diCercaR)
             rec.setAltOblR(receta.altOblR.trim())
             rec.setObservacionesR(receta.observacionesR)
-            rec = recetaService.guardarReceta(rec)
-        } else {
+            //rec = recetaService.guardarReceta(rec)
+        rec = RecetaQuery.saveOrUpdateRx( rec )
+      } else {
             Examen examen = examenService.obtenerExamenPorIdCliente(receta.idClient)
             if (examen != null) {
 
@@ -480,7 +501,7 @@ class CustomerController {
             rec.setFechaMod(new Date())
             rec.setIdMod('0')
             rec.setIdSucursal(receta.idStore)
-            rec.setMaterial_arm('')
+            rec.setMaterialArm('')
             rec.setTratamientos('')
             rec.setUdf5('')
             rec.setUdf6(receta.udf6 != null ? receta.udf6 : "")
@@ -508,9 +529,10 @@ class CustomerController {
             rec.setDiCercaR(receta.diCercaR)
             rec.setAltOblR(receta.altOblR.trim())
             rec.setObservacionesR(receta.observacionesR)
-            rec = recetaService.guardarReceta(rec)
-        }
-        return rec
+            //rec = recetaService.guardarReceta(rec)
+          rec = RecetaQuery.saveOrUpdateRx( rec )
+      }
+      return rec
     }
 
     private static SingleCustomerDialog customerDialog
@@ -616,11 +638,11 @@ class CustomerController {
 
 
     static List<String> findAllContactTypes() {
-        log.debug("obteniendo lista de nombres de los estados")
-        def results = contactoService.obtenerTiposContacto()
-        results.collect {
-            it.descripcion
-        }
+      log.debug("obteniendo lista de nombres de los estados")
+      def results = contactoServiceJava.obtenerTiposContacto()
+      results.collect {
+        it.descripcion
+      }
     }
 
     static List<Rx> findRxByCustomer(Integer idCliente) {
@@ -654,15 +676,16 @@ class CustomerController {
 
     static List<Rx> requestRxByCustomer(Integer idCliente) {
         List<Rx> lstRx = new ArrayList<>()
-        List<Receta> lstRexetas = recetaService.recetaCliente(idCliente)
-        Collections.sort(lstRexetas, new Comparator<Receta>() {
-            @Override
-            int compare(Receta o1, Receta o2) {
-                return o2.fechaReceta.compareTo(o1.fechaReceta)
-            }
+        //List<Receta> lstRexetas = recetaService.recetaCliente(idCliente)
+        List<RecetaJava> lstRexetas = RecetaQuery.buscaRecetasPorIdCliente(idCliente)
+        Collections.sort(lstRexetas, new Comparator<RecetaJava>() {
+          @Override
+          int compare(RecetaJava o1, RecetaJava o2) {
+            return o2.fechaReceta.compareTo(o1.fechaReceta)
+          }
         })
         log.debug("Total de Recetas = ${lstRexetas.size()}")
-        for (Receta rx : lstRexetas) {
+        for (RecetaJava rx : lstRexetas) {
             lstRx.add(Rx.toRx(rx))
         }
         return lstRx

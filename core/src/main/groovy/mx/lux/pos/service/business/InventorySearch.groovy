@@ -1,5 +1,8 @@
 package mx.lux.pos.service.business
 
+import mx.lux.pos.java.querys.TransInvDetQuery
+import mx.lux.pos.java.querys.TransInvQuery
+import mx.lux.pos.java.repository.TransInvJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.NotaVentaRepository
 import mx.lux.pos.repository.TipoTransInvRepository
@@ -45,6 +48,12 @@ class InventorySearch {
   static void loadDetails( List<TransInv> pMaster ) {
     for ( TransInv tr in pMaster ) {
       tr.setTrDet( trInvDetail.findByIdTipoTransAndFolio( tr.idTipoTrans, tr.folio ) )
+    }
+  }
+
+  static void loadDetailsJava( List<TransInvJava> pMaster ) {
+    for ( TransInvJava tr in pMaster ) {
+      tr.setTrDet( TransInvDetQuery.buscaTransInvDetPorIdTipoYFolio( tr.idTipoTrans, tr.folio ) )
     }
   }
 
@@ -130,6 +139,17 @@ class InventorySearch {
     List<TransInv> trList = trInvMaster.findByIdTipoTransAndFolio( pIdTipoTrans, pFolio )
     if ( trList.size() > 0 ) {
       loadDetails( trList )
+      tr = trList.get( 0 )
+    }
+    return tr
+  }
+
+
+  static TransInvJava obtenerTransaccionJava( String pIdTipoTrans, Integer pFolio ) {
+    TransInvJava tr = null
+    List<TransInvJava> trList = TransInvQuery.buscaTransInvPorTipoYFolio( pIdTipoTrans, pFolio )
+    if ( trList.size() > 0 ) {
+      loadDetailsJava( trList )
       tr = trList.get( 0 )
     }
     return tr

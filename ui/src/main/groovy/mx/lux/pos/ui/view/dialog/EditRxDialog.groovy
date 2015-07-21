@@ -3,7 +3,7 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
-import mx.lux.pos.model.Receta
+import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.model.Rx
 import mx.lux.pos.ui.model.UpperCaseDocument
@@ -32,7 +32,7 @@ class EditRxDialog extends JDialog{
 
     Rx receta
     private List<Rx> lstRecetas = new ArrayList<>()
-    private Receta rec
+    private RecetaJava rec
     private Integer idRx
     private Integer idCliente
     private Integer idSucursal
@@ -633,12 +633,12 @@ class EditRxDialog extends JDialog{
 
     private void doRxSave() {
       if ( dataRxValid && validDataRx() ) {
-            if(doOptSearch()){
-                String useGlass = cbUso.selectedItem.toString().trim()
-                println('UseGlass = ' + useGlass)
-                println('ItemUse = ' + itemUso)
+        if(doOptSearch()){
+          String useGlass = cbUso.selectedItem.toString().trim()
+          println('UseGlass = ' + useGlass)
+          println('ItemUse = ' + itemUso)
 
-                /*B*/ if (useGlass.equals(usoB[0])/*BIFOCAL*/) {
+          /*B*/ if (useGlass.equals(usoB[0])/*BIFOCAL*/) {
                     useGlass = 'BIFOCAL'
 
                     if ((itemUso != null) && (itemUso.trim().contains(useGlass))) {
@@ -649,7 +649,7 @@ class EditRxDialog extends JDialog{
                                 .show()
                     }
                     /*P*/
-                } else if (useGlass.equals(usoP[0])/*PROGRESIVO*/) {
+          } else if (useGlass.equals(usoP[0])/*PROGRESIVO*/) {
                     useGlass = 'PROGRESIVO'
 
                     if ((itemUso != null) && (itemUso.trim().contains(useGlass))) {
@@ -661,7 +661,7 @@ class EditRxDialog extends JDialog{
                     }
 
                     /*SV*/
-                } else if (useGlass.equals(usoM[0])/*LEJOS*/ || useGlass.equals(usoM[1])/*CERCA*/) {
+          } else if (useGlass.equals(usoM[0])/*LEJOS*/ || useGlass.equals(usoM[1])/*CERCA*/) {
                     useGlass = 'MONOFOCAL'
 
                     if ((itemUso != null) && (itemUso.trim().contains(useGlass))) {
@@ -671,9 +671,9 @@ class EditRxDialog extends JDialog{
                                 .createDialog(new JTextField(), "Error")
                                 .show()
                     }
-                }
-            }
-        } else {
+          }
+        }
+      } else {
           if( !dataRxValid ){
             sb.optionPane(message: "Debe ingresar empleado y folio:", optionType: JOptionPane.DEFAULT_OPTION)
                   .createDialog(new JTextField(), "Error")

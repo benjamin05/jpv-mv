@@ -1,5 +1,11 @@
 package mx.lux.pos.service.impl
 
+import mx.lux.pos.java.querys.AcusesQuery
+import mx.lux.pos.java.querys.NotaVentaQuery
+import mx.lux.pos.java.repository.AcusesJava
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
@@ -167,25 +173,24 @@ class IOServiceImpl implements IOService {
 
   @Transactional
   void logSalesNotification( String pIdFactura ) {
-    NotaVentaRepository orders = RepositoryFactory.orders
-    NotaVenta order = orders.findOne( pIdFactura )
+    NotaVentaJava order = NotaVentaQuery.busquedaNotaById( pIdFactura )
     if ( order != null ) {
-      logger.debug( String.format( 'Notify Sales[Order:%s  Date:%s  Amount:%,.2f', order.id,
+      logger.debug( String.format( 'Notify Sales[Order:%s  Date:%s  Amount:%,.2f', order.idFactura,
           CustomDateUtils.format( order.fechaHoraFactura ), order.ventaTotal ) )
       String strItemList = ''
-      for ( DetalleNotaVenta det : order.detalles ) {
-        strItemList += String.format( "%s,%s~", det?.articulo?.articulo?.trim(), det?.articulo?.codigoColor?.trim() )
+      for ( DetalleNotaVentaJava det : order.detalles ) {
+        strItemList += String.format( "%s,%s~", det?.articulo?.articulo?.trim(), det?.articulo?.colorCode?.trim() )
       }
       String strPaymentList = ''
-      for ( Pago p : order.pagos ) {
-        strPaymentList += StringUtils.trimToEmpty( p.idFPago ) + ',' + String.format( '%.2f', p.monto ) + '~'
+      for ( PagoJava p : order.pagos ) {
+        strPaymentList += StringUtils.trimToEmpty( p.idFPago ) + ',' + String.format( '%.2f', p.montoPago ) + '~'
       }
-      AcuseRepository acuses = RepositoryFactory.acknowledgements
-      Acuse acuse = new Acuse()
+      AcusesJava acuse = new AcusesJava()
       acuse.idTipo = TAG_ACK_SALES
+      acuse.fechaCarga = new Date()
       try {
-        acuse = acuses.saveAndFlush( acuse )
-        logger.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )
+        acuse = AcusesQuery.saveAcuses( acuse )
+        logger.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.idAcuse, acuse.idTipo, acuse.contenido ) )
       } catch ( Exception e ) {
         logger.error( e.getMessage() )
       }
@@ -193,16 +198,16 @@ class IOServiceImpl implements IOService {
       acuse.contenido = String.format( 'ImporteVal=%s|', String.format( '%.2f', order.ventaNeta ) )
       acuse.contenido += String.format( 'articulosVal=%s|', strItemList )
       acuse.contenido += String.format( 'fechaVal=%s|', CustomDateUtils.format(order.fechaHoraFactura, 'ddMMyyyy') )
-      acuse.contenido += String.format( 'id_acuseVal=%s|', String.format( '%d', acuse.id ) )
+      acuse.contenido += String.format( 'id_acuseVal=%s|', String.format( '%d', acuse.idAcuse ) )
       acuse.contenido += String.format( 'id_clienteVal=%s|', String.format( '%d', order.idCliente ) )
       acuse.contenido += String.format( 'id_facturaVal=%s|', order.factura.trim() )
       acuse.contenido += String.format( 'id_sucVal=%s|', String.format( '%d', order.idSucursal ) )
-      acuse.contenido += String.format( 'no_soiVal=%s|', order.id.trim() )
+      acuse.contenido += String.format( 'no_soiVal=%s|', order.idFactura.trim() )
       acuse.contenido += String.format( 'pagosVal=%s|', strPaymentList )
       acuse.fechaCarga = new Date()
       try {
-        acuse = acuses.saveAndFlush( acuse )
-        logger.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )
+        acuse = AcusesQuery.saveAcuses( acuse )
+        logger.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.idAcuse, acuse.idTipo, acuse.contenido ) )
       } catch ( Exception e ) {
         logger.error( e.getMessage() )
       }
@@ -303,14 +308,14 @@ class IOServiceImpl implements IOService {
 
 
   Remesas updateRemesa( String idTipoTrans ){
-      Remesas remesa = new Remesas()
-      TransInvRepository transactionRep = RepositoryFactory.inventoryMaster
-      TipoTransInvRepository tipoTransactionRep = RepositoryFactory.trTypes
-      QTipoTransInv tipoTrans = QTipoTransInv.tipoTransInv
-      TipoTransInv tipoTransInv = tipoTransactionRep.findOne( idTipoTrans )
-      QTransInv trans = QTransInv.transInv
-      TransInv transInv = transactionRep.findOne(trans.idTipoTrans.eq(idTipoTrans).and(trans.folio.eq(tipoTransInv.ultimoFolio)))
-      if ( transInv != null ) {
+    Remesas remesa = new Remesas()
+    TransInvRepository transactionRep = RepositoryFactory.inventoryMaster
+    TipoTransInvRepository tipoTransactionRep = RepositoryFactory.trTypes
+    QTipoTransInv tipoTrans = QTipoTransInv.tipoTransInv
+    TipoTransInv tipoTransInv = tipoTransactionRep.findOne( idTipoTrans )
+    QTransInv trans = QTransInv.transInv
+    TransInv transInv = transactionRep.findOne(trans.idTipoTrans.eq(idTipoTrans).and(trans.folio.eq(tipoTransInv.ultimoFolio)))
+    if ( transInv != null ) {
         RemesasRepository repo = RepositoryFactory.remittanceRepository
         QRemesas rem = QRemesas.remesas
         remesa = repo.findOne( rem.clave.eq(transInv.referencia.trim()) )
@@ -319,21 +324,46 @@ class IOServiceImpl implements IOService {
           remesa.fecha_carga = new Date()
           remesa = repo.save( remesa )
           repo.flush()
-
-          Integer idSuc = Registry.currentSite
-          ParametroRepository repoParam = RepositoryFactory.registry
-          String rutaPorEnviar = Registry.archivePath.trim()
-          File file = new File( "${rutaPorEnviar}/4.${idSuc}.REM.${remesa.clave}.ACU" )
-          PrintStream strOut = new PrintStream( file )
-          StringBuffer sb = new StringBuffer()
-          sb.append("${idSuc}|REM|${remesa.docto}|")
-          sb.append( "\n" )
-          sb.append("${remesa.fecha_carga.format('dd/MM/yyyy')}|${remesa.fecha_carga.format('HH:mm')}|${remesa.docto.trim()}${remesa.letra.trim()}|${remesa.sistema}|")
-          strOut.println sb.toString()
-          strOut.close()
-          logger.debug(file.absolutePath)
+        } else {
+          String sistema = ''
+          TransInvDetalleRepository transInvDetalleRepository = RepositoryFactory.inventoryDetail
+          List<TransInvDetalle> detalles = transInvDetalleRepository.findByIdTipoTransAndFolio(StringUtils.trimToEmpty(transInv.idTipoTrans), transInv.folio) as List<TransInvDetalle>
+          for( TransInvDetalle det : detalles ){
+            ArticuloRepository articuloRepository = RepositoryFactory.partMaster
+            Articulo articulo = articuloRepository.findOne(det.sku)
+            if( articulo != null ){
+              sistema = StringUtils.trimToEmpty(articulo.idGenerico)
+            }
+          }
+          String letra = sistema.equalsIgnoreCase("A") ? "I" : "RAC"
+          remesa = new Remesas()
+          remesa.idTipoDocto = "RN"
+          remesa.idDocto = letra+StringUtils.trimToEmpty(transInv.referencia).substring(0,6)
+          remesa.docto = StringUtils.trimToEmpty(transInv.referencia).substring(0,6)
+          remesa.clave = StringUtils.trimToEmpty(transInv.referencia)
+          remesa.letra = letra
+          remesa.archivo = "4."+StringUtils.trimToEmpty(Registry.currentSite.toString())+".REM."+StringUtils.trimToEmpty(transInv.referencia)
+          remesa.articulos = detalles.size()
+          remesa.sistema = sistema
+          remesa.fecha_recibido = new Date()
+          remesa.estado = TAG_ESTADO_REM_CARGADA
+          remesa.fecha_carga = new Date()
+          remesa = repo.save( remesa )
+          repo.flush()
         }
-      }
+        Integer idSuc = Registry.currentSite
+        ParametroRepository repoParam = RepositoryFactory.registry
+        String rutaPorEnviar = Registry.archivePath.trim()
+        File file = new File( "${rutaPorEnviar}/4.${idSuc}.REM.${remesa.clave}.ACU" )
+        PrintStream strOut = new PrintStream( file )
+        StringBuffer sb = new StringBuffer()
+        sb.append("${idSuc}|REM|${remesa.docto}|")
+        sb.append( "\n" )
+        sb.append("${remesa.fecha_carga.format('dd/MM/yyyy')}|${remesa.fecha_carga.format('HH:mm')}|${remesa.docto.trim()}${remesa.letra.trim()}|${remesa.sistema}|")
+        strOut.println sb.toString()
+        strOut.close()
+        logger.debug(file.absolutePath)
+    }
     return remesa
   }
 
