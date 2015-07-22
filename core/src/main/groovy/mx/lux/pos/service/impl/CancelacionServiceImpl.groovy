@@ -157,7 +157,7 @@ class CancelacionServiceImpl implements CancelacionService {
         if (StringUtils.isNotBlank(idNotaVenta)) {
             NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(idNotaVenta)
             log.debug("status: ${notaVenta?.sFactura}")
-            boolean esActiva = StringUtils.isNotBlank(notaVenta?.sFactura) && !'T'.equalsIgnoreCase(notaVenta?.sFactura)
+            boolean esActiva = !'T'.equalsIgnoreCase(notaVenta?.sFactura)
             if (StringUtils.isNotBlank(notaVenta?.id) && esActiva) {
                 List<Pago> pagos = pagoRepository.findByIdFactura(notaVenta.id)
                 pagos?.each { Pago pago ->

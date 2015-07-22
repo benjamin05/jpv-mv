@@ -317,6 +317,7 @@ public class NotaVentaServiceJava {
         notaVenta.setTipoNotaVenta("F");
         notaVenta.setTipoDescuento("N");
         notaVenta.setTipoEntrega("S");
+        notaVenta.setsFactura("N");
         notaVenta.setfExpideFactura( true );
         notaVenta.setFechaPrometida(notaVenta.getFechaPrometida() != null ? notaVenta.getFechaPrometida() : fecha);
         return registrarNotaVenta( notaVenta );
