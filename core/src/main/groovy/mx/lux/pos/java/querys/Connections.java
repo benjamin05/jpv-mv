@@ -40,13 +40,13 @@ public class Connections {
           if ( elementos.length >= 2 && elementos[0].equalsIgnoreCase("jdbc.url")) {
             database = String.format( "%s", elementos[ 1 ] );
           } else {
-            System.out.println( String.format("No se pudo leer el archivo database.properties") );
+            //System.out.println( String.format("No se pudo leer el archivo database.properties") );
           }
         } else {
           database = "jdbc:postgresql://localhost:5432/soi";
         }
       } catch ( Exception e ) {
-        System.out.println( String.format("No se pudo leer el archivo database.properties \n%s", e.getMessage()) );
+        //System.out.println( String.format("No se pudo leer el archivo database.properties \n%s", e.getMessage()) );
       }
         return database;
     }

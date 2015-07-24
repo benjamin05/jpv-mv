@@ -99,7 +99,7 @@ class AccessController {
     User user = Session.get( SessionItem.USER ) as User
     log.debug( "usuario en sesion: ${user?.username}" )
     if ( StringUtils.isNotBlank( user?.username ) ) {
-      Empleado empleado = empleadoService.obtenerEmpleado( user.username )
+      EmpleadoJava empleado = empleadoServiceJava.obtenerEmpleado( user.username )
       if ( isAuthorizer( empleado ) ) {
         log.info( "usuario autorizador, no requiere autorizacion" )
         return true
