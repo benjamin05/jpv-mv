@@ -211,8 +211,8 @@ class CancellationController {
     log.info( "imprimiendo cancelaciones a partir de orden id: ${orderId}" )
     if ( StringUtils.isNotBlank( orderId ) ) {
       List<NotaVentaJava> results = cancelacionServiceJava.listarNotasVentaOrigenDeNotaVenta( orderId )
-      results?.each { NotaVenta tmp ->
-        ticketService.imprimeCancelacion( tmp?.id )
+      results?.each { NotaVentaJava tmp ->
+        ticketService.imprimeCancelacion( tmp?.idFactura )
       }
       Boolean isReuso = false
       NotaVentaJava nv = NotaVentaQuery.busquedaNotaById( orderId )
@@ -225,9 +225,9 @@ class CancellationController {
       }
       if(results.size() > 0 && isReuso){
         reuso = true
-        ticketService.imprimeRegresoMaterial( results.first().id )
-        ticketService.imprimeRecepcionMaterial( results.first().id )
-        ticketService.imprimeTicketReuso( results.first().id )
+        ticketService.imprimeRegresoMaterial( results.first().idFactura )
+        ticketService.imprimeRecepcionMaterial( results.first().idFactura )
+        ticketService.imprimeTicketReuso( results.first().idFactura )
       }
     } else {
       log.warn( 'no se imprimen cancelaciones a partir de orden, parametros invalidos' )

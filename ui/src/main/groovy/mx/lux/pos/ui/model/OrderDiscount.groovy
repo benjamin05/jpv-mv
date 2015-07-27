@@ -76,7 +76,11 @@ class OrderDiscount implements IPromotion {
   BigDecimal getPrecioLista( ) {
     BigDecimal listPrice = BigDecimal.ZERO
     if ( notaVenta != null ) {
-      listPrice = notaVenta.montoDescuento.add( notaVenta.ventaNeta )
+      if( notaVenta!= null && notaVenta.ventaNeta != null ){
+        listPrice = notaVenta.montoDescuento.add( notaVenta.ventaNeta )
+      } else if(notaVentaJ!= null && notaVentaJ.ventaNeta != null) {
+        listPrice = notaVentaJ.montoDescuento.add( notaVentaJ.ventaNeta )
+      }
     }
     return listPrice
   }
