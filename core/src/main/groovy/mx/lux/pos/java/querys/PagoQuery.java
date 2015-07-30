@@ -56,12 +56,12 @@ public class PagoQuery {
         if(StringUtils.trimToEmpty(idFactura).length() > 0){
           sql = String.format("SELECT * FROM pagos WHERE id_factura = '%s';", StringUtils.trimToEmpty(idFactura));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             PagoJava pagoJava = new PagoJava();
             pagoJava.setValores( rs );
             lstPagos.add(pagoJava);
           }
-          con.close();
         } else {
           System.out.println( "No existen la nota: "+idFactura );
         }

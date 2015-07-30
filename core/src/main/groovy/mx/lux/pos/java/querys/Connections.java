@@ -31,7 +31,7 @@ public class Connections {
         } else {
           url = new ClassPathResource( "database.properties" ).getURL();
         }
-        System.out.println( url != null );
+        //System.out.println( url != null );
         //System.out.println( "ruta del archivo de version: "+url.getPath() );
         if ( url != null ) {
           BufferedReader in = new BufferedReader( new InputStreamReader(url.openStream()) );
