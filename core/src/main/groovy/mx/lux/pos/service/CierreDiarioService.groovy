@@ -45,6 +45,8 @@ public interface CierreDiarioService {
 
   void correProcesoBodegas(  )
 
+  void generaArchivoClientes(  Date fechaCierre )
+
   List<Deposito> buscaDepositoPorFecha( Date fecha )
 
   void eliminaPedidosLcIncompletos( )

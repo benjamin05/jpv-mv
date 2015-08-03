@@ -171,6 +171,7 @@ class DailyCloseController {
       }
       thread.start()
       cierreDiarioService.deleteProcessClients()
+      cierreDiarioService.generaArchivoClientes( closeDate )
       cierreDiarioService.cargarDatosCierreDiario( closeDate )
       cierreDiarioService.cerrarCierreDiario( closeDate, observations )
       User user = Session.get( SessionItem.USER ) as User
