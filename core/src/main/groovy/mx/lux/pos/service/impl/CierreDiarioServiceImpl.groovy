@@ -39,6 +39,8 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
   private static final String TAG_TIPO_PAGO_CREDITO = 'TD'
   private static final String TAG_DEVOLUCION = 'd'
   private static final String TAG_COMANDO_BODEGA = 'jobsbod'
+  private static final String TAG_RUTA_ARCHIVO_CLIENTES = 'cd /usr/local/soi'
+  private static final String TAG_COMANDO_ARCHIVOS_CLIENTES = './corre_clientes.sh'
   private static final BigDecimal TAG_CERO = new BigDecimal(0.05)
 
   @Resource
@@ -1623,6 +1625,43 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
         }
       //}
     }
+
+
+  void generaArchivoClientes(  ){
+    log.debug( "generaArchivoClientes(  )" )
+    try{
+      File file = new File( 'archivosClientes.sh' )
+      if ( file.exists() ) {
+        file.delete()
+      }
+      PrintStream strOut = new PrintStream( file )
+      StringBuffer sb1 = new StringBuffer()
+      sb1.append(TAG_RUTA_ARCHIVO_CLIENTES)
+      sb1.append( "\n" )
+      sb1.append( TAG_COMANDO_ARCHIVOS_CLIENTES )
+      strOut.println sb1.toString()
+      strOut.close()
+      String s = null
+      file.setExecutable( true )
+      file.setReadable( true )
+      file.setWritable( true )
+      Runtime.getRuntime().exec("chmod 777 archivosClientes.sh");
+      Process p1 = Runtime.getRuntime().exec('./archivosClientes.sh');
+      BufferedReader stdInput = new BufferedReader(new InputStreamReader(p1.getInputStream()));
+      BufferedReader stdError = new BufferedReader(new InputStreamReader(p1.getErrorStream()));
+      while ((s = stdInput.readLine()) != null) {
+        println(s+"\n");
+      }
+      while ((s = stdError.readLine()) != null) {
+        println(s+"\n");
+      }
+      if ( file.exists() ) {
+        file.delete()
+      }
+    } catch ( Exception ex ){
+      println( ex.getMessage() )
+    }
+  }
 
 
   @Override
