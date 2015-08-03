@@ -251,14 +251,14 @@ class OrderController {
       if (StringUtils.isNotBlank(order?.id)) {
         order.items?.clear()
         //List<DetalleNotaVenta> detalles = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(orderId)
-        List<DetalleNotaVentaJava> detalles = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(orderId)
+        List<DetalleNotaVentaJava> detalles = notaVenta.detalles.size() > 0 ? notaVenta.detalles : DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(orderId)
         detalles?.each { DetalleNotaVentaJava tmp ->
           order.items?.add(OrderItem.toOrderItem(tmp))
           order.due
         }
         order.payments?.clear()
         //List<Pago> pagos = pagoService.listarPagosPorIdFactura(orderId)
-        List<PagoJava> pagos = PagoQuery.busquedaPagosPorIdFactura(orderId)
+        List<PagoJava> pagos = notaVenta.pagos.size() > 0 ? notaVenta.pagos : PagoQuery.busquedaPagosPorIdFactura(orderId)
         pagos?.each { PagoJava tmp ->
           Payment paymentTmp = Payment.toPaymment(tmp)
           if (tmp?.idBancoEmi?.integer) {
@@ -2856,7 +2856,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               warranty.typeEnsure = typeEnsure
               warranty.idOrder = addIdOrder ? nota.id : ""
               idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
-              println idOrderEnsured
+              //println idOrderEnsured
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2930,7 +2930,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               warranty.typeEnsure = typeEnsureO
               warranty.idOrder = addIdOrder ? nota.id : ""
               idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
-              println idOrderEnsured
+              //println idOrderEnsured
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2953,7 +2953,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               warranty.typeEnsure = typeEnsureF
               warranty.idOrder = addIdOrder ? nota.id : ""
               idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
-              println idOrderEnsured
+              //println idOrderEnsured
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -3112,7 +3112,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             warranty.typeEnsure = typeEnsure
             warranty.idOrder = addIdOrder ? nota.idFactura : ""
             idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
-            println idOrderEnsured
+            //println idOrderEnsured
             lstWarranty.add( warranty )
             lstIdGar.clear()
           } else {
@@ -3186,7 +3186,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             warranty.typeEnsure = typeEnsureO
             warranty.idOrder = addIdOrder ? nota.idFactura : ""
             idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
-            println idOrderEnsured
+            //println idOrderEnsured
             lstWarranty.add( warranty )
             lstIdGar.clear()
           } else {
@@ -3209,7 +3209,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             warranty.typeEnsure = typeEnsureF
             warranty.idOrder = addIdOrder ? nota.idFactura : ""
             idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
-            println idOrderEnsured
+            //println idOrderEnsured
             lstWarranty.add( warranty )
             lstIdGar.clear()
           } else {

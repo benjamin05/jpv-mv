@@ -348,6 +348,9 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     Boolean apl = false
     model.loadOrder( OrderController.findOrderByidOrder( StringUtils.trimToEmpty(order.id) ) )
     apl = model.setupOrderCouponDiscount(descuentoClave,discount )
+    if( StringUtils.trimToEmpty(model?.orderDiscount?.discountType?.description).equalsIgnoreCase("PREDAD") ){
+      model.orderDiscount.corporateKey = "PREDAD"
+    }
     PromotionCommit.writeOrder( model )
     if ( apl ) {
       this.updatePromotionList()

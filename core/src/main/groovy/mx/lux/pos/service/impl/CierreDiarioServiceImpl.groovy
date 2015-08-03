@@ -507,6 +507,7 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
             claveSunI = ''
         } else if( (Math.abs(montoDescuento) > VALOR_CERO) && (Math.abs(montoOrdenPromDet) <= VALOR_CERO) ){
             tipoDescuentoSunI = StringUtils.isBlank(descuentoTmp?.clave) ? 'G':'C'
+            tipoDescuentoSunI = StringUtils.trimToEmpty(descuentoTmp?.idTipoD).equalsIgnoreCase("AP") ? 'D': tipoDescuentoSunI
             claveSunI = StringUtils.trimToEmpty(descuentoTmp?.clave)
         } else if( (Math.abs(montoDescuento) <= VALOR_CERO) && (Math.abs(montoOrdenPromDet) > VALOR_CERO) ){
             tipoDescuentoSunI = 'P'

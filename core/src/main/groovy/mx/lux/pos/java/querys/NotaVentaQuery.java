@@ -34,11 +34,11 @@ public class NotaVentaQuery {
         String sql = "";
         sql = String.format("SELECT * FROM nota_venta WHERE id_factura = '%s';", StringUtils.trimToEmpty(idNotaVenta));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           notaVentaJava = new NotaVentaJava();
           notaVentaJava.setValores( rs );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

@@ -480,7 +480,7 @@ class InvTrController {
           //valid = true
         }
         if(valid){
-            if( partList.first().existencia <= 0 && pView.data.viewMode.trType.tipoMov.trim().equalsIgnoreCase('S') ){
+            if( partList.first().cantExistencia <= 0 && pView.data.viewMode.trType.tipoMov.trim().equalsIgnoreCase('S') ){
                 Integer question =JOptionPane.showConfirmDialog( new JDialog(), pView.panel.MSG_NO_STOCK, pView.panel.TXT_NO_STOCK,
                         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE )
                 if( question == 0){
