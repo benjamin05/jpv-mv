@@ -4,6 +4,7 @@ import groovy.beans.Bindable
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.Sucursal
+import mx.lux.pos.java.repository.SucursalesJava
 
 @Bindable
 @ToString
@@ -29,6 +30,24 @@ class Branch {
           city: sucursal.ciudad,
           telephoneNumbers: sucursal.telefonos,
           costCenter: sucursal.centroCostos
+      )
+      return branch
+    }
+    return null
+  }
+
+
+  static Branch toBranch( SucursalesJava sucursal ) {
+    if ( sucursal?.idSucursal ) {
+      Branch branch = new Branch(
+            id: sucursal.idSucursal,
+            name: sucursal.nombre,
+            address: sucursal.direccion,
+            colony: sucursal.colonia,
+            postalCode: sucursal.cp,
+            city: sucursal.ciudad,
+            telephoneNumbers: sucursal.telefonos,
+            costCenter: sucursal.centroCostos
       )
       return branch
     }

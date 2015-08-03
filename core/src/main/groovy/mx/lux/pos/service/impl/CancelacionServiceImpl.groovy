@@ -109,6 +109,7 @@ class CancelacionServiceImpl implements CancelacionService {
     private static final TAG_JB_CANCELADA = 'CN'
     private static final TAG_NOTA_FACTURA_CANCELACION = 'cancelacion'
     private static final TAG_DETALLES_CANCELACION = 'CAN_APART'
+    private static final TAG_VER_SP = 'ver_sp'
     private static final TAG_GENERICO_ARMAZON = 'A'
     private static final TAG_SURTE_PINO = 'P'
     private static final TAG_EFECTIVO = 'EF'
@@ -121,6 +122,12 @@ class CancelacionServiceImpl implements CancelacionService {
     List<CausaCancelacion> listarCausasCancelacion() {
         log.info("listando causas de cancelacion")
         List<CausaCancelacion> causas = causaCancelacionRepository.findByDescripcionNotNullOrderByDescripcionAsc()
+        Collections.sort( causas, new Comparator<CausaCancelacion>() {
+            @Override
+            int compare(CausaCancelacion o1, CausaCancelacion o2) {
+                return o1.id.compareTo(o2.id)
+            }
+        })
         log.debug("obtiene causas: ${causas*.id}")
         return causas?.any() ? causas : []
     }
@@ -150,7 +157,7 @@ class CancelacionServiceImpl implements CancelacionService {
         if (StringUtils.isNotBlank(idNotaVenta)) {
             NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(idNotaVenta)
             log.debug("status: ${notaVenta?.sFactura}")
-            boolean esActiva = StringUtils.isNotBlank(notaVenta?.sFactura) && !'T'.equalsIgnoreCase(notaVenta?.sFactura)
+            boolean esActiva = !'T'.equalsIgnoreCase(notaVenta?.sFactura)
             if (StringUtils.isNotBlank(notaVenta?.id) && esActiva) {
                 List<Pago> pagos = pagoRepository.findByIdFactura(notaVenta.id)
                 pagos?.each { Pago pago ->
@@ -175,21 +182,40 @@ class CancelacionServiceImpl implements CancelacionService {
                     log.warn("no se registra el movimiento, error al registrar devolucion")
                   }
                 } else if( transCupones ){
-                  if (!ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
-                    log.warn("no se registra el movimiento, error al registrar devolucion")
+                  if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
+                    log.warn("Se registro el movimiento de devolucion correctamente")
+
+                    if( seValidaSurtePino( notaVenta ) ){
+                      acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
+                      /*if( !validandoEnvioPino( notaVenta.id ) ){
+                        ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
+                      }*/
+                    }
                   }
                 } else {
                   Boolean transCanSameDay = Registry.transCanSameDay()
                   if( transCanSameDay ){
-                    if (!ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
-                      log.warn("no se registra el movimiento, error al registrar devolucion")
+                    if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
+                      log.warn("Se registro el movimiento de devolucion correctamente")
+                      if( seValidaSurtePino( notaVenta ) ){
+                        acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
+                        /*if( !validandoEnvioPino( notaVenta.id ) ){
+                          ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
+                        }*/
+                      }
                     }
                   } else {
                     String orderDate = notaVenta.fechaHoraFactura.format('dd-MM-yyyy')
                     String currentDate = new Date().format('dd-MM-yyyy')
                     if(currentDate.trim().equalsIgnoreCase(orderDate.trim())){
-                      if (!ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
-                        log.warn("no se registra el movimiento, error al registrar devolucion")
+                      if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
+                        log.warn("Se registro el movimiento de devolucion correctamente")
+                        if( seValidaSurtePino( notaVenta ) ){
+                          acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
+                          /*if( !validandoEnvioPino( notaVenta.id ) ){
+                            ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
+                          }*/
+                        }
                       }
                     }
                   }
@@ -517,14 +543,14 @@ class CancelacionServiceImpl implements CancelacionService {
 
       ExecutorService executor = Executors.newFixedThreadPool(1)
       String respuesta = ""
-      int timeoutSecs = 15
+      int timeoutSecs = 20
       final Future<?> future = executor.submit(new Runnable() {
           public void run() {
               try{
                   URL url = "${urlValida}?${contenido}".toURL()
-                  sleep(1000)
-                  url = "${urlValida}?${contenido}".toURL()
+                  println url.text
                   respuesta = url.text?.find( /<XX>\s*(.*)\s*<\/XX>/ ) {m, r -> return r}
+                  println "Respuesta pino surtido: "+respuesta
                   String[] valores = respuesta.split(/\|/)
                   if(valores.length >=2){
                       if(!valores[1].toString().trim().contains('0')){
@@ -543,7 +569,9 @@ class CancelacionServiceImpl implements CancelacionService {
             respuesta = ''
             log.warn("encountered problem while doing some work", e)
         }
-      println "Respuesta surtio pino: ${respuesta}"
+      if( StringUtils.trimToEmpty(respuesta).length() <= 0 ){
+        surtioPino = true
+      }
       return surtioPino
     }
 
@@ -639,7 +667,7 @@ class CancelacionServiceImpl implements CancelacionService {
         }
 
     Boolean acuseCanApart = false
-    for(DetalleNotaVenta det : notaVenta.detalles){
+    /*for(DetalleNotaVenta det : notaVenta.detalles){
       if( TAG_GENERICO_ARMAZON.equalsIgnoreCase(det.articulo.idGenerico.trim()) ){
         if( TAG_SURTE_PINO.equalsIgnoreCase(det.surte.trim()) ){
           if( det.notaVenta.fechaEntrega == null ){
@@ -664,7 +692,7 @@ class CancelacionServiceImpl implements CancelacionService {
           }
         }
       }
-    }
+    }*/
 
   }
 
@@ -1176,6 +1204,50 @@ class CancelacionServiceImpl implements CancelacionService {
 
 
 
+  Boolean seValidaSurtePino( NotaVenta notaVenta ){
+    Boolean valid = false
+    Boolean hasSP = false
+    Boolean noEnSucursal = false
+    Jb jb = jbRepository.findOne( StringUtils.trimToEmpty(notaVenta.factura) )
+    if( jb != null ){
+      if( !StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("RS") ){
+        noEnSucursal = true
+      }
+    } else {
+      noEnSucursal = true
+    }
+    for( DetalleNotaVenta det : notaVenta.detalles ){
+      if( StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P") ){
+              hasSP = true
+      }
+    }
+    if( hasSP && notaVenta.fechaEntrega == null && noEnSucursal ){
+      valid = true
+    }
+    return valid
+  }
+
+  @Override
+  void acuseVerSPAcuseVerSPAcuseVerSP( NotaVenta notaVenta ){
+    Acuse acuse = new Acuse()
+    acuse.idTipo = TAG_VER_SP
+    try {
+      acuse = acuseRepository.saveAndFlush( acuse )
+      log.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )
+    } catch ( Exception e ) {
+      log.error( e.getMessage() )
+    }
+    acuse.contenido = String.format( 'id_sucVal=%s|', String.format( '%d', notaVenta.idSucursal ) )
+    acuse.contenido += String.format( 'facturaVal=%s|', notaVenta.factura.trim() )
+    acuse.contenido += String.format( 'id_acuseVal=%s|', String.format( '%d', acuse.id ) )
+    acuse.fechaCarga = new Date()
+    try {
+      acuse = acuseRepository.saveAndFlush( acuse )
+      log.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )
+    } catch ( Exception e ) {
+      log.error( e.getMessage() )
+    }
+  }
 
   @Override
   Modificacion obtenerModificacion( String idNotaVenta ){

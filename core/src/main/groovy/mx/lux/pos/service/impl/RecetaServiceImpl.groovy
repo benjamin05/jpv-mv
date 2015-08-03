@@ -37,14 +37,14 @@ class RecetaServiceImpl implements RecetaService {
     @Override
   @Transactional
   Receta guardarReceta( Receta receta ) {
-     log.info( "guardando receta con folio: ${receta.folio}" )
-     try {
-      receta = recetaRepository.save( receta )
-      return receta
-     }catch(ex){
-         log.info(ex)
-        return null
-     }
+   log.info( "guardando receta con folio: ${receta.folio}" )
+   try {
+     receta = recetaRepository.save( receta )
+     return receta
+   } catch(ex){
+     log.info(ex)
+     return null
+   }
   }
 
     @Override

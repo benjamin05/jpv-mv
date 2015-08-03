@@ -163,4 +163,15 @@ interface NotaVentaService {
   Boolean validaClaveCrmWeb( String clave )
 
   void guardaAcuseClaveCrm( String idFactura )
+
+  Boolean cambiaIpCaja( String ip )
+
+  void borrarNotaVenta( String idFactura )
+
+  void agregarLogNotaAnulada( String idFactura, String idEmpleado )
+
+  Boolean validaNotaNoAnulada( String idFactura )
+
+  List<NotaVenta> obtenerNotasPorCancelar(  )
+
 }

@@ -1,5 +1,6 @@
 package mx.lux.pos.ui.controller
 
+import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.model.*
 import mx.lux.pos.service.ArticuloService
 import mx.lux.pos.service.InventarioService
@@ -91,6 +92,14 @@ class InvTrController {
 
   protected void dispatchPartsSelected( InvTrView pView, List<Articulo> pPartList ) {
     for ( Articulo part in pPartList ) {
+      pView.data.addPart( part )
+    }
+    pView.fireConsumePartSeed()
+    pView.fireRefreshUI()
+  }
+
+  protected void dispatchPartsJavaSelected( InvTrView pView, List<ArticulosJava> pPartList ) {
+    for ( ArticulosJava part in pPartList ) {
       pView.data.addPart( part )
     }
     pView.fireConsumePartSeed()

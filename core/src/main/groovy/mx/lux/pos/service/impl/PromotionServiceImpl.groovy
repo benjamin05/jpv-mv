@@ -52,7 +52,7 @@ class PromotionServiceImpl implements PromotionService {
 
   public void updateOrder( PromotionModel pModel, String pOrderNbr ) {
     log.debug( "Update Order: ${ pOrderNbr } " )
-    PromotionEngine.instance.updateOrder( pModel, pOrderNbr )
+    PromotionEngine.instance.updateOrderStr( pModel, pOrderNbr )
   }
 
   @Transactional
@@ -85,8 +85,14 @@ class PromotionServiceImpl implements PromotionService {
     return PromotionEngine.instance.applyOrderDiscount( pModel, pCorporateKey, pDiscountPercent )
   }
 
+  Boolean recoverOrderDiscount( PromotionModel pModel, String pCorporateKey, Double pDiscountPercent ) {
+    log.debug( String.format( "Request Order Discount (Key:%s, Discount:%,.1f%%)",
+            pCorporateKey, ( pDiscountPercent * 100.0 ) ) )
+    return PromotionEngine.instance.applyRecoverOrderDiscount( pModel, pCorporateKey, pDiscountPercent )
+  }
+
   void requestPersist( PromotionModel pModel, Boolean saveOrder ) {
-    log.debug( String.format( "Request Persist Promotions for Order:%s", pModel?.order?.orderNbr ) )
+    //log.debug( String.format( "Request Persist Promotions for Order:%s", pModel.order.orderNbr ) )
     PromotionCommit.writePromotions( pModel )
     PromotionCommit.writeDiscounts( pModel, saveOrder )
   }

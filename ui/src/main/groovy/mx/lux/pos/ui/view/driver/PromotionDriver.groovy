@@ -6,13 +6,13 @@ import mx.lux.pos.model.IPromotionAvailable
 import mx.lux.pos.model.PromotionAvailable
 import mx.lux.pos.model.PromotionDiscount
 import mx.lux.pos.model.PromotionModel
+import mx.lux.pos.java.service.PromotionServiceJava
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.model.Descuento
-import mx.lux.pos.ui.model.IPromotion
 import mx.lux.pos.service.PromotionService
 import mx.lux.pos.service.business.PromotionCommit
 import mx.lux.pos.ui.model.ICorporateKeyVerifier
@@ -100,6 +100,10 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     return ServiceManager.promotionService
   }
 
+  PromotionServiceJava getServiceJava( ) {
+    return ServiceManager.promotionServiceJava
+  }
+
   Boolean isDiscountEnabled( ) {
     boolean enabled = ( ( !this.model.isAnyApplied() )
         && ( !this.model.hasOrderDiscountApplied() )
@@ -143,17 +147,33 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   void requestCancelPromotion( IPromotionAvailable pPromotion ) {
     log.debug( String.format( "Cancel Promotion: %s", pPromotion.toString() ) )
     if ( pPromotion instanceof PromotionAvailable ) {
-      service.requestCancelPromotion( this.model, pPromotion )
+      serviceJava.requestCancelPromotion( this.model, pPromotion )
       this.updatePromotionList()
       view.refreshData()
     }
 
     if( pPromotion instanceof PromotionDiscount ){
-        service.requestCancelPromotionDiscount( this.model, pPromotion )
+        serviceJava.requestCancelPromotionDiscount( this.model, pPromotion )
         this.updatePromotionList()
         view.refreshData()
     }
   }
+
+
+  void requestCancelPromotionJava( IPromotionAvailable pPromotion ) {
+    log.debug( String.format( "Cancel Promotion: %s", pPromotion.toString() ) )
+    if ( pPromotion instanceof PromotionAvailable ) {
+      service.requestCancelPromotion( this.model, pPromotion )
+      this.updatePromotionList()
+      view.refreshData()
+    }
+    if( pPromotion instanceof PromotionDiscount ){
+            service.requestCancelPromotionDiscount( this.model, pPromotion )
+            this.updatePromotionList()
+            view.refreshData()
+    }
+  }
+
 
   void requestDiscount( ) {
     log.debug( "Discount Selected" )
@@ -182,13 +202,19 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   void requestCorporateDiscount( ) {
     log.debug( "Corporate Discount Selected" )
     DiscountDialog dlgDiscount = new DiscountDialog( true )
-    dlgDiscount.setOrderTotal( view.order.total )
+    BigDecimal total = BigDecimal.ZERO
+    for(OrderItem oi : view.order.items){
+      if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(oi.item.type))  ){
+        total = total.add( oi.item.price.multiply(oi.quantity) )
+      }
+    }
+    dlgDiscount.setOrderTotal( total )
     dlgDiscount.setVerifier( this )
     dlgDiscount.activate()
     if ( dlgDiscount.getDiscountSelected() ) {
       log.debug( String.format( "Corporate Discount Selected: %,.2f (%,.1f%%)", dlgDiscount.getDiscountAmt(),
           dlgDiscount.getDiscountPct() ) )
-      Double discount = dlgDiscount.getDiscountAmt() / view.order.total
+      Double discount = dlgDiscount.getDiscountAmt() / total
       if ( service.requestOrderDiscount( this.model, dlgDiscount.corporateKey, discount ) ) {
         log.debug( this.model.orderDiscount.toString() )
         this.updatePromotionList()
@@ -302,6 +328,42 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
   }
 
 
+  void addPromoDiscountAge( Order order, BigDecimal discountAmt ){
+    Double discountAmount = 0.00
+    DescuentoClave descuentoClave = new DescuentoClave()
+    descuentoClave.clave_descuento = "PrEdad"
+    descuentoClave.porcenaje_descuento = discountAmt.doubleValue()
+    descuentoClave.tipo = "AP"
+    descuentoClave.descripcion_descuento = "Promocion Edad"
+    descuentoClave.vigente = true
+    BigDecimal total = BigDecimal.ZERO
+    for(OrderItem det : order.items){
+      if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(det.item.type)) ){
+        total = total.add(det.item.price.multiply(det.quantity))
+      }
+    }
+    if(discountAmt > new Double(total)){
+      discountAmount = new Double(total)
+    } else {
+      discountAmount = discountAmt
+    }
+    Double discount = discountAmount / total
+    Boolean apl = false
+    model.loadOrder( OrderController.findOrderByidOrder( StringUtils.trimToEmpty(order.id) ) )
+    apl = model.setupOrderCouponDiscount(descuentoClave,discount )
+    if( StringUtils.trimToEmpty(model?.orderDiscount?.discountType?.description).equalsIgnoreCase("PREDAD") ){
+      model.orderDiscount.corporateKey = "PREDAD"
+    }
+    PromotionCommit.writeOrder( model )
+    if ( apl ) {
+      this.updatePromotionList()
+      view.refreshData()
+    } else {
+      println "No se pudo insertar el cupon en la nota ${order.id}"
+    }
+  }
+
+
     void addCouponDiscountTransf( Order order, BigDecimal discountAmt, String clave, BigDecimal montoCupon ){
         /*Double discountAmount = 0.00
         DescuentoClave descuentoClave = new DescuentoClave()
@@ -340,6 +402,12 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
     log.debug( "Request promotion persist" )
     service.saveTipoDescuento(idNotaVenta,this.model?.orderDiscount?.discountType?.idType)
     service.requestPersist( this.model, saveOrder )
+  }
+
+  void requestPromotionJavaSave(String idNotaVenta, Boolean saveOrder) {
+    log.debug( "Request promotion persist" )
+    serviceJava.saveTipoDescuento(idNotaVenta,this.model?.orderDiscount?.discountType?.idType)
+    serviceJava.requestPersist( this.model, saveOrder )
   }
 
   Boolean requestVerify( String pCorporateKey, Double pDiscountPct ) {
@@ -421,6 +489,10 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
           descripcionDesc = "Descuento Tienda"
         } else if(StringUtils.trimToEmpty(desc?.clave).contains("*") || StringUtils.trimToEmpty(desc?.clave?.replace("!","\\!")).contains("\\!")) {
             descripcionDesc = "Descuentos CRM"
+        } else if((StringUtils.trimToEmpty(desc?.clave).startsWith("L") || StringUtils.trimToEmpty(desc?.clave).startsWith("N") ||
+                StringUtils.trimToEmpty(desc?.clave).startsWith("S")) &&
+                (StringUtils.trimToEmpty(desc?.clave).length() == 10 || StringUtils.trimToEmpty(desc?.clave).length() == 11)) {
+            descripcionDesc = "Redencion de Seguro"
         }
         descuentoClave = new DescuentoClave()
         descuentoClave.clave_descuento = desc?.clave
@@ -431,15 +503,21 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       }
       apl = model.setupOrderCouponDiscount(descuentoClave,discount )
       PromotionCommit.writeOrder( model )
-      if ( service.requestOrderDiscount( this.model, "", discount ) ) {
+      String clave = ""
+      if( StringUtils.trimToEmpty(desc?.clave).length() > 0 && StringUtils.trimToEmpty(desc?.clave).isNumber() ){
+        clave = StringUtils.trimToEmpty(desc?.clave)
+      }
+      if ( clave.trim().length() > 0 ) {
+        if( service.recoverOrderDiscount( this.model, clave, discount ) ){
+          log.debug( this.model.orderDiscount.toString() )
+          this.updatePromotionList()
+          view.refreshData()
+        }
+      } /*else if ( service.recoverOrderDiscount( this.model, desc?.clave, discount ) ) {
         log.debug( this.model.orderDiscount.toString() )
         this.updatePromotionList()
         view.refreshData()
-      } else if ( service.requestOrderDiscount( this.model, desc?.clave, discount ) ) {
-        log.debug( this.model.orderDiscount.toString() )
-        this.updatePromotionList()
-        view.refreshData()
-      } else if ( apl  ) {
+      }*/ else if ( apl  ) {
         this.updatePromotionList()
         view.refreshData()
       }

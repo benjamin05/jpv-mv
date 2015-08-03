@@ -2,6 +2,8 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
+import mx.lux.pos.java.repository.FormaContactoJava
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.model.FormaContacto
 import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.ui.controller.ContactController
@@ -19,17 +21,17 @@ class ContactClientDialog extends JDialog {
   private SwingBuilder sb = new SwingBuilder()
   private Logger logger = LoggerFactory.getLogger( this.getClass() )
 
-  private List<FormaContacto> formasContacto
-  private FormaContacto selection
-  private NotaVenta notaVenta
+  private List<FormaContactoJava> formasContacto
+  private FormaContactoJava selection
+  private NotaVentaJava notaVenta
   private JTable tFormas
   private DefaultTableModel model
 
 
-    ContactClientDialog( NotaVenta notaVenta) {
+  ContactClientDialog( NotaVentaJava notaVenta) {
     this.notaVenta = notaVenta
     this.formasContacto = ContactController.findByIdCliente(notaVenta?.idCliente)
-        this.buildUI()
+    this.buildUI()
   }
 
   // Dialog Layout
@@ -74,17 +76,17 @@ class ContactClientDialog extends JDialog {
   }
 
   protected void onSelection( ) {
-      int index = tFormas.convertRowIndexToModel(tFormas.getSelectedRow())
-      if (tFormas.selectedRowCount > 0) {
-          this.logger.debug( String.format('Selected Row:%d', index) )
-          selection = this.formasContacto.getAt( index)
-          this.setVisible( false )
-      } else {
-          this.logger.debug( 'No Row Selected' )
-          sb.doLater {
-              this.onCancel()
-          }
+    int index = tFormas.convertRowIndexToModel(tFormas.getSelectedRow())
+    if (tFormas.selectedRowCount > 0) {
+      this.logger.debug( String.format('Selected Row:%d', index) )
+      selection = this.formasContacto.getAt( index)
+      this.setVisible( false )
+    } else {
+      this.logger.debug( 'No Row Selected' )
+      sb.doLater {
+        this.onCancel()
       }
+    }
   }
 
 
@@ -93,8 +95,8 @@ class ContactClientDialog extends JDialog {
         this.setVisible( true )
     }
 
-    FormaContacto getFormaContactoSeleted( ) {
-        return selection
+    FormaContactoJava getFormaContactoSeleted( ) {
+      return selection
     }
 
 

@@ -1,5 +1,6 @@
 package mx.lux.pos.ui.model
 
+import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.model.*
 import mx.lux.pos.service.InventarioService
 import mx.lux.pos.ui.model.adapter.InvTrFilter
@@ -102,6 +103,25 @@ class InvTr {
     this.removePartsQtyZero()
   }
 
+
+  void addPart( ArticulosJava pPart ) {
+    Integer qty = postQty
+    if ( InvTrViewMode.ADJUST.equals( viewMode ) ) {
+      if ( skuList.size()%2 != 0 ) {
+        qty = -1 * postQty
+      }
+    }
+    if ( InvTrViewMode.RETURN.equals( viewMode ) ) {
+      String[] part = partSeed.split(",")
+      if( part.length > 1 ){
+        qty = NumberFormat.getInstance().parse(part[1])
+      }
+    }
+    addPart( pPart, qty )
+    this.removePartsQtyZero()
+  }
+
+
   void addPart( Articulo pPart, Integer pQty ) {
     InvTrSku trLine = findPart( pPart )
     if ( trLine == null ) {
@@ -111,6 +131,18 @@ class InvTr {
     }
     dirty = true
   }
+
+
+  void addPart( ArticulosJava pPart, Integer pQty ) {
+    InvTrSku trLine = findPart( pPart )
+    if ( trLine == null ) {
+      skuList.add( new InvTrSku( this, pPart, pQty ) )
+    } else {
+      trLine.qty += pQty
+    }
+    dirty = true
+  }
+
 
   void clear( ) {
     qryInvTr = null
@@ -144,6 +176,17 @@ class InvTr {
     InvTrSku found = null
     for ( InvTrSku trLine in skuList ) {
       if ( trLine.sku.equals( pPart.id ) ) {
+        found = trLine
+        break
+      }
+    }
+    return found
+  }
+
+  InvTrSku findPart( ArticulosJava pPart ) {
+    InvTrSku found = null
+    for ( InvTrSku trLine in skuList ) {
+      if ( trLine.sku.equals( pPart.idArticulo ) ) {
         found = trLine
         break
       }

@@ -1,5 +1,9 @@
 package mx.lux.pos.service.io
 
+import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.TransInvDetJava
+import mx.lux.pos.java.repository.TransInvJava
 import mx.lux.pos.model.*
 import mx.lux.pos.service.business.ResourceManager
 import mx.lux.pos.service.impl.ServiceFactory
@@ -57,6 +61,21 @@ class InvTrFile {
     return sb.toString()
   }
 
+
+  String format( TransInvJava pInvTr ) {
+    StringBuffer sb = new StringBuffer()
+    sb.append( this.formatHeader( pInvTr ) )
+    int iLine = 0
+    for ( TransInvDetJava det : pInvTr.trDet ) {
+      iLine++
+      sb.append( "\n" )
+      sb.append( this.formatDetail( pInvTr, iLine, det ) )
+    }
+    return sb.toString()
+  }
+
+
+
   protected String formatDetail( TransInv pInvTr, Integer pLineNum, TransInvDetalle pTrDet ) {
     StringList det = new StringList()
     if(pInvTr.idTipoTrans.trim().equalsIgnoreCase(TAG_TRANS_SALIDA)){
@@ -95,6 +114,49 @@ class InvTrFile {
     det.add( "" )
     return det.toString( this.getDelimiter() )
   }
+
+
+
+  protected String formatDetail( TransInvJava pInvTr, Integer pLineNum, TransInvDetJava pTrDet ) {
+    StringList det = new StringList()
+    if(pInvTr.idTipoTrans.trim().equalsIgnoreCase(TAG_TRANS_SALIDA)){
+      ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( pTrDet.sku )
+      for ( DetFldIssue fld : DetFldIssue.values() ) {
+        switch ( fld ) {
+          case DetFldIssue.Color: det.add( articulo.colorCode.trim() != '' ? articulo.colorCode : '0000' ); break
+          case DetFldIssue.Remarks: det.add( pInvTr.observaciones.trim() != '' ? pInvTr.observaciones : '' ); break
+          case DetFldIssue.ModSend: det.add( 'ENTERO' ); break
+          case DetFldIssue.Sku: det.add( articulo.articulo ); break
+          case DetFldIssue.MovType: det.add( pTrDet.tipoMov ); break
+          case DetFldIssue.Qty: det.addInteger( pTrDet.cantidad ); break
+        }
+      }
+    } else if(pInvTr.idTipoTrans.trim().equalsIgnoreCase(TAG_TRANS_SALIDA_TIENDA)){
+      ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( pTrDet.sku )
+      for ( DetFldOutbound fld : DetFldOutbound.values() ) {
+        switch ( fld ) {
+          case DetFldOutbound.Sku: det.addInteger( pTrDet.sku ); break
+          case DetFldOutbound.Qty: det.addInteger( pTrDet.cantidad ); break
+        }
+      }
+    } else {
+      for ( DetFld fld : DetFld.values() ) {
+        switch ( fld ) {
+          case DetFld.Site: det.add( String.format( "%04d", pInvTr.idSucursal ) ); break
+          case DetFld.TrType: det.add( pInvTr.idTipoTrans ); break
+          case DetFld.TrNbr: det.addInteger( pInvTr.folio, "%08d" ); break
+          case DetFld.LineNum: det.addInteger( pLineNum ); break
+          case DetFld.Sku: det.addInteger( pTrDet.sku ); break
+          case DetFld.MovType: det.add( pTrDet.tipoMov ); break
+          case DetFld.Qty: det.addInteger( pTrDet.cantidad ); break
+        }
+      }
+    }
+    det.add( "" )
+    return det.toString( this.getDelimiter() )
+  }
+
+
 
   protected String formatHeader( TransInv pInvTr ) {
     StringList hdr = new StringList()
@@ -158,6 +220,58 @@ class InvTrFile {
     return hdr.toString( this.getDelimiter() )
   }
 
+
+  protected String formatHeader( TransInvJava pInvTr ) {
+    StringList hdr = new StringList()
+    if(pInvTr.idTipoTrans.trim().equalsIgnoreCase(TAG_TRANS_SALIDA)){
+      for ( HdrFld fld : HdrFld.values() ) {
+        switch ( fld ) {
+          case HdrFld.Folio: hdr.add( String.format( "%06d", pInvTr.folio ) ); break
+          case HdrFld.LineNum: hdr.addInteger( pInvTr.trDet.size() ); break
+        }
+      }
+    } else if(pInvTr.idTipoTrans.trim().equalsIgnoreCase(TAG_TRANS_SALIDA_TIENDA)){
+      for ( HdrFldOutbound fld : HdrFldOutbound.values() ) {
+        switch ( fld ) {
+          case HdrFldOutbound.Site: hdr.add( String.format( "%04d", pInvTr.idSucursal ) ); break
+          case HdrFldOutbound.Folio: hdr.add( String.format( "%06d", pInvTr.folio ) ); break
+          case HdrFldOutbound.Ref: hdr.add( pInvTr.referencia ); break
+          case HdrFldOutbound.Emp: hdr.add( pInvTr.idEmpleado ); break
+          case HdrFldOutbound.Siteto:
+            if ( pInvTr.idSucursalDestino != null ) {
+              hdr.add( String.format( "%04d", pInvTr.idSucursalDestino ) )
+            } else {
+              hdr.add( " " )
+            }
+          break
+        }
+      }
+    }else {
+      for ( HdrFld fld : HdrFld.values() ) {
+        switch ( fld ) {
+          case HdrFld.Site: hdr.add( String.format( "%04d", pInvTr.idSucursal ) ); break
+          case HdrFld.TrType: hdr.add( pInvTr.idTipoTrans ); break
+          case HdrFld.TrNbr: hdr.addInteger( pInvTr.folio, "%08d" ); break
+          case HdrFld.TrDate: hdr.addDate( pInvTr.fecha, FMT_TR_DATE ); break
+          case HdrFld.LineNum: hdr.addInteger( pInvTr.trDet.size() ); break
+          case HdrFld.Remarks: hdr.add( pInvTr.observaciones ); break
+          case HdrFld.Ref: hdr.add( pInvTr.referencia ); break
+          case HdrFld.SiteTo:
+            if ( pInvTr.idSucursalDestino != null ) {
+              hdr.add( String.format( "%04d", pInvTr.idSucursalDestino ) )
+            } else {
+              hdr.add( " " )
+            }
+          break
+        }
+      }
+    }
+    hdr.add( "" )
+    return hdr.toString( this.getDelimiter() )
+  }
+
+
+
   protected String getDelimiter( ) {
     if ( this.delimiter == null ) {
       this.delimiter = DELIMITER
@@ -181,11 +295,34 @@ class InvTrFile {
     return new File( absolutePath )
   }
 
+
+  protected File getInvTrFile( TransInvJava pInvTr ) {
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( pInvTr.trDet.first().sku )
+    String filename = ""
+    if( StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase("E") ){
+      filename = String.format( "%s.%d.%s.DE.%06d", 2.toString(), pInvTr.idSucursal, CustomDateUtils.format( pInvTr.fecha, "dd-MM-yyyy" ),
+              pInvTr.folio,)
+    } else {
+      filename = String.format( "%s.%d.%s.DA.%06d", 2.toString(), pInvTr.idSucursal, CustomDateUtils.format( pInvTr.fecha, "dd-MM-yyyy" ),
+                    pInvTr.folio,)
+    }
+    String absolutePath = String.format( "%s%s%s", this.location, File.separator, filename )
+    return new File( absolutePath )
+  }
+
+
   protected File getInvTrOutbondFile( TransInv pInvTr ) {
-        String filename = String.format( "%d.%s.%s.SPF", pInvTr.sucursal, StringUtils.trimToEmpty(pInvTr.folio.toString()),
+    String filename = String.format( "%d.%s.%s.SPF", pInvTr.sucursal, StringUtils.trimToEmpty(pInvTr.folio.toString()),
                 CustomDateUtils.format( pInvTr.fecha, "dd-MM-yyyy" ))
-        String absolutePath = String.format( "%s%s%s", this.location, File.separator, filename )
-        return new File( absolutePath )
+    String absolutePath = String.format( "%s%s%s", this.location, File.separator, filename )
+    return new File( absolutePath )
+  }
+
+  protected File getInvTrOutbondFile( TransInvJava pInvTr ) {
+    String filename = String.format( "%d.%s.%s.SPF", pInvTr.idSucursal, StringUtils.trimToEmpty(pInvTr.folio.toString()),
+                CustomDateUtils.format( pInvTr.fecha, "dd-MM-yyyy" ))
+    String absolutePath = String.format( "%s%s%s", this.location, File.separator, filename )
+    return new File( absolutePath )
   }
 
   protected String getLocation( ) {
@@ -259,6 +396,24 @@ class InvTrFile {
   }
 
   String write( TransInv pInvTr ) {
+    File file
+    if( TAG_TRANS_SALIDA_TIENDA.equalsIgnoreCase(StringUtils.trimToEmpty(pInvTr.idTipoTrans)) ){
+      file = this.getInvTrOutbondFile( pInvTr )
+      PrintStream strOut = new PrintStream( file )
+      strOut.println this.format( pInvTr )
+      strOut.close()
+    } else {
+      file = this.getInvTrFile( pInvTr )
+      PrintStream strOut = new PrintStream( file )
+      strOut.println this.format( pInvTr )
+      strOut.close()
+    }
+    logger.debug( String.format( 'Transaction written to: %s', file.absolutePath ) )
+    return file.absolutePath
+  }
+
+
+  String write( TransInvJava pInvTr ) {
     File file
     if( TAG_TRANS_SALIDA_TIENDA.equalsIgnoreCase(StringUtils.trimToEmpty(pInvTr.idTipoTrans)) ){
       file = this.getInvTrOutbondFile( pInvTr )

@@ -110,7 +110,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
     Boolean hasPaymentCupon = false
     hasPaymentCupon = OrderController.hasCuponMv( secondOrder.id )
     List<CuponMv> cuponMv = OrderController.obtenerCuponMvByTargetOrder( StringUtils.trimToEmpty(firstOrder.id) )
-    if( cuponMv.size() > 0 ){
+    if( cuponMv.size() > 0 || firstOrder.total.compareTo(BigDecimal.ZERO) <= 0 ){
       validClave = false
     }
 
@@ -355,8 +355,12 @@ class MultypaymentDialog extends JDialog implements FocusListener {
     }
     BigDecimal firstCupon = OrderController.getCuponAmount( firstOrder.id )
     BigDecimal secondCupon = OrderController.getCuponAmount( secondOrder.id )
-    if( couponLc && firstCupon.compareTo(BigDecimal.ZERO) > 0 ){
-      amountCupon = firstOrder.deals.size() <= 0 ? firstCupon : BigDecimal.ZERO
+    if( couponLc ){
+      if( firstCupon.compareTo(BigDecimal.ZERO) > 0 ){
+        amountCupon = firstOrder.deals.size() <= 0 ? firstCupon : BigDecimal.ZERO
+      } else {
+        amountCupon = BigDecimal.ZERO
+      }
     } else {
       amountCupon = validClave ? Math.max(firstCupon,secondCupon) : BigDecimal.ZERO
     }
@@ -845,7 +849,7 @@ class MultypaymentDialog extends JDialog implements FocusListener {
             println order.deals.first().descripcion
           }
           if( hasKidFrame && !hasEnsureKid && !hasC1 ){
-            List<Item> results = ItemController.findItemsByQuery("SEG")
+            List<Item> results = ItemController.findPartsJavaByQuery("SEG")
             if (results?.any()) {
               User user = Session.get(SessionItem.USER) as User
               String vendedor = user.username

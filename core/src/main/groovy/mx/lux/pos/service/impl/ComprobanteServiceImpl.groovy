@@ -143,7 +143,7 @@ class ComprobanteServiceImpl implements ComprobanteService {
         BigDecimal diferencia = total.subtract(suma)
         if( diferencia.compareTo(BigDecimal.ZERO) < BigDecimal.ZERO  ||
                 diferencia.compareTo(BigDecimal.ZERO) > BigDecimal.ZERO ){
-          comprobante.subtotal = comprobante.subtotal.add(diferencia)
+          comprobante.subtotal = (comprobante.subtotal.add(diferencia)).setScale(2, RoundingMode.HALF_EVEN)
         }
         BigDecimal montoSuma = BigDecimal.ZERO
         for(DetalleComprobante det : detalles){

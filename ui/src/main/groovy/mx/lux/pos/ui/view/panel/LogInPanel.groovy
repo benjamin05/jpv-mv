@@ -91,11 +91,11 @@ class LogInPanel extends JPanel implements KeyListener{
 
     @Override
     void keyReleased(KeyEvent e) {
-      if( !MainWindow.instance.openSoi ){
+      /*if( !MainWindow.instance.openSoi ){
         User user = AccessController.getUser( username.text )
         if( user != null ){
             password.text = user.password.trim()
         }
-      }
+      }*/
     }
 }
