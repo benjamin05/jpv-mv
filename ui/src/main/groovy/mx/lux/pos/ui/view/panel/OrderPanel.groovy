@@ -802,6 +802,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       }
                     }
                   }
+                  if( !hasDiscount && promoAgeActive ){
+                    if( promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
+                      hasDiscount = true
+                    }
+                  }
                     CuponMvView cuponMvView = OrderController.cuponValid( order.customer.id )
                     println "PromoAmount: "+promoAmount
                     new PaymentDialog(ev.component, order, null, cuponMvView, this, hasDiscount, promoAmount, discountAgeApplied).show()
