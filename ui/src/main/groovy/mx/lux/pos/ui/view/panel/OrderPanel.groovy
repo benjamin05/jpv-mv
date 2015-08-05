@@ -792,12 +792,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   Boolean hasDiscount = false
                   for(int i=0;i<promotionList.size();i++){
                     if(promotionList.get(i) instanceof PromotionAvailable){
-                      if( promotionList.get(i).applied ){
+                      if( promotionList.get(i).applied && promotionList.get(i).discountAmount > 0.00 ){
                         hasDiscount = true
                       }
                     } else if(promotionList.get(i) instanceof PromotionDiscount){
-                      println "Tiene descuento"
-                      hasDiscount = true
+                      if( promotionList.get(i).discountAmount > 0.00 ){
+                        println "Tiene descuento"
+                        hasDiscount = true
+                      }
                     }
                   }
                     CuponMvView cuponMvView = OrderController.cuponValid( order.customer.id )
