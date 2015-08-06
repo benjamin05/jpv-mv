@@ -22,11 +22,11 @@ public class SucursalesQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from sucursales where id_sucursal = '%d';", idSucursal);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           sucursalesJava = new SucursalesJava();
           sucursalesJava = sucursalesJava.mapeoSucursales( rs );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -42,10 +42,10 @@ public class SucursalesQuery {
         String sql = "";
         sql = String.format("SELECT esta_sucursal();");
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           sucursal = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(rs.getString("esta_sucursal"))).intValue();
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       } catch (ParseException e) {

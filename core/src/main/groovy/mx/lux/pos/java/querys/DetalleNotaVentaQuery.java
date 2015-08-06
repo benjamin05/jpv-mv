@@ -56,11 +56,11 @@ public class DetalleNotaVentaQuery {
           sql = String.format("SELECT * FROM detalle_nota_ven WHERE id_factura = '%s' AND id_articulo = %d;",
                   StringUtils.trimToEmpty(idFactura), idArticulo);
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             detalleNotaVentaJava = new DetalleNotaVentaJava();
             detalleNotaVentaJava.setValores( rs );
           }
-          con.close();
         } else {
                 System.out.println( "No existen la nota: "+idFactura );
         }

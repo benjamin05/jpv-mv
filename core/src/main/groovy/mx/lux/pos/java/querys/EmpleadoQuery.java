@@ -21,9 +21,9 @@ public class EmpleadoQuery {
             stmt = con.createStatement();
             String sql = String.format("select * from empleado where id_empleado = '%s';", StringUtils.trimToEmpty(idEmpleado));
             rs = stmt.executeQuery(sql);
+            con.close();
             rs.next();            
             emp = emp.mapeoEmpleado( rs );
-            con.close();
         } catch (SQLException err) {
             System.out.println( err );
         }
