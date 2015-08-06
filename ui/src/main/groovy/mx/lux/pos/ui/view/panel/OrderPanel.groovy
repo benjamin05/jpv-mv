@@ -369,7 +369,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         paymentsModel.fireTableDataChanged()
 
       if (order?.id != null) {
-        change.text = OrderController.requestEmployee(order?.id)
+        change.text = StringUtils.trimToEmpty(order.employee).length() > 0 ? StringUtils.trimToEmpty(order.employee) : OrderController.requestEmployee(order?.id)
       } else {
         change.text = ''
       }

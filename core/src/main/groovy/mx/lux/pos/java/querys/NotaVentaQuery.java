@@ -349,12 +349,12 @@ public class NotaVentaQuery {
                   "AND por100_descuento > 0 AND factura != '' AND factura is not null;",
                   idCliente, Utilities.toString(fechaStart, formatTimeStamp), Utilities.toString(fechaEnd, formatTimeStamp));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             notaVentaJava = new NotaVentaJava();
             notaVentaJava.setValores( rs );
             lstNotas.add( notaVentaJava );
           }
-          con.close();
         } catch (SQLException err) {
           System.out.println( err );
         }
