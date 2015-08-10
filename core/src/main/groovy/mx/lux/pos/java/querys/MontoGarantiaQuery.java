@@ -20,11 +20,11 @@ public class MontoGarantiaQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from monto_garantia where monto_garantia = '%f';", monto);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           montoGarantiaJava = new MontoGarantiaJava();
           montoGarantiaJava = montoGarantiaJava.mapeoMontoGarantia(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

@@ -25,12 +25,12 @@ public class ModificacionQuery {
         String sql = String.format("select * from mod where id_factura = '%s' AND tipo = '%s';",
                 StringUtils.trimToEmpty(idFactura), StringUtils.trimToEmpty(tipo));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           modificacionJava = new ModificacionJava();
           modificacionJava = modificacionJava.mapeoModificaion(rs);
           lstModificaciones.add(modificacionJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

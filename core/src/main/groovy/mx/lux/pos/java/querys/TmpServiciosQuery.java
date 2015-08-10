@@ -36,11 +36,11 @@ public class TmpServiciosQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM tmp_servicios where id_factura = '%s';", StringUtils.trimToEmpty(idFactura));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           tmpServiciosJava = new TmpServiciosJava();
           tmpServiciosJava = tmpServiciosJava.setValores( rs );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

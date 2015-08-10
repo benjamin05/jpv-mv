@@ -23,11 +23,11 @@ public class DescuentosClaveQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from descuentos_clave where clave_descuento = '%s';", StringUtils.trimToEmpty(clave));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           descuentoClave = new DescuentosClaveJava();
           descuentoClave = descuentoClave.mapeoDescuentosClave(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

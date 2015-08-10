@@ -26,12 +26,12 @@ public class LogSpQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM log_sp where fecha_respuesta is null ORDER BY fecha_llamada ASC;");
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           logSpJava = new LogSpJava();
           logSpJava = logSpJava.mapeoLogSp(rs);
           lstLog.add(logSpJava);
         }
-        con.close();
       } catch (SQLException err) {
             System.out.println( err );
       }

@@ -34,11 +34,11 @@ public class PlanJava {
     }
 
     public PlanJava mapeoPlan(ResultSet rs) throws SQLException{
-		PlanJava plan = new PlanJava();
-		plan.setIdPlan(rs.getString("id_plan"));
-		plan.setDescripcion(rs.getString("descripcion"));
-		plan.setIdBancoDep(rs.getString("id_banco_dep"));
-		return plan;
+		//PlanJava plan = new PlanJava();
+        this.setIdPlan(rs.getString("id_plan"));
+		this.setDescripcion(rs.getString("descripcion"));
+		this.setIdBancoDep(rs.getString("id_banco_dep"));
+		return this;
 	}
 	
 	

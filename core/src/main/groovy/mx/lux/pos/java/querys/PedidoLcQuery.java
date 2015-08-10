@@ -29,11 +29,11 @@ public class PedidoLcQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from pedido_lc where id_pedido = '%s';", StringUtils.trimToEmpty(idPedido));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           pedidoLcJava = new PedidoLcJava();
           pedidoLcJava = pedidoLcJava.mapeoPedidoLc(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       } catch (ParseException e) {
@@ -51,12 +51,12 @@ public class PedidoLcQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from pedido_lc_det where id_pedido = '%s';", StringUtils.trimToEmpty(idFactura));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           pedidoLcDetJava = new PedidoLcDetJava();
           pedidoLcDetJava = pedidoLcDetJava.mapeoPedidoLcDet(rs);
           lstPedidosLcDet.add(pedidoLcDetJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -71,11 +71,11 @@ public class PedidoLcQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from pedido_lc_det where num_reg = %d;", id);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           pedidoLcDetJava = new PedidoLcDetJava();
           pedidoLcDetJava = pedidoLcDetJava.mapeoPedidoLcDet(rs);
         }
-        con.close();
       } catch (SQLException err) {
             System.out.println( err );
       }
@@ -91,12 +91,12 @@ public class PedidoLcQuery {
         String sql = String.format("select * from pedido_lc_det where id_pedido = '%s' AND modelo = '%s';",
                 StringUtils.trimToEmpty(idFactura),StringUtils.trimToEmpty(articulo));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           pedidoLcDetJava = new PedidoLcDetJava();
           pedidoLcDetJava = pedidoLcDetJava.mapeoPedidoLcDet(rs);
           lstPedidosLcDet.add(pedidoLcDetJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

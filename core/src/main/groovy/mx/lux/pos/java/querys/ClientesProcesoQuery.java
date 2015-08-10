@@ -24,11 +24,11 @@ public class ClientesProcesoQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM clientes_proceso where id_cliente = %d;", idCliente);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           clientesProcesoJava = new ClientesProcesoJava();
           clientesProcesoJava = clientesProcesoJava.mapeoClientesProceso(rs);
         }
-        con.close();
       } catch (SQLException err) {
             System.out.println( err );
       }
@@ -74,12 +74,12 @@ public class ClientesProcesoQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM clientes_proceso where etapa = '%s';", StringUtils.trimToEmpty(etapa));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           clientesProcesoJava = new ClientesProcesoJava();
           clientesProcesoJava = clientesProcesoJava.mapeoClientesProceso(rs);
           lstClientes.add( clientesProcesoJava );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

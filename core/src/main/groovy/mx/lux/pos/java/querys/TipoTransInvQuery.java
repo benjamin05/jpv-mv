@@ -25,11 +25,11 @@ public class TipoTransInvQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from tipo_trans_inv where id_tipo_trans = '%s';", StringUtils.trimToEmpty(idTipoTrans));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           tipoTransInvJava = new TipoTransInvJava();
           tipoTransInvJava = tipoTransInvJava.mapeoTipoTransInv(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

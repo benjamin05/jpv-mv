@@ -112,11 +112,11 @@ public class DescuentosQuery {
             sql = "";
             sql = String.format("SELECT * FROM descuentos WHERE id = %d;", id.intValue());
             rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
               descuentos = new DescuentosJava();
               descuentos = descuentos.mapeoDescuentos( rs );
             }
-            con.close();
           }
         } catch (SQLException err) {
           System.out.println( err );

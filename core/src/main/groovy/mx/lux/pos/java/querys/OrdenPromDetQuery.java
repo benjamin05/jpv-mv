@@ -116,11 +116,11 @@ public class OrdenPromDetQuery {
                   sql = "";
                   sql = String.format("SELECT * FROM orden_prom WHERE id = %d;", id.intValue());
                   rs = stmt.executeQuery(sql);
+                  con.close();
                   while (rs.next()) {
                       ordenPromDet = new OrdenPromDetJava();
                       ordenPromDet = ordenPromDet.mapeoOrdenPromDet( rs );
                   }
-                  con.close();
               }
         } catch (SQLException err) {
           System.out.println( err );

@@ -26,13 +26,13 @@ public class RecetaQuery {
         if(idCliente != null){
           sql = String.format("SELECT * FROM receta WHERE id_cliente = %d;", idCliente);
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             RecetaJava recetaJava = new RecetaJava();
             recetaJava.setValores( rs );
             lstRecetas.add(recetaJava);
           }
-          rs.close();
-          con.close();
+          //rs.close();
         } else {
           System.out.println( "No existen el cliente: "+idCliente );
         }
@@ -97,20 +97,20 @@ public class RecetaQuery {
           sql = "";
           sql = String.format("SELECT last_value FROM receta_seq;");
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             id = rs.getBigDecimal("last_value");
           }
-          con.close();
           if( id.compareTo(BigDecimal.ZERO) > 0 ){
             con = Connections.doConnect();
             stmt = con.createStatement();
             sql = "";
             sql = String.format("SELECT * FROM receta WHERE id_receta = %d;", id.intValue());
             rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
               recetaJava = recetaJava.setValores( rs );
             }
-            con.close();
           }
         } catch (SQLException err) {
           System.out.println( err );
@@ -131,11 +131,11 @@ public class RecetaQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM receta where id_receta = %d;", idReceta);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           recetaJava = new RecetaJava();
           recetaJava = recetaJava.setValores(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       } catch (ParseException e) {

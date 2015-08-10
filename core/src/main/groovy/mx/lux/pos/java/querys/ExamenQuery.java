@@ -28,12 +28,12 @@ public class ExamenQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM examen where id_cliente = %d ORDER BY fecha_alta ASC;", idCliente);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           examenJava = new ExamenJava();
           examenJava = examenJava.mapeoParametro(rs);
           lstExamenes.add(examenJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -48,11 +48,11 @@ public class ExamenQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM examen where id_examen = %d ;", idExamen);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           examenJava = new ExamenJava();
           examenJava = examenJava.mapeoParametro(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -116,21 +116,21 @@ public class ExamenQuery {
           sql = "";
           sql = String.format("SELECT last_value FROM examen_seq;");
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             id = rs.getBigDecimal("last_value");
           }
-          con.close();
           if( id.compareTo(BigDecimal.ZERO) > 0 ){
             con = Connections.doConnect();
             stmt = con.createStatement();
             sql = "";
             sql = String.format("SELECT * FROM examen WHERE id_examen = %d;", id.intValue());
             rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
               examen = new ExamenJava();
               examen = examen.mapeoParametro(rs);
             }
-            con.close();
           }
         } catch (SQLException err) {
           System.out.println( err );

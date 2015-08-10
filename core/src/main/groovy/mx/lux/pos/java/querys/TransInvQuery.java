@@ -28,12 +28,12 @@ public class TransInvQuery {
         String sql = String.format("select * from trans_inv where id_tipo_trans = '%s' AND referencia = '%s';",
                 StringUtils.trimToEmpty(idTipoTrans), StringUtils.trimToEmpty(referencia));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           transInvJava = new TransInvJava();
           transInvJava = transInvJava.mapeoTransInv( rs );
           lstTransInv.add(transInvJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -51,12 +51,12 @@ public class TransInvQuery {
         String sql = String.format("select * from trans_inv where id_tipo_trans = '%s' AND folio = %d;",
                 StringUtils.trimToEmpty(idTipoTrans), folio);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           transInvJava = new TransInvJava();
           transInvJava = transInvJava.mapeoTransInv( rs );
           lstTransInv.add(transInvJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

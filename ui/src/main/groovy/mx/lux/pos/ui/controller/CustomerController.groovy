@@ -691,6 +691,23 @@ class CustomerController {
         return lstRx
     }
 
+    static List<Rx> requestRxByCustomerTmp(Integer idCliente) {
+        List<Rx> lstRx = new ArrayList<>()
+        List<Receta> lstRexetas = recetaService.recetaCliente(idCliente)
+        //List<RecetaJava> lstRexetas = RecetaQuery.buscaRecetasPorIdCliente(idCliente)
+        Collections.sort(lstRexetas, new Comparator<Receta>() {
+            @Override
+            int compare(Receta o1, Receta o2) {
+                return o2.fechaReceta.compareTo(o1.fechaReceta)
+            }
+        })
+        log.debug("Total de Recetas = ${lstRexetas.size()}")
+        for (Receta rx : lstRexetas) {
+            lstRx.add(Rx.toRx(rx))
+        }
+        return lstRx
+    }
+
 
     static void changeMainContact(Integer idCustomer, Integer formaContacto) {
         clienteService.saveMainFC(idCustomer, formaContacto)

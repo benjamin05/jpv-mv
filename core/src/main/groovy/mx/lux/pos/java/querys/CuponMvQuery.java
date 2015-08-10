@@ -28,12 +28,12 @@ public class CuponMvQuery {
         String sql = String.format("select * from cupon_mv where factura_origen = '%s' ORDER BY fecha_vigencia DESC;",
                 StringUtils.trimToEmpty(idFactura));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           cuponMvJava = new CuponMvJava();
           cuponMvJava = cuponMvJava.mapeoCuponMv(rs);
           lstCupones.add(cuponMvJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -50,12 +50,12 @@ public class CuponMvQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from cupon_mv where factura_destino = '%s';", StringUtils.trimToEmpty(idFactura));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
                 cuponMvJava = new CuponMvJava();
                 cuponMvJava = cuponMvJava.mapeoCuponMv(rs);
                 lstCupones.add(cuponMvJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -71,11 +71,11 @@ public class CuponMvQuery {
         String sql = String.format("select * from cupon_mv where factura_destino = '%s' AND factura_origen = '%s';",
                 StringUtils.trimToEmpty(idFacturaDestino), StringUtils.trimToEmpty(idFacturaOrigen));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           cuponMvJava = new CuponMvJava();
           cuponMvJava = cuponMvJava.mapeoCuponMv(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -116,11 +116,11 @@ public class CuponMvQuery {
       stmt = con.createStatement();
       String sql = String.format("select * from cupon_mv where clave_descuento = '%s';", StringUtils.trimToEmpty(clave));
       rs = stmt.executeQuery(sql);
+      con.close();
       while (rs.next()) {
         cuponMvJava = new CuponMvJava();
         cuponMvJava = cuponMvJava.mapeoCuponMv(rs);
       }
-      con.close();
     } catch (SQLException err) {
             System.out.println( err );
     }

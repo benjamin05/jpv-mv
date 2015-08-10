@@ -550,11 +550,11 @@ class EditRxDialog extends JDialog{
             if( editRx ){
               btnTraerReceta.visible = false
             }
-            if(CustomerController.requestRxByCustomer(idCliente).size() > 0){
-              btnTraerReceta.enabled = true
-            } else {
-              btnTraerReceta.enabled = false
-            }
+        }
+        if(CustomerController.requestRxByCustomer(idCliente).size() > 0){
+          btnTraerReceta.enabled = true
+        } else {
+          btnTraerReceta.enabled = false
         }
         //rxModel.fireTableDataChanged()
     }

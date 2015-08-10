@@ -28,12 +28,12 @@ public class FormaContactoQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM forma_contacto where id_cliente = %d;", idCliente);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           formaContactoJava = new FormaContactoJava();
           formaContactoJava = formaContactoJava.mapeoFormaContacto(rs);
           lstFormasContacto.add(formaContactoJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -48,11 +48,11 @@ public class FormaContactoQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM forma_contacto where rx = '%s';", StringUtils.trimToEmpty(rx));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           formaContactoJava = new FormaContactoJava();
           formaContactoJava = formaContactoJava.mapeoFormaContacto(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

@@ -20,11 +20,11 @@ public class TipoPagoQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from tipo_pago where id_pago = '%s';", StringUtils.trimToEmpty(idformaPago));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           tipoPagoJava = new TipoPagoJava();
           tipoPagoJava = tipoPagoJava.mapeoTipoPago(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

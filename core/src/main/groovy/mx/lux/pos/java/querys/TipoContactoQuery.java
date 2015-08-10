@@ -24,12 +24,12 @@ public class TipoContactoQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM tipo_contacto;");
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           tipoContactoJava = new TipoContactoJava();
           tipoContactoJava = tipoContactoJava.mapeoTipoContacto(rs);
           lstTiposContacto.add(tipoContactoJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -44,11 +44,11 @@ public class TipoContactoQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM tipo_contacto WHERE id_tipo_contacto = %d;", idTipoContacto);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           tipoContactoJava = new TipoContactoJava();
           tipoContactoJava = tipoContactoJava.mapeoTipoContacto(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

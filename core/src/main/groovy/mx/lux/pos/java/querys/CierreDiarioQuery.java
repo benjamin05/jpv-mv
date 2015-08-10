@@ -25,11 +25,11 @@ public class CierreDiarioQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM cierre_diario where fecha = %s;", Utilities.toString(fecha, "yyyy-MM-dd"));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           cierreDiarioJava = new CierreDiarioJava();
           cierreDiarioJava = cierreDiarioJava.mapeoCierreDiario(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

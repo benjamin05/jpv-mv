@@ -54,12 +54,14 @@ public class PagoQuery {
         stmt = con.createStatement();
         String sql = "";
         if(StringUtils.trimToEmpty(idFactura).length() > 0){
-          sql = String.format("SELECT * FROM pagos WHERE id_factura = '%s';", StringUtils.trimToEmpty(idFactura));
+          sql = String.format("SELECT * FROM pagos LEFT OUTER JOIN tipo_pago ON (tipo_pago.id_pago = pagos.id_f_pago)" +
+                  "LEFT OUTER JOIN pos ON (pos.id_terminal = pagos.id_term) LEFT OUTER JOIN plan ON (plan.id_plan = pagos.id_plan)" +
+                  "WHERE id_factura = '%s';", StringUtils.trimToEmpty(idFactura));
           rs = stmt.executeQuery(sql);
           con.close();
           while (rs.next()) {
             PagoJava pagoJava = new PagoJava();
-            pagoJava.setValores( rs );
+            pagoJava.setValoresTmp( rs );
             lstPagos.add(pagoJava);
           }
         } else {
