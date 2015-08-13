@@ -312,11 +312,11 @@ public class JbQuery {
       sql = String.format("INSERT INTO jb (rx,estado,id_viaje,caja,id_cliente,roto,emp_atendio,num_llamada," +
               "material,surte,saldo,jb_tipo,volver_llamar,fecha_promesa,cliente,obs_ext,ret_auto,tipo_venta,fecha_venta," +
               "id_grupo,externo) VALUES('%s','%s','%s','%s','%s',%d,'%s',%d,'%s','%s',%s,'%s',%s,%s,'%s','%s','%s','%s'," +
-              "%s,'%s','%s');", jbJava.getRx(), jbJava.getEstado(), jbJava.getIdViaje(), jbJava.getCaja(), jbJava.getIdCliente(),
+              "%s,%s,'%s');", jbJava.getRx(), jbJava.getEstado(), jbJava.getIdViaje(), jbJava.getCaja(), jbJava.getIdCliente(),
               jbJava.getRoto(), jbJava.getEmpAtendio(), jbJava.getNumLlamada(), jbJava.getMaterial(), jbJava.getSurte(),
               Utilities.toMoney(jbJava.getSaldo()), jbJava.getJbTipo(), jbJava.getVolverLlamar(), Utilities.toString(jbJava.getFechaPromesa(), formatDate),
               jbJava.getCliente(), jbJava.getObsExt(), jbJava.getRetAuto(), jbJava.getTipoVenta(),
-              Utilities.toString(jbJava.getFechaVenta(), formatTimeStamp), jbJava.getIdGrupo(), jbJava.getExterno());
+              Utilities.toString(jbJava.getFechaVenta(), formatTimeStamp), Utilities.toStringNull(jbJava.getIdGrupo()), jbJava.getExterno());
       db.insertQuery(sql);
       db.close();
       jb = buscarPorRx( jbJava.getRx() );

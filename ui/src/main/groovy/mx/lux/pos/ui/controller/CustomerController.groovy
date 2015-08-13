@@ -676,16 +676,16 @@ class CustomerController {
 
     static List<Rx> requestRxByCustomer(Integer idCliente) {
         List<Rx> lstRx = new ArrayList<>()
-        //List<Receta> lstRexetas = recetaService.recetaCliente(idCliente)
-        List<RecetaJava> lstRexetas = RecetaQuery.buscaRecetasPorIdCliente(idCliente)
-        Collections.sort(lstRexetas, new Comparator<RecetaJava>() {
+        List<Receta> lstRexetas = recetaService.recetaCliente(idCliente)
+        //List<RecetaJava> lstRexetas = RecetaQuery.buscaRecetasPorIdCliente(idCliente)
+        Collections.sort(lstRexetas, new Comparator<Receta>() {
           @Override
-          int compare(RecetaJava o1, RecetaJava o2) {
+          int compare(Receta o1, Receta o2) {
             return o2.fechaReceta.compareTo(o1.fechaReceta)
           }
         })
         log.debug("Total de Recetas = ${lstRexetas.size()}")
-        for (RecetaJava rx : lstRexetas) {
+        for (Receta rx : lstRexetas) {
             lstRx.add(Rx.toRx(rx))
         }
         return lstRx

@@ -64,6 +64,15 @@ public class Utilities {
   }
 
 
+  public static String toStringNull( String value ){
+    value = StringUtils.trimToNull(value);
+    if( value != null ){
+      value = "'"+StringUtils.trimToEmpty(value)+"'";
+    }
+    return  value;
+  }
+
+
   public static Integer trimtoNull( Integer amount ){
     Integer value = null;
     if( amount != null && amount > 0 ){
