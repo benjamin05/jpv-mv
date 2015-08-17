@@ -1879,7 +1879,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( !hasOnlyEnsure ){
         if( true ){
-          NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+          NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id)  )
           warranty = OrderController.validWarranty( OrderController.findOrderJavaByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, false )
         } else {
           warranty = true
@@ -2505,7 +2505,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       for(int i = 0;i< order.deals.size();i++){
         if( order.deals.get(i) instanceof OrderLinePromotion ){
           applied = true
-          BigDecimal monto = order.deals.get(i).promotionItem.descuentoMonto
+          BigDecimal monto = order.deals.get(i).promotionItem != null ? order.deals.get(i).promotionItem.descuentoMonto : order.deals.get(i).promotionItemJ.descuentoMonto
           promoAmount = monto != null ? monto : BigDecimal.ZERO
         } else if( order.deals.get(i) instanceof OrderDiscount ){
           applied = true
