@@ -23,11 +23,11 @@ public class GenericosQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from genericos where id_generico = '%s';", StringUtils.trimToEmpty(idGenerico));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           genericosJava = new GenericosJava();
           genericosJava = genericosJava.mapeoGenericos(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

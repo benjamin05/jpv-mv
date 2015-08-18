@@ -20,11 +20,11 @@ public class BancoEmisorQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from banco_emi where id_banco_emi = %d;", idBancoEmisor);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           bancoEmisorJava = new BancoEmisorJava();
           bancoEmisorJava = bancoEmisorJava.mapeoBancoEmisor( rs );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

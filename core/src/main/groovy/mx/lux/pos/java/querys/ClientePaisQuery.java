@@ -20,11 +20,11 @@ public class ClientePaisQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM cliente_pais where id_cliente = %d;", idCliente);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           clientePaisJava = new ClientePaisJava();
           clientePaisJava = clientePaisJava.mapeoClientePais( rs );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

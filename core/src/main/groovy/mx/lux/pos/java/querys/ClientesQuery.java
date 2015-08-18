@@ -26,11 +26,11 @@ public class ClientesQuery {
         String sql = "";
         sql = String.format("SELECT * FROM clientes WHERE id_cliente = %d;", idCLiente);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           clientesJava = new ClientesJava();
           clientesJava.mapeoCliente( rs );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

@@ -370,7 +370,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         paymentsModel.fireTableDataChanged()
 
       if (order?.id != null) {
-        change.text = OrderController.requestEmployee(order?.id)
+        change.text = StringUtils.trimToEmpty(order.employee).length() > 0 ? StringUtils.trimToEmpty(order.employee) : OrderController.requestEmployee(order?.id)
       } else {
         change.text = ''
       }
@@ -801,6 +801,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         println "Tiene descuento"
                         hasDiscount = true
                       }
+                    }
+                  }
+                  if( !hasDiscount && promoAgeActive ){
+                    if( promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
+                      hasDiscount = true
                     }
                   }
                     CuponMvView cuponMvView = OrderController.cuponValid( order.customer.id )
@@ -1502,15 +1507,15 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
           if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
             if( cuponMv != null ){
-              for(IPromotionAvailable promo : promotionList){
-                if( promo instanceof PromotionDiscount ){
-                  OrderController.updateCuponMvJavaByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
+                /*for(IPromotionAvailable promo : promotionList){
+                  if( promo instanceof PromotionDiscount ){
+                    OrderController.updateCuponMvJavaByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
+                  }
                 }
-              }
-              if( Registry.tirdthPairValid() ){
-                Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
-                OrderController.updateCuponMvJava( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
-              }
+                if( Registry.tirdthPairValid() ){
+                  Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
+                  OrderController.updateCuponMvJava( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
+                }*/
             } else if( !ensureApply && !ffApply ){
               generatedCoupons( validClave, newOrder )
             }
@@ -1877,7 +1882,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( !hasOnlyEnsure ){
         if( true ){
-          NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id) )
+          NotaVentaJava notaWarranty = OrderController.ensureOrder( StringUtils.trimToEmpty(order.id)  )
           warranty = OrderController.validWarranty( OrderController.findOrderJavaByidOrder(StringUtils.trimToEmpty(order.id)), true, null, notaWarranty.idFactura, false )
         } else {
           warranty = true
@@ -2503,7 +2508,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       for(int i = 0;i< order.deals.size();i++){
         if( order.deals.get(i) instanceof OrderLinePromotion ){
           applied = true
-          BigDecimal monto = order.deals.get(i).promotionItem.descuentoMonto
+          BigDecimal monto = order.deals.get(i).promotionItem != null ? order.deals.get(i).promotionItem.descuentoMonto : order.deals.get(i).promotionItemJ.descuentoMonto
           promoAmount = monto != null ? monto : BigDecimal.ZERO
         } else if( order.deals.get(i) instanceof OrderDiscount ){
           applied = true

@@ -26,11 +26,11 @@ public class TerminalQuery {
         if(StringUtils.trimToEmpty(idTerm).length() > 0){
           sql = String.format("SELECT * FROM pos WHERE id_terminal = '%s';", StringUtils.trimToEmpty(idTerm));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             terminalJava = new TerminalJava();
             terminalJava.mapeoTerminal( rs );
           }
-          con.close();
         }
       } catch (SQLException err) {
         System.out.println( err );

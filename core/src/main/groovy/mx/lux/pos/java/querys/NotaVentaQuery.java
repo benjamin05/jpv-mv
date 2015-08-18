@@ -64,11 +64,11 @@ public class NotaVentaQuery {
             notaVentaJava = null;
           }
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             assert notaVentaJava != null;
             notaVentaJava.setValores( rs );
           }
-          con.close();
         } catch (SQLException err) {
             System.out.println( err );
         }
@@ -84,11 +84,11 @@ public class NotaVentaQuery {
         String sql = "";
         sql = String.format("SELECT * FROM nota_venta WHERE receta = %d;", idReceta);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           notaVentaJava = new NotaVentaJava();
           notaVentaJava.setValores( rs );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -160,10 +160,10 @@ public class NotaVentaQuery {
                 sql = String.format("SELECT * FROM nota_venta WHERE id_factura = '%s';", StringUtils.trimToEmpty(idNotaVenta));
         }
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           factura = StringUtils.trimToEmpty(rs.getString("factura"));
         }
-        con.close();
         } catch (SQLException err) {
           System.out.println( err );
         }
@@ -181,12 +181,12 @@ public class NotaVentaQuery {
           String sql = "";
           sql = String.format("SELECT * FROM nota_venta WHERE id_cliente = %d AND factura = '' OR factura is null;", idCliente);
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             notaVentaJava = new NotaVentaJava();
             notaVentaJava.setValores( rs );
             lstNotas.add( notaVentaJava );
           }
-          con.close();
         } catch (SQLException err) {
           System.out.println( err );
         }
@@ -203,10 +203,10 @@ public class NotaVentaQuery {
         String sql = "";
         sql = String.format("SELECT NEXTVAL('factura_seq');");
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           id = rs.getBigDecimal("nextval");
         }
-        con.close();
       } catch (SQLException err) {
            System.out.println( err );
       }
@@ -228,12 +228,12 @@ public class NotaVentaQuery {
                   "%s AND %s ORDER BY fecha_hora_factura ASC;", idCliente, StringUtils.trimToEmpty(idFactura), Utilities.toString(fechaStart, formatTimeStamp),
                   Utilities.toString(fechaEnd, formatTimeStamp));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             notaVentaJava = new NotaVentaJava();
             notaVentaJava.setValores( rs );
             lstNotas.add( notaVentaJava );
           }
-          con.close();
         } catch (SQLException err) {
           System.out.println( err );
         }
@@ -256,12 +256,12 @@ public class NotaVentaQuery {
                         "%s AND %s AND factura is not null AND factura != '' ORDER BY fecha_hora_factura ASC, venta_total ASC;",
                   idCliente, Utilities.toString(fechaStart, formatTimeStamp), Utilities.toString(fechaEnd, formatTimeStamp));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             notaVentaJava = new NotaVentaJava();
             notaVentaJava.setValores( rs );
             lstNotas.add( notaVentaJava );
           }
-          con.close();
         } catch (SQLException err) {
           System.out.println( err );
         }
@@ -279,10 +279,10 @@ public class NotaVentaQuery {
       sql = String.format("SELECT value FROM folios WHERE name = 'nota_venta_id_factura';");
 
       rs = stmt.executeQuery(sql);
+      con.close();
       while (rs.next()) {
         factura = StringUtils.trimToEmpty(rs.getString("value"));
       }
-      con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -298,10 +298,10 @@ public class NotaVentaQuery {
         String sql = "";
         sql = String.format("SELECT next_folio('nota_venta_id_factura');");
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           factura = StringUtils.trimToEmpty(rs.getString("next_folio"));
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -322,12 +322,12 @@ public class NotaVentaQuery {
                         "%s AND %s ORDER BY fecha_hora_factura ASC;", idCliente, Utilities.toString(fechaStart, formatTimeStamp),
                         Utilities.toString(fechaEnd, formatTimeStamp));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             notaVentaJava = new NotaVentaJava();
             notaVentaJava.setValores( rs );
             lstNotas.add( notaVentaJava );
           }
-          con.close();
         } catch (SQLException err) {
           System.out.println( err );
         }
@@ -349,12 +349,12 @@ public class NotaVentaQuery {
                   "AND por100_descuento > 0 AND factura != '' AND factura is not null;",
                   idCliente, Utilities.toString(fechaStart, formatTimeStamp), Utilities.toString(fechaEnd, formatTimeStamp));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             notaVentaJava = new NotaVentaJava();
             notaVentaJava.setValores( rs );
             lstNotas.add( notaVentaJava );
           }
-          con.close();
         } catch (SQLException err) {
           System.out.println( err );
         }

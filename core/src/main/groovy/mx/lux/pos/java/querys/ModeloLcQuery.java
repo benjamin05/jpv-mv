@@ -23,12 +23,12 @@ public class ModeloLcQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from modelo_lc");
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           modeloLcJava = new ModeloLcJava();
           modeloLcJava = modeloLcJava.mapeoModeloLc(rs);
           lstModelosLc.add(modeloLcJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -43,11 +43,11 @@ public class ModeloLcQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from modelo_lc WHERE id_modelo = '%s'", StringUtils.trimToEmpty(modelo));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           modeloLcJava = new ModeloLcJava();
           modeloLcJava = modeloLcJava.mapeoModeloLc(rs);
         }
-        con.close();
       } catch (SQLException err) {
             System.out.println( err );
       }

@@ -29,11 +29,11 @@ public class AcusesQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from acuses where id_acuse = %d;", idAcuse);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           acusesJava = new AcusesJava();
           acusesJava = acusesJava.mapeoAcuses(rs);
         }
-        con.close();
       } catch (SQLException err) {
             System.out.println( err );
       }
@@ -83,11 +83,11 @@ public class AcusesQuery {
             sql = "";
             sql = String.format("SELECT * FROM acuses WHERE id_acuse = %d;", id.intValue());
             rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
               acuses = new AcusesJava();
               acuses.mapeoAcuses(rs);
             }
-            con.close();
           }
         } catch (SQLException err) {
           System.out.println( err );

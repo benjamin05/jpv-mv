@@ -27,11 +27,11 @@ public class DevolucionQuery {
         String sql = String.format("select * from dev where id_pago = %d AND monto_devolucion = %s AND transf = '%s';",
                 idPago, Utilities.toMoney(monto), StringUtils.trimToEmpty(transf));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           devolucion = new DevolucionJava();
           devolucion = devolucion.mapeoDevolucion(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

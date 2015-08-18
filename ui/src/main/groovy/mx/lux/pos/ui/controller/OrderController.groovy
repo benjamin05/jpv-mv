@@ -3476,7 +3476,11 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       Boolean montoValido = false
       Boolean hasSV = false
       Boolean hasMF = false
+      Boolean hasFrame = false
       for(DetalleNotaVenta det : nota.detalles){
+        if( StringUtils.trimToEmpty(det?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+          hasFrame = true
+        }
         if( !StringUtils.trimToEmpty(det?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEG) ){
           montoParcial = montoParcial.add(det.precioUnitFinal.multiply(det.cantidadFac))
         }
@@ -3492,7 +3496,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       if( montoParcial.compareTo(Registry.validAmountPromoAge) >= 0 ){
         montoValido = true
       }
-      if( nota?.idCliente != Registry.genericCustomer && montoValido && (hasSV || hasMF) ){
+      if( nota?.idCliente != Registry.genericCustomer && montoValido && hasFrame && (hasSV || hasMF) ){
         if( nota.cliente != null && nota?.cliente?.fechaNacimiento != null ){
           Date fechaActual = new Date();
           SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");

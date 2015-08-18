@@ -20,11 +20,11 @@ public class EstadoQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM rep where id_estado = '%s';", StringUtils.trimToEmpty(idEstado));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           estadoJava = new EstadoJava();
           estadoJava = estadoJava.mapeoEstado( rs );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

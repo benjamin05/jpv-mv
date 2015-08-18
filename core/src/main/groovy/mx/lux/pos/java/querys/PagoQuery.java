@@ -30,11 +30,11 @@ public class PagoQuery {
         if( idPago != null ){
           sql = String.format("SELECT * FROM pagos WHERE id_pago = %d;", idPago);
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             PagoJava pagoJava = new PagoJava();
             pagoJava.setValores( rs );
           }
-          con.close();
         } else {
           System.out.println( "No existen el idPago: "+idPago );
         }
@@ -54,12 +54,14 @@ public class PagoQuery {
         stmt = con.createStatement();
         String sql = "";
         if(StringUtils.trimToEmpty(idFactura).length() > 0){
-          sql = String.format("SELECT * FROM pagos WHERE id_factura = '%s';", StringUtils.trimToEmpty(idFactura));
+          sql = String.format("SELECT * FROM pagos LEFT OUTER JOIN tipo_pago ON (tipo_pago.id_pago = pagos.id_f_pago)" +
+                  "LEFT OUTER JOIN pos ON (pos.id_terminal = pagos.id_term) LEFT OUTER JOIN plan ON (plan.id_plan = pagos.id_plan)" +
+                  "WHERE id_factura = '%s';", StringUtils.trimToEmpty(idFactura));
           rs = stmt.executeQuery(sql);
           con.close();
           while (rs.next()) {
             PagoJava pagoJava = new PagoJava();
-            pagoJava.setValores( rs );
+            pagoJava.setValoresTmp( rs );
             lstPagos.add(pagoJava);
           }
         } else {
@@ -82,12 +84,12 @@ public class PagoQuery {
           sql = String.format("SELECT * FROM pagos WHERE id_f_pago = '%s' AND id_factura = '%s';",
                   StringUtils.trimToEmpty(idFPago), StringUtils.trimToEmpty(idFactura));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             PagoJava pagoJava = new PagoJava();
             pagoJava.setValores( rs );
             lstPagos.add(pagoJava);
           }
-          con.close();
         } else {
           System.out.println( "No existen la nota: "+idFactura );
         }
@@ -107,12 +109,12 @@ public class PagoQuery {
         if(StringUtils.trimToEmpty(referenciaPago).length() > 0){
           sql = String.format("SELECT * FROM pagos WHERE referencia_pago = '%s';", StringUtils.trimToEmpty(referenciaPago));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             PagoJava pagoJava = new PagoJava();
             pagoJava.setValores( rs );
             lstPagos.add(pagoJava);
           }
-          con.close();
         } else {
           System.out.println( "No existen la nota: "+referenciaPago );
         }
@@ -165,10 +167,10 @@ public class PagoQuery {
           sql = "";
           sql = String.format("SELECT last_value FROM pagos_id_pago_seq;");
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             id = rs.getBigDecimal("last_value");
           }
-          con.close();
           if( id.compareTo(BigDecimal.ZERO) > 0 ){
             pago = busquedaPagosPorId( id.intValue() );
           }

@@ -29,11 +29,11 @@ public class ArticulosQuery {
         if( idArticulo != null ){
           sql = String.format("SELECT * FROM articulos WHERE id_articulo = '%d';", idArticulo);
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             articulosJava = new ArticulosJava();
             articulosJava.setValores( rs );
           }
-          con.close();
         } else {
           System.out.println( "No existen el articulo: "+idArticulo );
         }
@@ -54,12 +54,12 @@ public class ArticulosQuery {
         if(StringUtils.trimToEmpty(articulo).length() > 0 ){
           sql = String.format("SELECT * FROM articulos WHERE articulo = '%s';", StringUtils.trimToEmpty(articulo));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             articulosJava = new ArticulosJava();
             articulosJava.setValores( rs );
             lstArticulos.add(articulosJava);
           }
-          con.close();
         } else {
           System.out.println( "No existen el articulo: "+articulo );
         }
@@ -80,12 +80,12 @@ public class ArticulosQuery {
         if(StringUtils.trimToEmpty(descripcion).length() > 0 ){
           sql = "SELECT * FROM articulos WHERE desc_articulo like '%"+StringUtils.trimToEmpty(descripcion)+"%' AND s_articulo = 'V';";
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             articulosJava = new ArticulosJava();
             articulosJava.setValores( rs );
             lstArticulos.add(articulosJava);
           }
-          con.close();
         } else {
           System.out.println( "No existen el articulo con descripcion: "+descripcion );
         }
@@ -106,12 +106,12 @@ public class ArticulosQuery {
         if(StringUtils.trimToEmpty(idGenerico).length() > 0 ){
           sql = String.format("SELECT * FROM articulos WHERE id_generico = '%s' AND s_articulo = 'V';", StringUtils.trimToEmpty(idGenerico));
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             articulosJava = new ArticulosJava();
             articulosJava.setValores( rs );
             lstArticulos.add(articulosJava);
           }
-          con.close();
         } else {
           System.out.println( "No existen el generico: "+idGenerico );
         }
@@ -132,12 +132,12 @@ public class ArticulosQuery {
         if(StringUtils.trimToEmpty(articulo).length() > 0 ){
           sql = "SELECT * FROM articulos WHERE articulo ILIKE '"+StringUtils.trimToEmpty(articulo)+"%' ORDER BY articulo ASC;";
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             articulosJava = new ArticulosJava();
             articulosJava.setValores( rs );
             lstArticulos.add(articulosJava);
           }
-          con.close();
         } else {
           System.out.println( "No existen el articulo: "+articulo );
         }

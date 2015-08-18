@@ -20,11 +20,11 @@ public class AutorizaMovQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from autoriza_mov where factura = '%s';", StringUtils.trimToEmpty(factura));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           autorizaMovJava = new AutorizaMovJava();
           autorizaMovJava = autorizaMovJava.mapeoAurotizaMov( rs );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

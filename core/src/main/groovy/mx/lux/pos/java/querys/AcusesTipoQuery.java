@@ -24,11 +24,11 @@ public class AcusesTipoQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM acuses_tipo where id_tipo = '%s';", idTipo);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           acusesTipoJava = new AcusesTipoJava();
             acusesTipoJava = acusesTipoJava.mapeoAcusesTipo(rs);
         }
-        con.close();
       } catch (SQLException err) {
             System.out.println( err );
       }

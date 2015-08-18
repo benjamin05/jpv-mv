@@ -27,11 +27,11 @@ public class MontoCuponQuery {
                 "AND monto_minimo = %s AND monto_maximo = %s;", StringUtils.trimToEmpty(idGenerico), StringUtils.trimToEmpty(tipo),
                 Utilities.toMoney(precio), Utilities.toMoney(precio));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           montoCupon = new MontoCuponJava();
           montoCupon = montoCupon.mapeoMontoCupon(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -48,11 +48,11 @@ public class MontoCuponQuery {
                 "AND monto_minimo < %s AND monto_maximo > %s;", StringUtils.trimToEmpty(idGenerico), StringUtils.trimToEmpty(tipo),
                 Utilities.toMoney(precio), Utilities.toMoney(precio));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           montoCupon = new MontoCuponJava();
           montoCupon = montoCupon.mapeoMontoCupon(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -69,11 +69,11 @@ public class MontoCuponQuery {
         String sql = String.format("select * from monto_cupon where generico = '%s' AND monto_minimo < %s AND monto_maximo > %s;",
                 StringUtils.trimToEmpty(idGenerico), Utilities.toMoney(precio), Utilities.toMoney(precio));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           montoCupon = new MontoCuponJava();
           montoCupon = montoCupon.mapeoMontoCupon(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -91,12 +91,12 @@ public class MontoCuponQuery {
         String sql = String.format("select * from monto_cupon where generico = '%s' AND subtipo = '%s';",
                 StringUtils.trimToEmpty(idGenerico), StringUtils.trimToEmpty(subtipo));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           montoCupon = new MontoCuponJava();
           montoCupon = montoCupon.mapeoMontoCupon(rs);
           lstMontoCupon.add(montoCupon);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

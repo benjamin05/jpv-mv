@@ -631,7 +631,7 @@ public class NotaVentaServiceJava {
 
 
   public void validaSurtePorGenericoInventariable( NotaVentaJava notaVenta ) throws ParseException {
-    List<DetalleNotaVentaJava> detalles = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(notaVenta.getIdFactura());
+    List<DetalleNotaVentaJava> detalles = notaVenta.getDetalles().size() > 0 ? notaVenta.getDetalles() : DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(notaVenta.getIdFactura());
     for(DetalleNotaVentaJava det : detalles){
       if(!TAG_GENERICOS_INVENTARIABLES.contains(det.getArticulo().getIdGenerico())){
         det.setSurte(" ");

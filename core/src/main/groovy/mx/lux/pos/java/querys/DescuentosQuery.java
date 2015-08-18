@@ -25,12 +25,12 @@ public class DescuentosQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from descuentos where id_factura = '%s';", StringUtils.trimToEmpty(idFactura));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           descuentosJava = new DescuentosJava();
           descuentosJava = descuentosJava.mapeoDescuentos(rs);
           lstDescuentos.add( descuentosJava );
         }
-        con.close();
       } catch (SQLException err) {
             System.out.println( err );
       }
@@ -45,11 +45,11 @@ public class DescuentosQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from descuentos where id = %d;", id);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           descuentosJava = new DescuentosJava();
           descuentosJava = descuentosJava.mapeoDescuentos(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -102,21 +102,21 @@ public class DescuentosQuery {
           sql = "";
           sql = String.format("SELECT last_value FROM descuentos_id_seq;");
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             id = rs.getBigDecimal("last_value");
           }
-          con.close();
           if( id.compareTo(BigDecimal.ZERO) > 0 ){
             con = Connections.doConnect();
             stmt = con.createStatement();
             sql = "";
             sql = String.format("SELECT * FROM descuentos WHERE id = %d;", id.intValue());
             rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
               descuentos = new DescuentosJava();
               descuentos = descuentos.mapeoDescuentos( rs );
             }
-            con.close();
           }
         } catch (SQLException err) {
           System.out.println( err );
@@ -137,12 +137,12 @@ public class DescuentosQuery {
         String sql = String.format("select * from descuentos where id_factura = '%s' AND clave = '%S';",
                 StringUtils.trimToEmpty(idFactura), StringUtils.trimToEmpty(clave));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           descuentosJava = new DescuentosJava();
           descuentosJava = descuentosJava.mapeoDescuentos(rs);
           lstDescuentos.add( descuentosJava );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -158,11 +158,11 @@ public class DescuentosQuery {
         String sql = String.format("select * from descuentos where id_factura = '%s' AND (clave is null OR clave = '');",
                 StringUtils.trimToEmpty(idFactura));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           descuentosJava = new DescuentosJava();
           descuentosJava = descuentosJava.mapeoDescuentos(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

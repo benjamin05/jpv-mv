@@ -29,13 +29,13 @@ public class JbQuery {
             stmt = con.createStatement();
             String sql = "select * from jb_edo_grupo;";
             rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
             	JbEstadosGrupo jbEstado = new JbEstadosGrupo(); 
             	jbEstado.setIdEdoGrupo(rs.getInt("id_edo_grupo"));
             	jbEstado.setDescripcionGrupo(rs.getString("descripcion_grupo"));
                 lstEstados.add(jbEstado);
-            }            
-            con.close();
+            }
         } catch (SQLException err) {
             System.out.println( err );
         }
@@ -83,6 +83,7 @@ public class JbQuery {
             	sql = String.format("SELECT * FROM jb INNER JOIN jb_edos ON (jb.estado = jb_edos.id_edo) WHERE %s order by rx asc;", parametros);            	
             }
             rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
             	JbJava jb = new JbJava();
             	Double saldo = 0.00;
@@ -94,8 +95,7 @@ public class JbQuery {
             	} catch ( NumberFormatException e ){ System.out.println( e );}
             	jb.setValores(rs);
             	lstJbs.add(jb);
-            }            
-            con.close();
+            }
         } catch (SQLException err) {
             System.out.println( err );
         }
@@ -110,6 +110,7 @@ public class JbQuery {
         stmt = con.createStatement();
         String sql = "select * from jb where rx = '"+rx+"';";
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           jb = new JbJava();
           Double saldo = 0.00;
@@ -121,7 +122,6 @@ public class JbQuery {
           } catch ( ParseException e ){ System.out.println( e );}
           jb.setValores( rs );
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -134,11 +134,11 @@ public class JbQuery {
             Connection con = Connections.doConnect();
             stmt = con.createStatement();
             String sql = "select * from jb_edos where id_edo = '"+estado+"';";            
-            rs = stmt.executeQuery(sql);                                
+            rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
             	jbEstados = jbEstados.setValores(rs.getString("id_edo"), rs.getString("llamada"), rs.getString("descr"));
-            }            
-            con.close();
+            }
         } catch (SQLException err) {
             System.out.println( err );
         }
@@ -153,14 +153,14 @@ public class JbQuery {
             Connection con = Connections.doConnect();
             stmt = con.createStatement();
             String sql = "select * from jb_track where rx = '"+rx+"';";
-            rs = stmt.executeQuery(sql);                                
+            rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
             	System.out.println(rs.getTimestamp("fecha"));
             	jbTrack = jbTrack.setValores(rs.getString("rx"), rs.getString("estado"), rs.getString("obs"), rs.getString("emp"), 
             			rs.getString("id_viaje"), rs.getTimestamp("fecha"), rs.getString("id_mod"), rs.getString("id_jbtrack"));
             	lstTracks.add(jbTrack);
-            }            
-            con.close();
+            }
         } catch (SQLException err) {
             System.out.println( err );
         }
@@ -261,12 +261,12 @@ public class JbQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM jb where id_grupo = '%s';", StringUtils.trimToEmpty(idGrupo));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           jbJava = new JbJava();
           jbJava = jbJava.setValores( rs );
           lstJb.add(jbJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -281,11 +281,11 @@ public class JbQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM jb_llamada where rx = '%s';", StringUtils.trimToEmpty(rx));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           jbLlamadaJava = new JbLlamadaJava();
           jbLlamadaJava = jbLlamadaJava.mapeoParametro(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -312,11 +312,11 @@ public class JbQuery {
       sql = String.format("INSERT INTO jb (rx,estado,id_viaje,caja,id_cliente,roto,emp_atendio,num_llamada," +
               "material,surte,saldo,jb_tipo,volver_llamar,fecha_promesa,cliente,obs_ext,ret_auto,tipo_venta,fecha_venta," +
               "id_grupo,externo) VALUES('%s','%s','%s','%s','%s',%d,'%s',%d,'%s','%s',%s,'%s',%s,%s,'%s','%s','%s','%s'," +
-              "%s,'%s','%s');", jbJava.getRx(), jbJava.getEstado(), jbJava.getIdViaje(), jbJava.getCaja(), jbJava.getIdCliente(),
+              "%s,%s,'%s');", jbJava.getRx(), jbJava.getEstado(), jbJava.getIdViaje(), jbJava.getCaja(), jbJava.getIdCliente(),
               jbJava.getRoto(), jbJava.getEmpAtendio(), jbJava.getNumLlamada(), jbJava.getMaterial(), jbJava.getSurte(),
               Utilities.toMoney(jbJava.getSaldo()), jbJava.getJbTipo(), jbJava.getVolverLlamar(), Utilities.toString(jbJava.getFechaPromesa(), formatDate),
               jbJava.getCliente(), jbJava.getObsExt(), jbJava.getRetAuto(), jbJava.getTipoVenta(),
-              Utilities.toString(jbJava.getFechaVenta(), formatTimeStamp), jbJava.getIdGrupo(), jbJava.getExterno());
+              Utilities.toString(jbJava.getFechaVenta(), formatTimeStamp), Utilities.toStringNull(jbJava.getIdGrupo()), jbJava.getExterno());
       db.insertQuery(sql);
       db.close();
       jb = buscarPorRx( jbJava.getRx() );

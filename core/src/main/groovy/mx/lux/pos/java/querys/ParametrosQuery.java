@@ -23,12 +23,12 @@ public class ParametrosQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from gparametro where id_parametro = '%s';", StringUtils.trimToEmpty(idParametro));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           parametro = new Parametros();
           parametro = parametro.mapeoParametro(rs);
           lstParametros.add(parametro);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

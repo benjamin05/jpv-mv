@@ -23,12 +23,12 @@ public class PreciosQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from precios where articulo = '%s';", StringUtils.trimToEmpty(articulo));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           preciosJava = new PreciosJava();
           preciosJava = preciosJava.mapeoPrecios(rs);
           lstPrecios.add(preciosJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

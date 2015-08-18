@@ -22,10 +22,10 @@ public class PlanQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from  plan where id_plan = '%s';", StringUtils.trimToEmpty(idPlan));
         rs = stmt.executeQuery(sql);
-        while (rs.next()) {
-          planJava.mapeoPlan( rs );
-        }
         con.close();
+        while (rs.next()) {
+          planJava = planJava.mapeoPlan( rs );
+        }
       } catch (SQLException err) {
         System.out.println( err );
       }

@@ -24,12 +24,12 @@ public class DominioQuery {
         stmt = con.createStatement();
         String sql = String.format("SELECT * FROM dominios;");
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           dominioJava = new DominioJava();
           dominioJava = dominioJava.mapeoDominio(rs);
           lstDominios.add(dominioJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

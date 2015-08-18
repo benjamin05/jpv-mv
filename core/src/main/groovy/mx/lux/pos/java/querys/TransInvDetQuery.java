@@ -27,12 +27,12 @@ public class TransInvDetQuery {
         String sql = String.format("select * from trans_inv_det where id_tipo_trans = '%s' AND folio = %d;",
                 StringUtils.trimToEmpty(idTipoTrans), folio);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           transInvDetJava = new TransInvDetJava();
           transInvDetJava = transInvDetJava.mapeoTransInvDet(rs);
           lstTransInvDet.add(transInvDetJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }

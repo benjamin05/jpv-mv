@@ -305,6 +305,39 @@ public class PagoJava {
 	}
 
 
+    public PagoJava setValoresTmp( ResultSet rs ) throws SQLException, ParseException {
+        this.setIdPago(rs.getInt("id_pago"));
+        this.setIdFactura(trim(rs.getString("id_factura")));
+        this.setIdBanco(trim(rs.getString("id_banco")));
+        this.setIdFormaPago(trim(rs.getString("id_forma_pago")));
+        this.setTipoPago(trim(rs.getString("tipo_pago")));
+        this.setReferenciaPago(trim(rs.getString("referencia_pago")));
+        this.setMontoPago(Utilities.toBigDecimal(trim(rs.getString("monto_pago"))));
+        this.setFechaPago(rs.getDate("fecha_pago"));
+        this.setIdEmpleado(trim(rs.getString("id_empleado")));
+        this.setIdSync(trim(rs.getString("id_sync")));
+        this.setFechaMod(rs.getDate("fecha_mod"));
+        this.setIdMod(trim(rs.getString("id_mod")));
+        this.setIdSucursal(rs.getInt("id_sucursal"));
+        this.setIdRecibo(trim(rs.getString("id_recibo")));
+        this.setParcialidad(trim(rs.getString("parcialidad")));
+        this.setIdFPago(trim(rs.getString("id_f_pago")));
+        this.setClaveP(trim(rs.getString("clave_p")));
+        this.setRefClave(trim(rs.getString("ref_clave")));
+        this.setIdBancoEmi(trim(rs.getString("id_banco_emi")));
+        this.setIdTerm(trim(rs.getString("id_term")));
+        this.setIdPlan(trim(rs.getString("id_plan")));
+        this.setConfirm(Utilities.toBoolean(rs.getBoolean("confirm")));
+        this.setPorDev(Utilities.toBigDecimal(trim(rs.getString("por_dev"))));
+        this.seteTipoPago( new TipoPagoJava().mapeoTipoPago(rs) );
+        this.setTerminal( new TerminalJava().mapeoTerminal(rs) );
+        this.setPlan( new PlanJava().mapeoPlan(rs) );
+        //this.setNotaVenta(notaVenta());
+
+        return this;
+    }
+
+
     private TipoPagoJava tipoPago( ) throws ParseException {
       TipoPagoJava tipoPagoJava = new TipoPagoJava();
       tipoPagoJava = TipoPagoQuery.buscaParametroPoridFPago(idFPago);

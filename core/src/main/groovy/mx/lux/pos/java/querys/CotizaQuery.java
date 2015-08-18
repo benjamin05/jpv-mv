@@ -26,11 +26,11 @@ public class CotizaQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from cotiza where id_cotiza = %d;", idCotizacion);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           cotizaJava = new CotizaJava();
           cotizaJava = cotizaJava.mapeoCotiza(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -78,21 +78,21 @@ public class CotizaQuery {
           sql = "";
           sql = String.format("SELECT last_value FROM cotiza_id_cotiza_seq;");
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             id = rs.getBigDecimal("last_value");
           }
-          con.close();
           if( id.compareTo(BigDecimal.ZERO) > 0 ){
             con = Connections.doConnect();
             stmt = con.createStatement();
             sql = "";
             sql = String.format("SELECT * FROM cotiza WHERE id_cotiza = %d;", id.intValue());
             rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
               cotiza = new CotizaJava();
               cotiza = cotiza.mapeoCotiza(rs);
             }
-            con.close();
           }
         } catch (SQLException err) {
           System.out.println( err );

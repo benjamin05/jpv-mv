@@ -26,12 +26,12 @@ public class OrdenPromQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from orden_prom where id_factura = '%s';", StringUtils.trimToEmpty(idFactura));
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           ordenPromJava = new OrdenPromJava();
           ordenPromJava = ordenPromJava.mapeoOrdenProm(rs);
           lstOrdenProm.add(ordenPromJava);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -47,11 +47,11 @@ public class OrdenPromQuery {
         stmt = con.createStatement();
         String sql = String.format("select * from orden_prom where id = %d;", id);
         rs = stmt.executeQuery(sql);
+        con.close();
         while (rs.next()) {
           ordenPromJava = new OrdenPromJava();
           ordenPromJava = ordenPromJava.mapeoOrdenProm(rs);
         }
-        con.close();
       } catch (SQLException err) {
         System.out.println( err );
       }
@@ -103,21 +103,21 @@ public class OrdenPromQuery {
           sql = "";
           sql = String.format("SELECT last_value FROM orden_prom_id_seq;");
           rs = stmt.executeQuery(sql);
+          con.close();
           while (rs.next()) {
             id = rs.getBigDecimal("last_value");
           }
-          con.close();
           if( id.compareTo(BigDecimal.ZERO) > 0 ){
             con = Connections.doConnect();
             stmt = con.createStatement();
             sql = "";
             sql = String.format("SELECT * FROM orden_prom WHERE id = %d;", id.intValue());
             rs = stmt.executeQuery(sql);
+            con.close();
             while (rs.next()) {
               ordenProm = new OrdenPromJava();
               ordenProm = ordenProm.mapeoOrdenProm( rs );
             }
-            con.close();
           }
         } catch (SQLException err) {
           System.out.println( err );
