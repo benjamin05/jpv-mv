@@ -1504,15 +1504,15 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           }
           if( newOrder.total.compareTo(BigDecimal.ZERO) > 0 ){
             if( cuponMv != null ){
-              for(IPromotionAvailable promo : promotionList){
-                if( promo instanceof PromotionDiscount ){
-                  OrderController.updateCuponMvJavaByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
+                /*for(IPromotionAvailable promo : promotionList){
+                  if( promo instanceof PromotionDiscount ){
+                    OrderController.updateCuponMvJavaByClave(newOrder.id, StringUtils.trimToEmpty(promo.discountType.description))
+                  }
                 }
-              }
-              if( Registry.tirdthPairValid() ){
-                Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
-                OrderController.updateCuponMvJava( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
-              }
+                if( Registry.tirdthPairValid() ){
+                  Integer numeroCupon = cuponMv.claveDescuento.startsWith("8") ? 2 : 3
+                  OrderController.updateCuponMvJava( cuponMv.facturaOrigen, newOrder.id, cuponMv.montoCupon, numeroCupon, false)
+                }*/
             } else if( !ensureApply && !ffApply ){
               generatedCoupons( validClave, newOrder )
             }
