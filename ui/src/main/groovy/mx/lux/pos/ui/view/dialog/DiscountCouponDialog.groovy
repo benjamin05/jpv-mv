@@ -540,9 +540,9 @@ class DiscountCouponDialog extends JDialog {
           lblStatus.text = warning
         }
         if( claveClear ){
-          txtDiscountPercent.setValue( new BigDecimal(percentajeInt) )
+          txtDiscountAmount.setValue( new BigDecimal(percentajeInt.doubleValue()*Registry.multiplyDiscountCrm) )
           valid = true
-          amount = orderTotal * new BigDecimal(percentajeInt/100)
+          amount = percentajeInt.doubleValue()*Registry.multiplyDiscountCrm
         }
       }
       DescuentoClave descuentoClave = null

@@ -71,6 +71,7 @@ public enum TipoParametro {
     MONTO_VALIDO_PROMO_EDAD( "monto_minimo_promo_edad" ),
     MONTO_APLICA_FF_CUPON( "monto_aplica_ff_cupon" ),
     MONTO_FF_CUPON( "monto_ff_cupon" ),
+    MULTIPLO_DESCUENTO_CRM( "multiplo_descuento_crm" ),
     PAQUETES("paquetes" ),
     PEDIDO_LC( "pedido_lc" ),
     PIDE_FACTURA( "pide_factura" ),

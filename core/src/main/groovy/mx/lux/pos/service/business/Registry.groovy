@@ -608,6 +608,10 @@ class Registry {
     return asDouble( mx.lux.pos.java.TipoParametro.ACUSE_RETRASO )
   }
 
+  static Double getMultiplyDiscountCrm( ) {
+    return asDouble( mx.lux.pos.java.TipoParametro.MULTIPLO_DESCUENTO_CRM )
+  }
+
   static Double getAmountPromoAgeMonofocal( ) {
     return asDouble( TipoParametro.MONTO_PROMO_EDAD_MONOFOCAL )
   }
