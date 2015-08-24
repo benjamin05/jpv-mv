@@ -3,6 +3,7 @@ package mx.lux.pos.ui.controller
 import groovy.util.logging.Slf4j
 import mx.lux.pos.java.querys.AcusesQuery
 import mx.lux.pos.java.querys.AcusesTipoQuery
+import mx.lux.pos.java.querys.DescuentosClaveQuery
 import mx.lux.pos.java.querys.DescuentosQuery
 import mx.lux.pos.java.querys.FormaContactoQuery
 import mx.lux.pos.java.querys.JbQuery
@@ -16,6 +17,7 @@ import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.java.repository.AutorizaMovJava
 import mx.lux.pos.java.repository.BancoEmisorJava
 import mx.lux.pos.java.repository.CuponMvJava
+import mx.lux.pos.java.repository.DescuentosClaveJava
 import mx.lux.pos.java.repository.DescuentosJava
 import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.java.repository.EmpleadoJava
@@ -3526,6 +3528,19 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       }
     }
     return smthApply
+  }
+
+
+  static Boolean couponKeyValid( String couponKey, Order order ) {
+    log.debug("couponKeyValid ( "+ couponKey+" )")
+    Boolean valid = true
+    DescuentosClaveJava descuentoClave = DescuentosClaveQuery.buscaDescuentoClavePorClave(StringUtils.trimToEmpty(couponKey))
+    if( descuentoClave != null && descuentoClave.getMontoMinimo() != null && descuentoClave.getMontoMinimo().compareTo(BigDecimal.ZERO) > 0 ){
+      if( order?.total?.compareTo(descuentoClave.getMontoMinimo()) < 0 ){
+        valid = false
+      }
+    }
+    return valid
   }
 
 
