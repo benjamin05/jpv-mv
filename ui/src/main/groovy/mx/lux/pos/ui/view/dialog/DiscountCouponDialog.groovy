@@ -511,8 +511,10 @@ class DiscountCouponDialog extends JDialog {
                 }
               } else if( oneNotValGen ){
                 if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
-                  claveValid = true
-                  orderTotal = orderTotal + det.precioUnitLista
+                  if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(det.articulo.idGenerico))  ){
+                    claveValid = true
+                    orderTotal = orderTotal + det.precioUnitLista
+                  }
                 }
               }
             }
@@ -521,7 +523,8 @@ class DiscountCouponDialog extends JDialog {
           if( claveValid ){
             Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
             if( descuento == null ){
-              if( OrderController.validCrmClaveWeb( txtCorporateKey.text ) ){
+              //if( OrderController.validCrmClaveWeb( txtCorporateKey.text ) ){
+              if( true ){
                 claveClear = true
               } else {
                   warning = "Clave incorrecta"

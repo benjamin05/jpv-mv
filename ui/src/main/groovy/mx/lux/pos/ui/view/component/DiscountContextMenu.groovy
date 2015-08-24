@@ -44,7 +44,7 @@ class DiscountContextMenu extends JPopupMenu {
         actionPerformed: { onWarrantyDiscountSelected( ) },
       )
 
-      menuCouponDiscount = menuItem( text: "CRM",
+      menuCouponDiscount = menuItem( text: "Descuento CRM",
         visible: true,
         actionPerformed: { onCrmDiscountSelected( ) },
       )
