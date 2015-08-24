@@ -78,6 +78,8 @@ public class PromotionCommitJava {
         if(pModel.getOrderDiscount().getDiscountType().getIdType() != null){
           if(pModel.getOrderDiscount().getDiscountType().getIdType().trim().equalsIgnoreCase("P")){
             descuento.setClave(pModel.getOrderDiscount().getDiscountType().getDescription());
+          } else if(StringUtils.trimToEmpty(pModel.getOrderDiscount().getDiscountType().getText()).equalsIgnoreCase("Descuentos CRM")){
+            descuento.setClave(pModel.getOrderDiscount().getDiscountType().getDescription());
           }
         }
         if ( pModel.getOrderDiscount().getDiscountPercent() < 1 ) {
@@ -87,7 +89,11 @@ public class PromotionCommitJava {
         }
         descuento.setIdEmpleado(empId);
         descuento.setIdTipoD(pModel.getOrderDiscount().getDiscountType().getIdType());
-        descuento.setTipoClave(pModel.getOrderDiscount().getDiscountType().getDescription());
+        if(StringUtils.trimToEmpty(pModel.getOrderDiscount().getDiscountType().getText()).equalsIgnoreCase("Descuentos CRM")){
+          descuento.setTipoClave("DIRECCION");
+        } else {
+          descuento.setTipoClave(pModel.getOrderDiscount().getDiscountType().getDescription());
+        }
         DescuentosQuery.saveOrUpdateDescuentos(descuento);
       }
     }

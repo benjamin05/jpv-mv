@@ -43,7 +43,8 @@ class PromotionDiscount implements IPromotionAvailable {
           if( (StringUtils.trimToEmpty(descuentoClave.clave_descuento).isNumber() ||
                   StringUtils.trimToEmpty(descuentoClave.clave_descuento).equalsIgnoreCase("PrEdad")) &&
                   (StringUtils.trimToEmpty(descuentoClave.descripcion_descuento).equalsIgnoreCase("Descuento Corporativo") ||
-                          StringUtils.trimToEmpty(descuentoClave.descripcion_descuento).equalsIgnoreCase("Promocion Edad")) ){
+                          StringUtils.trimToEmpty(descuentoClave.descripcion_descuento).equalsIgnoreCase("Promocion Edad")) ||
+                  StringUtils.trimToEmpty(descuentoClave.descripcion_descuento).equalsIgnoreCase("Descuentos CRM") ){
             idTypeTmp = "AP"
           }
         }
