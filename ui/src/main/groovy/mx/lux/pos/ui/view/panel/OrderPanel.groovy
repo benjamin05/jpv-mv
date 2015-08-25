@@ -1874,6 +1874,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         sb.doOutside {
           Registry.getSolicitaGarbageColector()
         }
+        Boolean couponKeyValid = true
+        for(int i=0;i<promotionList.size();i++){
+          if(promotionList.get(i) instanceof PromotionDiscount){
+            if( promotionList.get(i).discountAmount > 0.00 ){
+              couponKeyValid = OrderController.couponKeyValid( promotionList.get(i).discountType != null ? promotionList.get(i).discountType.description : "", order )
+            }
+          }
+        }
         if( !hasDioptra ){
             order.dioptra = null
         }
@@ -1901,6 +1909,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+          if( couponKeyValid ){
           rec = OrderController.findRx(order, customer)
           Boolean continueSave = true
           if( hasLc && (rec == null || rec.idReceta == null) ){
@@ -1975,6 +1984,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   flujoContinuar()
               }
             }
+          } else {
+              sb.optionPane(message: "El monto de la nota no es valido para este descuento.", optionType: JOptionPane.DEFAULT_OPTION)
+                      .createDialog(new JTextField(), "Error")
+                      .show()
+          }
         } else {
           sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
              .createDialog(new JTextField(), "Error")
