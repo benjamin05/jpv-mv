@@ -198,7 +198,7 @@ class DiscountCouponDialog extends JDialog {
         if( descuentoClave != null && StringUtils.trimToEmpty(title).equalsIgnoreCase("Seguro")){
           descuentoClave = null
         }
-        if( descuentoClave == null ){
+        if( descuentoClave == null && !StringUtils.trimToEmpty(title).equalsIgnoreCase("CRM")){
           descuentoClave = requestVerify()//OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
         }
 
@@ -373,8 +373,8 @@ class DiscountCouponDialog extends JDialog {
       }
       Date date = null
       try{
-        date = formatter.parse(dateStr)
-        amount = NumberFormat.getInstance().parse(amountStr)
+          date = formatter.parse(dateStr)
+          amount = NumberFormat.getInstance().parse(amountStr)
       } catch ( ParseException e) {
         e.printStackTrace()
       } catch ( NumberFormatException e) {
@@ -434,7 +434,7 @@ class DiscountCouponDialog extends JDialog {
       if( StringUtils.trimToEmpty(warning).length() > 0 ){
         lblStatus.text = warning
       }
-      if( date.compareTo(new Date()) >= 0 && amount.compareTo(BigDecimal.ZERO) > 0 &&
+      if( date != null && date.compareTo(new Date()) >= 0 && amount.compareTo(BigDecimal.ZERO) > 0 &&
             OrderController.keyFree(StringUtils.trimToEmpty(txtCorporateKey.text).toUpperCase()) && itemsValid ){
         if( item != null && item.price.compareTo(amount) < 0 ){
           txtDiscountAmount.setText( StringUtils.trimToEmpty((item.price.multiply(new BigDecimal(Registry.percentageWarranty/100))).toString()) )
@@ -524,7 +524,7 @@ class DiscountCouponDialog extends JDialog {
             Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
             if( descuento == null ){
               String msg = OrderController.validCrmClaveWeb( txtCorporateKey.text )
-              if( StringUtils.trimToEmpty(msg).length() > 0 ){
+              if( StringUtils.trimToEmpty(msg).length() <= 0 ){
                 claveClear = true
               } else {
                 warning = msg

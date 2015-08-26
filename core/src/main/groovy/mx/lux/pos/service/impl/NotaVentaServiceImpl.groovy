@@ -2143,7 +2143,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
 
   @Override
-  Boolean validaClaveCrmWeb( String clave ){
+  String validaClaveCrmWeb( String clave ){
     String msg = ""
     AcusesTipo acuseUrl = acusesTipoRepository.findOne( "aplica_crm" )
     if( acuseUrl != null ){
