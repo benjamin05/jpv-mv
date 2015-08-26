@@ -1594,7 +1594,11 @@ public class ReportServiceImpl implements ReportService {
               } else if( StringUtils.trimToEmpty(desc.getClave()).startsWith("H") ){
                   desc.getDescuentosClave().setDescripcion_descuento( "CUPON 2P LC" );
               } else if( StringUtils.trimToEmpty(desc.getClave()).length() >= 11 ){
+                if( StringUtils.trimToEmpty(desc.getTipoClave()).equalsIgnoreCase("DIRECCION") ){
+                  desc.getDescuentosClave().setDescripcion_descuento( "Descuento CRM" );
+                } else {
                   desc.getDescuentosClave().setDescripcion_descuento( "Redencion de Seguro" );
+                }
               }
             } else {
               desc.getDescuentosClave().setClave_descuento(desc.getClave());

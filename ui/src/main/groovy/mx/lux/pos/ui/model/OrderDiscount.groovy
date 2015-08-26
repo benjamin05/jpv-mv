@@ -56,8 +56,10 @@ class OrderDiscount implements IPromotion {
           } else {
             desc = String.format( "Cupon %s" , StringUtils.trimToEmpty(cuponMv.montoCupon.toString()).replace(".00","") )
           }
+        } else if( StringUtils.trimToEmpty(notaVenta?.desc?.clave).length() == 11 && StringUtils.trimToEmpty(notaVenta?.desc?.tipoClave).equalsIgnoreCase("DIRECCION") ){
+          desc = String.format( "Descuento CRM" )
         } else if( StringUtils.trimToEmpty(notaVenta?.desc?.clave).equalsIgnoreCase(TAG_PROMO_EDAD) ){
-          desc = String.format( "Promocion Edad" )
+
         } else {
           desc = String.format( DESCRIPCION, notaVenta.por100Descuento.toString() )
         }
