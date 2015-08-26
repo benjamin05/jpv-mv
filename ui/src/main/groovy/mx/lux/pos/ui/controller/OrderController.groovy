@@ -3536,8 +3536,16 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     Boolean valid = true
     DescuentosClaveJava descuentoClave = DescuentosClaveQuery.buscaDescuentoClavePorClave(StringUtils.trimToEmpty(couponKey))
     if( descuentoClave != null && descuentoClave.getMontoMinimo() != null && descuentoClave.getMontoMinimo().compareTo(BigDecimal.ZERO) > 0 ){
-      if( order?.total?.compareTo(descuentoClave.getMontoMinimo()) < 0 ){
-        valid = false
+      BigDecimal totalOrder = BigDecimal.ZERO
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( order.id )
+      if( nota != null ){
+        for(DetalleNotaVentaJava det : nota.detalles){
+          totalOrder = totalOrder.add(det.precioUnitLista.multiply(new BigDecimal(det.cantidadFac)))
+        }
+        //println totalOrder
+        if( totalOrder.compareTo(descuentoClave.getMontoMinimo()) < 0 ){
+          valid = false
+        }
       }
     }
     return valid
