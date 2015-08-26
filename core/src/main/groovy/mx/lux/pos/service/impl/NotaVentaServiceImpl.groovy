@@ -2144,7 +2144,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
   @Override
   Boolean validaClaveCrmWeb( String clave ){
-    Boolean valid = false
+    String msg = ""
     AcusesTipo acuseUrl = acusesTipoRepository.findOne( "aplica_crm" )
     if( acuseUrl != null ){
       String url = StringUtils.trimToEmpty(acuseUrl.pagina)
@@ -2167,11 +2167,11 @@ class NotaVentaServiceImpl implements NotaVentaService {
       try {
         future.get(timeoutSecs, TimeUnit.SECONDS)
       } catch (Exception e) {println e}
-      if( StringUtils.trimToEmpty(response).equalsIgnoreCase("CLAVE DISPONIBLE") ){
-        valid = true
+      if( !StringUtils.trimToEmpty(response).equalsIgnoreCase("CLAVE DISPONIBLE") ){
+        msg = response
       }
     }
-    return valid
+    return msg
   }
 
   @Override

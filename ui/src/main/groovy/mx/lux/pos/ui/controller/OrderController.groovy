@@ -3418,9 +3418,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
 
-  static Boolean validCrmClaveWeb( String clave ){
+  static String validCrmClaveWeb( String clave ){
     log.debug( "validCrmClaveWeb( )" )
-    Boolean claveFree = notaVentaService.validaClaveCrmWeb( clave )
+    String claveFree = notaVentaService.validaClaveCrmWeb( clave )
     return claveFree
   }
 
