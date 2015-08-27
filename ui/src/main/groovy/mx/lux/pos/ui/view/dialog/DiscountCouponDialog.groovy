@@ -494,7 +494,7 @@ class DiscountCouponDialog extends JDialog {
           Boolean oneNotValGen = false
           if( generic.contains("**") ){
             allGen = true
-          } else if( generic.contains("*") ){
+          } else if( generic.contains("_") ){
             oneValGen = true
           } else if( generic.replace("!","\\!").contains("\\!") ){
             oneNotValGen = true
@@ -503,6 +503,8 @@ class DiscountCouponDialog extends JDialog {
             claveValid = true
           } else {
             orderTotal = 0.00
+            Boolean generic1 = false
+            Boolean generic2 = false
             for(DetalleNotaVenta det : notaVenta.detalles){
               if( oneValGen ){
                 if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
@@ -516,7 +518,18 @@ class DiscountCouponDialog extends JDialog {
                     orderTotal = orderTotal + det.precioUnitLista
                   }
                 }
+              } else {
+                if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(StringUtils.trimToEmpty(generic.charAt(0).toString())) ){
+                  generic1 = true
+                  orderTotal = orderTotal + det.precioUnitLista
+                } else if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(StringUtils.trimToEmpty(generic.charAt(1).toString())) ){
+                  generic2 = true
+                  orderTotal = orderTotal + det.precioUnitLista
+                }
               }
+            }
+            if( !claveValid && generic1 && generic2 ){
+              claveValid = true
             }
           }
 
