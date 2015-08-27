@@ -24,6 +24,8 @@ public class QDescuentoClave extends EntityPathBase<DescuentoClave> {
 
     public final StringPath descripcion_descuento = createString("descripcion_descuento");
 
+    public final NumberPath<java.math.BigDecimal> montoMinimo = createNumber("montoMinimo", java.math.BigDecimal.class);
+
     public final NumberPath<Double> porcenaje_descuento = createNumber("porcenaje_descuento", Double.class);
 
     public final StringPath tipo = createString("tipo");

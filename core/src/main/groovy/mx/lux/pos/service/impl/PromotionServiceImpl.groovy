@@ -188,8 +188,12 @@ class PromotionServiceImpl implements PromotionService {
                 String[] claveDesc = pLine.split(/\|/)
                 if(claveDesc.length >= 5){
                   Double porcentaje = 0.00
+                  Double montoMinimo = 0.00
                   try{
                     porcentaje = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(claveDesc[1]))
+                    if( StringUtils.trimToEmpty(claveDesc[6]) != null && StringUtils.trimToEmpty(claveDesc[6]).length() > 0 ){
+                      montoMinimo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(claveDesc[6]))
+                    }
                   } catch ( NumberFormatException e ){ println e }
                   DescuentoClave dc = descuentoClaveRepository.findOne(claveDesc[0])
                   if( dc == null ){
@@ -200,6 +204,8 @@ class PromotionServiceImpl implements PromotionService {
                   dc.descripcion_descuento = claveDesc[2]
                   dc.tipo = claveDesc[3]
                   dc.vigente = StringUtils.trimToEmpty(claveDesc[4]).equalsIgnoreCase("yes") ? true : false
+                  dc.cupon = StringUtils.trimToEmpty(claveDesc[5]).equalsIgnoreCase("yes") ? true : false
+                  dc.montoMinimo = new BigDecimal(montoMinimo)
                   descuentoClaveRepository.save( dc )
                   descuentoClaveRepository.flush()
                 }
