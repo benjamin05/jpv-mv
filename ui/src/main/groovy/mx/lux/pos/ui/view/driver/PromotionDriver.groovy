@@ -446,17 +446,21 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       Boolean allGen = false
       Boolean oneValGen = false
       Boolean oneNotValGen = false
-      if( StringUtils.trimToEmpty(desc.clave).length() == 11 && (desc.clave.replace("*","\\*").contains("*") || desc.clave.replace("!","\\!").contains("\\!")) ){
-            crm = true
-            generic = StringUtils.trimToEmpty(desc.clave).substring(1,3)
-            if( generic.contains("**") ){
-                allGen = true
-            } else if( generic.contains("*") ){
-                oneValGen = true
-            } else if( generic.replace("!","\\!").contains("\\!") ){
-                oneNotValGen = true
-            }
+      Boolean twoValGen = false
+      if( StringUtils.trimToEmpty(desc.clave).length() == 11 && (desc.clave.replace("*","\\*").contains("*") || desc.clave.replace("!","\\!").contains("\\!") ||
+              desc.clave.replace("_","\\_").contains("\\_") || StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP") )){
+        crm = true
+        generic = StringUtils.trimToEmpty(desc.clave).substring(1,3)
+        if( generic.contains("**") ){
+          allGen = true
+        } else if( generic.contains("_") ){
+          oneValGen = true
+        } else if( generic.replace("!","\\!").contains("\\!") ){
+          oneNotValGen = true
+        } else {
+          twoValGen = true
         }
+      }
       for(OrderItem oi : order.items){
         if( !genericoNoApplica.equalsIgnoreCase(StringUtils.trimToEmpty(oi.item.type)) ){
           if( crm ){
@@ -464,6 +468,11 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
               ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
             } else if( oneValGen ) {
               if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
+                ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
+              }
+            } else if( twoValGen ) {
+              if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(0,1)) ||
+                      StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
                 ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
               }
             } else if( oneNotValGen ){
@@ -487,7 +496,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
           descripcionDesc = "Descuento Corporativo"
         } else if(StringUtils.trimToEmpty(desc?.clave).length() <= 0) {
           descripcionDesc = "Descuento Tienda"
-        } else if(StringUtils.trimToEmpty(desc?.clave).contains("*") || StringUtils.trimToEmpty(desc?.clave?.replace("!","\\!")).contains("\\!")) {
+        } else if(StringUtils.trimToEmpty(desc?.clave).length() == 11 && StringUtils.trimToEmpty(desc?.idTipoD).equalsIgnoreCase("AP")) {
             descripcionDesc = "Descuentos CRM"
         } else if((StringUtils.trimToEmpty(desc?.clave).startsWith("L") || StringUtils.trimToEmpty(desc?.clave).startsWith("N") ||
                 StringUtils.trimToEmpty(desc?.clave).startsWith("S")) &&

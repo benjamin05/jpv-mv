@@ -108,16 +108,19 @@ class PromotionCommit {
     Boolean crm = false
     Boolean allGen = false
     Boolean oneValGen = false
+    Boolean twoValGen = false
     Boolean oneNotValGen = false
     if( pModel.orderDiscount != null && StringUtils.trimToEmpty(pModel.orderDiscount.discountType.text).equalsIgnoreCase("Descuentos CRM") ){
       crm = true
       generic = StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(1,3)
       if( generic.contains("**") ){
             allGen = true
-      } else if( generic.contains("*") ){
-            oneValGen = true
       } else if( generic.replace("!","\\!").contains("\\!") ){
             oneNotValGen = true
+      } else if( generic.contains("_") ){
+          oneValGen = true
+      } else {
+          twoValGen = true
       }
     }
     for ( DetalleNotaVenta dbOrderLine : dbOrder.detalles ) {
@@ -133,8 +136,23 @@ class PromotionCommit {
               }
               dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
               netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+              amountDesc = amountDesc+dbOrderLine.precioUnitLista.doubleValue()-dbOrderLine.precioUnitFinal.doubleValue()
             } else if( oneValGen ){
               if( StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
+                if ( orderDetail != null ) {
+                  dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+                } else {
+                  dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+                }
+                dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+                netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+                amountDesc = amountDesc+dbOrderLine.precioUnitLista.doubleValue()-dbOrderLine.precioUnitFinal.doubleValue()
+              } else {
+                amountRestOrder = amountRestOrder+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+              }
+            } else if( twoValGen ){
+              if( StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase(generic.substring(0,1)) ||
+                      StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
                 if ( orderDetail != null ) {
                   dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
                 } else {
@@ -192,8 +210,7 @@ class PromotionCommit {
 
     if ( pModel.hasOrderDiscountApplied() ) {
       println pModel.orderDiscount.discountAmount.round()
-      if( amountDesc > 0 && (pModel.orderDiscount.discountType.description.contains("*") ||
-              pModel.orderDiscount.discountType.description.replace("!","\\!").contains("\\!")) ){
+      if( amountDesc > 0 && StringUtils.trimToEmpty(pModel.orderDiscount.discountType.text).equalsIgnoreCase("Descuentos CRM") ){
         dbOrder.montoDescuento = asAmount( amountDesc )
       } else {
         dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount.round() )
