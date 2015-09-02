@@ -110,9 +110,28 @@ class PromotionCommit {
     Boolean oneValGen = false
     Boolean twoValGen = false
     Boolean oneNotValGen = false
+    BigDecimal discountAmount = BigDecimal.ZERO
     if( pModel.orderDiscount != null && StringUtils.trimToEmpty(pModel.orderDiscount.discountType.text).equalsIgnoreCase("Descuentos CRM") ){
       crm = true
       generic = StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(1,3)
+      String clave = ""
+      Integer percentajeInt = 0
+      for(int i=0;i<StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length();i++){
+        if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.charAt(i).toString()).isNumber()){
+          Integer number = 0
+          try{
+            number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.charAt(i).toString()))
+          } catch ( NumberFormatException e ) { println e }
+          clave = clave+StringUtils.trimToEmpty((10-number).toString())
+        } else {
+          clave = clave+0
+        }
+      }
+      String percentaje = StringUtils.trimToEmpty(clave).substring(3,5)
+      try{
+        percentajeInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(percentaje))
+      } catch ( NumberFormatException e) { e.printStackTrace() }
+      discountAmount = new BigDecimal(percentajeInt.doubleValue()*Registry.multiplyDiscountCrm)
       if( generic.contains("**") ){
             allGen = true
       } else if( generic.replace("!","\\!").contains("\\!") ){
@@ -202,6 +221,11 @@ class PromotionCommit {
         netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
         RepositoryFactory.orderLines.save( dbOrderLine )
       }
+    }
+    BigDecimal diff = discountAmount.subtract(amountDesc)
+    if( diff.compareTo(BigDecimal.ZERO) < 0 || diff.compareTo(BigDecimal.ZERO) > 0 ){
+      amountDesc = amountDesc+diff.doubleValue()
+      netAmount = netAmount-diff.doubleValue()
     }
     RepositoryFactory.orderLines.flush()
     netAmount = netAmount+amountEnsure+amountRestOrder
