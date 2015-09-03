@@ -697,7 +697,7 @@ public class NotaVentaServiceJava {
     Boolean generaCupon = true;
     DescuentosClaveJava descuentoClave = DescuentosClaveQuery.buscaDescuentoClavePorClave( claveCupon );
     if( descuentoClave != null ){
-      generaCupon = descuentoClave.getCupon();
+      generaCupon = descuentoClave.getCupon() != null ? descuentoClave.getCupon() : Registry.generatedCouponAgreement();
     }
     return generaCupon;
   }

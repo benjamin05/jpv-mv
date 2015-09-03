@@ -17,6 +17,7 @@ class DiscountContextMenu extends JPopupMenu {
   private JMenuItem menuDiscount
   private JMenuItem menuCorporateDiscount
   private JMenuItem menuCouponDiscount
+  private JMenuItem menuCrmDiscount
   private OrderPanel orderPanel
 
   
@@ -39,7 +40,7 @@ class DiscountContextMenu extends JPopupMenu {
         visible: true,
         actionPerformed: { onCouponDiscountSelected( ) },
       )
-      menuCouponDiscount = menuItem( text: "Descuento CRM",
+      menuCrmDiscount = menuItem( text: "Descuento CRM",
         visible: true,
         actionPerformed: { onCrmDiscountSelected( ) },
       )
@@ -53,8 +54,9 @@ class DiscountContextMenu extends JPopupMenu {
   // Public Methods
   void activate( MouseEvent pEvent, OrderPanel panel ) {
     menuDiscount.setEnabled( driver.isDiscountEnabled( ) )
-      menuCorporateDiscount.setEnabled( driver.isDiscountEnabled( ) )
-      menuCouponDiscount.setEnabled( driver.isDiscountEnabled( ) )
+    menuCorporateDiscount.setEnabled( driver.isDiscountEnabled( ) )
+    menuCouponDiscount.setEnabled( driver.isDiscountEnabled( ) )
+    menuCrmDiscount.setVisible( Registry.getCrmActive() )
     //menuCorporateDiscount.setEnabled( driver.isCorporateDiscountEnabled( ) )
     //menuCouponDiscount.setEnabled(driver.isCorporateDiscountEnabled())
     show( pEvent.getComponent(), pEvent.getX(), pEvent.getY() )

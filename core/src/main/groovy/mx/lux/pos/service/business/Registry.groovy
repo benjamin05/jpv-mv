@@ -491,6 +491,10 @@ class Registry {
     return isTrue( TipoParametro.CUPON_FF_OTHER_DISCOUNT )
   }
 
+  static Boolean generatedCouponAgreement( ) {
+    return isTrue( TipoParametro.GENERA_CUPON_CONVENIO )
+  }
+
   static Integer getMaxLengthDescription( ) {
     return asInteger( TipoParametro.MAX_LONG_DESC_FACTURA )
   }
@@ -555,6 +559,10 @@ class Registry {
         return isTrue( TipoParametro.ACTIVE_STORE_DISCOUNT )
     }
 
+    static Boolean getCrmActive( ) {
+      return isTrue( TipoParametro.CRM_ACTIVO )
+    }
+
     static Boolean getPromoAgeActive( ) {
         return isTrue( TipoParametro.PROMO_EDAD_ACTIVA )
     }
@@ -606,6 +614,10 @@ class Registry {
     }
   static Double getAckDelay( ) {
     return asDouble( mx.lux.pos.java.TipoParametro.ACUSE_RETRASO )
+  }
+
+  static Double getMinimunAmountAgreement( ) {
+    return asDouble( TipoParametro.MONTO_MINIMO_CONVENIO )
   }
 
   static Double getMultiplyDiscountCrm( ) {

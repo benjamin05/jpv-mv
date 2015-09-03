@@ -3,6 +3,7 @@ package mx.lux.pos.ui.controller
 import groovy.util.logging.Slf4j
 import mx.lux.pos.java.querys.AcusesQuery
 import mx.lux.pos.java.querys.AcusesTipoQuery
+import mx.lux.pos.java.querys.DescuentosClaveQuery
 import mx.lux.pos.java.querys.DescuentosQuery
 import mx.lux.pos.java.querys.FormaContactoQuery
 import mx.lux.pos.java.querys.JbQuery
@@ -16,6 +17,7 @@ import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.java.repository.AutorizaMovJava
 import mx.lux.pos.java.repository.BancoEmisorJava
 import mx.lux.pos.java.repository.CuponMvJava
+import mx.lux.pos.java.repository.DescuentosClaveJava
 import mx.lux.pos.java.repository.DescuentosJava
 import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.java.repository.EmpleadoJava
@@ -2542,7 +2544,8 @@ class OrderController {
     }
 
     static Boolean generatesCoupon(String claveDescuento){
-      return notaVentaServiceJava.cuponGeneraCupon(claveDescuento)
+      //return notaVentaServiceJava.cuponGeneraCupon(claveDescuento)
+      return notaVentaService.cuponGeneraCupon(claveDescuento)
     }
 
 
@@ -3548,6 +3551,33 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       }
     }
     return smthApply
+  }
+
+
+  static Boolean couponKeyValid( String couponKey, Order order ) {
+    log.debug("couponKeyValid ( "+ couponKey+" )")
+    Boolean valid = true
+    DescuentoClave descuentoClave = descuentoClaveRepository.descuentoClave( StringUtils.trimToEmpty(couponKey) )
+    BigDecimal minimumAmount = BigDecimal.ZERO
+    if( descuentoClave != null && descuentoClave.getMontoMinimo() != null && descuentoClave.getMontoMinimo().compareTo(BigDecimal.ZERO) > 0 ){
+      minimumAmount = descuentoClave.getMontoMinimo()
+      println "TEST"
+    } else {
+      minimumAmount = Registry.minimunAmountAgreement
+      println "TEST1"
+    }
+      BigDecimal totalOrder = BigDecimal.ZERO
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( order.id )
+      if( nota != null ){
+          for(DetalleNotaVentaJava det : nota.detalles){
+              totalOrder = totalOrder.add(det.precioUnitLista.multiply(new BigDecimal(det.cantidadFac)))
+          }
+          //println totalOrder
+          if( totalOrder.compareTo(minimumAmount) < 0 ){
+              valid = false
+          }
+      }
+    return valid
   }
 
 

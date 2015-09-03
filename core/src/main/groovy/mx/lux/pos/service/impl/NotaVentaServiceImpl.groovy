@@ -1928,7 +1928,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
     Boolean generaCupon = true
     DescuentoClave descuentoClave = descuentoClaveRepository.findOne( claveCupon )
     if( descuentoClave != null ){
-      generaCupon = descuentoClave.cupon
+      generaCupon = descuentoClave.getCupon() != null ? descuentoClave.getCupon() : Registry.generatedCouponAgreement();
     }
     return generaCupon
   }

@@ -15,6 +15,7 @@ public class DescuentosClaveJava {
     String tipo;
     Boolean vigente;
     Boolean cupon;
+    BigDecimal montoMinimo;
 
     public String getClaveDescuento() {
         return claveDescuento;
@@ -64,6 +65,14 @@ public class DescuentosClaveJava {
         this.cupon = cupon;
     }
 
+    public BigDecimal getMontoMinimo() {
+        return montoMinimo;
+    }
+
+    public void setMontoMinimo(BigDecimal montoMinimo) {
+        this.montoMinimo = montoMinimo;
+    }
+
     public DescuentosClaveJava mapeoDescuentosClave(ResultSet rs) throws SQLException{
 	  this.setClaveDescuento(rs.getString("clave_descuento"));
       this.setPorcenajeDescuento(Utilities.toBigDecimal(rs.getString("porcenaje_descuento")));
@@ -71,6 +80,7 @@ public class DescuentosClaveJava {
       this.setTipo(rs.getString("tipo"));
       this.setVigente(rs.getBoolean("vigente"));
       this.setCupon(rs.getBoolean("cupon"));
+      this.setMontoMinimo(Utilities.toBigDecimal(rs.getString("monto_minimo")));
       return this;
 	}
 	
