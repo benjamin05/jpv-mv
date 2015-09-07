@@ -3561,16 +3561,16 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     BigDecimal minimumAmount = BigDecimal.ZERO
     if( descuentoClave != null && descuentoClave.getMontoMinimo() != null && descuentoClave.getMontoMinimo().compareTo(BigDecimal.ZERO) > 0 ){
       minimumAmount = descuentoClave.getMontoMinimo()
-      println "TEST"
     } else {
       minimumAmount = Registry.minimunAmountAgreement
-      println "TEST1"
     }
       BigDecimal totalOrder = BigDecimal.ZERO
       NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( order.id )
       if( nota != null ){
           for(DetalleNotaVentaJava det : nota.detalles){
+            if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEG) ){
               totalOrder = totalOrder.add(det.precioUnitLista.multiply(new BigDecimal(det.cantidadFac)))
+            }
           }
           //println totalOrder
           if( totalOrder.compareTo(minimumAmount) < 0 ){
