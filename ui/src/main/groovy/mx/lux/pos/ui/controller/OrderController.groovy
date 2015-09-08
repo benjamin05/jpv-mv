@@ -71,6 +71,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.swing.*
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -3554,9 +3555,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
-  static Boolean couponKeyValid( String couponKey, Order order ) {
+  static String couponKeyValid( String couponKey, Order order ) {
     log.debug("couponKeyValid ( "+ couponKey+" )")
-    Boolean valid = true
+    String montoMinimo = ""
     DescuentoClave descuentoClave = descuentoClaveRepository.descuentoClave( StringUtils.trimToEmpty(couponKey) )
     BigDecimal minimumAmount = BigDecimal.ZERO
     if( descuentoClave != null && descuentoClave.getMontoMinimo() != null && descuentoClave.getMontoMinimo().compareTo(BigDecimal.ZERO) > 0 ){
@@ -3574,10 +3575,10 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           }
           //println totalOrder
           if( totalOrder.compareTo(minimumAmount) < 0 ){
-              valid = false
+              montoMinimo = NumberFormat.getCurrencyInstance(Locale.US).format(minimumAmount)
           }
       }
-    return valid
+    return montoMinimo
   }
 
 

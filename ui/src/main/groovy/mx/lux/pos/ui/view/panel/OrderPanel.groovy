@@ -1112,7 +1112,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         sb.doOutside {
           Registry.getSolicitaGarbageColector()
         }
-        Boolean couponKeyValid = true
+        String couponKeyValid = ""
         for(int i=0;i<promotionList.size();i++){
           if(promotionList.get(i) instanceof PromotionDiscount){
             if( promotionList.get(i).discountAmount > 0.00 ){
@@ -1122,7 +1122,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         if( warranty ){
           if( validLensesPack() ){
-            if( couponKeyValid ){
+            if( StringUtils.trimToEmpty(couponKeyValid).length() <= 0 ){
             Boolean continueSave = true
             rec = OrderController.findRx(order, customer)
             if( hasLc && (rec == null || rec.idReceta == null) ){
@@ -1207,7 +1207,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 }
             }
             } else {
-              sb.optionPane(message: "El monto de la nota no es valido para este descuento.", optionType: JOptionPane.DEFAULT_OPTION)
+              sb.optionPane(message: "Monto minimo de compra ${couponKeyValid}.", optionType: JOptionPane.DEFAULT_OPTION)
                       .createDialog(new JTextField(), "Error")
                       .show()
             }
@@ -1877,7 +1877,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         sb.doOutside {
           Registry.getSolicitaGarbageColector()
         }
-        Boolean couponKeyValid = true
+        String couponKeyValid = ""
         for(int i=0;i<promotionList.size();i++){
           if(promotionList.get(i) instanceof PromotionDiscount){
             if( promotionList.get(i).discountAmount > 0.00 ){
@@ -1912,7 +1912,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
-          if( couponKeyValid ){
+          if( StringUtils.trimToEmpty(couponKeyValid).length() <= 0 ){
           rec = OrderController.findRx(order, customer)
           Boolean continueSave = true
           if( hasLc && (rec == null || rec.idReceta == null) ){
@@ -1988,7 +1988,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               }
             }
           } else {
-              sb.optionPane(message: "El monto de la nota no es valido para este descuento.", optionType: JOptionPane.DEFAULT_OPTION)
+              sb.optionPane(message: "Monto minimo de compra ${couponKeyValid}.", optionType: JOptionPane.DEFAULT_OPTION)
                       .createDialog(new JTextField(), "Error")
                       .show()
           }
