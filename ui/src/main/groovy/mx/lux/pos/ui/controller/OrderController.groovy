@@ -1508,6 +1508,7 @@ class OrderController {
         acuseAPAR?.contenido = contenidoAPAR
         acuseAPAR?.idTipo = 'APAR'
         acuseAPAR?.intentos = 0
+        acuseAPAR?.fechaCarga = new Date()
         AcusesQuery.saveAcuses(acuseAPAR)
         insertarAcuse = false
       }
