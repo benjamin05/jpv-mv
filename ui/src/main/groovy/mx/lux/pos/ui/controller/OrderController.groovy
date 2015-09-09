@@ -3561,10 +3561,12 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     String montoMinimo = ""
     DescuentoClave descuentoClave = descuentoClaveRepository.descuentoClave( StringUtils.trimToEmpty(couponKey) )
     BigDecimal minimumAmount = BigDecimal.ZERO
-    if( descuentoClave != null && descuentoClave.getMontoMinimo() != null && descuentoClave.getMontoMinimo().compareTo(BigDecimal.ZERO) > 0 ){
-      minimumAmount = descuentoClave.getMontoMinimo()
-    } else {
-      minimumAmount = Registry.minimunAmountAgreement
+    if( descuentoClave != null ){
+      if( descuentoClave.getMontoMinimo() != null && descuentoClave.getMontoMinimo().compareTo(BigDecimal.ZERO) > 0 ){
+        minimumAmount = descuentoClave.getMontoMinimo()
+      } else {
+        minimumAmount = Registry.minimunAmountAgreement
+      }
     }
       BigDecimal totalOrder = BigDecimal.ZERO
       NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( order.id )
