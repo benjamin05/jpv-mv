@@ -188,6 +188,16 @@ public class ArticulosServiceJava {
   }
 
 
+  public ArticulosJava listarArticulosPorSku( Integer idArticulo, boolean incluyePrecio ) throws ParseException {
+    log.info( "listando articulos con sku: "+idArticulo );
+    ArticulosJava resultados = ArticulosQuery.busquedaArticuloPorId(idArticulo);
+    if ( incluyePrecio ) {
+      return establecerPrecio( resultados );
+    }
+    return resultados;
+  }
+
+
   public List<ArticulosJava> obtenerListaArticulosPorIdGenerico( String idGenerico ) throws ParseException {
     List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
     List<ArticulosJava> resultados = ArticulosQuery.busquedaArticuloPorIdGenerico(idGenerico);

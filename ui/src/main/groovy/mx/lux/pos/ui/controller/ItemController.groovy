@@ -82,14 +82,13 @@ class ItemController {
 
   static List<Item> findItemsByQuery( final String query ) {
     log.debug( "buscando de articulos con query: $query" )
-      if ( StringUtils.isNotBlank( query ) ) {
+    if ( StringUtils.isNotBlank( query ) ) {
       List<ArticulosJava> items = findPartsJavaByQuery( query )
       if (items.size() > 0) {
         log.debug( "Items:: ${items.first()?.dump()} " )
         return items?.collect { Item.toItem( it ) }
       }
     }
-
     return [ ]
   }
 
@@ -114,6 +113,15 @@ class ItemController {
         def code = tokens?.first() ?: null
         log.debug( "busqueda con codigo exacto: ${code}" )
         items = articulosServiceJava.listarArticulosPorCodigo( code, incluyePrecio ) ?: [ ]
+        if( items.empty && code.isNumber() ){
+          Integer sku = 0
+          try {
+            sku = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(code)).intValue()
+          } catch ( NumberFormatException e ){
+            println( e )
+          }
+          items.add(articulosServiceJava.listarArticulosPorSku( sku, incluyePrecio ))
+        }
       }
       if ( query.contains( colorMatch ) ) {
         String color = query.find( /\,(\w+)/ ) { m, c -> return c }
@@ -148,8 +156,8 @@ class ItemController {
     }
 
     static List<Articulo> findPartsByQuery( final String query, Boolean incluyePrecio ) {
-        List<Articulo> items = [ ]
-        if ( StringUtils.isNotBlank( query ) ) {
+      List<Articulo> items = [ ]
+      if ( StringUtils.isNotBlank( query ) ) {
             /*if ( query.integer ) {
               log.debug( "busqueda por articulo exacto ${query}" )
               items.add( articuloService.obtenerArticulo( query.toInteger(), incluyePrecio ) )
@@ -169,6 +177,15 @@ class ItemController {
                 def code = tokens?.first() ?: null
                 log.debug( "busqueda con codigo exacto: ${code}" )
                 items = articuloService.listarArticulosPorCodigo( code, incluyePrecio ) ?: [ ]
+                if( items.empty && code.isNumber() ){
+                  Integer sku = 0
+                  try {
+                    sku = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(code)).intValue()
+                  } catch ( NumberFormatException e ){
+                    println( e )
+                  }
+                  items.add(articuloService.listarArticulosPorSku( sku, incluyePrecio ))
+                }
             }
             if ( query.contains( colorMatch ) ) {
                 String color = query.find( /\,(\w+)/ ) { m, c -> return c }
@@ -194,8 +211,8 @@ class ItemController {
                 }
             }
             //}
-        }
-        return items
+      }
+      return items
     }
 
 

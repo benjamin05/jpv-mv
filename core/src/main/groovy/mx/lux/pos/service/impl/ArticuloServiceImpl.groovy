@@ -148,6 +148,19 @@ class ArticuloServiceImpl implements ArticuloService {
     return resultados
   }
 
+
+  @Override
+  Articulo listarArticulosPorSku( Integer articulo, boolean incluyePrecio ) {
+    log.info( "listando articulos con articulo: ${articulo} incluye precio: ${incluyePrecio}" )
+    Predicate predicate = QArticulo.articulo1.id.eq( articulo )
+    Articulo resultados = articuloRepository.findOne( predicate )
+    if ( incluyePrecio ) {
+      return establecerPrecio( resultados )
+    }
+    return resultados
+  }
+
+
   @Override
   List<Articulo> listarArticulosPorCodigoSimilar( String articulo ) {
     return listarArticulosPorCodigoSimilar( articulo, true )
