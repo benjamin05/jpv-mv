@@ -57,7 +57,7 @@ public class ArticulosServiceJava {
         }
         BigDecimal lista = precioLista != null ? precioLista.getPrecio() : BigDecimal.ZERO;
         for(PreciosJava precioJava : precios){
-          if("O".equalsIgnoreCase( StringUtils.trimToEmpty(precioJava.getLista()) )){
+          if("O".equalsIgnoreCase( StringUtils.trimToEmpty(precioJava.getLista()) ) && precioJava.getPrecio().compareTo(BigDecimal.ZERO) > 0){
             precioOferta = precioJava;
             hasOfert = true;
           }
