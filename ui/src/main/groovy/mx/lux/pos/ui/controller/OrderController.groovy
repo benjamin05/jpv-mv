@@ -3585,4 +3585,38 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static Boolean validMinimumAmountCrm( BigDecimal couponAmount, NotaVenta notaVenta ){
+    Boolean valid = true
+    BigDecimal totalAmount = BigDecimal.ZERO
+    String amounts = StringUtils.trimToEmpty(Registry.minimunAmountCrm)
+    if( amounts.length() > 0 ){
+      for(DetalleNotaVenta detalleNotaVenta : notaVenta.detalles){
+        if( !detalleNotaVenta.articulo.idGenerico.equalsIgnoreCase(TAG_GENERICO_SEG) ){
+          totalAmount = totalAmount.add(detalleNotaVenta.precioUnitFinal)
+        }
+      }
+      String[] ranges = amounts.split(",")
+      for(String range : ranges){
+        String[] data = StringUtils.trimToEmpty(range).split(":")
+        if( data.length > 1 && data[0].toString().isNumber() && data[1].toString().isNumber() ){
+          Double discount = 0.00
+          Double minimumAmount = 0.00
+          try{
+            discount = NumberFormat.getInstance().parse(data[0]).doubleValue()
+            minimumAmount = NumberFormat.getInstance().parse(data[1]).doubleValue()
+          } catch ( NumberFormatException e ){
+            println e
+          }
+          if( discount == couponAmount ){
+            if( totalAmount.doubleValue() < minimumAmount ){
+              valid = false
+            }
+          }
+        }
+      }
+    }
+    return  valid
+  }
+
+
 }

@@ -88,14 +88,36 @@ class PromotionDiscount implements IPromotionAvailable {
   }
   
   Double getDiscountAmount( ) {
-    return this.baseAmount - this.promotionAmount  
+    return this.baseAmount - this.promotionAmount
   }
   
   Double getPromotionAmount( ) {
     Double amount = 0.0
+    if( StringUtils.trimToEmpty(discountType.text).equalsIgnoreCase("Descuentos CRM") ){
+      String clave = ""
+      for(int i=0;i<StringUtils.trimToEmpty(discountType.description).length();i++){
+              if(StringUtils.trimToEmpty(discountType.description.charAt(i).toString()).isNumber()){
+                  Integer number = 0
+                  try{
+                      number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(discountType.description.charAt(i).toString()))
+                  } catch ( NumberFormatException e ) { println e }
+                  clave = clave+StringUtils.trimToEmpty((10-number).toString())
+              } else {
+                  clave = clave+0
+              }
+      }
+      String strDiscount = StringUtils.trimToEmpty(clave).substring(3,5)
+      Integer percentajeInt = 0
+      try{
+              percentajeInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(strDiscount))
+      } catch ( NumberFormatException e) { e.printStackTrace() }
+      Double discountAmount = percentajeInt.doubleValue()*Registry.multiplyDiscountCrm
+      amount = order.regularAmount-discountAmount
+    } else {
       for ( PromotionOrderDetail orderDetail : order.orderDetailSet.values( ) ) {
         amount += orderDetail.finalAmount
       }
+    }
     return amount
   }
   

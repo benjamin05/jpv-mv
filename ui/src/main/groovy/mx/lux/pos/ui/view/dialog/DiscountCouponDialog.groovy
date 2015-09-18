@@ -556,9 +556,14 @@ class DiscountCouponDialog extends JDialog {
           lblStatus.text = warning
         }
         if( claveClear ){
-          txtDiscountAmount.setValue( new BigDecimal(percentajeInt.doubleValue()*Registry.multiplyDiscountCrm) )
-          valid = true
           amount = percentajeInt.doubleValue()*Registry.multiplyDiscountCrm
+          if( OrderController.validMinimumAmountCrm( amount, notaVenta ) ){
+            txtDiscountAmount.setValue( new BigDecimal(percentajeInt.doubleValue()*Registry.multiplyDiscountCrm) )
+            valid = true
+          } else {
+            warning = "La nota no cubre el monto minimo"
+            println "El total de la nota es menor al monto minimo para esta clave"
+          }
         }
       }
       DescuentoClave descuentoClave = null

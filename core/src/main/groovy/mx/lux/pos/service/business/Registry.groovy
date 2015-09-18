@@ -260,6 +260,10 @@ class Registry {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
   }
 
+  static String getMinimunAmountCrm( ) {
+    return asString( TipoParametro.MONTO_MINIMO_CRM )
+  }
+
   static String geIdCausesCan( ) {
     return asString( TipoParametro.ID_CAUSAS_CAN )
   }
