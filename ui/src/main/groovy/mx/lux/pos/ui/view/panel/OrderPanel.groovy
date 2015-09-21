@@ -2213,7 +2213,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 Customer c = this.customer
                 Order newOrder = OrderController.saveOrder(order)
                 CustomerController.updateCustomerInSite(c.id)
-                this.promotionDriver.requestPromotionSave(newOrder?.id, false)
+                //this.promotionDriver.requestPromotionSave(newOrder?.id, false)
+                this.promotionDriver.requestPromotionJavaSave(newOrder?.id, true)
                 this.reset()
                 this.disableUI()
                 this.operationTypeSelected = OperationType.PENDING
