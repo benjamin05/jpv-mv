@@ -439,12 +439,12 @@ class InvTrController {
       String[] part = pView.data.partSeed.split(',')
       log.debug( String.format( "[Controller] Request Part with seed <%s>", part[0] ) )
     String seed = part[0]
-    List<Articulo> partList = ItemController.findPartsByQuery( seed, false )
+    List<Articulo> partList = ItemController.findPartsByQuery( seed, true )
     if(seed.startsWith('00')){
       seed = seed.replaceFirst("^0*", "")
     }
     if ( ( partList.size() == 0 ) && ( seed.length() > 6 ) ) {
-      partList = ItemController.findPartsByQuery( seed.substring( 0, 6 ), false )
+      partList = ItemController.findPartsByQuery( seed.substring( 0, 6 ), true )
       if( partList.size() == 0 ){
           if( seed.contains(/$/) ){
               String[] inputTmp = seed.split(/\$/)
@@ -453,10 +453,10 @@ class InvTrController {
               } else {
                   seed = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
               }
-            partList = ItemController.findPartsByQuery( seed, false )
+            partList = ItemController.findPartsByQuery( seed, true )
           } else {
               seed = part[0]
-              partList = ItemController.findPartsByQuery( seed.substring( 0, 6 ), false )
+              partList = ItemController.findPartsByQuery( seed.substring( 0, 6 ), true )
           }
       }
     }
