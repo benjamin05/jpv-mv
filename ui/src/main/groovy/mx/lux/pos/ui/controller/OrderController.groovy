@@ -1420,6 +1420,7 @@ class OrderController {
       surteSwitch?.surte = surte
       List<PreciosJava> lstPrecios = PreciosQuery.buscaPreciosPorArticulo(StringUtils.trimToEmpty(item?.name));
       PreciosJava precio = lstPrecios.size() > 0 ? lstPrecios.get(0) : new PreciosJava()
+      if( Registry?.genericCustomer?.id != order.customer.id ){
       if( ((StringUtils.trimToEmpty(item.subtype).startsWith('S') && !StringUtils.trimToEmpty(item.subtype).equalsIgnoreCase("SV"))
               || item.typ.equalsIgnoreCase('O')) ||
                 (StringUtils.trimToEmpty(item?.type).equals('A') && StringUtils.trimToEmpty(precio?.surte).equals('P')) ){
@@ -1462,6 +1463,7 @@ class OrderController {
                 surteSucursal = false
             }
         }
+      }
       surteSwitch.setAgregaArticulo(agregaArticulo)
       surteSwitch.setSurteSucursal(surteSucursal)
       return surteSwitch

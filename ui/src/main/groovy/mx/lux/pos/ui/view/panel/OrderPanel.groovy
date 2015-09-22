@@ -1451,7 +1451,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         if (StringUtils.isNotBlank(newOrder?.id)) {
           Branch branch = Session.get(SessionItem.BRANCH) as Branch
-          OrderController.insertaAcuseAPAR(newOrder, branch)
+          if( Registry?.genericCustomer?.id != newOrder.customer.id ){
+            OrderController.insertaAcuseAPAR(newOrder, branch)
+          }
           Boolean montaje = false
           List<OrderItem> items = newOrder?.items
           Iterator iterator = items.iterator()
