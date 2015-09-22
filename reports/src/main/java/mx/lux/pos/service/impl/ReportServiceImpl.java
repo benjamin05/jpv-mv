@@ -1390,8 +1390,19 @@ public class ReportServiceImpl implements ReportService {
 
         if( articulo.getArticulo() != null ){
           List<Precio> price = precioRepository.findByArticulo( articulo.getArticulo() );
-          if(price.size() >= 1){
-            precio = price.get(0).getPrecio();
+          BigDecimal precioOferta = BigDecimal.ZERO;
+          BigDecimal precioLista = BigDecimal.ZERO;
+          for(Precio precio1 : price){
+            if( StringUtils.trimToEmpty(precio1.getLista()).equalsIgnoreCase("O") ){
+              precioOferta = precio1.getPrecio();
+            } else if( StringUtils.trimToEmpty(precio1.getLista()).equalsIgnoreCase("L") ){
+              precioLista = precio1.getPrecio();
+            }
+          }
+          if(precioOferta.compareTo(BigDecimal.ZERO) > 0){
+            precio = precioOferta;
+          } else {
+            precio = precioLista;
           }
         }
 
