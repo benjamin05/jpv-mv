@@ -536,7 +536,7 @@ class DiscountCouponDialog extends JDialog {
           if( claveValid ){
             Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
             if( descuento == null ){
-              String msg = ""//OrderController.validCrmClaveWeb( txtCorporateKey.text )
+              String msg = OrderController.validCrmClaveWeb( txtCorporateKey.text )
               if( StringUtils.trimToEmpty(msg).length() <= 0 ){
                 claveClear = true
               } else {
