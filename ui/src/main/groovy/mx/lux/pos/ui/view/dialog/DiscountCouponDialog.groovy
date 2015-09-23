@@ -198,11 +198,11 @@ class DiscountCouponDialog extends JDialog {
         if( descuentoClave != null && StringUtils.trimToEmpty(title).equalsIgnoreCase("Seguro")){
           descuentoClave = null
         }
-        if( descuentoClave == null && !StringUtils.trimToEmpty(title).equalsIgnoreCase("CRM")){
+        if( descuentoClave == null && !StringUtils.trimToEmpty(title).equalsIgnoreCase("CRM") && StringUtils.trimToEmpty(title).equalsIgnoreCase("Seguro")){
           descuentoClave = requestVerify()//OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
         }
 
-        if( descuentoClave == null ){
+        if( descuentoClave == null && StringUtils.trimToEmpty(title).equalsIgnoreCase("CRM")){
           descuentoClave = requestCrmVerify()
         }
 
@@ -536,7 +536,7 @@ class DiscountCouponDialog extends JDialog {
           if( claveValid ){
             Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
             if( descuento == null ){
-              String msg = ""//OrderController.validCrmClaveWeb( txtCorporateKey.text )
+              String msg = OrderController.validCrmClaveWeb( txtCorporateKey.text )
               if( StringUtils.trimToEmpty(msg).length() <= 0 ){
                 claveClear = true
               } else {
