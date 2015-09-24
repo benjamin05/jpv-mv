@@ -2258,14 +2258,18 @@ class TicketServiceImpl implements TicketService {
         List<Precio> precios = precioRepository.findByArticulo(part.articulo.trim())
         Precio precio = new Precio()
         Boolean oferta = false
+        Boolean lista = false
         for(Precio price : precios){
           if( StringUtils.trimToEmpty(price.lista).equalsIgnoreCase("O") && price.precio.compareTo(BigDecimal.ZERO) > 0 ){
             precio = price
-            oferta = true
+            //oferta = true
+          } else {
+            precio = price
+            //lista = true
           }
         }
-        if(precios.size() > 0 && !oferta){
-          precio = precios.first()
+        if(precios.size() <= 0){
+          precio = part.precio
         }
         String cantidad = ( det.cantidad != 1 ? String.format( '(%d@%,.2f)', det.cantidad, part.precio ) : '' )
         String price = String.format( '$%,.2f', det.cantidad * precio?.precio )
