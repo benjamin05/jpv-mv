@@ -3434,7 +3434,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
   static void saveAcuseCrmClave( String idOrder ){
     log.debug( "saveAcuseCrmClave( )" )
-    notaVentaService.guardaAcuseClaveCrm( idOrder )
+    NotaVentaServiceJava.guardaAcuseClaveCrm( idOrder )
   }
 
   static Boolean changeIpBox( String ip ){
