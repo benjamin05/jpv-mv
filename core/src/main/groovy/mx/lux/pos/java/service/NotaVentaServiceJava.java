@@ -890,4 +890,30 @@ public class NotaVentaServiceJava {
     return order;
   }
 
+
+  public static void guardaAcuseClaveCrm( String idFactura ) throws ParseException {
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(StringUtils.trimToEmpty(idFactura));
+    if( notaVenta != null ){
+      List<DescuentosJava> descuentos = DescuentosQuery.buscaDescuentosPorIdFactura(StringUtils.trimToEmpty(notaVenta.getIdFactura()));
+      DescuentosJava descuento = null;
+      for(DescuentosJava desc : descuentos){
+        if( desc != null && desc.getClave().length() == 11 && desc.getTipoClave().equalsIgnoreCase("DIRECCION") ){
+          descuento = desc;
+        }
+      }
+      if( descuento != null ){
+        AcusesJava acuse = new AcusesJava();
+        acuse.setContenido(String.format( "argVal=%s|", StringUtils.trimToEmpty(Registry.getCurrentSite().toString()) ));
+        acuse.setContenido( acuse.getContenido()+String.format( "%s|", StringUtils.trimToEmpty(notaVenta.getIdCliente().toString()) ));
+        acuse.setContenido( acuse.getContenido()+String.format( "%s|", StringUtils.trimToEmpty(descuento.getClave()) ));
+        acuse.setContenido(acuse.getContenido()+String.format( "%s|", String.format( notaVenta.getFactura() ) ));
+        acuse.setContenido(acuse.getContenido()+String.format( "%s|", "V" ));
+        acuse.setFechaCarga(new Date());
+        acuse.setIdTipo("aplica_crm");
+        AcusesQuery.saveAcuses(acuse);
+      }
+    }
+  }
+
+
 }
