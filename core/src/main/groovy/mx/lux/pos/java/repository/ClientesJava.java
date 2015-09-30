@@ -52,6 +52,7 @@ public class ClientesJava {
     private Integer principal;
     private MunicipioJava municipio;
     private ClientePaisJava clientePais;
+    private Integer idSucursal;
     private String nombreCompleto;
 
     public Integer getIdCliente() {
@@ -398,6 +399,14 @@ public class ClientesJava {
         this.nombreCompleto = nombreCompleto;
     }
 
+    public Integer getIdSucursal() {
+        return idSucursal;
+    }
+
+    public void setIdSucursal(Integer idSucursal) {
+        this.idSucursal = idSucursal;
+    }
+
     public ClientesJava mapeoCliente( ResultSet rs ){
       try{
 		this.setIdCliente(rs.getInt("id_cliente"));
@@ -440,6 +449,7 @@ public class ClientesJava {
         this.setFinado(Utilities.toBoolean(rs.getBoolean("finado")));
         this.setFechaImp(rs.getDate("fecha_imp"));
         this.setPrincipal(rs.getInt("principal"));
+        this.setIdSucursal(rs.getInt("id_sucursal"));
         this.setMunicipio( municipioJava() );
         this.setClientePais( clientaPaisJava() );
       } catch (SQLException err) {

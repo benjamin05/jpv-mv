@@ -92,7 +92,7 @@ public class ExamenQuery {
                     "sub_od_esf_ex, sub_od_cil_ex, sub_od_eje_ex, sub_od_adc_ex, sub_od_adi_ex, sub_od_av_ex," +
                     "sub_oi_esf_ex, sub_oi_cil_ex, sub_oi_eje_ex, sub_oi_adc_ex, sub_oi_adi_ex, sub_oi_av_ex, observaciones_ex," +
                     "di_od, di_oi, udf1, udf2, udf3, factura, tipo_cli, tipo_oft, fecha_alta, id_oftalmologo, hora_alta, id_ex_ori)" +
-                    "VALUES(%d,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s,'%s'," +
+                    "VALUES(%d,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'," +
                     "'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%s,%d,%s,'%s');",
                     examenJava.getIdCliente(), examenJava.getIdAtendio(), examenJava.getAvSaOdLejosEx(), examenJava.getAvSaOiLejosEx(),
                     examenJava.getObjOdEsfEx(), examenJava.getObjOdCilEx(), examenJava.getObjOdEjeEx(), examenJava.getObjOiEsfEx(),

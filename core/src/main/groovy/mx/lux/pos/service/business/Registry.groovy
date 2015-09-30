@@ -260,6 +260,14 @@ class Registry {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
   }
 
+  static String getImportCustomersUrl( ) {
+    return asString( TipoParametro.DATOS_CLIENTE )
+  }
+
+  static String getListCustomersUrl( ) {
+    return asString( TipoParametro.LISTA_CLIENTE )
+  }
+
   static String getMinimunAmountCrm( ) {
     return asString( TipoParametro.MONTO_MINIMO_CRM )
   }

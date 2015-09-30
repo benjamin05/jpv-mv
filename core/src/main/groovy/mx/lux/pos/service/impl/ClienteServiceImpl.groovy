@@ -160,7 +160,9 @@ class ClienteServiceImpl implements ClienteService {
   Cliente agregarCliente( Cliente cliente, String city, String country ) {
     log.debug( "agregando cliente: ${cliente?.dump()}" )
     if ( StringUtils.isNotBlank( cliente?.nombre ) ) {
-      cliente.idSucursal = sucursalRepository.getCurrentSucursalId()
+      if( cliente.idSucursal == null ){
+        cliente.idSucursal = sucursalRepository.getCurrentSucursalId()
+      }
       try {
         if ( cliente.id != null ) {
           this.eliminarCliente( cliente.id )
