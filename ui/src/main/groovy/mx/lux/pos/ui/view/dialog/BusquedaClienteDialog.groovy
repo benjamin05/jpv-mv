@@ -52,8 +52,10 @@ class BusquedaClienteDialog extends JDialog {
     private Boolean requestMod
     private String txtBirthDate
     private DefaultTableModel customersModel
+    private DefaultTableModel externalCustomersModel
     private Customer customer
     private List<Customer> customers
+    private List<Customer> externalCustomers
     private JTextField txtFechaNacimiento
     private JTextField txtApellidoPaterno
     private JLabel labelMessage
@@ -63,11 +65,10 @@ class BusquedaClienteDialog extends JDialog {
     private JButton buttonCancelar
 
     BusquedaClienteDialog(CustomerListener pListener) {
-        customers = [ ] as ObservableList
-
-        this.buildUI()
-        pListener.operationTypeSelected = OperationType.DEFAULT
-
+      customers = [ ] as ObservableList
+      externalCustomers = [ ] as ObservableList
+      this.buildUI()
+      pListener.operationTypeSelected = OperationType.DEFAULT
     }
 
     protected void buildUI() {
@@ -75,7 +76,7 @@ class BusquedaClienteDialog extends JDialog {
                 title: TXT_DIALOG_TITLE,
                 location: [ 70, 150 ] as Point,
                 resizable: true,
-                preferredSize: [ 850, 410 ],
+                preferredSize: [ 850, 450 ],
                 modal: true,
                 pack: true,
                 layout: new MigLayout( 'wrap 3', '[fill][fill,grow]' )
@@ -109,14 +110,13 @@ class BusquedaClienteDialog extends JDialog {
 
                 labelMessage = label('Resultados:', constraints: 'span')
 
-                scrollPane(constraints: 'span, h 200!',
+                scrollPane(constraints: 'span, h 100!',
                         verticalScrollBarPolicy: JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                         horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
                 ) {
                     table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doSeleccion) {
 
                         customersModel = tableModel(list: customers) {
-
                             closureColumn(header: 'Sucursal', read: { Registry.getCurrentSite() })
                             closureColumn(header: 'F. de Nacimiento', read: { Customer tmp -> tmp?.getFechaFormato("fechaNacimiento") })
                             closureColumn(header: 'Nombre', read: { Customer tmp -> tmp?.name })
@@ -129,6 +129,17 @@ class BusquedaClienteDialog extends JDialog {
                         } as DefaultTableModel
                     }
                 }
+            label( " ", constraints: 'span' )
+            scrollPane( constraints: 'span, h 100!' ) {
+              table( selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: onImportCustomersClick ) {
+                externalCustomersModel = tableModel( list: externalCustomers ) {
+                  closureColumn( header: 'Sucursal', read: {Customer tmp -> tmp?.idBranch}, maxWidth: 80 )
+                  closureColumn( header: 'Nombre', read: {Customer tmp -> tmp?.name} )
+                  closureColumn( header: 'Fecha Nac.', read: {Customer tmp -> tmp?.fechaNacimiento}, cellRenderer: new DateCellRenderer(), minWidth: 90, maxWidth: 100 )
+                  closureColumn( header: 'Ult. Venta', read: {Customer tmp -> tmp?.fechaUltimaVenta}, cellRenderer: new DateCellRenderer(), minWidth: 90, maxWidth: 100 )
+                } as DefaultTableModel
+              }
+            }
 
                 panel(layout: new MigLayout('right', '[fill]'), constraints: 'span') {
                     buttonNuevo = button('Cliente Nuevo', enabled: false, actionPerformed: doNuevo )
@@ -174,36 +185,38 @@ class BusquedaClienteDialog extends JDialog {
     }
 
     private def doBuscar = { ActionEvent ev ->
-        JButton source = ev.source as JButton
-        source.enabled = false
-
-        if ( StringUtils.trimToEmpty(txtFechaNacimiento.text).length() == 0 && StringUtils.trimToEmpty(txtApellidoPaterno.text).length() == 0 ) {
-            source.enabled = true
-            return null
-        }
-
-        customer = new Customer()
-
-        SimpleDateFormat dF = new SimpleDateFormat("dd-MM-yyyy");
-        customer.fechaNacimiento = StringUtils.trimToEmpty(txtFechaNacimiento.text).length() > 0 ? dF.parse( txtFechaNacimiento.text ) : null
-
-        customer.fathersName = txtApellidoPaterno.getText()
-        customers.clear()
-
-        if ( customer.fathersName != null || customer.fechaNacimiento != null)
-            customers.addAll(CustomerController.findCustomersFechaNacimientoApellidoPaterno(customer))
-
-        customersModel.fireTableDataChanged()
-        buttonNuevo.enabled = true
-        labelMessage.text = "Resultados: ${customers.size()}"
-
+      JButton source = ev.source as JButton
+      source.enabled = false
+      if ( StringUtils.trimToEmpty(txtFechaNacimiento.text).length() == 0 && StringUtils.trimToEmpty(txtApellidoPaterno.text).length() == 0 ) {
         source.enabled = true
-        buttonNuevo.enabled = true
+        return null
+      }
+      customer = new Customer()
+      SimpleDateFormat dF = new SimpleDateFormat("dd-MM-yyyy");
+      customer.fechaNacimiento = StringUtils.trimToEmpty(txtFechaNacimiento.text).length() > 0 ? dF.parse( txtFechaNacimiento.text ) : null
+      customer.fathersName = txtApellidoPaterno.getText()
+      customers.clear()
+      externalCustomers.clear()
+      if ( customer.fathersName != null || customer.fechaNacimiento != null){
+        customers.addAll(CustomerController.findCustomersFechaNacimientoApellidoPaterno(customer))
+      }
+      if ( customer.fathersName != null ){
+        externalCustomers.addAll( CustomerController.listCustomersFromMainDb( customer ) )
+      }
+
+      customersModel.fireTableDataChanged()
+      externalCustomersModel.fireTableDataChanged()
+      buttonNuevo.enabled = true
+      labelMessage.text = "Resultados: ${customers.size()+externalCustomers.size()}"
+      source.enabled = true
+      buttonNuevo.enabled = true
     }
 
     private def doLimpia = {
         customers.clear()
+        externalCustomers.clear()
         customersModel.fireTableDataChanged()
+        externalCustomersModel.fireTableDataChanged()
         txtApellidoPaterno.setText("")
         txtBirthDate = ""
         txtFechaNacimiento.setText("")
@@ -281,5 +294,22 @@ class BusquedaClienteDialog extends JDialog {
         }
         return dateFormat
     }
+
+  private def onImportCustomersClick = { MouseEvent ev ->
+    if ( SwingUtilities.isLeftMouseButton( ev ) ) {
+      if ( ev.clickCount == 2 ) {
+        customer = ev.source.selectedElement
+        dispose()
+        customer = CustomerController.importCustomersFromMainDb(customer)
+        if( customer.id ){
+          NewCustomerAndRxDialog dialog = new NewCustomerAndRxDialog( this, customer, true )
+          dialog.show()
+          if( dialog.canceled ){
+            this.customer = dialog.customer
+          }
+        }
+      }
+    }
+  }
 }
 

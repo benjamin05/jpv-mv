@@ -337,21 +337,17 @@ class CustomerController {
     }
 
     static void requestBusquedaCliente(CustomerListener pListener) {
-        this.log.debug('Request Busqueda Cliente ')
+      log.debug('Request Busqueda Cliente ')
+      BusquedaClienteDialog dialog = new BusquedaClienteDialog(pListener)
+      dialog.activate()
+      if (dialog.isNewRequested())
+        requestNewCustomer(pListener)
 
-        BusquedaClienteDialog dialog = new BusquedaClienteDialog(pListener)
-        dialog.activate()
-
-        if (dialog.isNewRequested())
-            CustomerController.requestNewCustomer(pListener)
-
-        if (dialog.isModRequested()) {
-            Cliente cliente = clienteService.obtenerCliente( dialog.getCustomerSelected().id )
-            Customer customer = Customer.toCustomer(cliente)
-
-            CustomerController.requestCustomerMod( pListener, customer )
-        }
-
+      if (dialog.isModRequested()) {
+        Cliente cliente = clienteService.obtenerCliente( dialog.getCustomerSelected().id )
+        Customer customer = Customer.toCustomer(cliente)
+        requestCustomerMod( pListener, customer )
+      }
     }
 
     static Order requestOrderByCustomer(CustomerListener pListener, Customer customer) {
