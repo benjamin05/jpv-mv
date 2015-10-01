@@ -951,7 +951,7 @@ class CustomerController {
     ClientesJava cliente = ClienteServiceJava.obtenerClientePorOrigen(StringUtils.trimToEmpty(ori))
     if( cliente == null ){
       for(String resp : respuesta){
-        sample = saveExternalCustomer( resp, sample, ori )
+        sample = saveExternalCustomer( resp, sample )
       }
     } else {
       sample = Customer.toCustomer( cliente )
@@ -963,7 +963,7 @@ class CustomerController {
   }
 
 
-  static Customer saveExternalCustomer( String resp, Customer sample, String ori ){
+  static Customer saveExternalCustomer( String resp, Customer sample ){
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
     SimpleDateFormat formatter1 = new SimpleDateFormat("dd/MM/yyyy");
     resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
@@ -972,151 +972,138 @@ class CustomerController {
     resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
     resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
     String[] data = resp.split(/\|/)
-    /*ClientesJava cliente = ClienteServiceJava.obtenerClientePorOrigen(StringUtils.trimToEmpty(ori))
-    if( cliente == null ){*/
-      if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("1") ){
-        MunicipioJava municipio = MunicipioQuery.BuscaMunicipioPorEstadoYLocalidad(StringUtils.trimToEmpty(data[3]), StringUtils.trimToEmpty(data[2]));
-        Address address = new Address()
-        address.setPrimary(StringUtils.trimToEmpty(data[11]))
-        address.setZipcode(StringUtils.trimToEmpty(data[13]))
-        address.setLocation(StringUtils.trimToEmpty(data[12]))
-        address.setCity(municipio != null ? StringUtils.trimToEmpty(municipio?.nombre) : "")
-        address.setState(municipio != null ? StringUtils.trimToEmpty(municipio?.estado?.nombre) : "")
+    if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("1") ){
+      MunicipioJava municipio = MunicipioQuery.BuscaMunicipioPorEstadoYLocalidad(StringUtils.trimToEmpty(data[3]), StringUtils.trimToEmpty(data[2]));
+      Address address = new Address()
+      address.setPrimary(StringUtils.trimToEmpty(data[11]))
+      address.setZipcode(StringUtils.trimToEmpty(data[13]))
+      address.setLocation(StringUtils.trimToEmpty(data[12]))
+      address.setCity(municipio != null ? StringUtils.trimToEmpty(municipio?.nombre) : "")
+      address.setState(municipio != null ? StringUtils.trimToEmpty(municipio?.estado?.nombre) : "")
 
-        sample.setId(null)
-        sample.setTitle(StringUtils.trimToEmpty(data[1]))
-        sample.setName(StringUtils.trimToEmpty(data[9]))
-        sample.setFathersName(StringUtils.trimToEmpty(data[6]))
-        sample.setMothersName(StringUtils.trimToEmpty(data[7]))
-        sample.setRfc(StringUtils.trimToEmpty(data[10]))
-        sample.setDob(StringUtils.trimToEmpty(data[27]).length() > 0 ? formatter.parse(StringUtils.trimToEmpty(data[27])) : null)
-        sample.setGender(GenderType.parse(!StringUtils.trimToEmpty(data[5]).equalsIgnoreCase("f")))
-        sample.setAddress(address)
-        sample.setCliOri(StringUtils.trimToEmpty(data[30]))
-        sample.setHistCuc(StringUtils.trimToEmpty(data[31]))
-        sample.setHistCli(StringUtils.trimToEmpty(data[32]))
+      sample.setId(null)
+      sample.setTitle(StringUtils.trimToEmpty(data[1]))
+      sample.setName(StringUtils.trimToEmpty(data[9]))
+      sample.setFathersName(StringUtils.trimToEmpty(data[6]))
+      sample.setMothersName(StringUtils.trimToEmpty(data[7]))
+      sample.setRfc(StringUtils.trimToEmpty(data[10]))
+      sample.setDob(StringUtils.trimToEmpty(data[27]).length() > 0 ? formatter.parse(StringUtils.trimToEmpty(data[27])) : null)
+      sample.setGender(GenderType.parse(!StringUtils.trimToEmpty(data[5]).equalsIgnoreCase("f")))
+      sample.setAddress(address)
+      sample.setCliOri(StringUtils.trimToEmpty(data[30]))
+      sample.setHistCuc(StringUtils.trimToEmpty(data[31]))
+      sample.setHistCli(StringUtils.trimToEmpty(data[32]))
 
-        Integer edad = 25
-        if(StringUtils.trimToEmpty(data[24]).length() > 0 ){
-          try{
-            edad = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(data[24]))
-          } catch (NumberFormatException e ) { println e }
-        }
-        sample.setAge( edad );
-        sample.setFechaNacimiento(StringUtils.trimToEmpty(data[27]).length() > 0 ? formatter.parse(StringUtils.trimToEmpty(data[27])) : null)
-        //sample.setIdBranch(StringUtils.trimToEmpty(data[23]))
-
-        sample = addCustomer( sample )
-        if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[14])).length() > 0) {
-          Contact phone = new Contact(type: ContactType.HOME_PHONE)
-          saveContact( sample, 2, StringUtils.trimToEmpty(data[14]))
-        }
-        if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[15])).length() > 0) {
-          Contact phone = new Contact(type: ContactType.OFFICE_PHONE)
-          saveContact( sample, 1, StringUtils.trimToEmpty(data[15]))
-        }
-        if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[17])).length() > 0) {
-          Contact phone = new Contact(type: ContactType.MOBILE_PHONE)
-          saveContact( sample, 3, StringUtils.trimToEmpty(data[17]))
-        }
-        if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[18])).length() > 0) {
-          Contact mail = new Contact(type: ContactType.EMAIL)
-          saveContact( sample, 0, StringUtils.trimToEmpty(data[18]))
-        }
-      } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("2") ){
-        User u = Session.get(SessionItem.USER) as User
-        ExamenJava examen = new ExamenJava()
-        examen.setIdCliente( sample.getId() )
-        examen.setIdAtendio( u.username )
-        examen.setAvSaOdLejosEx(StringUtils.trimToEmpty(data[3]))
-        examen.setAvSaOiLejosEx(StringUtils.trimToEmpty(data[4]))
-        examen.setObjOdEsfEx(StringUtils.trimToEmpty(data[5]))
-        examen.setObjOdCilEx(StringUtils.trimToEmpty(data[6]))
-        examen.setObjOdEjeEx(StringUtils.trimToEmpty(data[7]))
-        examen.setObjOiEsfEx(StringUtils.trimToEmpty(data[8]))
-        examen.setObjOiCilEx(StringUtils.trimToEmpty(data[9]))
-        examen.setObjOiEjeEx(StringUtils.trimToEmpty(data[10]))
-        examen.setObjDiEx(StringUtils.trimToEmpty(data[11]))
-        examen.setSubOdEsfEx(StringUtils.trimToEmpty(data[12]))
-        examen.setSubOdCilEx(StringUtils.trimToEmpty(data[13]))
-        examen.setSubOdEjeEx(StringUtils.trimToEmpty(data[14]))
-        examen.setSubOdAdcEx(StringUtils.trimToEmpty(data[15]))
-        examen.setSubOdAdiEx(StringUtils.trimToEmpty(data[16]))
-        examen.setSubOdAvEx(StringUtils.trimToEmpty(data[17]))
-        examen.setSubOiEsfEx(StringUtils.trimToEmpty(data[18]))
-        examen.setSubOiCilEx(StringUtils.trimToEmpty(data[19]))
-        examen.setSubOiEjeEx(StringUtils.trimToEmpty(data[20]))
-        examen.setSubOiAdcEx(StringUtils.trimToEmpty(data[21]))
-        examen.setSubOiAdiEx(StringUtils.trimToEmpty(data[22]))
-        examen.setSubOiAvEx(StringUtils.trimToEmpty(data[23]))
-        examen.setObservacionesEx(StringUtils.trimToEmpty(data[24]))
-        examen.setDiOd(StringUtils.trimToEmpty(data[26]))
-        examen.setDiOi(StringUtils.trimToEmpty(data[27]))
-        examen.setTipoCli(StringUtils.trimToEmpty(data[29]))
-        examen.setTipoOft(StringUtils.trimToEmpty(data[30]))
-        examen.setFechaAlta(new Date())
-        examen.setIdOftalmologo(null)
-        examen.setHoraAlta(new Date())
-        examen.setIdExOri(StringUtils.trimToEmpty(data[34]))
-        ExamenServiceJava.guardarExamen( examen )
-      } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("3") ){
-        RecetaJava receta = new RecetaJava()
-        receta.setExamen( ExamenServiceJava.obtenerExamenPorIdCliente(sample.id).idExamen )
-        receta.setIdCliente( sample.id )
-        receta.setFechaReceta( new Date() )
-        receta.setsUsoAnteojos(StringUtils.trimToEmpty(data[4]))
-        receta.setIdOptometrista(StringUtils.trimToEmpty(data[5]))
-        receta.setTipoOpt(StringUtils.trimToEmpty(data[6]))
-        receta.setOdEsfR(StringUtils.trimToEmpty(data[7]))
-        receta.setOdCilR(StringUtils.trimToEmpty(data[8]))
-        receta.setOdEjeR(StringUtils.trimToEmpty(data[9]))
-        receta.setOdAdcR(StringUtils.trimToEmpty(data[10]))
-        receta.setOdAdiR(StringUtils.trimToEmpty(data[11]))
-        receta.setOdPrismaH(StringUtils.trimToEmpty(data[12]))
-        receta.setOiEsfR(StringUtils.trimToEmpty(data[13]))
-        receta.setOiCilR(StringUtils.trimToEmpty(data[14]))
-        receta.setOiEjeR(StringUtils.trimToEmpty(data[15]))
-        receta.setOiAdcR(StringUtils.trimToEmpty(data[16]))
-        receta.setOiAdiR(StringUtils.trimToEmpty(data[17]))
-        receta.setOiPrismaH(StringUtils.trimToEmpty(data[18]))
-        receta.setDiLejosR(StringUtils.trimToEmpty(data[19]))
-        receta.setDiCercaR(StringUtils.trimToEmpty(data[20]))
-        receta.setOdAvR(StringUtils.trimToEmpty(data[21]))
-        receta.setOiAvR(StringUtils.trimToEmpty(data[22]))
-        receta.setAltOblR(StringUtils.trimToEmpty(data[23]))
-        receta.setObservacionesR(StringUtils.trimToEmpty(data[24]))
-        receta.setDiOd(StringUtils.trimToEmpty(data[27]))
-        receta.setDiOi(StringUtils.trimToEmpty(data[28]))
-        receta.setOdPrismaV(StringUtils.trimToEmpty(data[30]))
-        receta.setOiPrismaV(StringUtils.trimToEmpty(data[31]))
-        receta.setIdRxOri(StringUtils.trimToEmpty(data[33]))
-        receta.setIdSync("1")
-        receta.setFechaMod(new Date())
-        receta.setIdMod("0")
-        receta.setIdSucursal(Registry.currentSite)
-        RecetaServiceJava.saveRx( receta )
-      } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("15") ){
-        ImpHistorialJava impHistorialJava = new ImpHistorialJava()
-        impHistorialJava.setIdCliente(sample.id)
-        impHistorialJava.setIdSucOri(StringUtils.trimToEmpty(data[2]))
-        impHistorialJava.setFechaCompra(StringUtils.trimToEmpty(data[3]).length() > 0 ? formatter1.parse(StringUtils.trimToEmpty(data[3])) : null)
-        impHistorialJava.setFactura(StringUtils.trimToEmpty(data[5]))
-        BigDecimal importe = BigDecimal.ZERO
-        if( StringUtils.trimToEmpty(data[6]).length() > 0 ){
-          try{
-            importe = new BigDecimal(NumberFormat.getInstance().parse(StringUtils.trimToEmpty(data[6])).doubleValue())
-          } catch ( NumberFormatException e ) { println e }
-        }
-        impHistorialJava.setImporte( importe )
-        impHistorialJava.setObs(StringUtils.trimToEmpty(data[7]))
-        ImpHistorialQuery.saveImpHistorial( impHistorialJava )
+      Integer edad = 25
+      if(StringUtils.trimToEmpty(data[24]).length() > 0 ){
+        try{
+          edad = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(data[24]))
+        } catch (NumberFormatException e ) { println e }
       }
-    /*} else {
-      sample = Customer.toCustomer( cliente )
-      sample.address.setCity(StringUtils.trimToEmpty(sample.address.city))
-      sample.address.setLocation(StringUtils.trimToEmpty(sample.address.location))
-      sample.address.setState(StringUtils.trimToEmpty(sample.address.state))
-    }*/
+      sample.setAge( edad );
+      sample.setFechaNacimiento(StringUtils.trimToEmpty(data[27]).length() > 0 ? formatter.parse(StringUtils.trimToEmpty(data[27])) : null)
+      sample = addCustomer( sample )
+
+      if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[14])).length() > 0) {
+        saveContact( sample, 2, StringUtils.trimToEmpty(data[14]))
+      }
+      if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[15])).length() > 0) {
+        saveContact( sample, 1, StringUtils.trimToEmpty(data[15]))
+      }
+      if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[17])).length() > 0) {
+        saveContact( sample, 3, StringUtils.trimToEmpty(data[17]))
+      }
+      if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[18])).length() > 0) {
+        saveContact( sample, 0, StringUtils.trimToEmpty(data[18]))
+      }
+    } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("2") ){
+      User u = Session.get(SessionItem.USER) as User
+      ExamenJava examen = new ExamenJava()
+      examen.setIdCliente( sample.getId() )
+      examen.setIdAtendio( u.username )
+      examen.setAvSaOdLejosEx(StringUtils.trimToEmpty(data[3]))
+      examen.setAvSaOiLejosEx(StringUtils.trimToEmpty(data[4]))
+      examen.setObjOdEsfEx(StringUtils.trimToEmpty(data[5]))
+      examen.setObjOdCilEx(StringUtils.trimToEmpty(data[6]))
+      examen.setObjOdEjeEx(StringUtils.trimToEmpty(data[7]))
+      examen.setObjOiEsfEx(StringUtils.trimToEmpty(data[8]))
+      examen.setObjOiCilEx(StringUtils.trimToEmpty(data[9]))
+      examen.setObjOiEjeEx(StringUtils.trimToEmpty(data[10]))
+      examen.setObjDiEx(StringUtils.trimToEmpty(data[11]))
+      examen.setSubOdEsfEx(StringUtils.trimToEmpty(data[12]))
+      examen.setSubOdCilEx(StringUtils.trimToEmpty(data[13]))
+      examen.setSubOdEjeEx(StringUtils.trimToEmpty(data[14]))
+      examen.setSubOdAdcEx(StringUtils.trimToEmpty(data[15]))
+      examen.setSubOdAdiEx(StringUtils.trimToEmpty(data[16]))
+      examen.setSubOdAvEx(StringUtils.trimToEmpty(data[17]))
+      examen.setSubOiEsfEx(StringUtils.trimToEmpty(data[18]))
+      examen.setSubOiCilEx(StringUtils.trimToEmpty(data[19]))
+      examen.setSubOiEjeEx(StringUtils.trimToEmpty(data[20]))
+      examen.setSubOiAdcEx(StringUtils.trimToEmpty(data[21]))
+      examen.setSubOiAdiEx(StringUtils.trimToEmpty(data[22]))
+      examen.setSubOiAvEx(StringUtils.trimToEmpty(data[23]))
+      examen.setObservacionesEx(StringUtils.trimToEmpty(data[24]))
+      examen.setDiOd(StringUtils.trimToEmpty(data[26]))
+      examen.setDiOi(StringUtils.trimToEmpty(data[27]))
+      examen.setTipoCli(StringUtils.trimToEmpty(data[29]))
+      examen.setTipoOft(StringUtils.trimToEmpty(data[30]))
+      examen.setFechaAlta(new Date())
+      examen.setIdOftalmologo(null)
+      examen.setHoraAlta(new Date())
+      examen.setIdExOri(StringUtils.trimToEmpty(data[34]))
+      ExamenServiceJava.guardarExamen( examen )
+    } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("3") ){
+      RecetaJava receta = new RecetaJava()
+      receta.setExamen( ExamenServiceJava.obtenerExamenPorIdCliente(sample.id).idExamen )
+      receta.setIdCliente( sample.id )
+      receta.setFechaReceta( new Date() )
+      receta.setsUsoAnteojos(StringUtils.trimToEmpty(data[4]))
+      receta.setIdOptometrista(StringUtils.trimToEmpty(data[5]))
+      receta.setTipoOpt(StringUtils.trimToEmpty(data[6]))
+      receta.setOdEsfR(StringUtils.trimToEmpty(data[7]))
+      receta.setOdCilR(StringUtils.trimToEmpty(data[8]))
+      receta.setOdEjeR(StringUtils.trimToEmpty(data[9]))
+      receta.setOdAdcR(StringUtils.trimToEmpty(data[10]))
+      receta.setOdAdiR(StringUtils.trimToEmpty(data[11]))
+      receta.setOdPrismaH(StringUtils.trimToEmpty(data[12]))
+      receta.setOiEsfR(StringUtils.trimToEmpty(data[13]))
+      receta.setOiCilR(StringUtils.trimToEmpty(data[14]))
+      receta.setOiEjeR(StringUtils.trimToEmpty(data[15]))
+      receta.setOiAdcR(StringUtils.trimToEmpty(data[16]))
+      receta.setOiAdiR(StringUtils.trimToEmpty(data[17]))
+      receta.setOiPrismaH(StringUtils.trimToEmpty(data[18]))
+      receta.setDiLejosR(StringUtils.trimToEmpty(data[19]))
+      receta.setDiCercaR(StringUtils.trimToEmpty(data[20]))
+      receta.setOdAvR(StringUtils.trimToEmpty(data[21]))
+      receta.setOiAvR(StringUtils.trimToEmpty(data[22]))
+      receta.setAltOblR(StringUtils.trimToEmpty(data[23]))
+      receta.setObservacionesR(StringUtils.trimToEmpty(data[24]))
+      receta.setDiOd(StringUtils.trimToEmpty(data[27]))
+      receta.setDiOi(StringUtils.trimToEmpty(data[28]))
+      receta.setOdPrismaV(StringUtils.trimToEmpty(data[30]))
+      receta.setOiPrismaV(StringUtils.trimToEmpty(data[31]))
+      receta.setIdRxOri(StringUtils.trimToEmpty(data[33]))
+      receta.setIdSync("1")
+      receta.setFechaMod(new Date())
+      receta.setIdMod("0")
+      receta.setIdSucursal(Registry.currentSite)
+      RecetaServiceJava.saveRx( receta )
+    } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("15") ){
+      ImpHistorialJava impHistorialJava = new ImpHistorialJava()
+      impHistorialJava.setIdCliente(sample.id)
+      impHistorialJava.setIdSucOri(StringUtils.trimToEmpty(data[2]))
+      impHistorialJava.setFechaCompra(StringUtils.trimToEmpty(data[3]).length() > 0 ? formatter1.parse(StringUtils.trimToEmpty(data[3])) : null)
+      impHistorialJava.setFactura(StringUtils.trimToEmpty(data[5]))
+      BigDecimal importe = BigDecimal.ZERO
+      if( StringUtils.trimToEmpty(data[6]).length() > 0 ){
+        try{
+          importe = new BigDecimal(NumberFormat.getInstance().parse(StringUtils.trimToEmpty(data[6])).doubleValue())
+        } catch ( NumberFormatException e ) { println e }
+      }
+      impHistorialJava.setImporte( importe )
+      impHistorialJava.setObs(StringUtils.trimToEmpty(data[7]))
+      ImpHistorialQuery.saveImpHistorial( impHistorialJava )
+    }
     return sample
   }
 
