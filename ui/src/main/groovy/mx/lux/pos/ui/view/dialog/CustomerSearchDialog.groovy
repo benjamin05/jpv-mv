@@ -21,14 +21,12 @@ class CustomerSearchDialog extends JDialog {
   private SwingBuilder sb
   private Customer customer
   private List<Customer> customers
-  private List<Customer> importedCustomers
   private JTextField firstName
   private JTextField fathersName
   private JTextField mothersName
   private JLabel message
   private JButton newButton
   private DefaultTableModel customersModel
-  private DefaultTableModel importedCustomersModel
   private JButton btnCancel
 
   Boolean canceled
@@ -36,7 +34,6 @@ class CustomerSearchDialog extends JDialog {
   CustomerSearchDialog( Component parent, Order order ) {
     sb = new SwingBuilder()
     customers = [ ] as ObservableList
-    importedCustomers = [ ] as ObservableList
     customer = new Customer( type: order?.customer?.type )
     if ( order?.customer?.id ) {
       customer.id = order.customer.id
@@ -77,25 +74,13 @@ class CustomerSearchDialog extends JDialog {
 
       message = label( 'Resultados:', constraints: 'span' )
 
-      scrollPane( constraints: 'span, h 100!' ) {
+      scrollPane( constraints: 'span, h 200!' ) {
         table( selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: onCustomersClick, mousePressed: onCustomersPress ) {
           customersModel = tableModel( list: customers ) {
             closureColumn( header: 'Nombre', read: {Customer tmp -> tmp?.name} )
             closureColumn( header: 'Apellido Paterno', read: {Customer tmp -> tmp?.fathersName} )
             closureColumn( header: 'Apellido Materno', read: {Customer tmp -> tmp?.mothersName} )
             closureColumn( header: 'Fecha de Nacimiento', read: {Customer tmp -> tmp?.dob}, cellRenderer: new DateCellRenderer(), maxWidth: 100 )
-          } as DefaultTableModel
-        }
-      }
-      label( " ", constraints: 'span' )
-      scrollPane( constraints: 'span, h 100!' ) {
-        table( selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: onImportCustomersClick ) {
-          importedCustomersModel = tableModel( list: importedCustomers ) {
-            closureColumn( header: 'Sucursal', read: {Customer tmp -> tmp?.idBranch}, maxWidth: 80 )
-            closureColumn( header: 'Nombre', read: {Customer tmp -> tmp?.name} )
-            closureColumn( header: 'Fecha Nac.', read: {Customer tmp -> tmp?.fechaNacimiento}, cellRenderer: new DateCellRenderer(), minWidth: 90, maxWidth: 100 )
-            //closureColumn( header: 'Venta', read: {Customer tmp -> tmp?.ultimaVenta} )
-            closureColumn( header: 'Ult. Venta', read: {Customer tmp -> tmp?.fechaUltimaVenta}, cellRenderer: new DateCellRenderer(), minWidth: 90, maxWidth: 100 )
           } as DefaultTableModel
         }
       }
@@ -119,13 +104,10 @@ class CustomerSearchDialog extends JDialog {
     JButton source = ev.source as JButton
     source.enabled = false
     customers.clear()
-    importedCustomers.clear()
     customers.addAll( CustomerController.findCustomers( customer ) )
-    importedCustomers.addAll( CustomerController.listCustomersFromMainDb( customer ) )
     customersModel.fireTableDataChanged()
-    importedCustomersModel.fireTableDataChanged()
     newButton.enabled = true
-    message.text = "Resultados: ${customers.size()+importedCustomers.size()}"
+    message.text = "Resultados: ${customers.size()}"
     source.enabled = true
   }
 
@@ -135,9 +117,7 @@ class CustomerSearchDialog extends JDialog {
     firstName.text = null
     message.text = 'Resultados:'
     customers.clear()
-    importedCustomers.clear()
     customersModel.fireTableDataChanged()
-    importedCustomersModel.fireTableDataChanged()
   }
 
   private def onCustomersClick = { MouseEvent ev ->
@@ -146,21 +126,6 @@ class CustomerSearchDialog extends JDialog {
         customer = ev.source.selectedElement
         canceled = false
         dispose()
-      }
-    }
-  }
-
-
-  private def onImportCustomersClick = { MouseEvent ev ->
-    if ( SwingUtilities.isLeftMouseButton( ev ) ) {
-      if ( ev.clickCount == 2 ) {
-        customer = ev.source.selectedElement
-        canceled = true
-        dispose()
-        customer = CustomerController.importCustomersFromMainDb(customer)
-        if( customer.id ){
-          openCustomerDialog( customer, true )
-        }
       }
     }
   }

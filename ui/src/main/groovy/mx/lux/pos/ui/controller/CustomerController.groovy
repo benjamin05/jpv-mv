@@ -159,16 +159,12 @@ class CustomerController {
     }
 
     static List<Customer> findCustomersFechaNacimientoApellidoPaterno(Customer sample) {
-
-        log.debug("findCustomersFechaNacimientoApellidoPaterno ($sample)")
-
-        def results = clienteService.buscarClienteApellidoPatAndFechaNac(sample?.fathersName, sample?.fechaNacimiento)
-        log.debug("se obtiene lista con: ${results?.size()} customers")
-        results.collect {
-            Customer.toCustomer(it)
-        }
-
-//        return results
+      log.debug("findCustomersFechaNacimientoApellidoPaterno ($sample)")
+      def results = ClienteServiceJava.buscarClienteApePatApeMatNombAndFechaNac(sample?.fathersName, sample?.mothersName, sample?.name, sample?.fechaNacimiento)
+      log.debug("se obtiene lista con: ${results?.size()} customers")
+      results.collect {
+        Customer.toCustomer(it)
+      }
     }
 
     static ClienteProceso addClienteProceso(Customer tmpCustomer) {
@@ -878,7 +874,8 @@ class CustomerController {
       future.cancel(true)
       log.warn("encountered problem while doing some work", e)
     }
-    for(String resp : respuesta){
+    for(int i=0;i<=49;i++){
+      String resp = respuesta.get(i)
       resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
       resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
       resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
@@ -891,7 +888,6 @@ class CustomerController {
         //Integer idBranch = 0
         try{
           id = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(data[0])).intValue()
-          //idBranch = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(data[1])).intValue()
         } catch ( NumberFormatException e ) { println e }
         c.setId(id)
         c.setIdBranch(StringUtils.trimToEmpty(data[1]))

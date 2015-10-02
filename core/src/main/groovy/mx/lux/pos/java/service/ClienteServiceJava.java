@@ -108,4 +108,16 @@ public class ClienteServiceJava {
     log.debug( "obteniendo cliente hist_cli: "+ oriCli );
     return ClientesQuery.busquedaClienteByOrigen( oriCli );
   }
+
+
+  public static List<ClientesJava> buscarClienteApePatApeMatNombAndFechaNac(String apellidoPaterno, String apellidoMaterno, String nombre, Date fechaNacimiento) throws ParseException {
+    log.debug("buscarClienteApePatApeMatNombAndFechaNac ( )");
+    apellidoPaterno = StringUtils.trimToNull(apellidoPaterno);
+    apellidoMaterno = StringUtils.trimToNull(apellidoMaterno);
+    nombre = StringUtils.trimToEmpty(nombre);
+    List<ClientesJava> result = new ArrayList<ClientesJava>();
+    return ClientesQuery.listaClientesPorApePatOrApeMatOrNombreAndFechaNac(apellidoPaterno, apellidoMaterno, nombre, fechaNacimiento);
+  }
+
+
 }

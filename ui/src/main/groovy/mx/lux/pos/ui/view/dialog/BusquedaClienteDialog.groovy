@@ -58,6 +58,8 @@ class BusquedaClienteDialog extends JDialog {
     private List<Customer> externalCustomers
     private JTextField txtFechaNacimiento
     private JTextField txtApellidoPaterno
+    private JTextField txtApellidoMaterno
+    private JTextField txtNombre
     private JLabel labelMessage
     private JButton buttonBuscar
     private JButton buttonLimpiar
@@ -76,7 +78,7 @@ class BusquedaClienteDialog extends JDialog {
                 title: TXT_DIALOG_TITLE,
                 location: [ 70, 150 ] as Point,
                 resizable: true,
-                preferredSize: [ 850, 450 ],
+                preferredSize: [ 800, 450 ],
                 modal: true,
                 pack: true,
                 layout: new MigLayout( 'wrap 3', '[fill][fill,grow]' )
@@ -97,10 +99,13 @@ class BusquedaClienteDialog extends JDialog {
                     })
                 }
 
-                panel(layout: new MigLayout('wrap', '[fill, 200!]', '[]')) {
+                panel(layout: new MigLayout('wrap 2,', '[fill][fill,grow]', '[]')) {
                     label('Apellido Paterno:')
-
                     txtApellidoPaterno = textField(document: new UpperCaseDocument())
+                    label('Apellido Materno:')
+                    txtApellidoMaterno = textField(document: new UpperCaseDocument())
+                    label('Nombre:')
+                    txtNombre = textField(document: new UpperCaseDocument())
                 }
 
                 panel(layout: new MigLayout('fill,right,wrap', '[fill]')) {
@@ -187,14 +192,17 @@ class BusquedaClienteDialog extends JDialog {
     private def doBuscar = { ActionEvent ev ->
       JButton source = ev.source as JButton
       source.enabled = false
-      if ( StringUtils.trimToEmpty(txtFechaNacimiento.text).length() == 0 && StringUtils.trimToEmpty(txtApellidoPaterno.text).length() == 0 ) {
+      if ( StringUtils.trimToEmpty(txtFechaNacimiento.text).length() == 0 && StringUtils.trimToEmpty(txtApellidoPaterno.text).length() == 0 &&
+              StringUtils.trimToEmpty(txtApellidoMaterno.text).length() == 0 && StringUtils.trimToEmpty(txtNombre.text).length() == 0 ) {
         source.enabled = true
         return null
       }
       customer = new Customer()
       SimpleDateFormat dF = new SimpleDateFormat("dd-MM-yyyy");
       customer.fechaNacimiento = StringUtils.trimToEmpty(txtFechaNacimiento.text).length() > 0 ? dF.parse( txtFechaNacimiento.text ) : null
-      customer.fathersName = txtApellidoPaterno.getText()
+      customer.fathersName = StringUtils.trimToEmpty(txtApellidoPaterno.getText())
+      customer.mothersName = StringUtils.trimToEmpty(txtApellidoMaterno.getText())
+      customer.name = StringUtils.trimToEmpty(txtNombre.getText())
       customers.clear()
       externalCustomers.clear()
       if ( customer.fathersName != null || customer.fechaNacimiento != null){
@@ -218,6 +226,8 @@ class BusquedaClienteDialog extends JDialog {
         customersModel.fireTableDataChanged()
         externalCustomersModel.fireTableDataChanged()
         txtApellidoPaterno.setText("")
+        txtApellidoMaterno.setText("")
+        txtNombre.setText("")
         txtBirthDate = ""
         txtFechaNacimiento.setText("")
         buttonNuevo.enabled = false
