@@ -1,6 +1,7 @@
 package mx.lux.pos.ui.view.panel
 
 import groovy.swing.SwingBuilder
+import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.PriceListController
 import mx.lux.pos.ui.model.PriceList
 import mx.lux.pos.ui.model.PriceListLoadType
@@ -51,7 +52,7 @@ class PriceListPanel {
               new ValidatePriceListDialog( source, selectedItem )
             }
           }
-          menuItem {
+          menuItem ( visible: Registry.activeManualLp()){
             action( name: 'Cargar Lista', shortDescription: 'Cargar Lista de Precios' ) {
               def authDialog = new AuthorizationDialog( source, 'Requiere autorización para cargar Lista de Precios' )
               authDialog.show()

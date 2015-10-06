@@ -11,6 +11,7 @@ enum TipoParametro {
   ARCHIVO_TIPO_CAMBIO( 'archivo_tipo_cambio', 'tc.*.{FECHA}.txt' ),
   ARCHIVO_CLASIFICACION_ARTICULOS( 'archivo_clasificacion_articulos', 'articulos.*.csv' ),
   BANCO_DEPOSITO( 'banco_deposito', '' ),
+  CARGA_MANUAL_LP_ACTIVO('carga_manual_lp_activo','no'),
   CLIENTES_ACTIVOS( 'clientes_activos', 'Público General,Cliente Nuevo,Cliente en Proceso,Cliente en Caja,Cotización' ),
   COMANDO_IP('comando_ip','ifconfig'),
   CUPON_TERCER_PAR( 'cupon_tercer_par', 'si' ),

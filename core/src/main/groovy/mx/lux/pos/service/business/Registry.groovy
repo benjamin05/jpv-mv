@@ -652,6 +652,10 @@ class Registry {
     return asDouble( mx.lux.pos.java.TipoParametro.MONTO_FF_CUPON )
   }
 
+  static Boolean activeManualLp() {
+    return isTrue( TipoParametro.CARGA_MANUAL_LP_ACTIVO )
+  }
+
   static Boolean isAckDebugEnabled() {
     return isTrue( TipoParametro.ACUSE_LOG_DETALLE )
   }
