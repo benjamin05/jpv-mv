@@ -874,7 +874,11 @@ class CustomerController {
       future.cancel(true)
       log.warn("encountered problem while doing some work", e)
     }
-    for(int i=0;i<=49;i++){
+    Integer cant = respuesta.size()-1
+    if( respuesta.size() > 50 ){
+      cant = 49
+    }
+    for(int i=0;i<=cant;i++){
       String resp = respuesta.get(i)
       resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
       resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
