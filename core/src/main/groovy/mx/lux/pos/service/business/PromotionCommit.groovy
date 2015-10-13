@@ -1,5 +1,7 @@
 package mx.lux.pos.service.business
 
+import mx.lux.pos.java.querys.PromocionQuery
+import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.GrupoArticuloDetRepository
 import mx.lux.pos.repository.GrupoArticuloRepository
@@ -113,33 +115,55 @@ class PromotionCommit {
     BigDecimal discountAmount = BigDecimal.ZERO
     if( pModel.orderDiscount != null && StringUtils.trimToEmpty(pModel.orderDiscount.discountType.text).equalsIgnoreCase("Descuentos CRM") ){
       crm = true
-      generic = StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(1,3)
-      String clave = ""
-      Integer percentajeInt = 0
-      for(int i=0;i<StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length();i++){
-        if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.charAt(i).toString()).isNumber()){
-          Integer number = 0
-          try{
-            number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.charAt(i).toString()))
-          } catch ( NumberFormatException e ) { println e }
-          clave = clave+StringUtils.trimToEmpty((10-number).toString())
-        } else {
-          clave = clave+0
+      if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length() >= 11){
+        generic = StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(1,3)
+        String clave = ""
+        Integer percentajeInt = 0
+        for(int i=0;i<StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length();i++){
+          if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.charAt(i).toString()).isNumber()){
+            Integer number = 0
+            try{
+              number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.charAt(i).toString()))
+            } catch ( NumberFormatException e ) { println e }
+            clave = clave+StringUtils.trimToEmpty((10-number).toString())
+          } else {
+            clave = clave+0
+          }
         }
-      }
-      String percentaje = StringUtils.trimToEmpty(clave).substring(3,5)
-      try{
-        percentajeInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(percentaje))
-      } catch ( NumberFormatException e) { e.printStackTrace() }
-      discountAmount = new BigDecimal(percentajeInt.doubleValue()*Registry.multiplyDiscountCrm)
-      if( generic.contains("**") ){
+        String percentaje = StringUtils.trimToEmpty(clave).substring(3,5)
+        try{
+              percentajeInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(percentaje))
+        } catch ( NumberFormatException e) { e.printStackTrace() }
+        discountAmount = new BigDecimal(percentajeInt.doubleValue()*Registry.multiplyDiscountCrm)
+        if( generic.contains("**") ){
+              allGen = true
+        } else if( generic.replace("!","\\!").contains("\\!") ){
+              oneNotValGen = true
+        } else if( generic.contains("_") ){
+              oneValGen = true
+        } else {
+              twoValGen = true
+        }
+      } else if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length() == 10){
+        String descPromo = "crm:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description)}"
+        PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
+        if( promo == null ){
+          descPromo = "CRM:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description)}"
+          promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
+        }
+        if(promo != null){
+          generic = StringUtils.trimToEmpty(promo.idGenerico)
+          discountAmount = promo.precioDescontado
+          if( generic.contains("*") ){
             allGen = true
-      } else if( generic.replace("!","\\!").contains("\\!") ){
-            oneNotValGen = true
-      } else if( generic.contains("_") ){
-          oneValGen = true
-      } else {
-          twoValGen = true
+          } else if( StringUtils.trimToEmpty(promo.genericoc).length() <= 0 ){
+            oneValGen = true
+            generic = "_"+generic
+          } else if( StringUtils.trimToEmpty(promo.genericoc).length() > 0 ){
+            twoValGen = true
+            generic = generic+StringUtils.trimToEmpty(promo.genericoc)
+          }
+        }
       }
     }
     for ( DetalleNotaVenta dbOrderLine : dbOrder.detalles ) {

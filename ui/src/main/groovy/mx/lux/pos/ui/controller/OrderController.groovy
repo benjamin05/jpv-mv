@@ -11,6 +11,7 @@ import mx.lux.pos.java.querys.JbTrackQuery
 import mx.lux.pos.java.querys.ParametrosQuery
 import mx.lux.pos.java.querys.PedidoLcQuery
 import mx.lux.pos.java.querys.PreciosQuery
+import mx.lux.pos.java.querys.PromocionQuery
 import mx.lux.pos.java.repository.AcusesJava
 import mx.lux.pos.java.repository.AcusesTipoJava
 import mx.lux.pos.java.repository.ArticulosJava
@@ -29,6 +30,7 @@ import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.Parametros
 import mx.lux.pos.java.repository.PedidoLcJava
 import mx.lux.pos.java.repository.PreciosJava
+import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.java.repository.TmpServiciosJava
 import mx.lux.pos.java.service.ArticulosServiceJava
@@ -3587,7 +3589,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
-  static Boolean validMinimumAmountCrm( BigDecimal couponAmount, NotaVenta notaVenta ){
+  static Boolean validMinimumAmountCrmByParameter( BigDecimal couponAmount, NotaVenta notaVenta ){
     Boolean valid = true
     BigDecimal totalAmount = BigDecimal.ZERO
     String amounts = StringUtils.trimToEmpty(Registry.minimunAmountCrm)
@@ -3618,6 +3620,37 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       }
     }
     return  valid
+  }
+
+
+  static Boolean validMinimumAmountCrm( BigDecimal minimunAmount, NotaVenta notaVenta ){
+    Boolean valid = true
+    BigDecimal totalAmount = BigDecimal.ZERO
+    for(DetalleNotaVenta detalleNotaVenta : notaVenta.detalles){
+      if( !detalleNotaVenta.articulo.idGenerico.equalsIgnoreCase(TAG_GENERICO_SEG) ){
+        totalAmount = totalAmount.add(detalleNotaVenta.precioUnitFinal)
+      }
+    }
+    if( totalAmount.doubleValue() < minimunAmount ){
+      valid = false
+    }
+    return  valid
+  }
+
+
+  static List<PromocionJava> findCrmPromotions( ){
+    List<PromocionJava> lstPromotions = new ArrayList<>();
+    List<PromocionJava> lstPromotionsCrm = PromocionQuery.buscaPromocionesCrm()
+    for(PromocionJava promocionJava : lstPromotionsCrm){
+      /*String[] data = StringUtils.trimToEmpty(promocionJava.descripcion).split(":")
+      if( data.length > 1 ){
+        String clave = StringUtils.trimToEmpty(data[1])
+        if(DescuentosQuery.buscaDescuentoPorClave(StringUtils.trimToEmpty(clave)) == null){*/
+          lstPromotions.add(promocionJava)
+        //}
+      //}
+    }
+    return lstPromotions
   }
 
 

@@ -1,5 +1,7 @@
 package mx.lux.pos.model
 
+import mx.lux.pos.java.querys.PromocionQuery
+import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.service.business.Registry
 import org.apache.commons.lang.StringUtils
 
@@ -94,25 +96,37 @@ class PromotionDiscount implements IPromotionAvailable {
   Double getPromotionAmount( ) {
     Double amount = 0.0
     if( StringUtils.trimToEmpty(discountType.text).equalsIgnoreCase("Descuentos CRM") ){
-      String clave = ""
-      for(int i=0;i<StringUtils.trimToEmpty(discountType.description).length();i++){
-              if(StringUtils.trimToEmpty(discountType.description.charAt(i).toString()).isNumber()){
-                  Integer number = 0
-                  try{
-                      number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(discountType.description.charAt(i).toString()))
-                  } catch ( NumberFormatException e ) { println e }
-                  clave = clave+StringUtils.trimToEmpty((10-number).toString())
-              } else {
-                  clave = clave+0
-              }
-      }
-      String strDiscount = StringUtils.trimToEmpty(clave).substring(3,5)
-      Integer percentajeInt = 0
-      try{
+      if( StringUtils.trimToEmpty(discountType.description).length() >= 11 ){
+        String clave = ""
+        for(int i=0;i<StringUtils.trimToEmpty(discountType.description).length();i++){
+          if(StringUtils.trimToEmpty(discountType.description.charAt(i).toString()).isNumber()){
+            Integer number = 0
+            try{
+              number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(discountType.description.charAt(i).toString()))
+            } catch ( NumberFormatException e ) { println e }
+            clave = clave+StringUtils.trimToEmpty((10-number).toString())
+          } else {
+            clave = clave+0
+          }
+        }
+        String strDiscount = StringUtils.trimToEmpty(clave).substring(3,5)
+        Integer percentajeInt = 0
+        try{
               percentajeInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(strDiscount))
-      } catch ( NumberFormatException e) { e.printStackTrace() }
-      Double discountAmount = percentajeInt.doubleValue()*Registry.multiplyDiscountCrm
-      amount = order.regularAmount-discountAmount
+        } catch ( NumberFormatException e) { e.printStackTrace() }
+        Double discountAmount = percentajeInt.doubleValue()*Registry.multiplyDiscountCrm
+        amount = order.regularAmount-discountAmount
+      } else if( StringUtils.trimToEmpty(discountType.description).length() == 10 ){
+        String descPromo = "crm:${StringUtils.trimToEmpty(discountType.description)}"
+        PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
+        if( promo == null ){
+          descPromo = "CRM:${StringUtils.trimToEmpty(discountType.description)}"
+          promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
+          amount = promo != null ? order.regularAmount-promo.precioDescontado : BigDecimal.ZERO
+        } else {
+          amount = order.regularAmount-promo.precioDescontado
+        }
+      }
     } else {
       for ( PromotionOrderDetail orderDetail : order.orderDetailSet.values( ) ) {
         amount += orderDetail.finalAmount

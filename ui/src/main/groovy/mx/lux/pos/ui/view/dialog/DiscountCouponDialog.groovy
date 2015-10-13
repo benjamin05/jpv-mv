@@ -1,8 +1,12 @@
 package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
+import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.Descuento
+import mx.lux.pos.model.Promocion
+import mx.lux.pos.model.PromotionAvailable
+import mx.lux.pos.ui.model.IPromotion
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.model.DescuentoClave
@@ -19,6 +23,7 @@ import org.apache.commons.lang.StringUtils
 
 import javax.swing.*
 import java.awt.*
+import java.util.List
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -462,8 +467,10 @@ class DiscountCouponDialog extends JDialog {
     DescuentoClave requestCrmVerify( ){
       Boolean valid = false
       String clave = ""
+      Boolean claveClear = false
       BigDecimal amount = BigDecimal.ZERO
       Integer percentajeInt = 0
+      NotaVenta notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(idOrder) )
       if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 11 ){
         for(int i=0;i<StringUtils.trimToEmpty(txtCorporateKey.text).length();i++){
           if(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()).isNumber()){
@@ -484,9 +491,7 @@ class DiscountCouponDialog extends JDialog {
           percentajeInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(percentaje))
         } catch ( NumberFormatException e) { e.printStackTrace() }
 
-        Boolean claveClear = false
         warning = ""
-        NotaVenta notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(idOrder) )
         if( notaVenta != null ){
           Boolean claveValid = false
           Boolean allGen = false
@@ -557,7 +562,7 @@ class DiscountCouponDialog extends JDialog {
         }
         if( claveClear ){
           amount = percentajeInt.doubleValue()*Registry.multiplyDiscountCrm
-          if( OrderController.validMinimumAmountCrm( amount, notaVenta ) ){
+          if( OrderController.validMinimumAmountCrmByParameter( amount, notaVenta ) ){
             txtDiscountAmount.setValue( new BigDecimal(percentajeInt.doubleValue()*Registry.multiplyDiscountCrm) )
             valid = true
           } else {
@@ -565,7 +570,49 @@ class DiscountCouponDialog extends JDialog {
             println "El total de la nota es menor al monto minimo para esta clave"
           }
         }
+      } else if( StringUtils.trimToEmpty(txtCorporateKey.text).length() == 10 ){
+        PromocionJava promocionJava = new PromocionJava();
+        Boolean claveValid = false
+        String key = StringUtils.trimToEmpty(txtCorporateKey.text)
+        List<PromocionJava> lstPromoCrm = OrderController.findCrmPromotions( )
+        for(PromocionJava prom : lstPromoCrm){
+          String[] data = StringUtils.trimToEmpty(prom.descripcion).split(":")
+          if( data.length > 1 ){
+            String keyCrm = StringUtils.trimToEmpty(data[1])
+            if( keyCrm.equalsIgnoreCase(key) ){
+              claveValid = true
+              promocionJava = prom
+            }
+          }
+        }
+        if( claveValid ){
+          Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
+          if( descuento == null ){
+            claveClear = true
+          } else {
+            warning = "Clave incorrecta"
+            println "Clave ya aplicada"
+          }
+        } else {
+          warning = "No existe clave de CRM"
+          println "No se encontro la clave CRM en la tabla de promocion"
+        }
+
+          if( StringUtils.trimToEmpty(warning).length() > 0 ){
+              lblStatus.text = warning
+          }
+          if( claveClear ){
+            amount = promocionJava.precioDescontado
+            if( OrderController.validMinimumAmountCrm( promocionJava.montoMinimo, notaVenta ) ){
+              txtDiscountAmount.setValue( new BigDecimal(promocionJava.precioDescontado) )
+              valid = true
+            } else {
+              warning = "La nota no cubre el monto minimo"
+              println "El total de la nota es menor al monto minimo para esta clave"
+            }
+          }
       }
+
       DescuentoClave descuentoClave = null
       if( valid ){
         descuentoClave = new DescuentoClave()

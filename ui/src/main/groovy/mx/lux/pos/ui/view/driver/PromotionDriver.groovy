@@ -1,5 +1,7 @@
 package mx.lux.pos.ui.view.driver
 
+import mx.lux.pos.java.querys.PromocionQuery
+import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.DescuentoClave
 import mx.lux.pos.model.IPromotionAvailable
@@ -460,6 +462,26 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
         } else {
           twoValGen = true
         }
+      } else if(StringUtils.trimToEmpty(desc.clave).length() == 10 && StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP")){
+        crm = true
+        String descPromo = "crm:${org.apache.commons.lang.StringUtils.trimToEmpty(desc.clave)}"
+        PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
+        if( promo == null ){
+          descPromo = "CRM:${org.apache.commons.lang.StringUtils.trimToEmpty(desc.clave)}"
+          promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
+        }
+        if( promo != null ){
+          generic = StringUtils.trimToEmpty(promo.idGenerico)
+          if( generic.contains("*") ){
+            allGen = true
+          } else if( StringUtils.trimToEmpty(promo.genericoc).length() <= 0 ){
+            oneValGen = true
+            generic = "_"+generic
+          } else if( StringUtils.trimToEmpty(promo.genericoc).length() > 0 ){
+            twoValGen = true
+            generic = generic+StringUtils.trimToEmpty(promo.genericoc)
+          }
+        }
       }
       for(OrderItem oi : order.items){
         if( !genericoNoApplica.equalsIgnoreCase(StringUtils.trimToEmpty(oi.item.type)) ){
@@ -496,7 +518,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
           descripcionDesc = "Descuento Corporativo"
         } else if(StringUtils.trimToEmpty(desc?.clave).length() <= 0) {
           descripcionDesc = "Descuento Tienda"
-        } else if(StringUtils.trimToEmpty(desc?.clave).length() == 11 && StringUtils.trimToEmpty(desc?.idTipoD).equalsIgnoreCase("AP")) {
+        } else if((StringUtils.trimToEmpty(desc?.clave).length() == 11 || StringUtils.trimToEmpty(desc?.clave).length() == 10) && StringUtils.trimToEmpty(desc?.idTipoD).equalsIgnoreCase("AP")) {
             descripcionDesc = "Descuentos CRM"
         } else if((StringUtils.trimToEmpty(desc?.clave).startsWith("L") || StringUtils.trimToEmpty(desc?.clave).startsWith("N") ||
                 StringUtils.trimToEmpty(desc?.clave).startsWith("S")) &&

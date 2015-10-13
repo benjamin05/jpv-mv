@@ -14,7 +14,14 @@ class PromotionQuery {
   static void fillActivePromotions( PromotionList pActivePromotionList, Date pActiveOn ) {
     Date activeOn = DateUtils.truncate( pActiveOn, Calendar.DATE )
     Date dueAfter = DateUtils.addSeconds( activeOn, -1 )
-    for ( Promocion p in RepositoryFactory.promotionCatalog.findByVigenciaFinAfter( dueAfter ) ) {
+    List<Promocion> lstPromo = new ArrayList<>();
+    List<Promocion> lstPromoTmp = RepositoryFactory.promotionCatalog.findByVigenciaFinAfter( dueAfter )
+    for(Promocion promocion : lstPromoTmp){
+      if( !StringUtils.trimToEmpty(promocion.descripcion).startsWith("crm:") && !StringUtils.trimToEmpty(promocion.descripcion).startsWith("CRM:")){
+        lstPromo.add(promocion)
+      }
+    }
+    for ( Promocion p in lstPromo ) {
       if ( p.vigenciaIni.compareTo( activeOn ) <= 0 ) {
         pActivePromotionList.add( p )
       }
