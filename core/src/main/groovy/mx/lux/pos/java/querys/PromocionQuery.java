@@ -25,7 +25,7 @@ public class PromocionQuery {
       try {
         Connection con = Connections.doConnect();
         stmt = con.createStatement();
-        String sql = "select * from promocion where descripcion like 'CRM:%' or descripcion like 'crm:%';";
+        String sql = "select * from promocion where descripcion like 'CRM:%' or descripcion like 'crm:%' ORDER BY id_promocion ASC;";
         rs = stmt.executeQuery(sql);
         con.close();
         while (rs.next()) {

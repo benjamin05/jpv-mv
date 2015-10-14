@@ -470,8 +470,9 @@ class DiscountCouponDialog extends JDialog {
       Boolean claveClear = false
       BigDecimal amount = BigDecimal.ZERO
       Integer percentajeInt = 0
+      PromocionJava promocionJava = OrderController.findCrmPromotionByKey(StringUtils.trimToEmpty(txtCorporateKey.text));
       NotaVenta notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(idOrder) )
-      if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 11 ){
+      if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 11 && promocionJava == null){
         for(int i=0;i<StringUtils.trimToEmpty(txtCorporateKey.text).length();i++){
           if(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()).isNumber()){
             Integer number = 0
@@ -570,47 +571,32 @@ class DiscountCouponDialog extends JDialog {
             println "El total de la nota es menor al monto minimo para esta clave"
           }
         }
-      } else if( StringUtils.trimToEmpty(txtCorporateKey.text).length() == 10 ){
-        PromocionJava promocionJava = new PromocionJava();
+      } else if( promocionJava != null ){
         Boolean claveValid = false
-        String key = StringUtils.trimToEmpty(txtCorporateKey.text)
-        List<PromocionJava> lstPromoCrm = OrderController.findCrmPromotions( )
-        for(PromocionJava prom : lstPromoCrm){
-          String[] data = StringUtils.trimToEmpty(prom.descripcion).split(":")
-          if( data.length > 1 ){
-            String keyCrm = StringUtils.trimToEmpty(data[1])
-            if( keyCrm.equalsIgnoreCase(key) ){
-              claveValid = true
-              promocionJava = prom
-            }
-          }
-        }
-        if( claveValid ){
-          Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
-          if( descuento == null ){
-            claveClear = true
-          } else {
-            warning = "Clave incorrecta"
-            println "Clave ya aplicada"
-          }
+        Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
+        if( descuento == null ){
+          claveClear = true
         } else {
-          warning = "No existe clave de CRM"
-          println "No se encontro la clave CRM en la tabla de promocion"
+          warning = "Clave incorrecta"
+          println "Clave ya aplicada"
         }
 
-          if( StringUtils.trimToEmpty(warning).length() > 0 ){
-              lblStatus.text = warning
+        if( StringUtils.trimToEmpty(warning).length() > 0 ){
+            lblStatus.text = warning
+        }
+        if( claveClear ){
+          amount = promocionJava.precioDescontado
+          if( OrderController.validMinimumAmountCrm( promocionJava.montoMinimo, notaVenta ) ){
+            txtDiscountAmount.setValue( new BigDecimal(promocionJava.precioDescontado) )
+            valid = true
+          } else {
+            warning = "La nota no cubre el monto minimo"
+            println "El total de la nota es menor al monto minimo para esta clave"
           }
-          if( claveClear ){
-            amount = promocionJava.precioDescontado
-            if( OrderController.validMinimumAmountCrm( promocionJava.montoMinimo, notaVenta ) ){
-              txtDiscountAmount.setValue( new BigDecimal(promocionJava.precioDescontado) )
-              valid = true
-            } else {
-              warning = "La nota no cubre el monto minimo"
-              println "El total de la nota es menor al monto minimo para esta clave"
-            }
-          }
+        }
+      } else {
+        warning = "No existe clave de CRM"
+        println "No se encontro la clave CRM en la tabla de promocion"
       }
 
       DescuentoClave descuentoClave = null

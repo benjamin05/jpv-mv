@@ -96,7 +96,7 @@ class PromotionDiscount implements IPromotionAvailable {
   Double getPromotionAmount( ) {
     Double amount = 0.0
     if( StringUtils.trimToEmpty(discountType.text).equalsIgnoreCase("Descuentos CRM") ){
-      if( StringUtils.trimToEmpty(discountType.description).length() >= 11 ){
+      if( StringUtils.trimToEmpty(discountType.description).length() >= 11 && !StringUtils.trimToEmpty(discountType.description).substring(0,4).isNumber() ){
         String clave = ""
         for(int i=0;i<StringUtils.trimToEmpty(discountType.description).length();i++){
           if(StringUtils.trimToEmpty(discountType.description.charAt(i).toString()).isNumber()){
@@ -116,7 +116,7 @@ class PromotionDiscount implements IPromotionAvailable {
         } catch ( NumberFormatException e) { e.printStackTrace() }
         Double discountAmount = percentajeInt.doubleValue()*Registry.multiplyDiscountCrm
         amount = order.regularAmount-discountAmount
-      } else if( StringUtils.trimToEmpty(discountType.description).length() == 10 ){
+      } else if( StringUtils.trimToEmpty(discountType.description).length() >= 10 && StringUtils.trimToEmpty(discountType.description).substring(0,4).isNumber() ){
         String descPromo = "crm:${StringUtils.trimToEmpty(discountType.description)}"
         PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
         if( promo == null ){

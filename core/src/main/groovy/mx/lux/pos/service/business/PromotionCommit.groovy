@@ -115,7 +115,8 @@ class PromotionCommit {
     BigDecimal discountAmount = BigDecimal.ZERO
     if( pModel.orderDiscount != null && StringUtils.trimToEmpty(pModel.orderDiscount.discountType.text).equalsIgnoreCase("Descuentos CRM") ){
       crm = true
-      if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length() >= 11){
+      if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length() >= 11 &&
+              !StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(0,4).isNumber()){
         generic = StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(1,3)
         String clave = ""
         Integer percentajeInt = 0
@@ -144,7 +145,8 @@ class PromotionCommit {
         } else {
               twoValGen = true
         }
-      } else if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length() == 10){
+      } else if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length() >= 10 &&
+              StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(0,4).isNumber() ){
         String descPromo = "crm:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description)}"
         PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
         if( promo == null ){

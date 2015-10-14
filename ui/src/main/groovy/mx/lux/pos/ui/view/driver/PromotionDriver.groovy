@@ -450,7 +450,8 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       Boolean oneNotValGen = false
       Boolean twoValGen = false
       if( StringUtils.trimToEmpty(desc.clave).length() == 11 && (desc.clave.replace("*","\\*").contains("*") || desc.clave.replace("!","\\!").contains("\\!") ||
-              desc.clave.replace("_","\\_").contains("\\_") || StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP") )){
+              desc.clave.replace("_","\\_").contains("\\_") || StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP") ) &&
+              !StringUtils.trimToEmpty(desc.clave).substring(0,4).isNumber() ){
         crm = true
         generic = StringUtils.trimToEmpty(desc.clave).substring(1,3)
         if( generic.contains("**") ){
@@ -462,7 +463,8 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
         } else {
           twoValGen = true
         }
-      } else if(StringUtils.trimToEmpty(desc.clave).length() == 10 && StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP")){
+      } else if(StringUtils.trimToEmpty(desc.clave).length() >= 10 && StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP") &&
+              StringUtils.trimToEmpty(desc.clave).substring(0,4).isNumber()){
         crm = true
         String descPromo = "crm:${org.apache.commons.lang.StringUtils.trimToEmpty(desc.clave)}"
         PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
