@@ -147,10 +147,10 @@ class PromotionCommit {
         }
       } else if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length() >= 10 &&
               StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(0,4).isNumber() ){
-        String descPromo = "crm:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description)}"
+        String descPromo = "crm:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.substring(0,4))}"
         PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
         if( promo == null ){
-          descPromo = "CRM:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description)}"
+          descPromo = "CRM:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.substring(0,4))}"
           promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
         }
         if(promo != null){

@@ -466,10 +466,10 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       } else if(StringUtils.trimToEmpty(desc.clave).length() >= 10 && StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP") &&
               StringUtils.trimToEmpty(desc.clave).substring(0,4).isNumber()){
         crm = true
-        String descPromo = "crm:${org.apache.commons.lang.StringUtils.trimToEmpty(desc.clave)}"
+        String descPromo = "crm:${org.apache.commons.lang.StringUtils.trimToEmpty(desc.clave).substring(0,4)}"
         PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
         if( promo == null ){
-          descPromo = "CRM:${org.apache.commons.lang.StringUtils.trimToEmpty(desc.clave)}"
+          descPromo = "CRM:${StringUtils.trimToEmpty(desc.clave).substring(0,4)}"
           promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
         }
         if( promo != null ){

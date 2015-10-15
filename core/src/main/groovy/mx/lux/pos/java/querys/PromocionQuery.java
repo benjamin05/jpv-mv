@@ -45,7 +45,7 @@ public class PromocionQuery {
       try {
         Connection con = Connections.doConnect();
         stmt = con.createStatement();
-        String sql = String.format("select * from promocion where descripcion = '%s';", StringUtils.trimToEmpty(descripcion));
+        String sql = "select * from promocion where descripcion like '"+StringUtils.trimToEmpty(descripcion)+"%' ORDER BY id_promocion ASC;" ;
         rs = stmt.executeQuery(sql);
         con.close();
         while (rs.next()) {
