@@ -2,10 +2,14 @@ package mx.lux.pos.ui.controller
 
 import com.ibm.icu.text.SimpleDateFormat
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.CierreDiarioQuery
+import mx.lux.pos.java.repository.CierreDiarioJava
+import mx.lux.pos.java.service.CierreDiarioServiceJava
 import mx.lux.pos.model.*
 import mx.lux.pos.service.*
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.model.*
+import org.apache.commons.lang.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -288,6 +292,20 @@ class DailyCloseController {
         return false
       }
     }
+
+
+  static void validPendingClosedDays( ){
+    SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
+    List<CierreDiarioJava> lstCierresPendientes = CierreDiarioQuery.buscaCierresDiariosNoValidados()
+    for(CierreDiarioJava cierreDiarioJava : lstCierresPendientes){
+      if(!StringUtils.trimToEmpty(df.format(cierreDiarioJava.fecha)).equalsIgnoreCase(StringUtils.trimToEmpty(df.format(new Date()))) &&
+              CierreDiarioServiceJava.rehacerArchivosCierrre( cierreDiarioJava.fecha ) ){
+        cierreDiarioService.cargarDatosCierreDiario( cierreDiarioJava.fecha )
+        cierreDiarioService.cerrarCierreDiario( cierreDiarioJava.fecha, "Archivos regenerados por transacciones fuera de tiempo" )
+        CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
+      }
+    }
+  }
 
 
 }
