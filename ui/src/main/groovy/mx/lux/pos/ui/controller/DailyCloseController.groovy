@@ -298,8 +298,7 @@ class DailyCloseController {
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
     List<CierreDiarioJava> lstCierresPendientes = CierreDiarioQuery.buscaCierresDiariosNoValidados()
     for(CierreDiarioJava cierreDiarioJava : lstCierresPendientes){
-      if(!StringUtils.trimToEmpty(df.format(cierreDiarioJava.fecha)).equalsIgnoreCase(StringUtils.trimToEmpty(df.format(new Date()))) &&
-              CierreDiarioServiceJava.rehacerArchivosCierrre( cierreDiarioJava.fecha ) ){
+      if( CierreDiarioServiceJava.rehacerArchivosCierrre( cierreDiarioJava.fecha ) ){
         cierreDiarioService.cargarDatosCierreDiario( cierreDiarioJava.fecha )
         cierreDiarioService.cerrarCierreDiario( cierreDiarioJava.fecha, "Archivos regenerados por transacciones fuera de tiempo" )
         CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
