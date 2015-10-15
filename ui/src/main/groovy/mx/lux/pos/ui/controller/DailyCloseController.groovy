@@ -299,8 +299,12 @@ class DailyCloseController {
     List<CierreDiarioJava> lstCierresPendientes = CierreDiarioQuery.buscaCierresDiariosNoValidados()
     for(CierreDiarioJava cierreDiarioJava : lstCierresPendientes){
       if( CierreDiarioServiceJava.rehacerArchivosCierrre( cierreDiarioJava.fecha ) ){
+        String parametroGerente = Registry.idManager
+        Empleado employee = empleadoService.obtenerEmpleado( parametroGerente )
         cierreDiarioService.cargarDatosCierreDiario( cierreDiarioJava.fecha )
         cierreDiarioService.cerrarCierreDiario( cierreDiarioJava.fecha, "Archivos regenerados por transacciones fuera de tiempo" )
+        ticketService.imprimeResumenDiario( cierreDiarioJava.fecha, employee )
+        ticketService.imprimeDepositosResumenDiario( cierreDiarioJava.fecha )
         CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
       }
     }

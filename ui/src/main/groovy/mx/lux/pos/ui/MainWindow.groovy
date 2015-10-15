@@ -793,12 +793,12 @@ class MainWindow extends JFrame implements KeyListener {
           if(!fechaActual.trim().equalsIgnoreCase(fechaParametro)){
             IOController.getInstance().deletCustomerProcess()
             IOController.getInstance().updateInitialDate(fechaActual)
+            DailyCloseController.validPendingClosedDays( )
           }
         } else {
             IOController.getInstance().updateInitialDate(fechaActual)
         }
         sb.doOutside {
-            DailyCloseController.validPendingClosedDays( )
             PriceListController.loadExpiredPriceList()
             IOController.getInstance().cargaFoliosPendientesPedidosLc()
             IOController.getInstance().loadAcusePedidoLc()
