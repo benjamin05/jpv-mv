@@ -299,7 +299,7 @@ public class ArticulosServiceJava {
       PedidoLcQuery.savePedidoLc( pedido );
       for(PedidoLcDetJava pedidoDet : lstPedidosDet){
         pedidoDet.setIdPedido(nv.getFactura());
-        PedidoLcQuery.savePedidoLcDet( pedidoDet );
+        PedidoLcQuery.updatePedidoLcDet( pedidoDet );
       }
     }
   }

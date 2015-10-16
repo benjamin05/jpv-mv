@@ -134,10 +134,11 @@ public class PedidoLcQuery {
         Connections db = new Connections();
         String sql = "";
         String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
-        sql = String.format("UPDATE pedido_lc_det SET curva_base = '%s', diametro = '%s', esfera = '%s', cilindro = '%s'," +
-                "eje = '%s', color = '%s' WHERE num_reg = %d;", pedidoLcDetJava.getCurvaBase(), pedidoLcDetJava.getDiametro(),
-                pedidoLcDetJava.getEsfera(), pedidoLcDetJava.getCilindro(), pedidoLcDetJava.getEje(), pedidoLcDetJava.getColor(),
-                pedidoLcDetJava.getId());
+        sql = String.format("UPDATE pedido_lc_det SET id_pedido = '%s', curva_base = '%s', diametro = '%s', esfera = '%s'," +
+                "cilindro = '%s', modelo = '%s', eje = '%s', color = '%s' WHERE num_reg = %d;",
+                pedidoLcDetJava.getIdPedido(), pedidoLcDetJava.getCurvaBase(), pedidoLcDetJava.getDiametro(),
+                pedidoLcDetJava.getEsfera(), pedidoLcDetJava.getCilindro(), pedidoLcDetJava.getModelo(), pedidoLcDetJava.getEje(),
+                pedidoLcDetJava.getColor(), pedidoLcDetJava.getId());
         db.insertQuery( sql );
         db.close();
     }
