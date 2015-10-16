@@ -212,7 +212,7 @@ class DiscountCouponDialog extends JDialog {
         }
 
         if (  descuentoClave != null ) {
-            if(descuentoClave?.vigente == true){
+            if(descuentoClave?.vigente){
                 if(descuentoClave?.tipo != null && descuentoClave?.tipo.trim().equals('P')){
             txtDiscountPercent.setValue(descuentoClave?.porcenaje_descuento)
             txtDiscountAmount.setValue( txtDiscountPercent.getValue( ) * orderTotal / 100.0 )
@@ -472,7 +472,7 @@ class DiscountCouponDialog extends JDialog {
       Integer percentajeInt = 0
       PromocionJava promocionJava = OrderController.findCrmPromotionByKey(StringUtils.trimToEmpty(txtCorporateKey.text));
       NotaVenta notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(idOrder) )
-      if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 11 && promocionJava == null){
+      if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 11 && (promocionJava == null || promocionJava.idPromocion == null)){
         for(int i=0;i<StringUtils.trimToEmpty(txtCorporateKey.text).length();i++){
           if(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()).isNumber()){
             Integer number = 0
@@ -571,7 +571,7 @@ class DiscountCouponDialog extends JDialog {
             println "El total de la nota es menor al monto minimo para esta clave"
           }
         }
-      } else if( promocionJava != null ){
+      } else if( promocionJava != null && promocionJava.idPromocion != null ){
         Boolean claveValid = false
         Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
         if( descuento == null ){
@@ -608,6 +608,9 @@ class DiscountCouponDialog extends JDialog {
         descuentoClave.tipo = "M"
         descuentoClave.vigente = true
         descuentoClave.cupon = false
+      }
+      if( descuentoClave != null ){
+        txtCorporateKey.enabled = false
       }
       return descuentoClave
     }
