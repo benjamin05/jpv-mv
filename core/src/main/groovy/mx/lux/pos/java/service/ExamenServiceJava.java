@@ -18,7 +18,7 @@ public class ExamenServiceJava {
   static final Logger log = LoggerFactory.getLogger(ExamenServiceJava.class);
 
 
-  public ExamenJava obtenerExamenPorIdCliente( Integer idCliente ) {
+  public static ExamenJava obtenerExamenPorIdCliente( Integer idCliente ) {
     log.info( "obtenerExamenPorIdCliente" );
     ExamenJava examen = null;
     List<ExamenJava> lstExamenes = ExamenQuery.buscaExamenesPorIdCliente(idCliente );
@@ -33,7 +33,7 @@ public class ExamenServiceJava {
   }
 
 
-  public ExamenJava guardarExamen( ExamenJava examen ) throws ParseException {
+  public static ExamenJava guardarExamen( ExamenJava examen ) throws ParseException {
     log.info( "guardando examen" );
     return ExamenQuery.saveOrUpdateExamen(examen);
   }

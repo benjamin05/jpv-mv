@@ -18,7 +18,7 @@ public class ClienteServiceJava {
 
   static final Logger log = LoggerFactory.getLogger(ClienteServiceJava.class);
 
-  public void actualizarClienteEnProceso( Integer pIdCliente ) throws ParseException {
+  public static void actualizarClienteEnProceso( Integer pIdCliente ) throws ParseException {
     ClientesProcesoJava nuevo = new ClientesProcesoJava();
     nuevo.setIdCliente(pIdCliente);
     nuevo.setEtapa("proceso");
@@ -35,7 +35,7 @@ public class ClienteServiceJava {
     if (pIdCliente == 1) {
       log.info("*prueba1");
     } else {
-      this.llenarNotaVentas( clienteProc );
+      llenarNotaVentas( clienteProc );
       for ( NotaVentaJava order : clienteProc.getNotaVentas() ) {
         if ( order.getDetalles().size() > 0 ) {
           etapa = ClienteProcesoEtapa.PAYMENT;
@@ -47,7 +47,7 @@ public class ClienteServiceJava {
   }
 
 
-  void llenarNotaVentas( ClientesProcesoJava pCliente ) throws ParseException {
+  static void llenarNotaVentas( ClientesProcesoJava pCliente ) throws ParseException {
     List<NotaVentaJava> orders = NotaVentaQuery.busquedaNotaByIdClienteAndFacturaEmpty( pCliente.getIdCliente() );
     List<NotaVentaJava> openOrders = new ArrayList<NotaVentaJava>();
     for ( NotaVentaJava order : orders ) {
@@ -59,20 +59,20 @@ public class ClienteServiceJava {
   }
 
 
-  public List<ClientesProcesoJava> obtenerClientesEnCaja( Boolean pLoaded ) throws ParseException {
+  public static List<ClientesProcesoJava> obtenerClientesEnCaja( Boolean pLoaded ) throws ParseException {
     List<ClientesProcesoJava> customers = new ArrayList<ClientesProcesoJava>();
     customers.addAll( ClientesProcesoQuery.buscaClientesProcesoPorEtapa(ClienteProcesoEtapa.PAYMENT.toString()) );
     if ( pLoaded ) {
       for ( ClientesProcesoJava cliente : customers ) {
-        this.llenarCliente( cliente );
-        this.llenarNotaVentas( cliente );
+        llenarCliente( cliente );
+        llenarNotaVentas( cliente );
       }
     }
     return customers;
   }
 
 
-  void llenarCliente( ClientesProcesoJava pCliente ) throws ParseException {
+  static void llenarCliente( ClientesProcesoJava pCliente ) throws ParseException {
     pCliente.setCliente(ClientesQuery.busquedaClienteById(pCliente.getIdCliente()) );
   }
 
@@ -101,6 +101,22 @@ public class ClienteServiceJava {
       cliente = new ClientesJava();
     }
     return  cliente;
+  }
+
+
+  public static ClientesJava obtenerClientePorOrigen( String oriCli ) throws ParseException {
+    log.debug( "obteniendo cliente hist_cli: "+ oriCli );
+    return ClientesQuery.busquedaClienteByOrigen( oriCli );
+  }
+
+
+  public static List<ClientesJava> buscarClienteApePatApeMatNombAndFechaNac(String apellidoPaterno, String apellidoMaterno, String nombre, Date fechaNacimiento) throws ParseException {
+    log.debug("buscarClienteApePatApeMatNombAndFechaNac ( )");
+    apellidoPaterno = StringUtils.trimToNull(apellidoPaterno);
+    apellidoMaterno = StringUtils.trimToNull(apellidoMaterno);
+    nombre = StringUtils.trimToEmpty(nombre);
+    List<ClientesJava> result = new ArrayList<ClientesJava>();
+    return ClientesQuery.listaClientesPorApePatOrApeMatOrNombreAndFechaNac(apellidoPaterno, apellidoMaterno, nombre, fechaNacimiento);
   }
 
 
