@@ -571,7 +571,7 @@ class DiscountCouponDialog extends JDialog {
             println "El total de la nota es menor al monto minimo para esta clave"
           }
         }
-      } else if( promocionJava != null && promocionJava.idPromocion != null ){
+      } else if( promocionJava != null && promocionJava.idPromocion != null && StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 10 ){
         Boolean claveValid = false
         Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
         if( descuento == null ){
