@@ -114,7 +114,7 @@ class EditRxDialog extends JDialog{
             mostrarParametroB = false
             comboUso.add( " " )
             comboUso.addAll(usoM)
-        } else if (itemUso.trim().contains('BIFOCAL')) {
+        } else if (itemUso.trim().contains('BIFOCAL') || itemUso.trim().contains('L')) {
             mostrarParametroSV = false
             mostrarParametroP = true
             mostrarParametroB = false

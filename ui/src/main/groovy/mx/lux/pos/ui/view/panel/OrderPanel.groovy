@@ -878,9 +878,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       try {
         //Receta Nueva
         String artString = item.name
-        if (artString.equals('SV') || artString.equals('P') || artString.equals('B')) {
+        if (artString.equals('SV') || artString.equals('P') || artString.equals('B') || artString.equals('L')) {
           Branch branch = Session.get(SessionItem.BRANCH) as Branch
-          EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', item.description, false, false)
+          String uso = StringUtils.trimToEmpty(item.description)
+          if( artString.equalsIgnoreCase('L') ){
+            uso = 'BIFOCAL'
+          }
+          EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', uso, false, false)
           editRx.show()
 
           this.disableUI()
@@ -1147,7 +1151,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                             if (artString.trim().equals('SV')) {
                                 artCount = artCount + 1
                                 tipoArt = 'MONOFOCAL'
-                            } else if (artString.trim().equals('B')) {
+                            } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                                 artCount = artCount + 1
                                 tipoArt = 'BIFOCAL'
                             } else if (artString.trim().equals('P')) {
@@ -1939,7 +1943,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           if (artString.trim().equals('SV')) {
                               artCount = artCount + 1
                               tipoArt = 'MONOFOCAL'
-                          } else if (artString.trim().equals('B')) {
+                          } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                               artCount = artCount + 1
                               tipoArt = 'BIFOCAL'
                           } else if (artString.trim().equals('P')) {
@@ -2128,7 +2132,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           if (artString.trim().equals('SV')) {
                               artCount = artCount + 1
                               tipoArt = 'MONOFOCAL'
-                          } else if (artString.trim().equals('B')) {
+                          } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                               artCount = artCount + 1
                               tipoArt = 'BIFOCAL'
                           } else if (artString.trim().equals('P')) {
