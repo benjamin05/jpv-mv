@@ -302,7 +302,7 @@ class DailyCloseController {
         String parametroGerente = Registry.idManager
         Empleado employee = empleadoService.obtenerEmpleado( parametroGerente )
         cierreDiarioService.cargarDatosCierreDiario( cierreDiarioJava.fecha )
-        cierreDiarioService.cerrarCierreDiario( cierreDiarioJava.fecha, "Archivos regenerados por transacciones fuera de tiempo" )
+        cierreDiarioService.cerrarCierreDiario( cierreDiarioJava.fecha, StringUtils.trimToEmpty(cierreDiarioJava.getObservaciones()) )
         ticketService.imprimeResumenDiario( cierreDiarioJava.fecha, employee )
         ticketService.imprimeDepositosResumenDiario( cierreDiarioJava.fecha )
         CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );

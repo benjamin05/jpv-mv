@@ -167,7 +167,7 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
     if ( cierreDiario?.fecha ) {
       return cierreDiario
     }
-    return cierreDiarioRepository.save( new CierreDiario( fecha: new Date(), estado: 'a' ) )
+    return cierreDiarioRepository.save( new CierreDiario( fecha: new Date(), estado: 'a', verificado: false ) )
   }
 
   void eliminarVentasAbiertas( ) {
