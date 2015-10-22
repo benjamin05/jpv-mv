@@ -1424,6 +1424,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
       if( newOrder.rx != null ){
         OrderController.updateExam( newOrder )
+        OrderController.updateRx( newOrder )
       }
 
         OrderController.saveAcuseCrmClave( order.id )

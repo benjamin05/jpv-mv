@@ -30,5 +30,26 @@ public class ImpHistorialQuery {
       db.insertQuery( sql );
       db.close();
     }
-	
+
+
+
+    public static ImpHistorialJava buscaHistorialPorIdCliente( Integer idCliente ){
+      ImpHistorialJava impHistorialJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM imp_historial where id_cliente = %d ORDER BY fecha_compra ASC;", idCliente);
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          impHistorialJava = new ImpHistorialJava();
+          impHistorialJava = impHistorialJava.mapeoImpHistorial(rs);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return impHistorialJava;
+    }
+
+
 }

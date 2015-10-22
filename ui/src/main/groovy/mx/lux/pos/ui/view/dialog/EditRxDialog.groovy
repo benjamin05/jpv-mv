@@ -532,7 +532,7 @@ class EditRxDialog extends JDialog{
 
     private void doBindings() {
         sb.build {
-            txtEmpleado.setText( receta?.idOpt?.trim() )
+            //txtEmpleado.setText( receta?.idOpt?.trim() )
             txtFolio.setText(receta?.folio)
             txtOdEsfera.setText(fillDecimals(receta.odEsfR))
             txtOdCil.setText(fillDecimals(receta.odCilR))

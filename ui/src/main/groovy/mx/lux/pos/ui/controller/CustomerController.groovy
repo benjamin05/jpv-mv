@@ -1,6 +1,7 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.ClientesQuery
 import mx.lux.pos.java.querys.ImpHistorialQuery
 import mx.lux.pos.java.querys.MunicipioQuery
 import mx.lux.pos.java.repository.ClientesJava
@@ -779,9 +780,28 @@ class CustomerController {
     }
 
     static List<NotaVenta> findAllActiveOrders(Integer idCliente) {
-        log.debug("obteniendo notas activas")
-        List<NotaVenta> results = clienteService.obtenernotasActivas(idCliente)
-        return results
+      log.debug("obteniendo notas activas")
+      ClientesJava clientesJava = ClientesQuery.busquedaClienteById( idCliente )
+      List<NotaVenta> results = clienteService.obtenernotasActivas(idCliente)
+      if( results.size() <= 0 && StringUtils.trimToEmpty(clientesJava.cliOri).size() > 0 ){
+        ImpHistorialJava impHistorialJava = ImpHistorialQuery.buscaHistorialPorIdCliente( idCliente )
+        if( impHistorialJava != null ){
+          NotaVenta notaVenta = new NotaVenta()
+          notaVenta.factura = StringUtils.trimToEmpty("${impHistorialJava.idSucOri}:${impHistorialJava.factura}");
+          notaVenta.fechaHoraFactura = impHistorialJava.fechaCompra
+          notaVenta.ventaNeta = impHistorialJava.importe
+          notaVenta.empleado = new Empleado()
+          String[] articulos = StringUtils.trimToEmpty(impHistorialJava.obs).split(",")
+          for(String articulo : articulos){
+            DetalleNotaVenta detalleNotaVenta = new DetalleNotaVenta()
+            detalleNotaVenta.articulo = new Articulo()
+            detalleNotaVenta.articulo.articulo = StringUtils.trimToEmpty(articulo)
+            notaVenta.detalles.add(detalleNotaVenta)
+          }
+          results.add(notaVenta)
+        }
+      }
+      return results
     }
 
     static Examen buscarUltimoExamenPorIdCliente(Integer id) {

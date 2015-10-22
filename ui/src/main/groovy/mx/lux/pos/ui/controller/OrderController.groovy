@@ -1825,6 +1825,15 @@ class OrderController {
     }
 
 
+  static void updateRx( Order order ){
+    RecetaJava receta = RecetaQuery.buscaRecetaPorIdReceta( order.rx )
+    if( receta != null && StringUtils ){
+      receta.tipoOpt = "${StringUtils.trimToEmpty(Registry.currentSite.toString())}:${StringUtils.trimToEmpty(order.bill)}"
+      RecetaQuery.saveOrUpdateRx( receta )
+    }
+  }
+
+
   static void updateQuote( Order order, Integer numQuote ){
     cotizacionServiceJava.updateQuote( order.id, numQuote )
   }
