@@ -230,7 +230,7 @@ public class CierreDiarioJava {
 	  this.setFecha(rs.getDate("fecha"));
 	  this.setEstado(rs.getString("estado"));
 	  this.setFechaBtn(rs.getDate("fecha_btn"));
-      this.setHoraCierre(rs.getDate("hora_cierre"));
+      this.setHoraCierre(rs.getTime("hora_cierre"));
       this.setObservaciones(rs.getString("observaciones"));
       this.setVentaBruta(Utilities.toBigDecimal(rs.getString("venta_bruta")));
       this.setVentaNeta(Utilities.toBigDecimal(rs.getString("venta_neta")));

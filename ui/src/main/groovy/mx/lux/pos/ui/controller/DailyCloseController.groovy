@@ -177,7 +177,7 @@ class DailyCloseController {
       cierreDiarioService.deleteProcessClients()
       cierreDiarioService.generaArchivoClientes( closeDate )
       cierreDiarioService.cargarDatosCierreDiario( closeDate )
-      cierreDiarioService.cerrarCierreDiario( closeDate, observations )
+      cierreDiarioService.cerrarCierreDiario( closeDate, observations, false )
       User user = Session.get( SessionItem.USER ) as User
       String parametroGerente = Registry.idManager
       Empleado employee = empleadoService.obtenerEmpleado( parametroGerente )
@@ -302,7 +302,7 @@ class DailyCloseController {
         String parametroGerente = Registry.idManager
         Empleado employee = empleadoService.obtenerEmpleado( parametroGerente )
         cierreDiarioService.cargarDatosCierreDiario( cierreDiarioJava.fecha )
-        cierreDiarioService.cerrarCierreDiario( cierreDiarioJava.fecha, StringUtils.trimToEmpty(cierreDiarioJava.getObservaciones()) )
+        cierreDiarioService.cerrarCierreDiario( cierreDiarioJava.fecha, StringUtils.trimToEmpty(cierreDiarioJava.getObservaciones()), true )
         ticketService.imprimeResumenDiario( cierreDiarioJava.fecha, employee )
         ticketService.imprimeDepositosResumenDiario( cierreDiarioJava.fecha )
         CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );

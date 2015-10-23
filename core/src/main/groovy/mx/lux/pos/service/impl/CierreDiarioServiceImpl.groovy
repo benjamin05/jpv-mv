@@ -186,19 +186,21 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
 
   @Override
   @Transactional
-  void cerrarCierreDiario( Date fechaCierre, String observaciones ) {
+  void cerrarCierreDiario( Date fechaCierre, String observaciones, Boolean regenerate ) {
     log.info( "Cerrando el Dia ${fechaCierre?.format( 'dd/MM/yyyy' )}" )
     Assert.notNull( fechaCierre, "Fecha de Cierre no puede ser NULL" )
 
     SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
     eliminarVentasAbiertas()
     CierreDiario cierreDiario = cierreDiarioRepository.findOne( fechaCierre )
-    cierreDiario.estado = 'c'
-    Date fecha = new Date()
-    cierreDiario.fechaCierre = fecha
-    cierreDiario.horaCierre = fecha
-    cierreDiario.observaciones = observaciones
-    cierreDiarioRepository.save( cierreDiario )
+    if( !regenerate ){
+      cierreDiario.estado = 'c'
+      Date fecha = new Date()
+      cierreDiario.fechaCierre = fecha
+      cierreDiario.horaCierre = fecha
+      cierreDiario.observaciones = observaciones
+      cierreDiarioRepository.save( cierreDiario )
+    }
 
     Parametro parametro = parametroRepository.findOne( TipoParametro.ID_SUCURSAL.value )
     Sucursal sucursal = sucursalRepository.findOne( Integer.parseInt( parametro.getValor() ) )
