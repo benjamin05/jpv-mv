@@ -1429,10 +1429,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
         OrderController.saveAcuseCrmClave( order.id )
         ItemController.updateLenteContacto( newOrder.id )
-      if(numQuote > 0){
-        OrderController.updateQuote( newOrder, numQuote )
-        numQuote = 0
-      }
+      //if(numQuote > 0){
+        OrderController.updateQuote( newOrder, null )
+        //numQuote = 0
+      //}
       this.promotionDriver.requestPromotionJavaSave(newOrder?.id, true)
       Boolean cSaldo = false
       OrderController.validaEntrega(StringUtils.trimToEmpty(newOrder?.bill),newOrder?.branch?.id?.toString(), true)
@@ -2030,6 +2030,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           Order newOrder = OrderController.saveOrderJava(order)
           CustomerController.updateCustomerInSite(this.customer.id)
           this.promotionDriver.requestPromotionJavaSave(newOrder?.id, false)
+          if(numQuote > 0){
+            OrderController.updateQuote( newOrder, numQuote )
+            numQuote = 0
+          }
           for(IPromotionAvailable promo : promotionList){
             if( promo instanceof PromotionDiscount ){
               OrderController.updateCuponMvByClave(order.id, StringUtils.trimToEmpty(promo.discountType.description))
@@ -2219,6 +2223,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 }
                 Customer c = this.customer
                 Order newOrder = OrderController.saveOrder(order)
+                if(numQuote > 0){
+                  OrderController.updateQuote( newOrder, numQuote )
+                  numQuote = 0
+                }
                 CustomerController.updateCustomerInSite(c.id)
                 //this.promotionDriver.requestPromotionSave(newOrder?.id, false)
                 this.promotionDriver.requestPromotionJavaSave(newOrder?.id, true)

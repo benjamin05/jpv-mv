@@ -1835,7 +1835,11 @@ class OrderController {
 
 
   static void updateQuote( Order order, Integer numQuote ){
-    cotizacionServiceJava.updateQuote( order.id, numQuote )
+    if( numQuote != null ){
+      cotizacionServiceJava.updateidFacturaQuote( order.id, numQuote )
+    } else {
+      cotizacionServiceJava.updateQuote( order.id, numQuote )
+    }
   }
 
 

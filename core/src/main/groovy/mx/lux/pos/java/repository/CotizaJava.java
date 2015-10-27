@@ -1,5 +1,7 @@
 package mx.lux.pos.java.repository;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
@@ -145,7 +147,7 @@ public class CotizaJava {
       this.setNombre(rs.getString("nombre"));
       this.setTelefono(rs.getString("telefono"));
       this.setObservaciones(rs.getString("observaciones"));
-      this.setUdf1(rs.getString("udf1"));
+      this.setUdf1(StringUtils.trimToEmpty(rs.getString("udf1")));
       this.setTitulo(rs.getString("titulo"));
       this.setFechaCotizacion(rs.getDate("fecha_cotizacion"));
 	  return this;
