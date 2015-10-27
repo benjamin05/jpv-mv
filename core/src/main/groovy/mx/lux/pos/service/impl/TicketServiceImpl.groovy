@@ -2265,7 +2265,7 @@ class TicketServiceImpl implements TicketService {
           if( StringUtils.trimToEmpty(price.lista).equalsIgnoreCase("O") && price.precio.compareTo(BigDecimal.ZERO) > 0 ){
             precioO = price
             //oferta = true
-          } else {
+          } else if(StringUtils.trimToEmpty(price.lista).equalsIgnoreCase("L")) {
             precioL = price
             //lista = true
           }
