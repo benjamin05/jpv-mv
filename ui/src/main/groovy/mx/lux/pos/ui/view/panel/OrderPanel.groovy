@@ -58,6 +58,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String MSJ_CAMBIAR_VENDEDOR = 'Esta seguro que desea salir de esta sesion.'
     private static final String TXT_CAMBIAR_VENDEDOR = 'Cerrar Sesion'
     private static final String TAG_ARTICULO_B = 'B'
+    private static final String TAG_ARTICULO_L = 'L'
     private static final String TAG_ARTICULO_P = 'P'
     private static final String TAG_PAQUETE = 'Q'
     private static final String TAG_FORMA_PAGO_C1 = 'C1'
@@ -711,7 +712,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   updateOrder( StringUtils.trimToEmpty(order.id) )
                 }
                 Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, false)
+                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, false)
                 editRx.show()
                 OrderController.saveRxOrder(order?.id, this.rec.idReceta)
               } else {
@@ -880,10 +881,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         String artString = item.name
         if (artString.equals('SV') || artString.equals('P') || artString.equals('B') || artString.equals('L')) {
           Branch branch = Session.get(SessionItem.BRANCH) as Branch
-          String uso = StringUtils.trimToEmpty(item.description)
-          if( artString.equalsIgnoreCase('L') ){
+          String uso = StringUtils.trimToEmpty(item.lensDesign)
+          /*if( artString.equalsIgnoreCase('L') ){
             uso = 'BIFOCAL'
-          }
+          }*/
           EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', uso, false, false)
           editRx.show()
 
@@ -1131,7 +1132,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             rec = OrderController.findRx(order, customer)
             if( hasLc && (rec == null || rec.idReceta == null) ){
               Branch branch = Session.get(SessionItem.BRANCH) as Branch
-              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
               editRx.show()
               try {
                 if( rec != null ){
@@ -1148,15 +1149,17 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         String tipoArt = null
                         for (int row = 0; row <= itemsModel.rowCount; row++) {
                             String artString = itemsModel.getValueAt(row, 0).toString()
+                            Item it = itemsModel.rowModel.value.item
+                            tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                             if (artString.trim().equals('SV')) {
                                 artCount = artCount + 1
-                                tipoArt = 'MONOFOCAL'
+                                //tipoArt = 'MONOFOCAL'
                             } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                                 artCount = artCount + 1
-                                tipoArt = 'BIFOCAL'
+                                //tipoArt = 'BIFOCAL'
                             } else if (artString.trim().equals('P')) {
                                 artCount = artCount + 1
-                                tipoArt = 'PROGRESIVO'
+                                //tipoArt = 'PROGRESIVO'
                             }
                         }
                         armazonString = OrderController.armazonString(order?.id)
@@ -1924,7 +1927,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           Boolean continueSave = true
           if( hasLc && (rec == null || rec.idReceta == null) ){
             Branch branch = Session.get(SessionItem.BRANCH) as Branch
-            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
             editRx.show()
             try {
               if( rec != null ){
@@ -1941,15 +1944,17 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               String tipoArt = null
               for (int row = 0; row <= itemsModel.rowCount; row++) {
                           String artString = itemsModel.getValueAt(row, 0).toString()
+                  Item it = itemsModel.rowModel.value.item
+                  tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           if (artString.trim().equals('SV')) {
                               artCount = artCount + 1
-                              tipoArt = 'MONOFOCAL'
+                              //tipoArt = 'M'
                           } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                               artCount = artCount + 1
-                              tipoArt = 'BIFOCAL'
+                              //tipoArt = 'B'
                           } else if (artString.trim().equals('P')) {
                               artCount = artCount + 1
-                              tipoArt = 'PROGRESIVO'
+                              //tipoArt = 'P'
                           }
                       }
                       armazonString = OrderController.armazonString(order?.id)
@@ -2117,7 +2122,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           rec = OrderController.findRx(order, customer)
           if( hasLc && (rec == null || rec.idReceta == null) ){
             Branch branch = Session.get(SessionItem.BRANCH) as Branch
-            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
             editRx.show()
             try {
               if( rec != null ){
@@ -2134,15 +2139,17 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       String tipoArt = null
                       for (int row = 0; row <= itemsModel.rowCount; row++) {
                           String artString = itemsModel.getValueAt(row, 0).toString()
+                          Item it = itemsModel.rowModel.value.item
+                          tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           if (artString.trim().equals('SV')) {
                               artCount = artCount + 1
-                              tipoArt = 'MONOFOCAL'
+                              //tipoArt = 'MONOFOCAL'
                           } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                               artCount = artCount + 1
-                              tipoArt = 'BIFOCAL'
+                              //tipoArt = 'BIFOCAL'
                           } else if (artString.trim().equals('P')) {
                               artCount = artCount + 1
-                              tipoArt = 'PROGRESIVO'
+                              //tipoArt = 'PROGRESIVO'
                           }
                       }
                       armazonString = OrderController.armazonString(order?.id)
@@ -2427,7 +2434,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     updateOrder( order.id )
     for(OrderItem orderItem : order.items){
       if( StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_P)
-              || StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_B) ){
+              || StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_B)
+              || StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_L)){
         hasLenses = true
       }
     }

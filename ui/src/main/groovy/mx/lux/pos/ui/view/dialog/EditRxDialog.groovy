@@ -108,18 +108,18 @@ class EditRxDialog extends JDialog{
         editRx = edit
         title = titulo
         this.obligatory = obligatory
-        if (itemUso.trim().equals('MONOFOCAL')) {
+        if (itemUso.trim().equals('M')) {
             mostrarParametroSV = true
             mostrarParametroP = false
             mostrarParametroB = false
             comboUso.add( " " )
             comboUso.addAll(usoM)
-        } else if (itemUso.trim().contains('BIFOCAL') || itemUso.trim().contains('L')) {
+        } else if (itemUso.trim().equalsIgnoreCase('B')) {
             mostrarParametroSV = false
             mostrarParametroP = true
             mostrarParametroB = false
             comboUso.addAll(usoB)
-        } else if (itemUso.trim().contains('PROGRESIVO')) {
+        } else if (itemUso.trim().equalsIgnoreCase('P')) {
             mostrarParametroSV = false
             mostrarParametroP = true
             mostrarParametroB = true
@@ -641,7 +641,7 @@ class EditRxDialog extends JDialog{
           /*B*/ if (useGlass.equals(usoB[0])/*BIFOCAL*/) {
                     useGlass = 'BIFOCAL'
 
-                    if ((itemUso != null) && (itemUso.trim().contains(useGlass))) {
+                    if ((itemUso != null) && (useGlass.startsWith(itemUso.trim()))) {
                         useGlasess()
                     } else {
                         sb.optionPane(message: "Receta: " + useGlass + " Articulo: " + itemUso, optionType: JOptionPane.DEFAULT_OPTION)
@@ -652,7 +652,7 @@ class EditRxDialog extends JDialog{
           } else if (useGlass.equals(usoP[0])/*PROGRESIVO*/) {
                     useGlass = 'PROGRESIVO'
 
-                    if ((itemUso != null) && (itemUso.trim().contains(useGlass))) {
+                    if ((itemUso != null) && (useGlass.startsWith(itemUso.trim()))) {
                         useGlasess()
                     } else {
                         sb.optionPane(message: "Receta: " + useGlass + " Articulo: " + itemUso, optionType: JOptionPane.DEFAULT_OPTION)
@@ -664,7 +664,7 @@ class EditRxDialog extends JDialog{
           } else if (useGlass.equals(usoM[0])/*LEJOS*/ || useGlass.equals(usoM[1])/*CERCA*/) {
                     useGlass = 'MONOFOCAL'
 
-                    if ((itemUso != null) && (itemUso.trim().contains(useGlass))) {
+                    if ((itemUso != null) && (useGlass.startsWith(itemUso.trim()))) {
                         useGlasess()
                     } else {
                         sb.optionPane(message: "Receta: " + useGlass + " Articulo: " + itemUso, optionType: JOptionPane.DEFAULT_OPTION)
