@@ -466,11 +466,19 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       } else if(StringUtils.trimToEmpty(desc.clave).length() >= 10 && StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP") &&
               StringUtils.trimToEmpty(desc.clave).substring(0,4).isNumber()){
         crm = true
-        String descPromo = "crm:${org.apache.commons.lang.StringUtils.trimToEmpty(desc.clave).substring(0,4)}"
-        PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
-        if( promo == null ){
-          descPromo = "CRM:${StringUtils.trimToEmpty(desc.clave).substring(0,4)}"
-          promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
+        List<PromocionJava> lstPromo = PromocionQuery.buscaPromocionesCrm( )
+        PromocionJava promo = null
+        for(PromocionJava p : lstPromo){
+          String descPromo = StringUtils.trimToEmpty(p.descripcion.replaceAll(" ",""))
+          String descClave = "crm:${StringUtils.trimToEmpty(desc.clave.substring(0,4))}"
+          if(descPromo.startsWith(descClave)){
+            promo = p
+          } else {
+            descClave = "CRM:${StringUtils.trimToEmpty(desc.clave.substring(0,4))}"
+            if(descPromo.startsWith(descClave)){
+              promo = p
+            }
+          }
         }
         if( promo != null ){
           generic = StringUtils.trimToEmpty(promo.idGenerico)

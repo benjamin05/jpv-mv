@@ -117,15 +117,23 @@ class PromotionDiscount implements IPromotionAvailable {
         Double discountAmount = percentajeInt.doubleValue()*Registry.multiplyDiscountCrm
         amount = order.regularAmount-discountAmount
       } else if( StringUtils.trimToEmpty(discountType.description).length() >= 10 && StringUtils.trimToEmpty(discountType.description).substring(0,4).isNumber() ){
-        String descPromo = "crm:${StringUtils.trimToEmpty(discountType.description.substring(0,4))}"
-        PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
-        if( promo == null ){
-          descPromo = "CRM:${StringUtils.trimToEmpty(discountType.description.substring(0,4))}"
-          promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
-          amount = promo != null ? order.regularAmount-promo.precioDescontado : BigDecimal.ZERO
-        } else {
-          amount = order.regularAmount-promo.precioDescontado
+        List<PromocionJava> lstPromo = PromocionQuery.buscaPromocionesCrm( )
+        PromocionJava promo = null
+        for(PromocionJava p : lstPromo){
+          String descPromo = StringUtils.trimToEmpty(p.descripcion.replaceAll(" ",""))
+          String descClave = "crm:${StringUtils.trimToEmpty(discountType.description.substring(0,4))}"
+          if(descPromo.startsWith(descClave)){
+            promo = p
+          } else {
+            descClave = "CRM:${StringUtils.trimToEmpty(discountType.description.substring(0,4))}"
+            if(descPromo.startsWith(descClave)){
+              promo = p
+            }
+          }
         }
+        //if( promo == null ){
+          amount = promo != null ? order.regularAmount-promo.precioDescontado : BigDecimal.ZERO
+        //}
       }
     } else {
       for ( PromotionOrderDetail orderDetail : order.orderDetailSet.values( ) ) {

@@ -147,11 +147,19 @@ class PromotionCommit {
         }
       } else if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length() >= 10 &&
               StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(0,4).isNumber() ){
-        String descPromo = "crm:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.substring(0,4))}"
-        PromocionJava promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
-        if( promo == null ){
-          descPromo = "CRM:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.substring(0,4))}"
-          promo = PromocionQuery.buscaPromocionPorDescCrm(descPromo)
+        List<PromocionJava> lstPromo = PromocionQuery.buscaPromocionesCrm( )
+        PromocionJava promo = null
+        for(PromocionJava p : lstPromo){
+          String descPromo = StringUtils.trimToEmpty(p.descripcion.replaceAll(" ",""))
+          String descClave = "crm:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.substring(0,4))}"
+          if(descPromo.startsWith(descClave)){
+            promo = p
+          } else {
+            descClave = "CRM:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.substring(0,4))}"
+            if(descPromo.startsWith(descClave)){
+              promo = p
+            }
+          }
         }
         if(promo != null){
           generic = StringUtils.trimToEmpty(promo.idGenerico)
@@ -252,6 +260,20 @@ class PromotionCommit {
     if( diff.compareTo(BigDecimal.ZERO) < 0 || diff.compareTo(BigDecimal.ZERO) > 0 ){
       amountDesc = amountDesc+diff.doubleValue()
       netAmount = netAmount-diff.doubleValue()
+      List<DetalleNotaVenta> lstDet = new ArrayList<>(dbOrder.detalles)
+      Collections.sort(lstDet, new Comparator<DetalleNotaVenta>() {
+          @Override
+          int compare(DetalleNotaVenta o1, DetalleNotaVenta o2) {
+              return o2.precioUnitFinal.compareTo(o1.precioUnitFinal)
+          }
+      })
+      for(DetalleNotaVenta dbOrderLine : lstDet){
+        if(dbOrderLine.precioUnitFinal.compareTo(dbOrderLine.precioUnitLista) < 0){
+          dbOrderLine.precioUnitFinal = asAmount( (dbOrderLine.precioUnitFinal.subtract(diff)) as Double)
+          RepositoryFactory.orderLines.save( dbOrderLine )
+          break
+        }
+      }
     }
     RepositoryFactory.orderLines.flush()
     netAmount = netAmount+amountEnsure+amountRestOrder
