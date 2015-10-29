@@ -499,18 +499,18 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
             if( allGen ){
               ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
             } else if( oneValGen ) {
-              if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
+              //if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
                 ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
-              }
+              //}
             } else if( twoValGen ) {
-              if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(0,1)) ||
-                      StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
+              /*if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(0,1)) ||
+                      StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){*/
                 ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
-              }
+              //}
             } else if( oneNotValGen ){
-              if( !StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
+              //if( !StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
                 ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
-              }
+              //}
             }
           } else {
             ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
