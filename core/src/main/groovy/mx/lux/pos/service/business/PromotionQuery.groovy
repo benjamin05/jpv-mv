@@ -17,7 +17,7 @@ class PromotionQuery {
     List<Promocion> lstPromo = new ArrayList<>();
     List<Promocion> lstPromoTmp = RepositoryFactory.promotionCatalog.findByVigenciaFinAfter( dueAfter )
     for(Promocion promocion : lstPromoTmp){
-      if( !StringUtils.trimToEmpty(promocion.descripcion).startsWith("crm:") && !StringUtils.trimToEmpty(promocion.descripcion).startsWith("CRM:")){
+      if( !StringUtils.trimToEmpty(promocion.descripcion).startsWith("crm") && !StringUtils.trimToEmpty(promocion.descripcion).startsWith("CRM")){
         lstPromo.add(promocion)
       }
     }

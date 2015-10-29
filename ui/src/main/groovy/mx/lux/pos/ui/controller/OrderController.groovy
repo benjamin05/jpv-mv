@@ -3673,8 +3673,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     for(PromocionJava promocionJava : lstPromotionsCrm){
       String[] data = StringUtils.trimToEmpty(promocionJava.descripcion).split(":")
       if( data.length > 1 ){
-        String keyP = data[1].substring(0,4)
-        String keyF = key.substring(0,4)
+        String keyP = StringUtils.trimToEmpty(data[1].toString()).substring(0,4)
+        String keyF = StringUtils.trimToEmpty(key).substring(0,4)
         if( StringUtils.trimToEmpty(keyF).equalsIgnoreCase(keyP) ){
           promotion = promocionJava
         }
