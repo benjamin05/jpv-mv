@@ -1558,7 +1558,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     hasEnsureKid = true
                   }
                 }
-                if( hasLensKid && !hasEnsureKid ){
+                if( hasLensKid && !hasEnsureKid && newOrder.total.compareTo(BigDecimal.ZERO) > 0){
                   itemSearch.text = "SEG"
                   doItemSearch( true, "" )
                   newOrder = OrderController.placeOrder(newOrder, vendedor, false)

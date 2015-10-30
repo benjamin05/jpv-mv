@@ -3021,6 +3021,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     Boolean applyValid = false
     List<Integer> lstIdGar = new ArrayList<>()
     List<Integer> lstIdArm = new ArrayList<>()
+    BigDecimal totalAmount = BigDecimal.ZERO
     for(DetalleNotaVentaJava orderItem : nota.detalles){
       if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
         if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
@@ -3030,6 +3031,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         } else {
           for(int i=0;i<orderItem.cantidadFac;i++){
             lstIdArm.add(orderItem.idArticulo)
+            totalAmount = totalAmount.add(orderItem.precioUnitFinal)
           }
         }
       }
@@ -3070,7 +3072,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     }
 
     if( lstIdGar.size() > 0 ){
-      if( valid && !hasC1 ){
+      if( valid && !hasC1 && totalAmount.compareTo(BigDecimal.ZERO) > 0 ){
         if( lstIdGar.size() == 1 ){
           List<DetalleNotaVentaJava> lstDets = new ArrayList<>()
           BigDecimal amount = BigDecimal.ZERO
@@ -3244,6 +3246,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         }
       } else if( hasC1 ) {
         MSJ_ERROR_WARRANTY = "No se puede asignar seguro a una redención."
+        valid = false
+      } else if( totalAmount.compareTo(BigDecimal.ZERO) <= 0 ) {
+        MSJ_ERROR_WARRANTY = "No se puede asignar seguro a una nota con monto \$0.00"
         valid = false
       }
     } else if( cleanWaranties && lensKid ){
