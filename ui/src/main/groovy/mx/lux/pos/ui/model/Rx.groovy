@@ -82,6 +82,8 @@ class Rx {
       String name = ''
         if(StringUtils.trimToEmpty(optometristName) != '' && StringUtils.trimToEmpty(idOpt) != ''){
           name = '['+idOpt.trim()+']'+optometristName
+        } else {
+          name = '['+idOpt.trim()+']'
         }
     }
 

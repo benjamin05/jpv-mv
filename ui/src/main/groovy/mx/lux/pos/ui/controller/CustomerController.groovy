@@ -981,6 +981,7 @@ class CustomerController {
 
   static Customer saveExternalCustomer( String resp, Customer sample ){
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat formatterTime = new SimpleDateFormat("HH:mm:ss.SSS");
     SimpleDateFormat formatter1 = new SimpleDateFormat("dd/MM/yyyy");
     resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
     resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
@@ -1036,7 +1037,7 @@ class CustomerController {
       User u = Session.get(SessionItem.USER) as User
       ExamenJava examen = new ExamenJava()
       examen.setIdCliente( sample.getId() )
-      examen.setIdAtendio( u.username )
+      examen.setIdAtendio( StringUtils.trimToEmpty(data[2]) )
       examen.setAvSaOdLejosEx(StringUtils.trimToEmpty(data[3]))
       examen.setAvSaOiLejosEx(StringUtils.trimToEmpty(data[4]))
       examen.setObjOdEsfEx(StringUtils.trimToEmpty(data[5]))
@@ -1063,9 +1064,9 @@ class CustomerController {
       examen.setDiOi(StringUtils.trimToEmpty(data[27]))
       examen.setTipoCli(StringUtils.trimToEmpty(data[29]))
       examen.setTipoOft(StringUtils.trimToEmpty(data[30]))
-      examen.setFechaAlta(new Date())
+      examen.setFechaAlta(StringUtils.trimToEmpty(data[31]).length() > 0 ? formatter.parse(StringUtils.trimToEmpty(data[31])) : null)
       examen.setIdOftalmologo(null)
-      examen.setHoraAlta(new Date())
+      examen.setHoraAlta(StringUtils.trimToEmpty(data[33]).length() > 0 ? formatterTime.parse(StringUtils.trimToEmpty(data[33])) : null)
       examen.setIdExOri(StringUtils.trimToEmpty(data[34]))
       ExamenServiceJava.guardarExamen( examen )
     } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("3") ){
