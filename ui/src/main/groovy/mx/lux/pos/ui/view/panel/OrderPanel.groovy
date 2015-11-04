@@ -1922,6 +1922,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+        if( OrderController.validRxData(rec, dio) ){
           if( StringUtils.trimToEmpty(couponKeyValid).length() <= 0 ){
           rec = OrderController.findRx(order, customer)
           Boolean continueSave = true
@@ -2004,6 +2005,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       .createDialog(new JTextField(), "Error")
                       .show()
           }
+        } else {
+          sb.optionPane(message: "Valores invalidos en Receta.", optionType: JOptionPane.DEFAULT_OPTION)
+                  .createDialog(new JTextField(), "Error")
+                  .show()
+        }
         } else {
           sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
              .createDialog(new JTextField(), "Error")

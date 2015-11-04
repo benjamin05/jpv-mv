@@ -3689,4 +3689,44 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static Boolean validRxData( RecetaJava rx, String dioptra ) {
+    Boolean valid = true
+    if( rx != null && rx.idReceta != null ){
+      Double esfDer = 0.00
+      Double cilDer = 0.00
+      Double esfIz = 0.00
+      Double cilIz = 0.00
+      try{
+        String esfDerStr = rx.odEsfR.replace("+","")
+        esfDerStr = esfDerStr.replace("-","")
+        String cilDerStr = rx.odCilR.replace("+","")
+        cilDerStr = cilDerStr.replace("-","")
+        String esfIzStr = rx.oiEsfR.replace("+","")
+        esfIzStr = esfIzStr.replace("-","")
+        String cilIzStr = rx.oiCilR.replace("+","")
+        cilIzStr = cilIzStr.replace("-","")
+        esfDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfDerStr)).doubleValue()
+        cilDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilDerStr)).doubleValue()
+        esfIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfIzStr)).doubleValue()
+        cilIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilIzStr)).doubleValue()
+      } catch ( NumberFormatException e ) { println e }
+
+      if( StringUtils.trimToEmpty(dioptra).startsWith("C") ){
+        if( esfDer > 6 || esfIz > 6 || esfDer+cilDer > 6 || esfIz+cilIz > 6 ){
+          valid = false
+        }
+      } else if( StringUtils.trimToEmpty(dioptra).startsWith("P") ){
+        if( esfDer > 8 || esfIz > 8 || esfDer+cilDer > 12 || esfIz+cilIz > 12 ){
+          valid = false
+        }
+      } else if( StringUtils.trimToEmpty(dioptra).startsWith("H") ){
+        if( esfDer > 10 || esfIz > 10 || esfDer+cilDer > 16 || esfIz+cilIz > 16 ){
+          valid = false
+        }
+      }
+    }
+    return valid
+  }
+
+
 }
