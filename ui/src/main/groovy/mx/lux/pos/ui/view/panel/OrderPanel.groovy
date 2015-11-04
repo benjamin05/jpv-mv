@@ -1151,16 +1151,15 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         for (int row = 0; row <= itemsModel.rowCount; row++) {
                             String artString = itemsModel.getValueAt(row, 0).toString()
                             Item it = itemsModel.rowModel.value.item
-                            tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                             if (artString.trim().equals('SV')) {
                                 artCount = artCount + 1
-                                //tipoArt = 'MONOFOCAL'
+                                tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                             } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                                 artCount = artCount + 1
-                                //tipoArt = 'BIFOCAL'
+                                tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                             } else if (artString.trim().equals('P')) {
                                 artCount = artCount + 1
-                                //tipoArt = 'PROGRESIVO'
+                                tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                             }
                         }
                         armazonString = OrderController.armazonString(order?.id)
@@ -1951,17 +1950,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               String tipoArt = null
               for (int row = 0; row <= itemsModel.rowCount; row++) {
                           String artString = itemsModel.getValueAt(row, 0).toString()
-                  Item it = itemsModel.rowModel.value.item
-                  tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           if (artString.trim().equals('SV')) {
                               artCount = artCount + 1
-                              //tipoArt = 'M'
+                              Item it = itemsModel.rowModel.value.item
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                               artCount = artCount + 1
-                              //tipoArt = 'B'
+                              Item it = itemsModel.rowModel.value.item
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           } else if (artString.trim().equals('P')) {
                               artCount = artCount + 1
-                              //tipoArt = 'P'
+                              Item it = itemsModel.rowModel.value.item
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           }
                       }
                       armazonString = OrderController.armazonString(order?.id)
@@ -2153,16 +2153,15 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       for (int row = 0; row <= itemsModel.rowCount; row++) {
                           String artString = itemsModel.getValueAt(row, 0).toString()
                           Item it = itemsModel.rowModel.value.item
-                          tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           if (artString.trim().equals('SV')) {
                               artCount = artCount + 1
-                              //tipoArt = 'MONOFOCAL'
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                               artCount = artCount + 1
-                              //tipoArt = 'BIFOCAL'
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           } else if (artString.trim().equals('P')) {
                               artCount = artCount + 1
-                              //tipoArt = 'PROGRESIVO'
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           }
                       }
                       armazonString = OrderController.armazonString(order?.id)
