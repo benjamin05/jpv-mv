@@ -1127,6 +1127,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         if( warranty ){
           if( validLensesPack() ){
+            if( OrderController.validRxData(order.id, dio) ){
             if( StringUtils.trimToEmpty(couponKeyValid).length() <= 0 ){
             Boolean continueSave = true
             rec = OrderController.findRx(order, customer)
@@ -1218,6 +1219,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       .createDialog(new JTextField(), "Error")
                       .show()
             }
+          } else {
+              sb.optionPane(message: "Valores invalidos en Receta.", optionType: JOptionPane.DEFAULT_OPTION)
+                      .createDialog(new JTextField(), "Error")
+                      .show()
+          }
           } else {
                 sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                         .createDialog(new JTextField(), "Error")
@@ -1922,7 +1928,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
-        if( OrderController.validRxData(rec, dio) ){
+        if( OrderController.validRxData(order.id, dio) ){
           if( StringUtils.trimToEmpty(couponKeyValid).length() <= 0 ){
           rec = OrderController.findRx(order, customer)
           Boolean continueSave = true
@@ -2124,6 +2130,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+          if( OrderController.validRxData( order.id, dio ) ){
           Boolean continueSave = true
           rec = OrderController.findRx(order, customer)
           if( hasLc && (rec == null || rec.idReceta == null) ){
@@ -2200,6 +2207,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   flujoOtraOrden()
               }
             }
+        } else {
+            sb.optionPane(message: "Valores invalidos en Receta.", optionType: JOptionPane.DEFAULT_OPTION)
+                    .createDialog(new JTextField(), "Error")
+                    .show()
+        }
         } else {
               sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                       .createDialog(new JTextField(), "Error")

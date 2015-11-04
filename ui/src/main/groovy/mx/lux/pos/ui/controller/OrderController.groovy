@@ -3689,8 +3689,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
-  static Boolean validRxData( RecetaJava rx, String dioptra ) {
+  static Boolean validRxData( String idOrder, String dioptra ) {
     Boolean valid = true
+    NotaVentaJava notaVentaJava = NotaVentaQuery.busquedaNotaById( idOrder )
+    RecetaJava rx = null
+    if( notaVentaJava.receta != null ){
+      rx = RecetaQuery.buscaRecetaPorIdReceta( notaVentaJava.receta )
+    }
     if( rx != null && rx.idReceta != null ){
       Double esfDer = 0.00
       Double cilDer = 0.00
@@ -3705,10 +3710,10 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         esfIzStr = esfIzStr.replace("-","")
         String cilIzStr = rx.oiCilR.replace("+","")
         cilIzStr = cilIzStr.replace("-","")
-        esfDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfDerStr)).doubleValue()
-        cilDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilDerStr)).doubleValue()
-        esfIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfIzStr)).doubleValue()
-        cilIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilIzStr)).doubleValue()
+        esfDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfDerStr).length() > 0 ? StringUtils.trimToEmpty(esfDerStr) : "0").doubleValue()
+        cilDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilDerStr).length() > 0 ? StringUtils.trimToEmpty(cilDerStr) : "0").doubleValue()
+        esfIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfIzStr).length() > 0 ? StringUtils.trimToEmpty(esfIzStr) : "0").doubleValue()
+        cilIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilIzStr).length() > 0 ? StringUtils.trimToEmpty(cilIzStr) : "0").doubleValue()
       } catch ( NumberFormatException e ) { println e }
 
       if( StringUtils.trimToEmpty(dioptra).startsWith("C") ){
