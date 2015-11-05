@@ -3716,7 +3716,26 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         cilIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilIzStr).length() > 0 ? StringUtils.trimToEmpty(cilIzStr) : "0").doubleValue()
       } catch ( NumberFormatException e ) { println e }
 
-      if( StringUtils.trimToEmpty(dioptra).startsWith("C") ){
+      String dataLimits = Registry.limitGraduation
+      String[] data = StringUtils.trimToEmpty(dataLimits).split(",")
+      for(String d : data){
+        String[] dataTmp = StringUtils.trimToEmpty(d).split(":")
+        if( dataTmp.length >= 3 ){
+          Double firstLimit = 0.00
+          Double secondLimit = 0.00
+          try{
+            firstLimit = NumberFormat.getInstance().parse(dataTmp[1])
+            secondLimit = NumberFormat.getInstance().parse(dataTmp[2])
+          } catch ( NumberFormatException e ) { println e }
+
+          if( StringUtils.trimToEmpty(dioptra).startsWith(dataTmp[0]) ){
+            if( esfDer > firstLimit || esfIz > firstLimit || esfDer+cilDer > secondLimit || esfIz+cilIz > secondLimit ){
+              valid = false
+            }
+          }
+        }
+      }
+      /*if( StringUtils.trimToEmpty(dioptra).startsWith("C") ){
         if( esfDer > 6 || esfIz > 6 || esfDer+cilDer > 6 || esfIz+cilIz > 6 ){
           valid = false
         }
@@ -3728,7 +3747,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         if( esfDer > 10 || esfIz > 10 || esfDer+cilDer > 16 || esfIz+cilIz > 16 ){
           valid = false
         }
-      }
+      }*/
     }
     return valid
   }

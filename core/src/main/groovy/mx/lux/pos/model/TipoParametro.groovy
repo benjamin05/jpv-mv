@@ -61,6 +61,7 @@ enum TipoParametro {
   INV_EXPORT_SALE_TR( 'inventario_exportar_tr_venta', 'no' ),
   IVA_VIGENTE( 'iva_vigente', '16' ),
   LISTA_CLIENTE( 'lista_cliente', '' ),
+  LIMITE_GRADUACION( 'limite_graduacion', 'C:6:6,P:8:12,H:10:16' ),
   MAX_DISCOUNT_STORE( 'tope_descto_tienda', '10.0' ),
   MAX_LONG_DESC_FACTURA( 'max_long_desc_efactura', '50' ),
   METODO_BUSQUEDA_ARTICULOS( 'metodo_busqueda_articulos', 'RB*,Letras especificadas|RB*+A,Letras especificadas+generico|D+BIOMED,D+Descripcion|+Q,Generico' ),

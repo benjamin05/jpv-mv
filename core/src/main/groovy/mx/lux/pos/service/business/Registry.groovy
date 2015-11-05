@@ -260,6 +260,10 @@ class Registry {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
   }
 
+  static String getLimitGraduation( ) {
+    return asString( TipoParametro.LIMITE_GRADUACION )
+  }
+
   static String getImportCustomersUrl( ) {
     return asString( TipoParametro.DATOS_CLIENTE )
   }
