@@ -90,7 +90,7 @@ class ArticuloServiceImpl implements ArticuloService {
         log.debug( "se establece precio ${articulo?.precio} para articulo id: ${articulo?.id}" )
       }
     }
-    log.debug( "Return articulo:: ${articulo.descripcion} " )
+    log.debug( "Return articulo:: ${articulo?.descripcion} " )
     return articulo
   }
     @Override
