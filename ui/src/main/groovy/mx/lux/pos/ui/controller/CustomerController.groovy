@@ -335,7 +335,7 @@ class CustomerController {
 
     static void requestBusquedaCliente(CustomerListener pListener) {
       log.debug('Request Busqueda Cliente ')
-      BusquedaClienteDialog dialog = new BusquedaClienteDialog(pListener)
+      BusquedaClienteImportaDialog dialog = new BusquedaClienteImportaDialog(pListener)
       dialog.activate()
       if (dialog.isNewRequested())
         requestNewCustomer(pListener)

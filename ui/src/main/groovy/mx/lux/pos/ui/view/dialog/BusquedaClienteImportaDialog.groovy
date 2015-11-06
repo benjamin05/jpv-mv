@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Created by magno on 30/09/14.
  */
-class BusquedaClienteDialog extends JDialog {
+class BusquedaClienteImportaDialog extends JDialog {
 //    class CustomerActiveSelectionDialog extends JDialog {
 
     private static String TXT_DIALOG_TITLE = 'Búsqueda de cliente'
@@ -66,7 +66,7 @@ class BusquedaClienteDialog extends JDialog {
     private JButton buttonNuevo
     private JButton buttonCancelar
 
-    BusquedaClienteDialog(CustomerListener pListener) {
+    BusquedaClienteImportaDialog(CustomerListener pListener) {
       customers = [ ] as ObservableList
       externalCustomers = [ ] as ObservableList
       this.buildUI()
