@@ -335,15 +335,28 @@ class CustomerController {
 
     static void requestBusquedaCliente(CustomerListener pListener) {
       log.debug('Request Busqueda Cliente ')
-      BusquedaClienteImportaDialog dialog = new BusquedaClienteImportaDialog(pListener)
-      dialog.activate()
-      if (dialog.isNewRequested())
-        requestNewCustomer(pListener)
+      if( Registry.activeImportCustomer() ){
+        BusquedaClienteImportaDialog dialog = new BusquedaClienteImportaDialog(pListener)
+        dialog.activate()
+        if (dialog.isNewRequested())
+          requestNewCustomer(pListener)
 
-      if (dialog.isModRequested()) {
-        Cliente cliente = clienteService.obtenerCliente( dialog.getCustomerSelected().id )
-        Customer customer = Customer.toCustomer(cliente)
-        requestCustomerMod( pListener, customer )
+        if (dialog.isModRequested()) {
+          Cliente cliente = clienteService.obtenerCliente( dialog.getCustomerSelected().id )
+          Customer customer = Customer.toCustomer(cliente)
+          requestCustomerMod( pListener, customer )
+        }
+      } else {
+        BusquedaClienteDialog dialog = new BusquedaClienteDialog(pListener)
+        dialog.activate()
+        if (dialog.isNewRequested())
+          requestNewCustomer(pListener)
+
+        if (dialog.isModRequested()) {
+          Cliente cliente = clienteService.obtenerCliente( dialog.getCustomerSelected().id )
+          Customer customer = Customer.toCustomer(cliente)
+          requestCustomerMod( pListener, customer )
+        }
       }
     }
 

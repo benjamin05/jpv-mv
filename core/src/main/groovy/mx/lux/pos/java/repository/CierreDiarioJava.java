@@ -1,6 +1,7 @@
 package mx.lux.pos.java.repository;
 
 import mx.lux.pos.java.Utilities;
+import org.apache.commons.lang.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -248,8 +249,8 @@ public class CierreDiarioJava {
       this.setVentasCantidad(rs.getInt("ventas_cantidad"));
       this.setModificacionesCantidad(rs.getInt("modificaciones_cantidad"));
       this.setCancelacionesCantidad(rs.getInt("cancelaciones_cantidad"));
-      this.setFacturaInicial(rs.getString("factura_inicial"));
-      this.setFacturaFinal(rs.getString("factura_final"));
+      this.setFacturaInicial(StringUtils.trimToEmpty(rs.getString("factura_inicial")));
+      this.setFacturaFinal(StringUtils.trimToEmpty(rs.getString("factura_final")));
       this.setVerificado(rs.getBoolean("verificado"));
 	  return this;
 	}

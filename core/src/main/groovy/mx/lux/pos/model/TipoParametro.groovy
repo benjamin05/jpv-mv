@@ -50,6 +50,7 @@ enum TipoParametro {
   ID_CAUSAS_CAN( 'id_causas_can_validar', '5,9,12,13,14' ),
   ID_GERENTE( 'id_gerente', '' ),
   ID_SUCURSAL( 'id_sucursal', '' ),
+  IMPORTAR_CLIENTE_ACTIVO('importar_cliente_activo','no'),
   IMPRESORA_TICKET( 'impresora_ticket', 'lpr -P lp0' ),
   IMPRIME_DUPLICADO( 'imprime_duplicado', 'si' ),
   INVENTORY_ADJUST_PASSWORD( 'clave_ajuste_inventario', '123ez4' ),

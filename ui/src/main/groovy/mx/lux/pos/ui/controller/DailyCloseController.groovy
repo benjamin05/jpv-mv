@@ -298,14 +298,18 @@ class DailyCloseController {
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
     List<CierreDiarioJava> lstCierresPendientes = CierreDiarioQuery.buscaCierresDiariosNoValidados()
     for(CierreDiarioJava cierreDiarioJava : lstCierresPendientes){
-      if( CierreDiarioServiceJava.rehacerArchivosCierrre( cierreDiarioJava.fecha ) ){
-        String parametroGerente = Registry.idManager
-        Empleado employee = empleadoService.obtenerEmpleado( parametroGerente )
-        cierreDiarioService.cargarDatosCierreDiario( cierreDiarioJava.fecha )
-        cierreDiarioService.cerrarCierreDiario( cierreDiarioJava.fecha, StringUtils.trimToEmpty(cierreDiarioJava.getObservaciones()), true )
-        ticketService.imprimeResumenDiario( cierreDiarioJava.fecha, employee )
-        ticketService.imprimeDepositosResumenDiario( cierreDiarioJava.fecha )
-        CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
+      if( !cierreDiarioJava.fecha.format("dd/MM/yyyy").equalsIgnoreCase(new Date().format("dd/MM/yyyy")) ){
+        if( CierreDiarioServiceJava.rehacerArchivosCierrre( cierreDiarioJava.fecha ) ){
+          String parametroGerente = Registry.idManager
+          Empleado employee = empleadoService.obtenerEmpleado( parametroGerente )
+          cierreDiarioService.cargarDatosCierreDiario( cierreDiarioJava.fecha )
+          cierreDiarioService.cerrarCierreDiario( cierreDiarioJava.fecha, StringUtils.trimToEmpty(cierreDiarioJava.getObservaciones()), true )
+          ticketService.imprimeResumenDiario( cierreDiarioJava.fecha, employee )
+          ticketService.imprimeDepositosResumenDiario( cierreDiarioJava.fecha )
+          CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
+        } else {
+          CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
+        }
       }
     }
   }

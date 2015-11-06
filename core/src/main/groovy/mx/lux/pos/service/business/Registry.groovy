@@ -668,6 +668,10 @@ class Registry {
     return isTrue( TipoParametro.CARGA_MANUAL_LP_ACTIVO )
   }
 
+  static Boolean activeImportCustomer() {
+    return isTrue( TipoParametro.IMPORTAR_CLIENTE_ACTIVO )
+  }
+
   static Boolean isAckDebugEnabled() {
     return isTrue( TipoParametro.ACUSE_LOG_DETALLE )
   }
