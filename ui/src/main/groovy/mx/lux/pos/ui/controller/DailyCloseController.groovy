@@ -307,8 +307,8 @@ class DailyCloseController {
           ticketService.imprimeResumenDiario( cierreDiarioJava.fecha, employee )
           ticketService.imprimeDepositosResumenDiario( cierreDiarioJava.fecha )
           CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
-        } else {
-          CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
+        } else if( StringUtils.trimToEmpty(cierreDiarioJava.estado).equalsIgnoreCase("c") ){
+            CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
         }
       }
     }
