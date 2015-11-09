@@ -260,6 +260,18 @@ class Registry {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
   }
 
+  static String getLimitGraduation( ) {
+    return asString( TipoParametro.LIMITE_GRADUACION )
+  }
+
+  static String getImportCustomersUrl( ) {
+    return asString( TipoParametro.DATOS_CLIENTE )
+  }
+
+  static String getListCustomersUrl( ) {
+    return asString( TipoParametro.LISTA_CLIENTE )
+  }
+
   static String getMinimunAmountCrm( ) {
     return asString( TipoParametro.MONTO_MINIMO_CRM )
   }
@@ -654,6 +666,10 @@ class Registry {
 
   static Boolean activeManualLp() {
     return isTrue( TipoParametro.CARGA_MANUAL_LP_ACTIVO )
+  }
+
+  static Boolean activeImportCustomer() {
+    return isTrue( TipoParametro.IMPORTAR_CLIENTE_ACTIVO )
   }
 
   static Boolean isAckDebugEnabled() {

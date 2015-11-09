@@ -4,6 +4,7 @@ package mx.lux.pos.java.service;
 import mx.lux.pos.java.querys.NotaVentaQuery;
 import mx.lux.pos.java.querys.RecetaQuery;
 import mx.lux.pos.java.repository.NotaVentaJava;
+import mx.lux.pos.java.repository.RecetaJava;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,5 +23,10 @@ public class RecetaServiceJava {
       } else {
         log.warn("No hay receta");
       }
+    }
+
+
+    public static void saveRx (RecetaJava recetaJava) throws ParseException {
+      RecetaQuery.saveOrUpdateRx( recetaJava );
     }
 }

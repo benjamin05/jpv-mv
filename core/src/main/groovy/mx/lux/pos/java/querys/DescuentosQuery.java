@@ -170,4 +170,24 @@ public class DescuentosQuery {
     }
 
 
+
+    public static DescuentosJava buscaDescuentoPorClave( String clave ){
+      DescuentosJava descuentosJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from descuentos where clave = '%s';", StringUtils.trimToEmpty(clave));
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          descuentosJava = new DescuentosJava();
+          descuentosJava = descuentosJava.mapeoDescuentos(rs);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return descuentosJava;
+    }
+
+
 }
