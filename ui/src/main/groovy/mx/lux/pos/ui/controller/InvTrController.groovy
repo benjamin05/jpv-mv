@@ -461,6 +461,11 @@ class InvTrController {
           }
       }
     }
+    if ( partList?.any() && partList.size() == 1 )  {
+      if( StringUtils.trimToEmpty(partList?.first()?.codigoColor).length() <= 0 ){
+        partList.clear()
+      }
+    }
     if ( partList?.any() ) {
       if ( partList.size() == 1 )  {
         Boolean valid = false
