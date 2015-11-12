@@ -205,7 +205,7 @@ public class ArticulosServiceJava {
     List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
     List<ArticulosJava> resultados = ArticulosQuery.busquedaArticuloPorIdGenerico(idGenerico);
     for(ArticulosJava art : resultados){
-      establecerPrecio( art );
+      lstArticulos.add(establecerPrecio( art ));
     }
     return lstArticulos;
   }
