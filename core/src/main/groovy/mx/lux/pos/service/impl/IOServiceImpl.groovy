@@ -359,7 +359,7 @@ class IOServiceImpl implements IOService {
         StringBuffer sb = new StringBuffer()
         sb.append("${idSuc}|REM|${remesa.docto}|")
         sb.append( "\n" )
-        sb.append("${remesa.fecha_carga.format('dd/MM/yyyy')}|${remesa.fecha_carga.format('HH:mm')}|${remesa.docto.trim()}${remesa.letra.trim()}|${remesa.sistema}|")
+        sb.append("${remesa.fecha_carga.format('dd/MM/yyyy')}|${remesa.fecha_carga.format('HH:mm')}|${remesa.letra.trim()}${remesa.docto.trim()}|${remesa.sistema}|")
         strOut.println sb.toString()
         strOut.close()
         logger.debug(file.absolutePath)
