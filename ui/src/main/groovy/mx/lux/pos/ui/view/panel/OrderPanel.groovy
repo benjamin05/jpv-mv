@@ -58,6 +58,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     private static final String MSJ_CAMBIAR_VENDEDOR = 'Esta seguro que desea salir de esta sesion.'
     private static final String TXT_CAMBIAR_VENDEDOR = 'Cerrar Sesion'
     private static final String TAG_ARTICULO_B = 'B'
+    private static final String TAG_ARTICULO_L = 'L'
     private static final String TAG_ARTICULO_P = 'P'
     private static final String TAG_PAQUETE = 'Q'
     private static final String TAG_FORMA_PAGO_C1 = 'C1'
@@ -711,7 +712,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   updateOrder( StringUtils.trimToEmpty(order.id) )
                 }
                 Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, false)
+                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, false)
                 editRx.show()
                 OrderController.saveRxOrder(order?.id, this.rec.idReceta)
               } else {
@@ -878,9 +879,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       try {
         //Receta Nueva
         String artString = item.name
-        if (artString.equals('SV') || artString.equals('P') || artString.equals('B')) {
+        if (artString.equals('SV') || artString.equals('P') || artString.equals('B') || artString.equals('L')) {
           Branch branch = Session.get(SessionItem.BRANCH) as Branch
-          EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', item.description, false, false)
+          String uso = StringUtils.trimToEmpty(item.lensDesign)
+          /*if( artString.equalsIgnoreCase('L') ){
+            uso = 'BIFOCAL'
+          }*/
+          EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', uso, false, false)
           editRx.show()
 
           this.disableUI()
@@ -1122,12 +1127,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         if( warranty ){
           if( validLensesPack() ){
+            if( OrderController.validRxData(order.id, dio) ){
             if( StringUtils.trimToEmpty(couponKeyValid).length() <= 0 ){
             Boolean continueSave = true
             rec = OrderController.findRx(order, customer)
             if( hasLc && (rec == null || rec.idReceta == null) ){
               Branch branch = Session.get(SessionItem.BRANCH) as Branch
-              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
               editRx.show()
               try {
                 if( rec != null ){
@@ -1144,15 +1150,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         String tipoArt = null
                         for (int row = 0; row <= itemsModel.rowCount; row++) {
                             String artString = itemsModel.getValueAt(row, 0).toString()
+                            Item it = itemsModel.rowModel.value.item
                             if (artString.trim().equals('SV')) {
                                 artCount = artCount + 1
-                                tipoArt = 'MONOFOCAL'
-                            } else if (artString.trim().equals('B')) {
+                                tipoArt = StringUtils.trimToEmpty(it.lensDesign)
+                            } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                                 artCount = artCount + 1
-                                tipoArt = 'BIFOCAL'
+                                tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                             } else if (artString.trim().equals('P')) {
                                 artCount = artCount + 1
-                                tipoArt = 'PROGRESIVO'
+                                tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                             }
                         }
                         armazonString = OrderController.armazonString(order?.id)
@@ -1211,6 +1218,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       .createDialog(new JTextField(), "Error")
                       .show()
             }
+          } else {
+              sb.optionPane(message: "Valores invalidos en Receta.", optionType: JOptionPane.DEFAULT_OPTION)
+                      .createDialog(new JTextField(), "Error")
+                      .show()
+          }
           } else {
                 sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                         .createDialog(new JTextField(), "Error")
@@ -1420,14 +1432,15 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
       if( newOrder.rx != null ){
         OrderController.updateExam( newOrder )
+        OrderController.updateRx( newOrder )
       }
 
         OrderController.saveAcuseCrmClave( order.id )
         ItemController.updateLenteContacto( newOrder.id )
-      if(numQuote > 0){
-        OrderController.updateQuote( newOrder, numQuote )
-        numQuote = 0
-      }
+      //if(numQuote > 0){
+        OrderController.updateQuote( newOrder, null )
+        //numQuote = 0
+      //}
       this.promotionDriver.requestPromotionJavaSave(newOrder?.id, true)
       Boolean cSaldo = false
       OrderController.validaEntrega(StringUtils.trimToEmpty(newOrder?.bill),newOrder?.branch?.id?.toString(), true)
@@ -1550,7 +1563,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     hasEnsureKid = true
                   }
                 }
-                if( hasLensKid && !hasEnsureKid ){
+                if( hasLensKid && !hasEnsureKid && newOrder.total.compareTo(BigDecimal.ZERO) > 0){
                   itemSearch.text = "SEG"
                   doItemSearch( true, "" )
                   newOrder = OrderController.placeOrder(newOrder, vendedor, false)
@@ -1914,12 +1927,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+        if( OrderController.validRxData(order.id, dio) ){
           if( StringUtils.trimToEmpty(couponKeyValid).length() <= 0 ){
           rec = OrderController.findRx(order, customer)
           Boolean continueSave = true
           if( hasLc && (rec == null || rec.idReceta == null) ){
             Branch branch = Session.get(SessionItem.BRANCH) as Branch
-            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
             editRx.show()
             try {
               if( rec != null ){
@@ -1938,13 +1952,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           String artString = itemsModel.getValueAt(row, 0).toString()
                           if (artString.trim().equals('SV')) {
                               artCount = artCount + 1
-                              tipoArt = 'MONOFOCAL'
-                          } else if (artString.trim().equals('B')) {
+                              Item it = itemsModel.rowModel.value.item
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
+                          } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                               artCount = artCount + 1
-                              tipoArt = 'BIFOCAL'
+                              Item it = itemsModel.rowModel.value.item
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           } else if (artString.trim().equals('P')) {
                               artCount = artCount + 1
-                              tipoArt = 'PROGRESIVO'
+                              Item it = itemsModel.rowModel.value.item
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           }
                       }
                       armazonString = OrderController.armazonString(order?.id)
@@ -1995,6 +2012,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       .show()
           }
         } else {
+          sb.optionPane(message: "Valores invalidos en Receta.", optionType: JOptionPane.DEFAULT_OPTION)
+                  .createDialog(new JTextField(), "Error")
+                  .show()
+        }
+        } else {
           sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
              .createDialog(new JTextField(), "Error")
              .show()
@@ -2025,6 +2047,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           Order newOrder = OrderController.saveOrderJava(order)
           CustomerController.updateCustomerInSite(this.customer.id)
           this.promotionDriver.requestPromotionJavaSave(newOrder?.id, false)
+          if(numQuote > 0){
+            OrderController.updateQuote( newOrder, numQuote )
+            numQuote = 0
+          }
           for(IPromotionAvailable promo : promotionList){
             if( promo instanceof PromotionDiscount ){
               OrderController.updateCuponMvByClave(order.id, StringUtils.trimToEmpty(promo.discountType.description))
@@ -2104,11 +2130,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       }
       if( warranty ){
         if( validLensesPack() ){
+          if( OrderController.validRxData( order.id, dio ) ){
           Boolean continueSave = true
           rec = OrderController.findRx(order, customer)
           if( hasLc && (rec == null || rec.idReceta == null) ){
             Branch branch = Session.get(SessionItem.BRANCH) as Branch
-            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "MONOFOCAL", false, true)
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
             editRx.show()
             try {
               if( rec != null ){
@@ -2125,15 +2152,16 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       String tipoArt = null
                       for (int row = 0; row <= itemsModel.rowCount; row++) {
                           String artString = itemsModel.getValueAt(row, 0).toString()
+                          Item it = itemsModel.rowModel.value.item
                           if (artString.trim().equals('SV')) {
                               artCount = artCount + 1
-                              tipoArt = 'MONOFOCAL'
-                          } else if (artString.trim().equals('B')) {
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
+                          } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
                               artCount = artCount + 1
-                              tipoArt = 'BIFOCAL'
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           } else if (artString.trim().equals('P')) {
                               artCount = artCount + 1
-                              tipoArt = 'PROGRESIVO'
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           }
                       }
                       armazonString = OrderController.armazonString(order?.id)
@@ -2179,6 +2207,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               }
             }
         } else {
+            sb.optionPane(message: "Valores invalidos en Receta.", optionType: JOptionPane.DEFAULT_OPTION)
+                    .createDialog(new JTextField(), "Error")
+                    .show()
+        }
+        } else {
               sb.optionPane(message: "Favor de capturar paquete.", optionType: JOptionPane.DEFAULT_OPTION)
                       .createDialog(new JTextField(), "Error")
                       .show()
@@ -2214,6 +2247,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 }
                 Customer c = this.customer
                 Order newOrder = OrderController.saveOrder(order)
+                if(numQuote > 0){
+                  OrderController.updateQuote( newOrder, numQuote )
+                  numQuote = 0
+                }
                 CustomerController.updateCustomerInSite(c.id)
                 //this.promotionDriver.requestPromotionSave(newOrder?.id, false)
                 this.promotionDriver.requestPromotionJavaSave(newOrder?.id, true)
@@ -2414,7 +2451,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     updateOrder( order.id )
     for(OrderItem orderItem : order.items){
       if( StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_P)
-              || StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_B) ){
+              || StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_B)
+              || StringUtils.trimToEmpty(orderItem.item.name).equalsIgnoreCase(TAG_ARTICULO_L)){
         hasLenses = true
       }
     }

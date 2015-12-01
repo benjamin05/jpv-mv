@@ -80,7 +80,7 @@ public class RecetaQuery {
                 receta.getsUsoAnteojos(), receta.getIdOptometrista(), receta.getTipoOpt(), receta.getOdEsfR(),receta.getOdCilR(),
                 receta.getOdEjeR(), receta.getOdAdcR(), receta.getOdAdiR(),receta.getOdPrismaH(),receta.getOiEsfR(), receta.getOiCilR(),
                 receta.getOiEjeR(), receta.getOiAdcR(), receta.getOiAdiR(), receta.getOiPrismaH(), receta.getDiLejosR(),
-                receta.getDiCercaR(), receta.getOdAvR(), receta.getOiAvR(), receta.getAltOblR(), receta.getObservacionesR(), receta.getfImpresa(),
+                receta.getDiCercaR(), receta.getOdAvR(), receta.getOiAvR(), receta.getAltOblR(), receta.getObservacionesR(), Utilities.toBoolean(receta.getfImpresa()),
                 receta.getIdSync(), Utilities.toString(receta.getFechaMod(), formatTimeStamp), receta.getIdMod(), receta.getIdSucursal(),
                 receta.getDiOd(), receta.getDiOi(), receta.getMaterialArm(), receta.getOdPrismaV(), receta.getOiPrismaV(), receta.getTratamientos(),
                 receta.getUdf5(), receta.getUdf6(), receta.getIdRxOri(), receta.getFolio());

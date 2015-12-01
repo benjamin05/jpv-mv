@@ -1,5 +1,7 @@
 package mx.lux.pos.ui.view.driver
 
+import mx.lux.pos.java.querys.PromocionQuery
+import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.DescuentoClave
 import mx.lux.pos.model.IPromotionAvailable
@@ -448,7 +450,8 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
       Boolean oneNotValGen = false
       Boolean twoValGen = false
       if( StringUtils.trimToEmpty(desc.clave).length() == 11 && (desc.clave.replace("*","\\*").contains("*") || desc.clave.replace("!","\\!").contains("\\!") ||
-              desc.clave.replace("_","\\_").contains("\\_") || StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP") )){
+              desc.clave.replace("_","\\_").contains("\\_") || StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP") ) &&
+              !StringUtils.trimToEmpty(desc.clave).substring(0,4).isNumber() ){
         crm = true
         generic = StringUtils.trimToEmpty(desc.clave).substring(1,3)
         if( generic.contains("**") ){
@@ -460,6 +463,35 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
         } else {
           twoValGen = true
         }
+      } else if(StringUtils.trimToEmpty(desc.clave).length() >= 10 && StringUtils.trimToEmpty(desc.idTipoD).equalsIgnoreCase("AP") &&
+              StringUtils.trimToEmpty(desc.clave).substring(0,4).isNumber()){
+        crm = true
+        List<PromocionJava> lstPromo = PromocionQuery.buscaPromocionesCrm( )
+        PromocionJava promo = null
+        for(PromocionJava p : lstPromo){
+          String descPromo = StringUtils.trimToEmpty(p.descripcion.replaceAll(" ",""))
+          String descClave = "crm:${StringUtils.trimToEmpty(desc.clave.substring(0,4))}"
+          if(descPromo.startsWith(descClave)){
+            promo = p
+          } else {
+            descClave = "CRM:${StringUtils.trimToEmpty(desc.clave.substring(0,4))}"
+            if(descPromo.startsWith(descClave)){
+              promo = p
+            }
+          }
+        }
+        if( promo != null ){
+          generic = StringUtils.trimToEmpty(promo.idGenerico)
+          if( generic.contains("*") ){
+            allGen = true
+          } else if( StringUtils.trimToEmpty(promo.genericoc).length() <= 0 ){
+            oneValGen = true
+            generic = "_"+generic
+          } else if( StringUtils.trimToEmpty(promo.genericoc).length() > 0 ){
+            twoValGen = true
+            generic = generic+StringUtils.trimToEmpty(promo.genericoc)
+          }
+        }
       }
       for(OrderItem oi : order.items){
         if( !genericoNoApplica.equalsIgnoreCase(StringUtils.trimToEmpty(oi.item.type)) ){
@@ -467,18 +499,18 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
             if( allGen ){
               ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
             } else if( oneValGen ) {
-              if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
+              //if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
                 ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
-              }
+              //}
             } else if( twoValGen ) {
-              if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(0,1)) ||
-                      StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
+              /*if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(0,1)) ||
+                      StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){*/
                 ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
-              }
+              //}
             } else if( oneNotValGen ){
-              if( !StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
+              //if( !StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase(generic.substring(1)) ){
                 ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
-              }
+              //}
             }
           } else {
             ventaTotal = ventaTotal.add(oi.item.price.multiply(oi.quantity))
@@ -496,7 +528,7 @@ class PromotionDriver implements TableModelListener, ICorporateKeyVerifier {
           descripcionDesc = "Descuento Corporativo"
         } else if(StringUtils.trimToEmpty(desc?.clave).length() <= 0) {
           descripcionDesc = "Descuento Tienda"
-        } else if(StringUtils.trimToEmpty(desc?.clave).length() == 11 && StringUtils.trimToEmpty(desc?.idTipoD).equalsIgnoreCase("AP")) {
+        } else if((StringUtils.trimToEmpty(desc?.clave).length() == 11 || StringUtils.trimToEmpty(desc?.clave).length() == 10) && StringUtils.trimToEmpty(desc?.idTipoD).equalsIgnoreCase("AP")) {
             descripcionDesc = "Descuentos CRM"
         } else if((StringUtils.trimToEmpty(desc?.clave).startsWith("L") || StringUtils.trimToEmpty(desc?.clave).startsWith("N") ||
                 StringUtils.trimToEmpty(desc?.clave).startsWith("S")) &&

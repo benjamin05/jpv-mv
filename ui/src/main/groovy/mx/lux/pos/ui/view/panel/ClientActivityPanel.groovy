@@ -285,8 +285,10 @@ class ClientActivityPanel extends JPanel {
 
     static String setTotal( BigDecimal monto, Integer cantidad){
       String total = ""
-      BigDecimal montoTotal = monto.multiply(new BigDecimal( cantidad ))
-      total = String.format("%s%s", /$/, StringUtils.trimToEmpty(montoTotal.toString())).replace(" ","")
+      if( monto != null && cantidad != null ){
+        BigDecimal montoTotal = monto.multiply(new BigDecimal( cantidad ))
+        total = String.format("%s%s", /$/, StringUtils.trimToEmpty(montoTotal.toString())).replace(" ","")
+      }
       return total
     }
 

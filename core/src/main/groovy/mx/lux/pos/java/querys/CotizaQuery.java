@@ -53,7 +53,7 @@ public class CotizaQuery {
                 cotizaJava.getIdSucursal(), cotizaJava.getIdCliente(), cotizaJava.getIdEmpleado(), cotizaJava.getIdReceta(),
                 Utilities.toString(cotizaJava.getFechaMod(), formatTimeStamp), cotizaJava.getIdFactura(),
                 Utilities.toString(cotizaJava.getFechaVenta(), formatTimeStamp), cotizaJava.getNombre(), cotizaJava.getTelefono(),
-                cotizaJava.getObservaciones(), cotizaJava.getUdf1(), cotizaJava.getTitulo(),
+                cotizaJava.getObservaciones(), StringUtils.trimToEmpty(cotizaJava.getUdf1()), cotizaJava.getTitulo(),
                 Utilities.toString(cotizaJava.getFechaCotizacion(), formatTimeStamp), cotizaJava.getIdCotiza());
       } else {
         sql = String.format("INSERT INTO cotiza (id_sucursal, id_cliente, id_empleado, id_receta, fecha_mod," +
@@ -62,7 +62,7 @@ public class CotizaQuery {
                 cotizaJava.getIdSucursal(), cotizaJava.getIdCliente(), cotizaJava.getIdEmpleado(), cotizaJava.getIdReceta(),
                 Utilities.toString(cotizaJava.getFechaMod(), formatTimeStamp), cotizaJava.getIdFactura(),
                 Utilities.toString(cotizaJava.getFechaVenta(), formatTimeStamp), cotizaJava.getNombre(), cotizaJava.getTelefono(),
-                cotizaJava.getObservaciones(), cotizaJava.getUdf1(), cotizaJava.getTitulo(),
+                cotizaJava.getObservaciones(), StringUtils.trimToEmpty(cotizaJava.getUdf1()), cotizaJava.getTitulo(),
                 Utilities.toString(cotizaJava.getFechaCotizacion(), formatTimeStamp));
       }
 
@@ -102,4 +102,21 @@ public class CotizaQuery {
     }
 
 
+    public static CotizaJava buscaCotizaPorIdFactura( String idFactura ){
+      CotizaJava cotizaJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from cotiza where id_factura = '%s';", StringUtils.trimToEmpty(idFactura));
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          cotizaJava = new CotizaJava();
+          cotizaJava = cotizaJava.mapeoCotiza(rs);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return cotizaJava;
+    }
 }

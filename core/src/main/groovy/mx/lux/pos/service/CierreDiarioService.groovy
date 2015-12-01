@@ -15,7 +15,7 @@ public interface CierreDiarioService {
 
   CierreDiario abrirCierreDiario( )
 
-  void cerrarCierreDiario( Date fechaCierre, String observaciones )
+  void cerrarCierreDiario( Date fechaCierre, String observaciones, Boolean regenerate )
 
   Deposito buscarDepositoPorId( Integer id )
 

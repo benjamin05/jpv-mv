@@ -361,4 +361,30 @@ public class NotaVentaQuery {
       }
       return lstNotas;
     }
+
+
+    public static List<NotaVentaJava> busquedaNotasPorFechaAndFacturaNotEmpty(Date fechaStart, Date fechaEnd) throws ParseException{
+      List<NotaVentaJava> lstNotas = new ArrayList<NotaVentaJava>();
+      NotaVentaJava notaVentaJava = null;
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "";
+        sql = String.format("SELECT * FROM nota_venta WHERE fecha_hora_factura between " +
+                "%s AND %s AND factura is not null AND factura != ''" +
+                "ORDER BY fecha_hora_factura ASC;", Utilities.toString(fechaStart, formatTimeStamp),
+                Utilities.toString(fechaEnd, formatTimeStamp));
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          notaVentaJava = new NotaVentaJava();
+          notaVentaJava.setValores( rs );
+          lstNotas.add( notaVentaJava );
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstNotas;
+    }
 }

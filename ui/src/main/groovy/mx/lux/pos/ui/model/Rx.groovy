@@ -82,6 +82,8 @@ class Rx {
       String name = ''
         if(StringUtils.trimToEmpty(optometristName) != '' && StringUtils.trimToEmpty(idOpt) != ''){
           name = '['+idOpt.trim()+']'+optometristName
+        } else {
+          name = '['+idOpt.trim()+']'
         }
     }
 
@@ -106,13 +108,13 @@ class Rx {
     String getTipoEditRx(){
         String tipo = ''
         if( useGlasses.equalsIgnoreCase('l') ){
-            tipo = 'MONOFOCAL'
+            tipo = 'M'
         } else if( useGlasses.equalsIgnoreCase('c') ){
-            tipo = 'MONOFOCAL'
+            tipo = 'M'
         } else if( useGlasses.equalsIgnoreCase('b') ){
-            tipo = 'BIFOCAL'
+            tipo = 'B'
         } else if( useGlasses.equalsIgnoreCase('p') ){
-            tipo = 'PROGRESIVO'
+            tipo = 'P'
         }
 
         return tipo

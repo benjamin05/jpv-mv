@@ -11,6 +11,7 @@ import mx.lux.pos.java.querys.JbTrackQuery
 import mx.lux.pos.java.querys.ParametrosQuery
 import mx.lux.pos.java.querys.PedidoLcQuery
 import mx.lux.pos.java.querys.PreciosQuery
+import mx.lux.pos.java.querys.PromocionQuery
 import mx.lux.pos.java.repository.AcusesJava
 import mx.lux.pos.java.repository.AcusesTipoJava
 import mx.lux.pos.java.repository.ArticulosJava
@@ -29,6 +30,7 @@ import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.Parametros
 import mx.lux.pos.java.repository.PedidoLcJava
 import mx.lux.pos.java.repository.PreciosJava
+import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.java.repository.TmpServiciosJava
 import mx.lux.pos.java.service.ArticulosServiceJava
@@ -1823,8 +1825,21 @@ class OrderController {
     }
 
 
+  static void updateRx( Order order ){
+    RecetaJava receta = RecetaQuery.buscaRecetaPorIdReceta( order.rx )
+    if( receta != null && StringUtils ){
+      receta.tipoOpt = "${StringUtils.trimToEmpty(Registry.currentSite.toString())}:${StringUtils.trimToEmpty(order.bill)}"
+      RecetaQuery.saveOrUpdateRx( receta )
+    }
+  }
+
+
   static void updateQuote( Order order, Integer numQuote ){
-    cotizacionServiceJava.updateQuote( order.id, numQuote )
+    if( numQuote != null ){
+      cotizacionServiceJava.updateidFacturaQuote( order.id, numQuote )
+    } else {
+      cotizacionServiceJava.updateQuote( order.id, numQuote )
+    }
   }
 
 
@@ -3006,6 +3021,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     Boolean applyValid = false
     List<Integer> lstIdGar = new ArrayList<>()
     List<Integer> lstIdArm = new ArrayList<>()
+    BigDecimal totalAmount = BigDecimal.ZERO
     for(DetalleNotaVentaJava orderItem : nota.detalles){
       if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
         if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
@@ -3015,6 +3031,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         } else {
           for(int i=0;i<orderItem.cantidadFac;i++){
             lstIdArm.add(orderItem.idArticulo)
+            totalAmount = totalAmount.add(orderItem.precioUnitFinal)
           }
         }
       }
@@ -3055,7 +3072,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     }
 
     if( lstIdGar.size() > 0 ){
-      if( valid && !hasC1 ){
+      if( valid && !hasC1 && totalAmount.compareTo(BigDecimal.ZERO) > 0 ){
         if( lstIdGar.size() == 1 ){
           List<DetalleNotaVentaJava> lstDets = new ArrayList<>()
           BigDecimal amount = BigDecimal.ZERO
@@ -3229,6 +3246,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         }
       } else if( hasC1 ) {
         MSJ_ERROR_WARRANTY = "No se puede asignar seguro a una redención."
+        valid = false
+      } else if( totalAmount.compareTo(BigDecimal.ZERO) <= 0 ) {
+        MSJ_ERROR_WARRANTY = "No se puede asignar seguro a una nota con monto \$0.00"
         valid = false
       }
     } else if( cleanWaranties && lensKid ){
@@ -3587,7 +3607,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
-  static Boolean validMinimumAmountCrm( BigDecimal couponAmount, NotaVenta notaVenta ){
+  static Boolean validMinimumAmountCrmByParameter( BigDecimal couponAmount, NotaVenta notaVenta ){
     Boolean valid = true
     BigDecimal totalAmount = BigDecimal.ZERO
     String amounts = StringUtils.trimToEmpty(Registry.minimunAmountCrm)
@@ -3618,6 +3638,118 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       }
     }
     return  valid
+  }
+
+
+  static Boolean validMinimumAmountCrm( BigDecimal minimunAmount, NotaVenta notaVenta ){
+    Boolean valid = true
+    BigDecimal totalAmount = BigDecimal.ZERO
+    for(DetalleNotaVenta detalleNotaVenta : notaVenta.detalles){
+      if( !detalleNotaVenta.articulo.idGenerico.equalsIgnoreCase(TAG_GENERICO_SEG) ){
+        totalAmount = totalAmount.add(detalleNotaVenta.precioUnitFinal)
+      }
+    }
+    if( totalAmount.doubleValue() < minimunAmount ){
+      valid = false
+    }
+    return  valid
+  }
+
+
+  static List<PromocionJava> findCrmPromotions( ){
+    List<PromocionJava> lstPromotions = new ArrayList<>();
+    List<PromocionJava> lstPromotionsCrm = PromocionQuery.buscaPromocionesCrm()
+    for(PromocionJava promocionJava : lstPromotionsCrm){
+      /*String[] data = StringUtils.trimToEmpty(promocionJava.descripcion).split(":")
+      if( data.length > 1 ){
+        String clave = StringUtils.trimToEmpty(data[1])
+        if(DescuentosQuery.buscaDescuentoPorClave(StringUtils.trimToEmpty(clave)) == null){*/
+          lstPromotions.add(promocionJava)
+        //}
+      //}
+    }
+    return lstPromotions
+  }
+
+
+  static PromocionJava findCrmPromotionByKey( String key ){
+    PromocionJava promotion = new PromocionJava()
+    List<PromocionJava> lstPromotionsCrm = PromocionQuery.buscaPromocionesCrm()
+    for(PromocionJava promocionJava : lstPromotionsCrm){
+      String[] data = StringUtils.trimToEmpty(promocionJava.descripcion).split(":")
+      if( data.length > 1 ){
+        String keyP = StringUtils.trimToEmpty(data[1].toString()).substring(0,4)
+        String keyF = StringUtils.trimToEmpty(key).substring(0,4)
+        if( StringUtils.trimToEmpty(keyF).equalsIgnoreCase(keyP) ){
+          promotion = promocionJava
+        }
+      }
+    }
+    return promotion
+  }
+
+
+  static Boolean validRxData( String idOrder, String dioptra ) {
+    Boolean valid = true
+    NotaVentaJava notaVentaJava = NotaVentaQuery.busquedaNotaById( idOrder )
+    RecetaJava rx = null
+    if( notaVentaJava.receta != null ){
+      rx = RecetaQuery.buscaRecetaPorIdReceta( notaVentaJava.receta )
+    }
+    if( rx != null && rx.idReceta != null ){
+      Double esfDer = 0.00
+      Double cilDer = 0.00
+      Double esfIz = 0.00
+      Double cilIz = 0.00
+      try{
+        String esfDerStr = rx.odEsfR.replace("+","")
+        esfDerStr = esfDerStr.replace("-","")
+        String cilDerStr = rx.odCilR.replace("+","")
+        cilDerStr = cilDerStr.replace("-","")
+        String esfIzStr = rx.oiEsfR.replace("+","")
+        esfIzStr = esfIzStr.replace("-","")
+        String cilIzStr = rx.oiCilR.replace("+","")
+        cilIzStr = cilIzStr.replace("-","")
+        esfDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfDerStr).length() > 0 ? StringUtils.trimToEmpty(esfDerStr) : "0").doubleValue()
+        cilDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilDerStr).length() > 0 ? StringUtils.trimToEmpty(cilDerStr) : "0").doubleValue()
+        esfIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfIzStr).length() > 0 ? StringUtils.trimToEmpty(esfIzStr) : "0").doubleValue()
+        cilIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilIzStr).length() > 0 ? StringUtils.trimToEmpty(cilIzStr) : "0").doubleValue()
+      } catch ( NumberFormatException e ) { println e }
+
+      String dataLimits = Registry.limitGraduation
+      String[] data = StringUtils.trimToEmpty(dataLimits).split(",")
+      for(String d : data){
+        String[] dataTmp = StringUtils.trimToEmpty(d).split(":")
+        if( dataTmp.length >= 3 ){
+          Double firstLimit = 0.00
+          Double secondLimit = 0.00
+          try{
+            firstLimit = NumberFormat.getInstance().parse(dataTmp[1])
+            secondLimit = NumberFormat.getInstance().parse(dataTmp[2])
+          } catch ( NumberFormatException e ) { println e }
+
+          if( StringUtils.trimToEmpty(dioptra).startsWith(dataTmp[0]) ){
+            if( esfDer > firstLimit || esfIz > firstLimit || esfDer+cilDer > secondLimit || esfIz+cilIz > secondLimit ){
+              valid = false
+            }
+          }
+        }
+      }
+      /*if( StringUtils.trimToEmpty(dioptra).startsWith("C") ){
+        if( esfDer > 6 || esfIz > 6 || esfDer+cilDer > 6 || esfIz+cilIz > 6 ){
+          valid = false
+        }
+      } else if( StringUtils.trimToEmpty(dioptra).startsWith("P") ){
+        if( esfDer > 8 || esfIz > 8 || esfDer+cilDer > 12 || esfIz+cilIz > 12 ){
+          valid = false
+        }
+      } else if( StringUtils.trimToEmpty(dioptra).startsWith("H") ){
+        if( esfDer > 10 || esfIz > 10 || esfDer+cilDer > 16 || esfIz+cilIz > 16 ){
+          valid = false
+        }
+      }*/
+    }
+    return valid
   }
 
 

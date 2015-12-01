@@ -36,7 +36,12 @@ class Customer {
     Date fechaNacimiento
     Date fechaUltimoExamen
     Date fechaUltimaVenta
+    String ultimaVenta
     String celular
+    String idBranch
+    String cliOri
+    String histCuc
+    String histCli
 
     private static final Integer EDAD_DEFAULT = 25
 
@@ -76,8 +81,8 @@ class Customer {
                     gender: GenderType.parse(cliente.sexo),
                     address: Address.toAddress(cliente),
                     age: parse(StringUtils.trimToEmpty(cliente.udf1)),
-                    fechaNacimiento: cliente.fechaNacimiento
-
+                    fechaNacimiento: cliente.fechaNacimiento,
+                    idBranch: cliente.idSucursal != null ? cliente.idSucursal : ""
             )
             if (cliente.clientePais?.id) {
                 customer.type = CustomerType.FOREIGN
@@ -115,8 +120,8 @@ class Customer {
                     gender: GenderType.parse(cliente.sexoCli),
                     address: Address.toAddress(cliente),
                     age: parse(StringUtils.trimToEmpty(cliente.udf1)),
-                    fechaNacimiento: cliente.fechaNac
-
+                    fechaNacimiento: cliente.fechaNac,
+                    idBranch: cliente.idSucursal
             )
             if (cliente.clientePais?.idCliente) {
                 customer.type = CustomerType.FOREIGN

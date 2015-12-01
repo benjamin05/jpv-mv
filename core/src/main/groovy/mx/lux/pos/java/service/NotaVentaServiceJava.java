@@ -897,7 +897,7 @@ public class NotaVentaServiceJava {
       List<DescuentosJava> descuentos = DescuentosQuery.buscaDescuentosPorIdFactura(StringUtils.trimToEmpty(notaVenta.getIdFactura()));
       DescuentosJava descuento = null;
       for(DescuentosJava desc : descuentos){
-        if( desc != null && desc.getClave().length() == 11 && desc.getTipoClave().equalsIgnoreCase("DIRECCION") ){
+        if( desc != null && (desc.getClave().length() == 11 || desc.getClave().length() == 10) && desc.getTipoClave().equalsIgnoreCase("DIRECCION") ){
           descuento = desc;
         }
       }

@@ -1,5 +1,8 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.Utilities;
+import org.apache.commons.lang.StringUtils;
+
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,6 +33,7 @@ public class CierreDiarioJava {
     Integer cancelacionesCantidad;
 	String facturaInicial;
     String facturaFinal;
+    Boolean verificado;
 
     public Date getFecha() {
         return fecha;
@@ -215,30 +219,39 @@ public class CierreDiarioJava {
         this.facturaFinal = facturaFinal;
     }
 
+    public Boolean getVerificado() {
+        return verificado;
+    }
+
+    public void setVerificado(Boolean verificado) {
+        this.verificado = verificado;
+    }
+
     public CierreDiarioJava mapeoCierreDiario(ResultSet rs) throws SQLException{
 	  this.setFecha(rs.getDate("fecha"));
 	  this.setEstado(rs.getString("estado"));
 	  this.setFechaBtn(rs.getDate("fecha_btn"));
-      this.setHoraCierre(rs.getDate("hora_cierre"));
+      this.setHoraCierre(rs.getTime("hora_cierre"));
       this.setObservaciones(rs.getString("observaciones"));
-      this.setVentaBruta(rs.getBigDecimal("venta_bruta"));
-      this.setVentaNeta(rs.getBigDecimal("venta_neta"));
-      this.setCancelaciones(rs.getBigDecimal("cancelaciones"));
-      this.setModificaciones(rs.getBigDecimal("modificaciones"));
-      this.setIngresoBruto(rs.getBigDecimal("ingreso_bruto"));
-      this.setIngresoNeto(rs.getBigDecimal("ingreso_neto"));
-      this.setDevoluciones(rs.getBigDecimal("devoluciones"));
-      this.setEfectivoRecibido(rs.getBigDecimal("efectivo_recibido"));
-      this.setEfectivoExternos(rs.getBigDecimal("efectivo_externos"));
-      this.setEfectivoDevoluciones(rs.getBigDecimal("efectivo_devoluciones"));
-      this.setEfectivoNeto(rs.getBigDecimal("efectivo_neto"));
-      this.setUsdRecibido(rs.getBigDecimal("usd_recibido"));
-      this.setUsdDevoluciones(rs.getBigDecimal("usd_devoluciones"));
+      this.setVentaBruta(Utilities.toBigDecimal(rs.getString("venta_bruta")));
+      this.setVentaNeta(Utilities.toBigDecimal(rs.getString("venta_neta")));
+      this.setCancelaciones(Utilities.toBigDecimal(rs.getString("cancelaciones")));
+      this.setModificaciones(Utilities.toBigDecimal(rs.getString("modificaciones")));
+      this.setIngresoBruto(Utilities.toBigDecimal(rs.getString("ingreso_bruto")));
+      this.setIngresoNeto(Utilities.toBigDecimal(rs.getString("ingreso_neto")));
+      this.setDevoluciones(Utilities.toBigDecimal(rs.getString("devoluciones")));
+      this.setEfectivoRecibido(Utilities.toBigDecimal(rs.getString("efectivo_recibido")));
+      this.setEfectivoExternos(Utilities.toBigDecimal(rs.getString("efectivo_externos")));
+      this.setEfectivoDevoluciones(Utilities.toBigDecimal(rs.getString("efectivo_devoluciones")));
+      this.setEfectivoNeto(Utilities.toBigDecimal(rs.getString("efectivo_neto")));
+      this.setUsdRecibido(Utilities.toBigDecimal(rs.getString("usd_recibido")));
+      this.setUsdDevoluciones(Utilities.toBigDecimal(rs.getString("usd_devoluciones")));
       this.setVentasCantidad(rs.getInt("ventas_cantidad"));
       this.setModificacionesCantidad(rs.getInt("modificaciones_cantidad"));
       this.setCancelacionesCantidad(rs.getInt("cancelaciones_cantidad"));
-      this.setFacturaInicial(rs.getString("factura_inicial"));
-      this.setFacturaFinal(rs.getString("factura_final"));
+      this.setFacturaInicial(StringUtils.trimToEmpty(rs.getString("factura_inicial")));
+      this.setFacturaFinal(StringUtils.trimToEmpty(rs.getString("factura_final")));
+      this.setVerificado(rs.getBoolean("verificado"));
 	  return this;
 	}
 	

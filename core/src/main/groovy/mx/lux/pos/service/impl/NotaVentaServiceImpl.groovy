@@ -1446,6 +1446,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
   @Override
   String[] montoDescuentoNota( String idFactura ){
     String[] descuento = new String[2]
+    if( StringUtils.trimToEmpty(idFactura).length() > 0 ){
     NotaVenta nota = notaVentaRepository.findOne( idFactura )
     if( nota != null ){
       if( nota.por100Descuento > 0 ){
@@ -1475,6 +1476,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
           descuento[1] = ""
         }
       }
+    }
     }
     return descuento
   }
