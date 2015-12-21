@@ -191,7 +191,7 @@ public class ArticulosServiceJava {
   public ArticulosJava listarArticulosPorSku( Integer idArticulo, boolean incluyePrecio ) throws ParseException {
     log.info( "listando articulos con sku: "+idArticulo );
     ArticulosJava resultados = ArticulosQuery.busquedaArticuloPorId(idArticulo);
-    if( StringUtils.trimToEmpty(resultados.getColorCode()).length() <= 0 ){
+    if( resultados != null && StringUtils.trimToEmpty(resultados.getColorCode()).length() <= 0 ){
       resultados = null;
     }
     if ( incluyePrecio && resultados != null ) {
