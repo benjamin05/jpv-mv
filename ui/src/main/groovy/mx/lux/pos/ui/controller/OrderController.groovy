@@ -3703,13 +3703,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       Double cilIz = 0.00
       try{
         String esfDerStr = rx.odEsfR.replace("+","")
-        esfDerStr = esfDerStr.replace("-","")
+        //esfDerStr = esfDerStr.replace("-","")
         String cilDerStr = rx.odCilR.replace("+","")
-        cilDerStr = cilDerStr.replace("-","")
+        //cilDerStr = cilDerStr.replace("-","")
         String esfIzStr = rx.oiEsfR.replace("+","")
-        esfIzStr = esfIzStr.replace("-","")
+        //esfIzStr = esfIzStr.replace("-","")
         String cilIzStr = rx.oiCilR.replace("+","")
-        cilIzStr = cilIzStr.replace("-","")
+        //cilIzStr = cilIzStr.replace("-","")
         esfDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfDerStr).length() > 0 ? StringUtils.trimToEmpty(esfDerStr) : "0").doubleValue()
         cilDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilDerStr).length() > 0 ? StringUtils.trimToEmpty(cilDerStr) : "0").doubleValue()
         esfIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfIzStr).length() > 0 ? StringUtils.trimToEmpty(esfIzStr) : "0").doubleValue()
@@ -3729,7 +3729,26 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           } catch ( NumberFormatException e ) { println e }
 
           if( StringUtils.trimToEmpty(dioptra).startsWith(dataTmp[0]) ){
-            if( esfDer > firstLimit || esfIz > firstLimit || esfDer+cilDer > secondLimit || esfIz+cilIz > secondLimit ){
+            Boolean esferaVaild = true
+            if( esfDer < 0 ){
+              if( esfDer < secondLimit.doubleValue()*-1 ){
+                esferaVaild = false
+              }
+            } else {
+              if( esfDer > secondLimit ){
+                esferaVaild = false
+              }
+            }
+            if( esfIz < 0 ){
+              if( esfIz < secondLimit.doubleValue()*-1 ){
+                esferaVaild = false
+              }
+            } else {
+              if( esfIz > secondLimit ){
+                esferaVaild = false
+              }
+            }
+            if( esfDer > firstLimit || esfIz > firstLimit || esfDer.abs()+cilDer.abs() > secondLimit || esfIz.abs()+cilIz.abs() > secondLimit ){
               valid = false
             }
           }
