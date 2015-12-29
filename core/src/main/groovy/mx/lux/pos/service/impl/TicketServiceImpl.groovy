@@ -2279,7 +2279,9 @@ class TicketServiceImpl implements TicketService {
         } else if(precioL.id != null && precioL.precio != null && precioL.precio.compareTo(BigDecimal.ZERO) > 0){
           precio = precioL
         } else if(precios.size() <= 0){
-          precio = part
+          precio = new Precio()
+          precio.precio = part.precio
+          precio.articulo = det.articulo
         }
         String cantidad = ( det.cantidad != 1 ? String.format( '(%d@%,.2f)', det.cantidad, part.precio ) : '' )
         String price = String.format( '$%,.2f', det.cantidad * precio?.precio )
