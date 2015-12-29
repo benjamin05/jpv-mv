@@ -191,6 +191,9 @@ public class ArticulosServiceJava {
   public ArticulosJava listarArticulosPorSku( Integer idArticulo, boolean incluyePrecio ) throws ParseException {
     log.info( "listando articulos con sku: "+idArticulo );
     ArticulosJava resultados = ArticulosQuery.busquedaArticuloPorId(idArticulo);
+    if( resultados != null && StringUtils.trimToEmpty(resultados.getColorCode()).length() <= 0 ){
+      resultados = null;
+    }
     if ( incluyePrecio && resultados != null ) {
       return establecerPrecio( resultados );
     }
@@ -202,7 +205,7 @@ public class ArticulosServiceJava {
     List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
     List<ArticulosJava> resultados = ArticulosQuery.busquedaArticuloPorIdGenerico(idGenerico);
     for(ArticulosJava art : resultados){
-      establecerPrecio( art );
+      lstArticulos.add(establecerPrecio( art ));
     }
     return lstArticulos;
   }

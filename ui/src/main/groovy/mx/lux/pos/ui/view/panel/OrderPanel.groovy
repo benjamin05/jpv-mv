@@ -657,7 +657,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 if(log.equalsIgnoreCase("actionPerformed")){
                   focusItem = true
                 }
-                SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, results)
+                List<Item> resultsTmp = new ArrayList<>()
+                for(Item i : results){
+                  if( StringUtils.trimToEmpty(i.color).length() > 0 ){
+                    resultsTmp.add(i)
+                  }
+                }
+                SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, resultsTmp.size() > 0 ? resultsTmp : results)
                 dialog.show()
                 item = dialog.item
                 if (item?.id) {

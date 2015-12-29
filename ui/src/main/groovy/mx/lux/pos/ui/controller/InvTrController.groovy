@@ -6,6 +6,7 @@ import mx.lux.pos.service.ArticuloService
 import mx.lux.pos.service.InventarioService
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.model.InvTrViewMode
+import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.adapter.InvTrFilter
 import mx.lux.pos.ui.model.adapter.RequestAdapter
 import mx.lux.pos.ui.resources.ServiceManager
@@ -460,6 +461,11 @@ class InvTrController {
           }
       }
     }
+    if ( partList?.any() && partList.size() == 1 )  {
+      if( StringUtils.trimToEmpty(partList?.first()?.codigoColor).length() <= 0 ){
+        partList.clear()
+      }
+    }
     if ( partList?.any() ) {
       if ( partList.size() == 1 )  {
         Boolean valid = false
@@ -499,7 +505,13 @@ class InvTrController {
         if ( dlgPartSelection == null ) {
           dlgPartSelection = new PartSelectionDialog( pView.panel )
         }
-        dlgPartSelection.setItems( partList )
+        List<Articulo> partListTmp = new ArrayList<>()
+        for(Articulo art : partList){
+          if( StringUtils.trimToEmpty(art.codigoColor).length() > 0 ){
+            partListTmp.add(art)
+          }
+        }
+        dlgPartSelection.setItems( partListTmp.size() > 0 ? partListTmp : partList )
         dlgPartSelection.setSeed( seed )
         if ( InvTrViewMode.ADJUST.equals( pView.data.viewMode ) ) {
           dlgPartSelection.multiSelection = false
@@ -518,7 +530,7 @@ class InvTrController {
                 }
             } else {
               for(String gen : genericos){
-                if( !StringUtils.trimToEmpty(gen).equalsIgnoreCase(StringUtils.trimToEmpty(partList.first().idGenerico)) ){
+                if( !StringUtils.trimToEmpty(gen).equalsIgnoreCase(StringUtils.trimToEmpty(partListTmp.size() > 0 ? partListTmp.first().idGenerico : partList.first().idGenerico)) ){
                   valid = true
                 }
               }
