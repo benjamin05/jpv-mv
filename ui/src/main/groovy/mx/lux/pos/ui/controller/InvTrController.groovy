@@ -461,11 +461,11 @@ class InvTrController {
           }
       }
     }
-    if ( partList?.any() && partList.size() == 1 )  {
+    /*if ( partList?.any() && partList.size() == 1 )  {
       if( StringUtils.trimToEmpty(partList?.first()?.codigoColor).length() <= 0 ){
         partList.clear()
       }
-    }
+    }*/
     if ( partList?.any() ) {
       if ( partList.size() == 1 )  {
         Boolean valid = false
@@ -506,9 +506,12 @@ class InvTrController {
           dlgPartSelection = new PartSelectionDialog( pView.panel )
         }
         List<Articulo> partListTmp = new ArrayList<>()
-        for(Articulo art : partList){
-          if( StringUtils.trimToEmpty(art.codigoColor).length() > 0 ){
-            partListTmp.add(art)
+        if( pView.data.viewMode.equals(InvTrViewMode.OUTBOUND) || pView.data.viewMode.equals(InvTrViewMode.ISSUE) ||
+                pView.data.viewMode.equals(InvTrViewMode.ADJUST) ){
+          for(Articulo art : partList){
+            if( StringUtils.trimToEmpty(art.codigoColor).length() > 0 ){
+              partListTmp.add(art)
+            }
           }
         }
         dlgPartSelection.setItems( partListTmp.size() > 0 ? partListTmp : partList )
