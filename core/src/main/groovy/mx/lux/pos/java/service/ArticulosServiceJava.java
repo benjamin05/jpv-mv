@@ -191,9 +191,18 @@ public class ArticulosServiceJava {
   public ArticulosJava listarArticulosPorSku( Integer idArticulo, boolean incluyePrecio ) throws ParseException {
     log.info( "listando articulos con sku: "+idArticulo );
     ArticulosJava resultados = ArticulosQuery.busquedaArticuloPorId(idArticulo);
-    /*if( resultados != null && StringUtils.trimToEmpty(resultados.getColorCode()).length() <= 0 ){
-      resultados = null;
-    }*/
+    if( resultados != null ){
+      List<ArticulosJava> lstArt = ArticulosQuery.busquedaArticuloPorArticulo(StringUtils.trimToEmpty(resultados.getArticulo()));
+      if( lstArt.size() > 1 ){
+        for(ArticulosJava a : lstArt){
+          if(resultados != null && a.getIdArticulo().equals(resultados.getIdArticulo())){
+            if(StringUtils.trimToEmpty(resultados.getColorCode()).length() <= 0){
+              resultados = null;
+            }
+          }
+        }
+      }
+    }
     if ( incluyePrecio && resultados != null ) {
       return establecerPrecio( resultados );
     }

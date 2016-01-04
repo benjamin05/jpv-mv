@@ -3,6 +3,8 @@ package mx.lux.pos.service.impl
 import com.mysema.query.BooleanBuilder
 import com.mysema.query.types.Predicate
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.ArticuloRepository
 import mx.lux.pos.repository.DetalleNotaVentaRepository
@@ -154,6 +156,19 @@ class ArticuloServiceImpl implements ArticuloService {
     log.info( "listando articulos con articulo: ${articulo} incluye precio: ${incluyePrecio}" )
     Predicate predicate = QArticulo.articulo1.id.eq( articulo )
     Articulo resultados = articuloRepository.findOne( predicate )
+    if( resultados != null && !resultados.idGenerico.equalsIgnoreCase("H") ){
+      QArticulo qArticulo = QArticulo.articulo1
+      List<Articulo> lstArt = articuloRepository.findAll(qArticulo.articulo.eq(StringUtils.trimToEmpty(resultados.getArticulo()))) as List<Articulo>;
+      if( lstArt.size() > 1 ){
+        for(Articulo a : lstArt){
+          if(resultados != null && a.id.equals(resultados.id)){
+            if(StringUtils.trimToEmpty(resultados.codigoColor).length() <= 0){
+              resultados = null;
+            }
+          }
+        }
+      }
+    }
     if ( incluyePrecio ) {
       return establecerPrecio( resultados )
     }
