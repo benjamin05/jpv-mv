@@ -441,6 +441,17 @@ class InvTrController {
       log.debug( String.format( "[Controller] Request Part with seed <%s>", part[0] ) )
     String seed = part[0]
     List<Articulo> partList = ItemController.findPartsByQuery( seed, true )
+    if( partList.size() == 0 ){
+      if( seed.contains(/$/) ){
+        String[] inputTmp = seed.split(/\$/)
+        if( seed.trim().contains(/$$/) ) {
+          seed = inputTmp[0]
+        } else {
+          seed = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
+        }
+        partList = ItemController.findPartsByQuery( seed, true )
+      }
+    }
     if(seed.startsWith('00')){
       seed = seed.replaceFirst("^0*", "")
     }
