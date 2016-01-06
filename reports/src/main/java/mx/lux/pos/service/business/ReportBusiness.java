@@ -1653,7 +1653,7 @@ public class ReportBusiness {
                 } else {
                     saldoFin = saldoInicio;
                 }
-                saldoInicio = saldoFin-movimiento.getCantidad();
+                saldoInicio = (saldoFin != null ? saldoFin : 0) - (movimiento.getCantidad() != null ? movimiento.getCantidad() : 0);
                 kardexArticulo.setEntrada( movimiento.getCantidad() );
             }
             kardexArticulo.setSaldoInicio( saldoInicio );
