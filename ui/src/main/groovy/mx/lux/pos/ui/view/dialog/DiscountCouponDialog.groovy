@@ -1,7 +1,12 @@
 package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
+import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.model.CuponMv
+import mx.lux.pos.model.Descuento
+import mx.lux.pos.model.Promocion
+import mx.lux.pos.model.PromotionAvailable
+import mx.lux.pos.ui.model.IPromotion
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.model.DescuentoClave
@@ -18,6 +23,7 @@ import org.apache.commons.lang.StringUtils
 
 import javax.swing.*
 import java.awt.*
+import java.util.List
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -194,12 +200,19 @@ class DiscountCouponDialog extends JDialog {
         if( descuentoClave == null ){
           descuentoClave = OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
         }
-        if( descuentoClave == null ){
+        if( descuentoClave != null && StringUtils.trimToEmpty(title).equalsIgnoreCase("Seguro")){
+          descuentoClave = null
+        }
+        if( descuentoClave == null && !StringUtils.trimToEmpty(title).equalsIgnoreCase("CRM") && StringUtils.trimToEmpty(title).equalsIgnoreCase("Seguro")){
           descuentoClave = requestVerify()//OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
         }
 
+        if( descuentoClave == null && StringUtils.trimToEmpty(title).equalsIgnoreCase("CRM")){
+          descuentoClave = requestCrmVerify()
+        }
+
         if (  descuentoClave != null ) {
-            if(descuentoClave?.vigente == true){
+            if(descuentoClave?.vigente){
                 if(descuentoClave?.tipo != null && descuentoClave?.tipo.trim().equals('P')){
             txtDiscountPercent.setValue(descuentoClave?.porcenaje_descuento)
             txtDiscountAmount.setValue( txtDiscountPercent.getValue( ) * orderTotal / 100.0 )
@@ -365,8 +378,8 @@ class DiscountCouponDialog extends JDialog {
       }
       Date date = null
       try{
-        date = formatter.parse(dateStr)
-        amount = NumberFormat.getInstance().parse(amountStr)
+          date = formatter.parse(dateStr)
+          amount = NumberFormat.getInstance().parse(amountStr)
       } catch ( ParseException e) {
         e.printStackTrace()
       } catch ( NumberFormatException e) {
@@ -426,7 +439,7 @@ class DiscountCouponDialog extends JDialog {
       if( StringUtils.trimToEmpty(warning).length() > 0 ){
         lblStatus.text = warning
       }
-      if( date.compareTo(new Date()) >= 0 && amount.compareTo(BigDecimal.ZERO) > 0 &&
+      if( date != null && date.compareTo(new Date()) >= 0 && amount.compareTo(BigDecimal.ZERO) > 0 &&
             OrderController.keyFree(StringUtils.trimToEmpty(txtCorporateKey.text).toUpperCase()) && itemsValid ){
         if( item != null && item.price.compareTo(amount) < 0 ){
           txtDiscountAmount.setText( StringUtils.trimToEmpty((item.price.multiply(new BigDecimal(Registry.percentageWarranty/100))).toString()) )
@@ -448,6 +461,159 @@ class DiscountCouponDialog extends JDialog {
     }
     return descuentoClave
   }
+
+
+
+    DescuentoClave requestCrmVerify( ){
+      Boolean valid = false
+      String clave = ""
+      Boolean claveClear = false
+      BigDecimal amount = BigDecimal.ZERO
+      Integer percentajeInt = 0
+      PromocionJava promocionJava = OrderController.findCrmPromotionByKey(StringUtils.trimToEmpty(txtCorporateKey.text));
+      NotaVenta notaVenta = OrderController.findOrderByidOrder( StringUtils.trimToEmpty(idOrder) )
+      if( StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 11 && (promocionJava == null || promocionJava.idPromocion == null)){
+        for(int i=0;i<StringUtils.trimToEmpty(txtCorporateKey.text).length();i++){
+          if(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()).isNumber()){
+            Integer number = 0
+            try{
+              number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtCorporateKey.text.charAt(i).toString()))
+            } catch ( NumberFormatException e ) { println e }
+            clave = clave+StringUtils.trimToEmpty((10-number).toString())
+          } else {
+            clave = clave+0
+          }
+        }
+        String generic = ""
+        String percentaje = ""
+        generic = StringUtils.trimToEmpty(txtCorporateKey.text).substring(1,3)
+        percentaje = StringUtils.trimToEmpty(clave).substring(3,5)
+        try{
+          percentajeInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(percentaje))
+        } catch ( NumberFormatException e) { e.printStackTrace() }
+
+        warning = ""
+        if( notaVenta != null ){
+          Boolean claveValid = false
+          Boolean allGen = false
+          Boolean oneValGen = false
+          Boolean oneNotValGen = false
+          if( generic.contains("**") ){
+            allGen = true
+          } else if( generic.contains("_") ){
+            oneValGen = true
+          } else if( generic.replace("!","\\!").contains("\\!") ){
+            oneNotValGen = true
+          }
+          if( allGen ){
+            claveValid = true
+          } else {
+            orderTotal = 0.00
+            Boolean generic1 = false
+            Boolean generic2 = false
+            for(DetalleNotaVenta det : notaVenta.detalles){
+              if( oneValGen ){
+                if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
+                  claveValid = true
+                  orderTotal = orderTotal + det.precioUnitLista
+                }
+              } else if( oneNotValGen ){
+                if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
+                  if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(det.articulo.idGenerico))  ){
+                    claveValid = true
+                    orderTotal = orderTotal + det.precioUnitLista
+                  }
+                }
+              } else {
+                if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(StringUtils.trimToEmpty(generic.charAt(0).toString())) ){
+                  generic1 = true
+                  orderTotal = orderTotal + det.precioUnitLista
+                } else if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(StringUtils.trimToEmpty(generic.charAt(1).toString())) ){
+                  generic2 = true
+                  orderTotal = orderTotal + det.precioUnitLista
+                }
+              }
+            }
+            if( !claveValid && generic1 && generic2 ){
+              claveValid = true
+            }
+          }
+
+          if( claveValid ){
+            Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
+            if( descuento == null ){
+              String msg = OrderController.validCrmClaveWeb( txtCorporateKey.text )
+              if( StringUtils.trimToEmpty(msg).length() <= 0 ){
+                claveClear = true
+              } else {
+                warning = msg
+                println msg
+              }
+            } else {
+              warning = "Clave incorrecta"
+              println "Clave ya aplicada"
+            }
+          } else {
+            warning = "El producto no corresponde al descuento"
+            println "Genericos de productos no coinciden con los de la clave"
+          }
+        }
+        if( StringUtils.trimToEmpty(warning).length() > 0 ){
+          lblStatus.text = warning
+        }
+        if( claveClear ){
+          amount = percentajeInt.doubleValue()*Registry.multiplyDiscountCrm
+          if( OrderController.validMinimumAmountCrmByParameter( amount, notaVenta ) ){
+            txtDiscountAmount.setValue( new BigDecimal(percentajeInt.doubleValue()*Registry.multiplyDiscountCrm) )
+            valid = true
+          } else {
+            warning = "La nota no cubre el monto minimo"
+            println "El total de la nota es menor al monto minimo para esta clave"
+          }
+        }
+      } else if( promocionJava != null && promocionJava.idPromocion != null && StringUtils.trimToEmpty(txtCorporateKey.text).length() >= 10 ){
+        Boolean claveValid = false
+        Descuento descuento = OrderController.findClaveApplied( txtCorporateKey.text )
+        if( descuento == null ){
+          claveClear = true
+        } else {
+          warning = "Clave incorrecta"
+          println "Clave ya aplicada"
+        }
+
+        if( StringUtils.trimToEmpty(warning).length() > 0 ){
+            lblStatus.text = warning
+        }
+        if( claveClear ){
+          amount = promocionJava.precioDescontado
+          if( OrderController.validMinimumAmountCrm( promocionJava.montoMinimo, notaVenta ) ){
+            txtDiscountAmount.setValue( new BigDecimal(promocionJava.precioDescontado) )
+            valid = true
+          } else {
+            warning = "La nota no cubre el monto minimo"
+            println "El total de la nota es menor al monto minimo para esta clave"
+          }
+        }
+      } else {
+        warning = "No existe clave de CRM"
+        println "No se encontro la clave CRM en la tabla de promocion"
+      }
+
+      DescuentoClave descuentoClave = null
+      if( valid ){
+        descuentoClave = new DescuentoClave()
+        descuentoClave.clave_descuento = StringUtils.trimToEmpty(txtCorporateKey.text)
+        descuentoClave.porcenaje_descuento = amount
+        descuentoClave.descripcion_descuento = "Descuentos CRM"
+        descuentoClave.tipo = "M"
+        descuentoClave.vigente = true
+        descuentoClave.cupon = false
+      }
+      if( descuentoClave != null ){
+        txtCorporateKey.enabled = false
+      }
+      return descuentoClave
+    }
 
 
 }

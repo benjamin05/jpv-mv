@@ -4,6 +4,7 @@ import groovy.swing.SwingBuilder
 import mx.lux.pos.model.Articulo
 import mx.lux.pos.ui.model.adapter.PartAdapter
 import mx.lux.pos.ui.resources.UI_Standards
+import mx.lux.pos.ui.view.renderer.MoneyCellRenderer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -47,7 +48,7 @@ class PartSelectionDialog extends JDialog {
         resizable: true,
         pack: true,
         modal: true,
-        preferredSize: [480, 270],
+        preferredSize: [ 520  , 380 ],
         locationRelativeTo: parent
     ) {
       panel( border: BorderFactory.createEmptyBorder(10, 5, 5, 5)) {
@@ -82,9 +83,12 @@ class PartSelectionDialog extends JDialog {
       tblPart = table( mouseClicked: { ev -> if (ev.clickCount == 2) { onButtonOK() } }
       ) {
         browser = sb.tableModel( list: itemList ) {
-          propertyColumn( header: TXT_SKU_LABEL, propertyName: "id", maxWidth: 140, editable: false )
-          closureColumn( header: TXT_DESCRIPTION_LABEL, minWidth: 320,
+          propertyColumn( header: TXT_SKU_LABEL, propertyName: "id", maxWidth: 60, editable: false )
+          closureColumn( header: TXT_DESCRIPTION_LABEL, minWidth: 300,
               read: { Articulo part -> this.formatDescription(part) } )
+          closureColumn( header: "Precio", maxWidth: 100,
+                  read: { Articulo part -> this.formatPrice(part) }, cellRenderer: new MoneyCellRenderer() )
+          propertyColumn( header: "Existencia", propertyName: "cantExistencia", maxWidth: 80, editable: false )
         }
       }
     }
@@ -103,6 +107,14 @@ class PartSelectionDialog extends JDialog {
   // UI Behavior
   protected String formatDescription( Articulo pPart ) {
     return PartAdapter.instance.getText( pPart, PartAdapter.FLD_INV_DESC )
+  }
+
+  protected BigDecimal formatPrice( Articulo pPart ) {
+    if( pPart.precios != null ){
+      return pPart.precios.precio
+    } else {
+      return pPart.precio
+    }
   }
   
   // Public Methods

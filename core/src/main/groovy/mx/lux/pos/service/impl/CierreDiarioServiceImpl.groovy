@@ -43,6 +43,8 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
   private static final String TAG_TIPO_PAGO_CREDITO = 'TD'
   private static final String TAG_DEVOLUCION = 'd'
   private static final String TAG_COMANDO_BODEGA = 'jobsbod'
+  private static final String TAG_RUTA_ARCHIVO_CLIENTES = 'cd /usr/local/soi'
+  private static final String TAG_COMANDO_ARCHIVOS_CLIENTES = './corre_clientes.sh'
   private static final BigDecimal TAG_CERO = new BigDecimal(0.05)
 
   @Resource
@@ -169,7 +171,7 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
     if ( cierreDiario?.fecha ) {
       return cierreDiario
     }
-    return cierreDiarioRepository.save( new CierreDiario( fecha: new Date(), estado: 'a' ) )
+    return cierreDiarioRepository.save( new CierreDiario( fecha: new Date(), estado: 'a', verificado: false ) )
   }
 
   void eliminarVentasAbiertas( ) {
@@ -188,19 +190,21 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
 
   @Override
   @Transactional
-  void cerrarCierreDiario( Date fechaCierre, String observaciones ) {
+  void cerrarCierreDiario( Date fechaCierre, String observaciones, Boolean regenerate ) {
     log.info( "Cerrando el Dia ${fechaCierre?.format( 'dd/MM/yyyy' )}" )
     Assert.notNull( fechaCierre, "Fecha de Cierre no puede ser NULL" )
 
     SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
     eliminarVentasAbiertas()
     CierreDiario cierreDiario = cierreDiarioRepository.findOne( fechaCierre )
-    cierreDiario.estado = 'c'
-    Date fecha = new Date()
-    cierreDiario.fechaCierre = fecha
-    cierreDiario.horaCierre = fecha
-    cierreDiario.observaciones = observaciones
-    cierreDiarioRepository.save( cierreDiario )
+    if( !regenerate ){
+      cierreDiario.estado = 'c'
+      Date fecha = new Date()
+      cierreDiario.fechaCierre = fecha
+      cierreDiario.horaCierre = fecha
+      cierreDiario.observaciones = observaciones
+      cierreDiarioRepository.save( cierreDiario )
+    }
 
     Parametro parametro = parametroRepository.findOne( TipoParametro.ID_SUCURSAL.value )
     Sucursal sucursal = sucursalRepository.findOne( Integer.parseInt( parametro.getValor() ) )
@@ -513,6 +517,7 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
             claveSunI = ''
         } else if( (Math.abs(montoDescuento) > VALOR_CERO) && (Math.abs(montoOrdenPromDet) <= VALOR_CERO) ){
             tipoDescuentoSunI = StringUtils.isBlank(descuentoTmp?.clave) ? 'G':'C'
+            tipoDescuentoSunI = StringUtils.trimToEmpty(descuentoTmp?.idTipoD).equalsIgnoreCase("AP") ? 'D': tipoDescuentoSunI
             claveSunI = StringUtils.trimToEmpty(descuentoTmp?.clave)
         } else if( (Math.abs(montoDescuento) <= VALOR_CERO) && (Math.abs(montoOrdenPromDet) > VALOR_CERO) ){
             tipoDescuentoSunI = 'P'
@@ -1629,9 +1634,47 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
           println( ex.getMessage() )
         }
       } else {
-        Registry.executeCommand( TAG_COMANDO_BODEGA )
+        //Registry.executeCommand( TAG_COMANDO_BODEGA )
       }
     }
+
+
+  void generaArchivoClientes( Date fechaCierre ){
+    log.debug( "generaArchivoClientes(  )" )
+    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
+    try{
+      File file = new File( 'archivosClientes.sh' )
+      if ( file.exists() ) {
+        file.delete()
+      }
+      PrintStream strOut = new PrintStream( file )
+      StringBuffer sb1 = new StringBuffer()
+      sb1.append(TAG_RUTA_ARCHIVO_CLIENTES)
+      sb1.append( "\n" )
+      sb1.append( TAG_COMANDO_ARCHIVOS_CLIENTES+" "+ df.format(fechaCierre))
+      strOut.println sb1.toString()
+      strOut.close()
+      String s = null
+      file.setExecutable( true )
+      file.setReadable( true )
+      file.setWritable( true )
+      Runtime.getRuntime().exec("chmod 777 archivosClientes.sh");
+      Process p1 = Runtime.getRuntime().exec('./archivosClientes.sh');
+      BufferedReader stdInput = new BufferedReader(new InputStreamReader(p1.getInputStream()));
+      BufferedReader stdError = new BufferedReader(new InputStreamReader(p1.getErrorStream()));
+      while ((s = stdInput.readLine()) != null) {
+        println(s+"\n");
+      }
+      while ((s = stdError.readLine()) != null) {
+        println(s+"\n");
+      }
+      if ( file.exists() ) {
+        file.delete()
+      }
+    } catch ( Exception ex ){
+      println( ex.getMessage() )
+    }
+  }
 
 
   @Override

@@ -17,6 +17,8 @@ class DiscountContextMenu extends JPopupMenu {
   private JMenuItem menuDiscount
   private JMenuItem menuCorporateDiscount
   private JMenuItem menuCouponDiscount
+  private JMenuItem menuCouponEnsure
+  private JMenuItem menuCrmDiscount
   private OrderPanel orderPanel
 
   
@@ -39,7 +41,11 @@ class DiscountContextMenu extends JPopupMenu {
         visible: true,
         actionPerformed: { onCouponDiscountSelected( ) },
       )
-      menuCouponDiscount = menuItem( text: "Seguro",
+      menuCrmDiscount = menuItem( text: "Descuento CRM",
+        visible: true,
+        actionPerformed: { onCrmDiscountSelected( ) },
+      )
+      menuCouponEnsure = menuItem( text: "Seguro",
         visible: true,
         actionPerformed: { onWarrantyDiscountSelected( ) },
       )
@@ -49,8 +55,11 @@ class DiscountContextMenu extends JPopupMenu {
   // Public Methods
   void activate( MouseEvent pEvent, OrderPanel panel ) {
     menuDiscount.setEnabled( driver.isDiscountEnabled( ) )
-      menuCorporateDiscount.setEnabled( driver.isDiscountEnabled( ) )
-      menuCouponDiscount.setEnabled( driver.isDiscountEnabled( ) )
+    menuCorporateDiscount.setEnabled( driver.isDiscountEnabled( ) )
+    menuCouponDiscount.setEnabled( driver.isDiscountEnabled( ) )
+    menuCouponEnsure.setEnabled( driver.isDiscountEnabled( ) )
+    menuCrmDiscount.setVisible( Registry.getCrmActive() )
+    menuCrmDiscount.setEnabled( driver.isDiscountEnabled( ) )
     //menuCorporateDiscount.setEnabled( driver.isCorporateDiscountEnabled( ) )
     //menuCouponDiscount.setEnabled(driver.isCorporateDiscountEnabled())
     show( pEvent.getComponent(), pEvent.getX(), pEvent.getY() )
@@ -91,6 +100,17 @@ class DiscountContextMenu extends JPopupMenu {
     driver.requestCouponDiscount( "Seguro" )
     for(Payment payment : driver.view.order.payments){
             OrderController.removePaymentFromOrder( driver.view.order.id, payment )
+    }
+    OrderController.saveOrder( driver.view.order )
+    orderPanel.updateOrder( driver.view.order.id )
+  }
+
+
+
+  protected void onCrmDiscountSelected(){
+    driver.requestCouponDiscount( "CRM" )
+    for(Payment payment : driver.view.order.payments){
+      OrderController.removePaymentFromOrder( driver.view.order.id, payment )
     }
     OrderController.saveOrder( driver.view.order )
     orderPanel.updateOrder( driver.view.order.id )

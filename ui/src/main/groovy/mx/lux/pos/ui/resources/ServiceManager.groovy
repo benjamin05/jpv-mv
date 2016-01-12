@@ -1,5 +1,6 @@
 package mx.lux.pos.ui.resources
 
+import mx.lux.pos.java.service.PromotionServiceJava
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import mx.lux.pos.service.*
@@ -22,6 +23,7 @@ class ServiceManager {
   private static ClienteService clienteService
   private static PedidoService pedidoService
   private static SucursalService sucursalService
+  private static PromotionServiceJava promotionServiceJava
 
   @Autowired
   ServiceManager( InventarioService pInventarioService, ArticuloService pArticuloService,
@@ -48,6 +50,7 @@ class ServiceManager {
     pedidoService = pPedidoService
     sucursalService = pSucursalService
     this.clienteService = clienteService
+    promotionServiceJava = new PromotionServiceJava()
   }
 
   static EmpleadoService getEmployeeService( ) {
@@ -68,6 +71,10 @@ class ServiceManager {
 
   static PromotionService getPromotionService( ) {
     return promotionService
+  }
+
+  static PromotionServiceJava getPromotionServiceJava( ) {
+    return promotionServiceJava
   }
 
   static TicketService getTicketService( ) {

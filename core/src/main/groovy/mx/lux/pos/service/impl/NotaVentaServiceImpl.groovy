@@ -12,6 +12,7 @@ import mx.lux.pos.service.NotaVentaService
 import mx.lux.pos.service.business.EliminarNotaVentaTask
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.io.PromotionsAdapter
+import mx.lux.pos.util.CustomDateUtils
 import mx.lux.pos.util.StringList
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.time.DateUtils
@@ -19,14 +20,12 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 import javax.annotation.Resource
-import java.sql.Timestamp
 import java.text.NumberFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
-import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 @Slf4j
@@ -69,6 +68,9 @@ class NotaVentaServiceImpl implements NotaVentaService {
   private SucursalRepository sucursalRepository
 
   @Resource
+  private AcusesTipoRepository acusesTipoRepository
+
+  @Resource
   private AutorizaMovRepository autorizaMovRepository
 
   @Resource
@@ -79,6 +81,9 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
   @Resource
   private DescuentoRepository descuentoRepository
+
+  @Resource
+  private AcuseRepository acuseRepository
 
   @Resource
   private DescuentoClaveRepository descuentoClaveRepository
@@ -907,7 +912,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
           println e
         }
       } else {
-        Registry.executeCommand( cmd )
+        //Registry.executeCommand( cmd )
       }
 
     }
@@ -1068,8 +1073,15 @@ class NotaVentaServiceImpl implements NotaVentaService {
                   }
               }
               if( montosCup == null ){
-                montosCup = montoCuponRepository.findOne( mc.generico.eq(det.articulo.idGenerico).
-                      and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) )
+                List<MontoCupon> lstMontosCup = montoCuponRepository.findAll( mc.generico.eq(det.articulo.idGenerico).
+                        and(mc.subtipo.eq(StringUtils.trimToEmpty(det.articulo.subtipo))) ) as List<MontoCupon>
+                if( lstMontosCup.size() > 0 ){
+                  for(MontoCupon monCup : lstMontosCup){
+                    if( StringUtils.trimToEmpty(monCup.tipo).length() <= 0 ){
+                      montosCup = monCup
+                    }
+                  }
+                }
                 if( montosCup != null && montosCup.cantidad < det.cantidadFac ){
                       montosCup = null
                 }
@@ -1109,12 +1121,14 @@ class NotaVentaServiceImpl implements NotaVentaService {
     @Override
     Boolean validaLentes( String idFactura ){
       Boolean hasLente = false
+      if( idFactura != null ){
         NotaVenta nota = notaVentaRepository.findOne( idFactura )
         for(DetalleNotaVenta det : nota.detalles){
           if( det.articulo.indice_dioptra != null && StringUtils.trimToEmpty(det.articulo.indice_dioptra) != '' ){
             hasLente = true
           }
         }
+      }
       return hasLente
     }
 
@@ -1437,6 +1451,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
   @Override
   String[] montoDescuentoNota( String idFactura ){
     String[] descuento = new String[2]
+    if( StringUtils.trimToEmpty(idFactura).length() > 0 ){
     NotaVenta nota = notaVentaRepository.findOne( idFactura )
     if( nota != null ){
       if( nota.por100Descuento > 0 ){
@@ -1466,6 +1481,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
           descuento[1] = ""
         }
       }
+    }
     }
     return descuento
   }
@@ -1919,7 +1935,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
     Boolean generaCupon = true
     DescuentoClave descuentoClave = descuentoClaveRepository.findOne( claveCupon )
     if( descuentoClave != null ){
-      generaCupon = descuentoClave.cupon
+      generaCupon = descuentoClave.getCupon() != null ? descuentoClave.getCupon() : Registry.generatedCouponAgreement();
     }
     return generaCupon
   }
@@ -2134,6 +2150,38 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
 
   @Override
+  String validaClaveCrmWeb( String clave ){
+    String msg = ""
+    AcusesTipo acuseUrl = acusesTipoRepository.findOne( "aplica_crm" )
+    if( acuseUrl != null ){
+      String url = StringUtils.trimToEmpty(acuseUrl.pagina)
+      url += String.format( '?arg=||%s||C', StringUtils.trimToEmpty( clave ) )
+      String response = ""
+      ExecutorService executor = Executors.newFixedThreadPool(1)
+      int timeoutSecs = 15
+      final Future<?> future = executor.submit(new Runnable() {
+        public void run() {
+          try {
+            log.debug( "Liga consulta clave Crm: ${url}" )
+            response = url.toURL().text
+            response = response?.find( /<XX>\s*(.*)\s*<\/XX>/ ) {m, r -> return r}
+            log.debug( "Respuesta: ${response}" )
+          } catch (Exception e) {
+            throw new RuntimeException(e)
+          }
+        }
+      })
+      try {
+        future.get(timeoutSecs, TimeUnit.SECONDS)
+      } catch (Exception e) {println e}
+      if( !StringUtils.trimToEmpty(response).equalsIgnoreCase("CLAVE DISPONIBLE") ){
+        msg = response
+      }
+    }
+    return msg
+  }
+
+  @Override
   @Transactional
   Boolean cambiaIpCaja( String ip ){
     Boolean hecho = false
@@ -2167,6 +2215,31 @@ class NotaVentaServiceImpl implements NotaVentaService {
 
   @Override
   @Transactional
+  void guardaAcuseClaveCrm( String idFactura ){
+    NotaVenta notaVenta = notaVentaRepository.findOne( StringUtils.trimToEmpty(idFactura) )
+    if( notaVenta != null ){
+      List<Descuento> descuentos = descuentoRepository.findByIdFactura( notaVenta.id?.trim() )
+      Descuento descuento = null
+      for(Descuento desc : descuentos){
+        if( desc != null && desc.clave.length() == 11 && (desc.clave.contains("*") ||
+                desc.clave.replace("!","\\!").contains("\\!")) ){
+          descuento = desc
+        }
+      }
+      if( descuento != null ){
+        Acuse acuse = new Acuse()
+        acuse.contenido = String.format( 'argVal=%s|', StringUtils.trimToEmpty(Registry.currentSite.toString()) )
+        acuse.contenido += String.format( '%s|', StringUtils.trimToEmpty(notaVenta.idCliente.toString()) )
+        acuse.contenido += String.format( '%s|', StringUtils.trimToEmpty(descuento.clave) )
+        acuse.contenido += String.format( '%s|', String.format( notaVenta.factura ) )
+        acuse.contenido += String.format( '%s|', "V" )
+        acuse.fechaCarga = new Date()
+        acuse.idTipo = "aplica_crm"
+        acuseRepository.saveAndFlush( acuse )
+      }
+    }
+  }
+
   void agregarLogNotaAnulada( String idFactura, String idEmpleado ){
     AutorizaMov autorizaMov = new AutorizaMov()
     autorizaMov.idEmpleado = idEmpleado
@@ -2189,7 +2262,6 @@ class NotaVentaServiceImpl implements NotaVentaService {
       return true
     }
   }
-
 
 
   @Override

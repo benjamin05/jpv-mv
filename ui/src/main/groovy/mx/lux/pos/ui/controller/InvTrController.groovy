@@ -1,10 +1,12 @@
 package mx.lux.pos.ui.controller
 
+import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.model.*
 import mx.lux.pos.service.ArticuloService
 import mx.lux.pos.service.InventarioService
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.model.InvTrViewMode
+import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.adapter.InvTrFilter
 import mx.lux.pos.ui.model.adapter.RequestAdapter
 import mx.lux.pos.ui.resources.ServiceManager
@@ -91,6 +93,14 @@ class InvTrController {
 
   protected void dispatchPartsSelected( InvTrView pView, List<Articulo> pPartList ) {
     for ( Articulo part in pPartList ) {
+      pView.data.addPart( part )
+    }
+    pView.fireConsumePartSeed()
+    pView.fireRefreshUI()
+  }
+
+  protected void dispatchPartsJavaSelected( InvTrView pView, List<ArticulosJava> pPartList ) {
+    for ( ArticulosJava part in pPartList ) {
       pView.data.addPart( part )
     }
     pView.fireConsumePartSeed()
@@ -430,12 +440,23 @@ class InvTrController {
       String[] part = pView.data.partSeed.split(',')
       log.debug( String.format( "[Controller] Request Part with seed <%s>", part[0] ) )
     String seed = part[0]
-    List<Articulo> partList = ItemController.findPartsByQuery( seed, false )
+    List<Articulo> partList = ItemController.findPartsByQuery( seed, true )
+    if( partList.size() == 0 ){
+      if( seed.contains(/$/) ){
+        String[] inputTmp = seed.split(/\$/)
+        if( seed.trim().contains(/$$/) ) {
+          seed = inputTmp[0]
+        } else {
+          seed = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
+        }
+        partList = ItemController.findPartsByQuery( seed, true )
+      }
+    }
     if(seed.startsWith('00')){
       seed = seed.replaceFirst("^0*", "")
     }
     if ( ( partList.size() == 0 ) && ( seed.length() > 6 ) ) {
-      partList = ItemController.findPartsByQuery( seed.substring( 0, 6 ), false )
+      partList = ItemController.findPartsByQuery( seed.substring( 0, 6 ), true )
       if( partList.size() == 0 ){
           if( seed.contains(/$/) ){
               String[] inputTmp = seed.split(/\$/)
@@ -444,13 +465,18 @@ class InvTrController {
               } else {
                   seed = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
               }
-            partList = ItemController.findPartsByQuery( seed, false )
+            partList = ItemController.findPartsByQuery( seed, true )
           } else {
               seed = part[0]
-              partList = ItemController.findPartsByQuery( seed.substring( 0, 6 ), false )
+              partList = ItemController.findPartsByQuery( seed.substring( 0, 6 ), true )
           }
       }
     }
+    /*if ( partList?.any() && partList.size() == 1 )  {
+      if( StringUtils.trimToEmpty(partList?.first()?.codigoColor).length() <= 0 ){
+        partList.clear()
+      }
+    }*/
     if ( partList?.any() ) {
       if ( partList.size() == 1 )  {
         Boolean valid = false
@@ -490,7 +516,16 @@ class InvTrController {
         if ( dlgPartSelection == null ) {
           dlgPartSelection = new PartSelectionDialog( pView.panel )
         }
-        dlgPartSelection.setItems( partList )
+        List<Articulo> partListTmp = new ArrayList<>()
+        if( pView.data.viewMode.equals(InvTrViewMode.OUTBOUND) || pView.data.viewMode.equals(InvTrViewMode.ISSUE) ||
+                pView.data.viewMode.equals(InvTrViewMode.ADJUST) ){
+          for(Articulo art : partList){
+            if( StringUtils.trimToEmpty(art.codigoColor).length() > 0 ){
+              partListTmp.add(art)
+            }
+          }
+        }
+        dlgPartSelection.setItems( partListTmp.size() > 0 ? partListTmp : partList )
         dlgPartSelection.setSeed( seed )
         if ( InvTrViewMode.ADJUST.equals( pView.data.viewMode ) ) {
           dlgPartSelection.multiSelection = false
@@ -509,7 +544,7 @@ class InvTrController {
                 }
             } else {
               for(String gen : genericos){
-                if( !StringUtils.trimToEmpty(gen).equalsIgnoreCase(StringUtils.trimToEmpty(partList.first().idGenerico)) ){
+                if( !StringUtils.trimToEmpty(gen).equalsIgnoreCase(StringUtils.trimToEmpty(partListTmp.size() > 0 ? partListTmp.first().idGenerico : partList.first().idGenerico)) ){
                   valid = true
                 }
               }

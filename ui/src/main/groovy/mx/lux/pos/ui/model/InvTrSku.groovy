@@ -1,5 +1,6 @@
 package mx.lux.pos.ui.model
 
+import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.model.Articulo
 import mx.lux.pos.ui.model.adapter.PartAdapter
 
@@ -19,7 +20,18 @@ class InvTrSku {
     this( pParent, pParent.nextLine( ), pPart, pQty)
   }
 
+  InvTrSku( InvTr pParent, ArticulosJava pPart, Integer pQty ) {
+    this( pParent, pParent.nextLine( ), pPart, pQty)
+  }
+
   InvTrSku( InvTr pParent, Integer pLinea, Articulo pPart, Integer pQty ) {
+    parent = pParent
+    line = pLinea
+    part = pPart
+    qty = pQty
+  }
+
+  InvTrSku( InvTr pParent, Integer pLinea, ArticulosJava pPart, Integer pQty ) {
     parent = pParent
     line = pLinea
     part = pPart

@@ -5,6 +5,7 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.CuponMv
 import mx.lux.pos.model.NotaVenta
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.ui.controller.OrderController
 import org.apache.commons.lang.StringUtils
 
@@ -14,14 +15,25 @@ import org.apache.commons.lang.StringUtils
 class OrderDiscount implements IPromotion {
 
   NotaVenta notaVenta = new NotaVenta()
+  NotaVentaJava notaVentaJ = new NotaVentaJava()
   private OrderDiscount( ) { }
 
   private static final String DESCRIPCION = "%s%% descuento sobre venta"
+  private static final String TAG_PROMO_EDAD = "PREDAD";
 
   static IPromotion toPromotions( NotaVenta notaVenta ) {
     if ( (notaVenta != null) && ( notaVenta.por100Descuento > 0 ) && ( notaVenta.montoDescuento > 0 ) ) {
       OrderDiscount promotion = new OrderDiscount()
       promotion.notaVenta = notaVenta
+      return promotion
+    }
+    return null
+  }
+
+  static IPromotion toPromotions( NotaVentaJava notaVenta ) {
+    if ( (notaVenta != null) && ( notaVenta.por100Descuento > 0 ) && ( notaVenta.montoDescuento > 0 ) ) {
+      OrderDiscount promotion = new OrderDiscount()
+      promotion.notaVentaJ = notaVenta
       return promotion
     }
     return null
@@ -44,6 +56,12 @@ class OrderDiscount implements IPromotion {
           } else {
             desc = String.format( "Cupon %s" , StringUtils.trimToEmpty(cuponMv.montoCupon.toString()).replace(".00","") )
           }
+        } else if( (StringUtils.trimToEmpty(notaVenta?.desc?.clave).length() == 11 && !StringUtils.trimToEmpty(notaVenta?.desc?.clave).substring(0,4).isNumber()) ||
+                (StringUtils.trimToEmpty(notaVenta?.desc?.clave).length() >= 10 && StringUtils.trimToEmpty(notaVenta?.desc?.clave).substring(0,4).isNumber())
+                && StringUtils.trimToEmpty(notaVenta?.desc?.tipoClave).equalsIgnoreCase("DIRECCION") ){
+          desc = String.format( "Descuento CRM" )
+        } else if( StringUtils.trimToEmpty(notaVenta?.desc?.clave).equalsIgnoreCase(TAG_PROMO_EDAD) ){
+
         } else {
           desc = String.format( DESCRIPCION, notaVenta.por100Descuento.toString() )
         }
@@ -62,7 +80,11 @@ class OrderDiscount implements IPromotion {
   BigDecimal getPrecioLista( ) {
     BigDecimal listPrice = BigDecimal.ZERO
     if ( notaVenta != null ) {
-      listPrice = notaVenta.montoDescuento.add( notaVenta.ventaNeta )
+      if( notaVenta!= null && notaVenta.ventaNeta != null ){
+        listPrice = notaVenta.montoDescuento.add( notaVenta.ventaNeta )
+      } else if(notaVentaJ!= null && notaVentaJ.ventaNeta != null) {
+        listPrice = notaVentaJ.montoDescuento.add( notaVentaJ.ventaNeta )
+      }
     }
     return listPrice
   }

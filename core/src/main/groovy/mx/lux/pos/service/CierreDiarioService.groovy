@@ -15,7 +15,7 @@ public interface CierreDiarioService {
 
   CierreDiario abrirCierreDiario( )
 
-  void cerrarCierreDiario( Date fechaCierre, String observaciones )
+  void cerrarCierreDiario( Date fechaCierre, String observaciones, Boolean regenerate )
 
   Deposito buscarDepositoPorId( Integer id )
 
@@ -44,6 +44,8 @@ public interface CierreDiarioService {
   void deleteProcessClients( )
 
   void correProcesoBodegas(  )
+
+  void generaArchivoClientes(  Date fechaCierre )
 
   List<Deposito> buscaDepositoPorFecha( Date fecha )
 

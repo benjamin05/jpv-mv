@@ -1,7 +1,22 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.ClientesQuery
+import mx.lux.pos.java.querys.ImpHistorialQuery
+import mx.lux.pos.java.querys.MunicipioQuery
+import mx.lux.pos.java.repository.ClientesJava
+import mx.lux.pos.java.repository.ExamenJava
+import mx.lux.pos.java.repository.ImpHistorialJava
+import mx.lux.pos.java.repository.MunicipioJava
+import mx.lux.pos.java.service.ClienteServiceJava
+import mx.lux.pos.java.service.ContactoServiceJava
+import mx.lux.pos.java.service.ExamenServiceJava
+import mx.lux.pos.java.service.NotaVentaServiceJava
+import mx.lux.pos.java.service.RecetaServiceJava
 import mx.lux.pos.model.*
+import mx.lux.pos.java.querys.RecetaQuery
+import mx.lux.pos.java.repository.ClientesProcesoJava
+import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.service.*
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.impl.FormaContactoService
@@ -14,6 +29,11 @@ import org.springframework.stereotype.Component
 
 import javax.swing.*
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
@@ -31,8 +51,11 @@ class CustomerController {
     private static SucursalService sucursalService
     private static PaisesService paisesService
     private static NotaVentaService notaService
+    private static NotaVentaServiceJava notaServiceJava
     private static ContactoService contactoService
+    private static ContactoServiceJava contactoServiceJava
     private static FormaContactoService formaContactoService
+    private static ClienteServiceJava clienteServiceJava
 
     @Autowired
     public CustomerController(
@@ -63,6 +86,9 @@ class CustomerController {
         this.notaService = notaService
         this.contactoService = contactoService
         this.formaContactoService = formaContactoService
+        clienteServiceJava = new ClienteServiceJava()
+        contactoServiceJava = new ContactoServiceJava()
+        notaServiceJava = new NotaVentaServiceJava()
     }
 
 
@@ -134,16 +160,12 @@ class CustomerController {
     }
 
     static List<Customer> findCustomersFechaNacimientoApellidoPaterno(Customer sample) {
-
-        log.debug("findCustomersFechaNacimientoApellidoPaterno ($sample)")
-
-        def results = clienteService.buscarClienteApellidoPatAndFechaNac(sample?.fathersName, sample?.fechaNacimiento)
-        log.debug("se obtiene lista con: ${results?.size()} customers")
-        results.collect {
-            Customer.toCustomer(it)
-        }
-
-//        return results
+      log.debug("findCustomersFechaNacimientoApellidoPaterno ($sample)")
+      def results = ClienteServiceJava.buscarClienteApePatApeMatNombAndFechaNac(sample?.fathersName, sample?.mothersName, sample?.name, sample?.fechaNacimiento)
+      log.debug("se obtiene lista con: ${results?.size()} customers")
+      results.collect {
+        Customer.toCustomer(it)
+      }
     }
 
     static ClienteProceso addClienteProceso(Customer tmpCustomer) {
@@ -182,6 +204,22 @@ class CustomerController {
             cliente.idEstado = localidad?.idEstado ?: estado?.id
             cliente.idLocalidad = localidad?.idLocalidad
             cliente.udf1 = customer.age
+            if( StringUtils.trimToEmpty(customer.idBranch).length() > 0 ){
+              Integer idSuc = Registry.currentSite
+              try{
+                idSuc = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(customer.idBranch))
+              } catch ( NumberFormatException e ) { println e }
+              cliente.idSucursal = idSuc
+            }
+            if( StringUtils.trimToEmpty(customer.cliOri).length() > 0 ){
+              cliente.ori = StringUtils.trimToEmpty(customer.cliOri)
+            }
+            if( StringUtils.trimToEmpty(customer.histCuc).length() > 0 ){
+              cliente.histCuc = StringUtils.trimToEmpty(customer.histCuc)
+            }
+            if( StringUtils.trimToEmpty(customer.histCli).length() > 0 ){
+              cliente.histCli = StringUtils.trimToEmpty(customer.histCli)
+            }
             cliente = clienteService.agregarCliente(cliente)
             if (cliente != null) {
                 customer.id = cliente.id
@@ -192,8 +230,13 @@ class CustomerController {
     }
 
     static Customer findDefaultCustomer() {
-        log.debug("obteniendo customer por default")
-        Customer.toCustomer(clienteService.obtenerClientePorDefecto())
+      log.debug("obteniendo customer por default")
+      Customer.toCustomer(clienteServiceJava.obtenerClientePorDefecto())
+    }
+
+    static Customer findDefaultCustomerJava() {
+      log.debug("obteniendo customer por default")
+      Customer.toCustomer(clienteServiceJava.obtenerClientePorDefecto())
     }
 
     static List<LinkedHashMap<String, Object>> findAllCustomersTitles() {
@@ -208,11 +251,11 @@ class CustomerController {
     }
 
     static List<String> findAllCustomersDomains() {
-        log.debug("obteniendo lista de dominios")
-        def results = clienteService.listarDominiosClientes()
-        results?.collect {
-            it?.nombre
-        }
+      log.debug("obteniendo lista de dominios")
+      def results = clienteServiceJava.listarDominiosClientes()
+      results?.collect {
+        it?.nombre
+      }
     }
 
 
@@ -291,68 +334,78 @@ class CustomerController {
     }
 
     static void requestBusquedaCliente(CustomerListener pListener) {
-        this.log.debug('Request Busqueda Cliente ')
-
-        BusquedaClienteDialog dialog = new BusquedaClienteDialog(pListener)
+      log.debug('Request Busqueda Cliente ')
+      if( Registry.activeImportCustomer() ){
+        BusquedaClienteImportaDialog dialog = new BusquedaClienteImportaDialog(pListener)
         dialog.activate()
-
         if (dialog.isNewRequested())
-            CustomerController.requestNewCustomer(pListener)
+          requestNewCustomer(pListener)
 
         if (dialog.isModRequested()) {
-            Cliente cliente = clienteService.obtenerCliente( dialog.getCustomerSelected().id )
-            Customer customer = Customer.toCustomer(cliente)
-
-            CustomerController.requestCustomerMod( pListener, customer )
+          Cliente cliente = clienteService.obtenerCliente( dialog.getCustomerSelected().id )
+          Customer customer = Customer.toCustomer(cliente)
+          requestCustomerMod( pListener, customer )
         }
+      } else {
+        BusquedaClienteDialog dialog = new BusquedaClienteDialog(pListener)
+        dialog.activate()
+        if (dialog.isNewRequested())
+          requestNewCustomer(pListener)
 
+        if (dialog.isModRequested()) {
+          Cliente cliente = clienteService.obtenerCliente( dialog.getCustomerSelected().id )
+          Customer customer = Customer.toCustomer(cliente)
+          requestCustomerMod( pListener, customer )
+        }
+      }
     }
 
     static Order requestOrderByCustomer(CustomerListener pListener, Customer customer) {
-        Order order = Order.toOrder(notaService.obtenerSiguienteNotaVenta(customer?.id))
-        if (order == null) {
-            Integer nueva = JOptionPane.showConfirmDialog(null, "Nueva Venta", "¿Desea abrir una nueva venta?", JOptionPane.YES_NO_OPTION);
-            if (nueva == 0) {
-                pListener.reset()
-                pListener.disableUI()
-                pListener.operationTypeSelected = OperationType.EDIT_PAYING
-                pListener.setCustomer(customer)
-                pListener.enableUI()
-            } else {
-                pListener.reset()
-            }
+      Order order = Order.toOrder(notaServiceJava.obtenerSiguienteNotaVenta(customer?.id))
+      if (order == null) {
+        Integer nueva = JOptionPane.showConfirmDialog(null, "Nueva Venta", "¿Desea abrir una nueva venta?", JOptionPane.YES_NO_OPTION);
+        if (nueva == 0) {
+          pListener.reset()
+          pListener.disableUI()
+          pListener.operationTypeSelected = OperationType.EDIT_PAYING
+          pListener.setCustomer(customer)
+          pListener.enableUI()
         } else {
-            pListener.reset()
-            pListener.disableUI()
-            pListener.operationTypeSelected = OperationType.PAYING
-            pListener.setCustomer(customer)
-            pListener.setOrder(order)
-            pListener.setPromotion(order)
-            pListener.enableUI()
+          pListener.reset()
         }
-        return order
+      } else {
+        pListener.reset()
+        pListener.disableUI()
+        pListener.operationTypeSelected = OperationType.PAYING
+        pListener.setCustomer(customer)
+        pListener.setOrder(order)
+        pListener.setPromotion(order)
+        pListener.enableUI()
+      }
+      return order
     }
 
-    static void requestPayingCustomer(CustomerListener pListener) {
-        this.log.debug('Request Customer on Site ')
-        List<ClienteProceso> clientes = clienteService.obtenerClientesEnCaja(true)
-        OrderActiveSelectionDialog dialog = new OrderActiveSelectionDialog()
-        dialog.customerList = clientes
-        dialog.activate()
-        if (dialog.orderSelected != null) {
-            Order o = Order.toOrder(dialog.orderSelected.order)
-            Customer c = Customer.toCustomer(dialog.orderSelected.customer)
-            pListener.reset()
-            pListener.disableUI()
-            pListener.operationTypeSelected = OperationType.PAYING
-            pListener.setCustomer(c)
-            pListener.setOrder(o)
-            pListener.enableUI()
-            pListener.setPromotion(o)
-        } else {
-            pListener.operationTypeSelected = OperationType.DEFAULT
-        }
-        dialog.dispose()
+    static void requestPayingCustomer(CustomerListener pListener, OperationType type ) {
+      log.debug('Request Customer on Site ')
+      //List<ClienteProceso> clientes = clienteService.obtenerClientesEnCaja(true)
+      List<ClientesProcesoJava> clientes = clienteServiceJava.obtenerClientesEnCaja(true)
+      OrderActiveSelectionDialog dialog = new OrderActiveSelectionDialog()
+      dialog.customerList = clientes
+      dialog.activate()
+      if (dialog.orderSelected != null) {
+        Order o = Order.toOrder(dialog.orderSelected.order)
+        Customer c = Customer.toCustomer(dialog.orderSelected.customer)
+        pListener.resetJava()
+        pListener.disableUI()
+        pListener.operationTypeSelected = type//OperationType.PAYING
+        pListener.setCustomer(c)
+        pListener.setOrder(o)
+        pListener.setPromotion(o)
+        pListener.enableUI()
+      } else {
+        pListener.operationTypeSelected = OperationType.DEFAULT
+      }
+      dialog.dispose()
     }
 
 
@@ -385,12 +438,14 @@ class CustomerController {
     }
 
     static void updateCustomerInSite(Integer idCliente) {
-        clienteService.actualizarClienteEnProceso(idCliente)
+      //clienteService.actualizarClienteEnProceso(idCliente)
+      clienteServiceJava.actualizarClienteEnProceso( idCliente )
     }
 
     static List<Rx> findAllPrescriptions(Integer idCliente) {
         log.debug("obteniendo recetas")
-        def results = clienteService.obtenerRecetas(idCliente)
+        //def results = clienteService.obtenerRecetas(idCliente)
+        def results = RecetaQuery.buscaRecetasPorIdCliente(idCliente)
         results.collect {
             Rx.toRx(it)
         }
@@ -410,11 +465,11 @@ class CustomerController {
     }
 
 
-    public static Receta saveRx(Rx receta, String tipo) {
-        log.debug("salvando Receta")
-        Receta rec = new Receta()
-        if (receta?.id != null) {
-            rec.setId(receta.id)
+    public static RecetaJava saveRx(Rx receta, String tipo) {
+      log.debug("salvando Receta")
+      RecetaJava rec = new RecetaJava()
+      if (receta?.id != null) {
+            rec.setIdReceta(receta.id)
             rec.setExamen(receta.exam)
             rec.setFechaReceta(receta.rxDate)
             rec.setTipoOpt(receta.typeOpt)
@@ -424,7 +479,7 @@ class CustomerController {
             rec.setFechaMod(new Date())
             rec.setIdMod(receta.modId)
             rec.setIdSucursal(receta.idStore)
-            rec.setMaterial_arm(receta.materialArm)
+            rec.setMaterialArm(receta.materialArm)
             rec.setTratamientos(receta.treatment)
             rec.setUdf5(receta.udf5)
             rec.setUdf6(receta.udf6)
@@ -454,8 +509,9 @@ class CustomerController {
             rec.setDiCercaR(receta.diCercaR)
             rec.setAltOblR(receta.altOblR.trim())
             rec.setObservacionesR(receta.observacionesR)
-            rec = recetaService.guardarReceta(rec)
-        } else {
+            //rec = recetaService.guardarReceta(rec)
+        rec = RecetaQuery.saveOrUpdateRx( rec )
+      } else {
             Examen examen = examenService.obtenerExamenPorIdCliente(receta.idClient)
             if (examen != null) {
 
@@ -480,7 +536,7 @@ class CustomerController {
             rec.setFechaMod(new Date())
             rec.setIdMod('0')
             rec.setIdSucursal(receta.idStore)
-            rec.setMaterial_arm('')
+            rec.setMaterialArm('')
             rec.setTratamientos('')
             rec.setUdf5('')
             rec.setUdf6(receta.udf6 != null ? receta.udf6 : "")
@@ -508,9 +564,10 @@ class CustomerController {
             rec.setDiCercaR(receta.diCercaR)
             rec.setAltOblR(receta.altOblR.trim())
             rec.setObservacionesR(receta.observacionesR)
-            rec = recetaService.guardarReceta(rec)
-        }
-        return rec
+            //rec = recetaService.guardarReceta(rec)
+          rec = RecetaQuery.saveOrUpdateRx( rec )
+      }
+      return rec
     }
 
     private static SingleCustomerDialog customerDialog
@@ -616,11 +673,11 @@ class CustomerController {
 
 
     static List<String> findAllContactTypes() {
-        log.debug("obteniendo lista de nombres de los estados")
-        def results = contactoService.obtenerTiposContacto()
-        results.collect {
-            it.descripcion
-        }
+      log.debug("obteniendo lista de nombres de los estados")
+      def results = contactoServiceJava.obtenerTiposContacto()
+      results.collect {
+        it.descripcion
+      }
     }
 
     static List<Rx> findRxByCustomer(Integer idCliente) {
@@ -655,6 +712,24 @@ class CustomerController {
     static List<Rx> requestRxByCustomer(Integer idCliente) {
         List<Rx> lstRx = new ArrayList<>()
         List<Receta> lstRexetas = recetaService.recetaCliente(idCliente)
+        //List<RecetaJava> lstRexetas = RecetaQuery.buscaRecetasPorIdCliente(idCliente)
+        Collections.sort(lstRexetas, new Comparator<Receta>() {
+          @Override
+          int compare(Receta o1, Receta o2) {
+            return o2.fechaReceta.compareTo(o1.fechaReceta)
+          }
+        })
+        log.debug("Total de Recetas = ${lstRexetas.size()}")
+        for (Receta rx : lstRexetas) {
+            lstRx.add(Rx.toRx(rx))
+        }
+        return lstRx
+    }
+
+    static List<Rx> requestRxByCustomerTmp(Integer idCliente) {
+        List<Rx> lstRx = new ArrayList<>()
+        List<Receta> lstRexetas = recetaService.recetaCliente(idCliente)
+        //List<RecetaJava> lstRexetas = RecetaQuery.buscaRecetasPorIdCliente(idCliente)
         Collections.sort(lstRexetas, new Comparator<Receta>() {
             @Override
             int compare(Receta o1, Receta o2) {
@@ -718,9 +793,28 @@ class CustomerController {
     }
 
     static List<NotaVenta> findAllActiveOrders(Integer idCliente) {
-        log.debug("obteniendo notas activas")
-        List<NotaVenta> results = clienteService.obtenernotasActivas(idCliente)
-        return results
+      log.debug("obteniendo notas activas")
+      ClientesJava clientesJava = ClientesQuery.busquedaClienteById( idCliente )
+      List<NotaVenta> results = clienteService.obtenernotasActivas(idCliente)
+      if( results.size() <= 0 && StringUtils.trimToEmpty(clientesJava.cliOri).size() > 0 ){
+        ImpHistorialJava impHistorialJava = ImpHistorialQuery.buscaHistorialPorIdCliente( idCliente )
+        if( impHistorialJava != null ){
+          NotaVenta notaVenta = new NotaVenta()
+          notaVenta.factura = StringUtils.trimToEmpty("${impHistorialJava.idSucOri}:${impHistorialJava.factura}");
+          notaVenta.fechaHoraFactura = impHistorialJava.fechaCompra
+          notaVenta.ventaNeta = impHistorialJava.importe
+          notaVenta.empleado = new Empleado()
+          String[] articulos = StringUtils.trimToEmpty(impHistorialJava.obs).split(",")
+          for(String articulo : articulos){
+            DetalleNotaVenta detalleNotaVenta = new DetalleNotaVenta()
+            detalleNotaVenta.articulo = new Articulo()
+            detalleNotaVenta.articulo.articulo = StringUtils.trimToEmpty(articulo)
+            notaVenta.detalles.add(detalleNotaVenta)
+          }
+          results.add(notaVenta)
+        }
+      }
+      return results
     }
 
     static Examen buscarUltimoExamenPorIdCliente(Integer id) {
@@ -772,4 +866,276 @@ class CustomerController {
     }
     return email
   }
+
+
+  static List<Customer> listCustomersFromMainDb(Customer sample) {
+    log.debug("obteniendo lista de customer similar a: ${sample}")
+    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy");
+    List<Customer> lstCustomers = new ArrayList<>();
+    ExecutorService executor = Executors.newFixedThreadPool(1);
+    List<String> respuesta = new ArrayList<>();
+    int timeoutSecs = 20;
+    String url = Registry.listCustomersUrl
+    String variable = "${StringUtils.trimToEmpty(sample.fathersName)}|${StringUtils.trimToEmpty(sample.mothersName)}|" +
+            "${StringUtils.trimToEmpty(sample.name)}|${StringUtils.trimToEmpty(Registry.currentSite.toString())}"
+    url += String.format( '?arg=%s', URLEncoder.encode( String.format( '%s', variable ), 'UTF-8' ) )
+    final Future<?> future = executor.submit(new Runnable() {
+      public void run() {
+        try {
+          URL urlResp = url.toURL()
+          println urlResp.text
+          Boolean print = false
+          urlResp.text.eachLine { String line ->
+            if( print && line.length() > 0 && !line.contains("</XX>") ){
+              respuesta.add(line)
+            }
+            if( line.contains("<XX>") ){
+              print = true
+            } else if( StringUtils.trimToEmpty(line).length() <= 0 || line.contains("</XX>") ){
+              print = false
+            }
+          }
+          println "Respuesta listar clientes: ${respuesta.size()}"
+        } catch (Exception e) {
+          throw new RuntimeException(e)
+        }
+      }
+    })
+    try {
+      future.get(timeoutSecs, TimeUnit.SECONDS)
+    } catch (Exception e) {
+      future.cancel(true)
+      log.warn("encountered problem while doing some work", e)
+    }
+    Integer cant = respuesta.size()-1
+    if( respuesta.size() > 50 ){
+      cant = 49
+    }
+    for(int i=0;i<=cant;i++){
+      String resp = respuesta.get(i)
+      resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
+      resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
+      resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
+      resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
+      resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
+      String[] data = resp.split(/\|/)
+      if( data.length >= 17 ){
+        Customer c = new Customer();
+        Integer id = 0
+        //Integer idBranch = 0
+        try{
+          id = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(data[0])).intValue()
+        } catch ( NumberFormatException e ) { println e }
+        c.setId(id)
+        c.setIdBranch(StringUtils.trimToEmpty(data[1]))
+        c.setName("${StringUtils.trimToEmpty(data[4])} ${StringUtils.trimToEmpty(data[2])} ${StringUtils.trimToEmpty(data[3])}")
+        c.setFechaNacimiento( StringUtils.trimToEmpty(data[13]).length() > 0 ? formatter.parse(StringUtils.trimToEmpty(data[13])) : null )
+        c.setFechaUltimaVenta( StringUtils.trimToEmpty(data[9]).length() > 0 ? formatter.parse(StringUtils.trimToEmpty(data[9])) : null )
+        lstCustomers.add(c)
+      }
+    }
+    return lstCustomers;
+  }
+
+
+  static Customer importCustomersFromMainDb(Customer sample) {
+    log.debug("obteniendo lista de customer similar a: ${sample}")
+    ExecutorService executor = Executors.newFixedThreadPool(1);
+    List<String> respuesta = new ArrayList<>();
+    int timeoutSecs = 20;
+    String url = Registry.importCustomersUrl
+    String variable = "${StringUtils.trimToEmpty(sample.idBranch)}|${StringUtils.trimToEmpty(sample.id.toString())}|" +
+            "${StringUtils.trimToEmpty(Registry.currentSite.toString())}"
+    url += String.format( '?arg=%s', URLEncoder.encode( String.format( '%s', variable ), 'UTF-8' ) )
+    final Future<?> future = executor.submit(new Runnable() {
+      public void run() {
+        try {
+          URL urlResp = url.toURL()
+          println urlResp.text
+          Boolean print = false
+          urlResp.text.eachLine { String line ->
+            if( print && line.length() > 0 && !line.contains("</XX>") ){
+              respuesta.add(line)
+            }
+            if( line.contains("<XX>") ){
+              print = true
+            } else if( StringUtils.trimToEmpty(line).length() <= 0 || line.contains("</XX>") ){
+              print = false
+            }
+          }
+          println "Respuesta listar clientes: ${respuesta.size()}"
+        } catch (Exception e) {
+          throw new RuntimeException(e)
+        }
+      }
+    })
+    try {
+      future.get(timeoutSecs, TimeUnit.SECONDS)
+    } catch (Exception e) {
+      future.cancel(true)
+      log.warn("encountered problem while doing some work", e)
+    }
+    String[] data = respuesta.get(0).split(/\|/)
+    String ori = data.length >= 31 ? StringUtils.trimToEmpty(data[30]) : ""
+    ClientesJava cliente = ClienteServiceJava.obtenerClientePorOrigen(StringUtils.trimToEmpty(ori))
+    if( cliente == null ){
+      for(String resp : respuesta){
+        sample = saveExternalCustomer( resp, sample )
+      }
+    } else {
+      sample = Customer.toCustomer( cliente )
+      sample.address.setCity(StringUtils.trimToEmpty(sample.address.city))
+      sample.address.setLocation(StringUtils.trimToEmpty(sample.address.location))
+      sample.address.setState(StringUtils.trimToEmpty(sample.address.state))
+    }
+    return sample
+  }
+
+
+  static Customer saveExternalCustomer( String resp, Customer sample ){
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat formatterTime = new SimpleDateFormat("HH:mm:ss.SSS");
+    SimpleDateFormat formatter1 = new SimpleDateFormat("dd/MM/yyyy");
+    resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
+    resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
+    resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
+    resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
+    resp = resp.replaceAll(/\|/+/\|/,/\|/+" "+/\|/)
+    String[] data = resp.split(/\|/)
+    if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("1") ){
+      MunicipioJava municipio = MunicipioQuery.BuscaMunicipioPorEstadoYLocalidad(StringUtils.trimToEmpty(data[3]), StringUtils.trimToEmpty(data[2]));
+      Address address = new Address()
+      address.setPrimary(StringUtils.trimToEmpty(data[11]))
+      address.setZipcode(StringUtils.trimToEmpty(data[13]))
+      address.setLocation(StringUtils.trimToEmpty(data[12]))
+      address.setCity(municipio != null ? StringUtils.trimToEmpty(municipio?.nombre) : "")
+      address.setState(municipio != null ? StringUtils.trimToEmpty(municipio?.estado?.nombre) : "")
+
+      sample.setId(null)
+      sample.setTitle(StringUtils.trimToEmpty(data[1]))
+      sample.setName(StringUtils.trimToEmpty(data[9]))
+      sample.setFathersName(StringUtils.trimToEmpty(data[6]))
+      sample.setMothersName(StringUtils.trimToEmpty(data[7]))
+      sample.setRfc(StringUtils.trimToEmpty(data[10]))
+      sample.setDob(StringUtils.trimToEmpty(data[27]).length() > 0 ? formatter.parse(StringUtils.trimToEmpty(data[27])) : null)
+      sample.setGender(GenderType.parse(!StringUtils.trimToEmpty(data[5]).equalsIgnoreCase("f")))
+      sample.setAddress(address)
+      sample.setCliOri(StringUtils.trimToEmpty(data[30]))
+      sample.setHistCuc(StringUtils.trimToEmpty(data[31]))
+      sample.setHistCli(StringUtils.trimToEmpty(data[32]))
+
+      Integer edad = 25
+      if(StringUtils.trimToEmpty(data[24]).length() > 0 ){
+        try{
+          edad = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(data[24]))
+        } catch (NumberFormatException e ) { println e }
+      }
+      sample.setAge( edad );
+      sample.setFechaNacimiento(StringUtils.trimToEmpty(data[27]).length() > 0 ? formatter.parse(StringUtils.trimToEmpty(data[27])) : null)
+      sample = addCustomer( sample )
+
+      if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[14])).length() > 0) {
+        saveContact( sample, 2, StringUtils.trimToEmpty(data[14]))
+      }
+      if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[15])).length() > 0) {
+        saveContact( sample, 1, StringUtils.trimToEmpty(data[15]))
+      }
+      if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[17])).length() > 0) {
+        saveContact( sample, 3, StringUtils.trimToEmpty(data[17]))
+      }
+      if (StringUtils.trimToEmpty(StringUtils.trimToEmpty(data[18])).length() > 0) {
+        saveContact( sample, 0, StringUtils.trimToEmpty(data[18]))
+      }
+    } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("2") ){
+      User u = Session.get(SessionItem.USER) as User
+      ExamenJava examen = new ExamenJava()
+      examen.setIdCliente( sample.getId() )
+      examen.setIdAtendio( StringUtils.trimToEmpty(data[2]) )
+      examen.setAvSaOdLejosEx(StringUtils.trimToEmpty(data[3]))
+      examen.setAvSaOiLejosEx(StringUtils.trimToEmpty(data[4]))
+      examen.setObjOdEsfEx(StringUtils.trimToEmpty(data[5]))
+      examen.setObjOdCilEx(StringUtils.trimToEmpty(data[6]))
+      examen.setObjOdEjeEx(StringUtils.trimToEmpty(data[7]))
+      examen.setObjOiEsfEx(StringUtils.trimToEmpty(data[8]))
+      examen.setObjOiCilEx(StringUtils.trimToEmpty(data[9]))
+      examen.setObjOiEjeEx(StringUtils.trimToEmpty(data[10]))
+      examen.setObjDiEx(StringUtils.trimToEmpty(data[11]))
+      examen.setSubOdEsfEx(StringUtils.trimToEmpty(data[12]))
+      examen.setSubOdCilEx(StringUtils.trimToEmpty(data[13]))
+      examen.setSubOdEjeEx(StringUtils.trimToEmpty(data[14]))
+      examen.setSubOdAdcEx(StringUtils.trimToEmpty(data[15]))
+      examen.setSubOdAdiEx(StringUtils.trimToEmpty(data[16]))
+      examen.setSubOdAvEx(StringUtils.trimToEmpty(data[17]))
+      examen.setSubOiEsfEx(StringUtils.trimToEmpty(data[18]))
+      examen.setSubOiCilEx(StringUtils.trimToEmpty(data[19]))
+      examen.setSubOiEjeEx(StringUtils.trimToEmpty(data[20]))
+      examen.setSubOiAdcEx(StringUtils.trimToEmpty(data[21]))
+      examen.setSubOiAdiEx(StringUtils.trimToEmpty(data[22]))
+      examen.setSubOiAvEx(StringUtils.trimToEmpty(data[23]))
+      examen.setObservacionesEx(StringUtils.trimToEmpty(data[24]))
+      examen.setDiOd(StringUtils.trimToEmpty(data[26]))
+      examen.setDiOi(StringUtils.trimToEmpty(data[27]))
+      examen.setTipoCli(StringUtils.trimToEmpty(data[29]))
+      examen.setTipoOft(StringUtils.trimToEmpty(data[30]))
+      examen.setFechaAlta(StringUtils.trimToEmpty(data[31]).length() > 0 ? formatter.parse(StringUtils.trimToEmpty(data[31])) : null)
+      examen.setIdOftalmologo(null)
+      examen.setHoraAlta(StringUtils.trimToEmpty(data[33]).length() > 0 ? formatterTime.parse(StringUtils.trimToEmpty(data[33])) : null)
+      examen.setIdExOri(StringUtils.trimToEmpty(data[34]))
+      ExamenServiceJava.guardarExamen( examen )
+    } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("3") ){
+      RecetaJava receta = new RecetaJava()
+      receta.setExamen( ExamenServiceJava.obtenerExamenPorIdCliente(sample.id).idExamen )
+      receta.setIdCliente( sample.id )
+      receta.setFechaReceta( new Date() )
+      receta.setsUsoAnteojos(StringUtils.trimToEmpty(data[4]))
+      receta.setIdOptometrista(StringUtils.trimToEmpty(data[5]))
+      receta.setTipoOpt(StringUtils.trimToEmpty(data[6]))
+      receta.setOdEsfR(StringUtils.trimToEmpty(data[7]))
+      receta.setOdCilR(StringUtils.trimToEmpty(data[8]))
+      receta.setOdEjeR(StringUtils.trimToEmpty(data[9]))
+      receta.setOdAdcR(StringUtils.trimToEmpty(data[10]))
+      receta.setOdAdiR(StringUtils.trimToEmpty(data[11]))
+      receta.setOdPrismaH(StringUtils.trimToEmpty(data[12]))
+      receta.setOiEsfR(StringUtils.trimToEmpty(data[13]))
+      receta.setOiCilR(StringUtils.trimToEmpty(data[14]))
+      receta.setOiEjeR(StringUtils.trimToEmpty(data[15]))
+      receta.setOiAdcR(StringUtils.trimToEmpty(data[16]))
+      receta.setOiAdiR(StringUtils.trimToEmpty(data[17]))
+      receta.setOiPrismaH(StringUtils.trimToEmpty(data[18]))
+      receta.setDiLejosR(StringUtils.trimToEmpty(data[19]))
+      receta.setDiCercaR(StringUtils.trimToEmpty(data[20]))
+      receta.setOdAvR(StringUtils.trimToEmpty(data[21]))
+      receta.setOiAvR(StringUtils.trimToEmpty(data[22]))
+      receta.setAltOblR(StringUtils.trimToEmpty(data[23]))
+      receta.setObservacionesR(StringUtils.trimToEmpty(data[24]))
+      receta.setDiOd(StringUtils.trimToEmpty(data[27]))
+      receta.setDiOi(StringUtils.trimToEmpty(data[28]))
+      receta.setOdPrismaV(StringUtils.trimToEmpty(data[30]))
+      receta.setOiPrismaV(StringUtils.trimToEmpty(data[31]))
+      receta.setIdRxOri(StringUtils.trimToEmpty(data[33]))
+      receta.setIdSync("1")
+      receta.setFechaMod(new Date())
+      receta.setIdMod("0")
+      receta.setIdSucursal(Registry.currentSite)
+      RecetaServiceJava.saveRx( receta )
+    } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase("15") ){
+      ImpHistorialJava impHistorialJava = new ImpHistorialJava()
+      impHistorialJava.setIdCliente(sample.id)
+      impHistorialJava.setIdSucOri(StringUtils.trimToEmpty(data[2]))
+      impHistorialJava.setFechaCompra(StringUtils.trimToEmpty(data[3]).length() > 0 ? formatter1.parse(StringUtils.trimToEmpty(data[3])) : null)
+      impHistorialJava.setFactura(StringUtils.trimToEmpty(data[5]))
+      BigDecimal importe = BigDecimal.ZERO
+      if( StringUtils.trimToEmpty(data[6]).length() > 0 ){
+        try{
+          importe = new BigDecimal(NumberFormat.getInstance().parse(StringUtils.trimToEmpty(data[6])).doubleValue())
+        } catch ( NumberFormatException e ) { println e }
+      }
+      impHistorialJava.setImporte( importe )
+      impHistorialJava.setObs(StringUtils.trimToEmpty(data[7]))
+      ImpHistorialQuery.saveImpHistorial( impHistorialJava )
+    }
+    return sample
+  }
+
+
 }

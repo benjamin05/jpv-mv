@@ -2,10 +2,14 @@ package mx.lux.pos.ui.controller
 
 import com.ibm.icu.text.SimpleDateFormat
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.CierreDiarioQuery
+import mx.lux.pos.java.repository.CierreDiarioJava
+import mx.lux.pos.java.service.CierreDiarioServiceJava
 import mx.lux.pos.model.*
 import mx.lux.pos.service.*
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.model.*
+import org.apache.commons.lang.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -171,8 +175,9 @@ class DailyCloseController {
       }
       thread.start()
       cierreDiarioService.deleteProcessClients()
+      cierreDiarioService.generaArchivoClientes( closeDate )
       cierreDiarioService.cargarDatosCierreDiario( closeDate )
-      cierreDiarioService.cerrarCierreDiario( closeDate, observations )
+      cierreDiarioService.cerrarCierreDiario( closeDate, observations, false )
       User user = Session.get( SessionItem.USER ) as User
       String parametroGerente = Registry.idManager
       Empleado employee = empleadoService.obtenerEmpleado( parametroGerente )
@@ -287,6 +292,27 @@ class DailyCloseController {
         return false
       }
     }
+
+
+  static void validPendingClosedDays( ){
+    SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
+    List<CierreDiarioJava> lstCierresPendientes = CierreDiarioQuery.buscaCierresDiariosNoValidados()
+    for(CierreDiarioJava cierreDiarioJava : lstCierresPendientes){
+      if( !cierreDiarioJava.fecha.format("dd/MM/yyyy").equalsIgnoreCase(new Date().format("dd/MM/yyyy")) ){
+        if( CierreDiarioServiceJava.rehacerArchivosCierrre( cierreDiarioJava.fecha ) ){
+          String parametroGerente = Registry.idManager
+          Empleado employee = empleadoService.obtenerEmpleado( parametroGerente )
+          cierreDiarioService.cargarDatosCierreDiario( cierreDiarioJava.fecha )
+          cierreDiarioService.cerrarCierreDiario( cierreDiarioJava.fecha, StringUtils.trimToEmpty(cierreDiarioJava.getObservaciones()), true )
+          ticketService.imprimeResumenDiario( cierreDiarioJava.fecha, employee )
+          ticketService.imprimeDepositosResumenDiario( cierreDiarioJava.fecha )
+          CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
+        } else if( StringUtils.trimToEmpty(cierreDiarioJava.estado).equalsIgnoreCase("c") ){
+            CierreDiarioServiceJava.marcarValidado( cierreDiarioJava.fecha );
+        }
+      }
+    }
+  }
 
 
 }

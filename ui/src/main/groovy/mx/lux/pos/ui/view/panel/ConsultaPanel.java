@@ -2,15 +2,11 @@ package mx.lux.pos.ui.view.panel;
 
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.Point;
-import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -23,6 +19,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
+import mx.lux.pos.java.querys.JbQuery;
+import mx.lux.pos.java.repository.JbEstadosGrupo;
+import mx.lux.pos.java.repository.JbJava;
 import org.apache.commons.lang3.StringUtils;
 
 import org.dyno.visual.swing.layouts.Bilateral;
@@ -30,8 +29,6 @@ import org.dyno.visual.swing.layouts.Constraints;
 import org.dyno.visual.swing.layouts.GroupLayout;
 import org.dyno.visual.swing.layouts.Leading;
 import mx.lux.pos.ui.view.dialog.*;
-import mx.lux.pos.querys.*;
-import mx.lux.pos.repository.*;
 
 //VS4E -- DO NOT REMOVE THIS LINE!
 public class ConsultaPanel extends JPanel {
@@ -144,7 +141,7 @@ public class ConsultaPanel extends JPanel {
 			        if( tblBusqueda.getRowCount() > 0 && tblBusqueda.getSelectedRow() >= 0){
 			        	Integer selectedRow = tblBusqueda.getSelectedRow();
 			        	selectedData = (String) tblBusqueda.getValueAt(selectedRow, 0);			            
-				        String saldo = String.format("$%s", JbQuery.buscarPorRx(StringUtils.trimToEmpty(selectedData)).getSaldo());				        
+				        String saldo = String.format("$%s", JbQuery.buscarPorRx(StringUtils.trimToEmpty(selectedData)).getSaldo());
 				        lblSaldo.setText(saldo);
 			        }			        
 			      }									

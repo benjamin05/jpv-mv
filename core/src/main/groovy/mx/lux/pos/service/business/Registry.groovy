@@ -4,6 +4,8 @@ import com.jcraft.jsch.ChannelExec
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.ParametrosQuery
+import mx.lux.pos.java.repository.Parametros
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.impl.RepositoryFactory
 import org.apache.commons.lang3.StringUtils
@@ -21,6 +23,7 @@ class Registry {
   private static final String TAG_TRANSACCION_VENTA = 'VENTA'
   private static final String TAG_TRANSACCION_REMESA = 'REM'
 
+  private static String ip = ""
   static Parametro find( TipoParametro pParametro ) {
     Parametro p = RepositoryFactory.getRegistry().findOne( pParametro.getValue() )
     if ( p == null ) {
@@ -29,6 +32,11 @@ class Registry {
       p.valor = pParametro.getDefaultValue()
       RepositoryFactory.getRegistry().saveAndFlush( p )
     }
+    return p
+  }
+
+  static Parametros find( mx.lux.pos.java.TipoParametro pParametro ) {
+    Parametros p = ParametrosQuery.BuscaParametroPorId( pParametro.getValor() )
     return p
   }
 
@@ -58,19 +66,34 @@ class Registry {
     return num
   }
 
-  static Double asDouble( TipoParametro pParametro ) {
+  static Double asDouble( mx.lux.pos.java.TipoParametro pParametro ) {
     Double d = 0
-    Parametro p = find( pParametro )
-    String value = StringUtils.trimToEmpty( p.valor )
-    if ( value.length() > 0 ) {
-      if ( NumberUtils.isNumber( p.valor ) ) {
-        d = NumberUtils.createDouble( p.valor )
-      } else if ( NumberUtils.isNumber( pParametro.defaultValue ) ) {
-        d = NumberUtils.createDouble( pParametro.defaultValue )
+    Parametros p = find( pParametro )
+    if( p != null ){
+      String value = StringUtils.trimToEmpty( p.valor )
+      if ( value.length() > 0 ) {
+        if ( NumberUtils.isNumber( p.valor ) ) {
+          d = NumberUtils.createDouble( p.valor )
+        }
       }
     }
     return d
   }
+
+    static Double asDouble( TipoParametro pParametro ) {
+        Double d = 0
+        Parametro p = find( pParametro )
+        String value = StringUtils.trimToEmpty( p.valor )
+        if ( value.length() > 0 ) {
+            if ( NumberUtils.isNumber( p.valor ) ) {
+                d = NumberUtils.createDouble( p.valor )
+            } else if ( NumberUtils.isNumber( pParametro.defaultValue ) ) {
+                d = NumberUtils.createDouble( pParametro.defaultValue )
+            }
+        }
+        return d
+    }
+
 
   static String asString( TipoParametro pParametro ) {
     Parametro p = find( pParametro )
@@ -101,6 +124,22 @@ class Registry {
     final String[] TRUE_VALUES = [ "si", "s", "yes", "y", "true", "t", "on" ]
     Boolean b = false
     Parametro p = find( pParametro )
+    String value = StringUtils.trimToEmpty( p.valor ).toLowerCase()
+    if ( value.length() > 0 ) {
+      for ( String trueValue : TRUE_VALUES ) {
+        b = b || trueValue.equals( value )
+        if ( b )
+          break
+      }
+    }
+    return b
+  }
+
+
+  static Boolean isTrue( mx.lux.pos.java.TipoParametro pParametro ) {
+    final String[] TRUE_VALUES = [ "si", "s", "yes", "y", "true", "t", "on" ]
+    Boolean b = false
+    Parametros p = find( pParametro )
     String value = StringUtils.trimToEmpty( p.valor ).toLowerCase()
     if ( value.length() > 0 ) {
       for ( String trueValue : TRUE_VALUES ) {
@@ -227,6 +266,30 @@ class Registry {
 
   static String getActiveCustomers( ) {
     return asString( TipoParametro.CLIENTES_ACTIVOS )
+  }
+
+  static String getLimitGraduation( ) {
+    return asString( TipoParametro.LIMITE_GRADUACION )
+  }
+
+  static String getImportCustomersUrl( ) {
+    return asString( TipoParametro.DATOS_CLIENTE )
+  }
+
+  static String getListCustomersUrl( ) {
+    return asString( TipoParametro.LISTA_CLIENTE )
+  }
+
+  static String getMinimunAmountCrm( ) {
+    return asString( TipoParametro.MONTO_MINIMO_CRM )
+  }
+
+  static String geIdCausesCan( ) {
+    return asString( TipoParametro.ID_CAUSAS_CAN )
+  }
+
+  static String geEdosNoCan( ) {
+    return asString( TipoParametro.ESTADOS_NO_CAN )
   }
 
   static String getCommandIp( ) {
@@ -452,6 +515,10 @@ class Registry {
     return isTrue( TipoParametro.CUPON_FF_OTHER_DISCOUNT )
   }
 
+  static Boolean generatedCouponAgreement( ) {
+    return isTrue( TipoParametro.GENERA_CUPON_CONVENIO )
+  }
+
   static Integer getMaxLengthDescription( ) {
     return asInteger( TipoParametro.MAX_LONG_DESC_FACTURA )
   }
@@ -532,8 +599,16 @@ class Registry {
         return isTrue( TipoParametro.ACTIVE_STORE_DISCOUNT )
     }
 
+    static Boolean getCrmActive( ) {
+      return isTrue( TipoParametro.CRM_ACTIVO )
+    }
+
+    static Boolean getPromoAgeActive( ) {
+        return isTrue( TipoParametro.PROMO_EDAD_ACTIVA )
+    }
+
     static Boolean getValidSPToStore( ) {
-        return isTrue( TipoParametro.SALIDA_VENTA_SP )
+        return isTrue( mx.lux.pos.java.TipoParametro.SALIDA_VENTA_SP )
     }
 
     static Integer getDiasVigenciaCupon() {
@@ -578,19 +653,47 @@ class Registry {
         return url
     }
   static Double getAckDelay( ) {
-    return asDouble( TipoParametro.ACUSE_RETRASO )
+    return asDouble( mx.lux.pos.java.TipoParametro.ACUSE_RETRASO )
+  }
+
+  static Double getMinimunAmountAgreement( ) {
+    return asDouble( TipoParametro.MONTO_MINIMO_CONVENIO )
+  }
+
+  static Double getMultiplyDiscountCrm( ) {
+    return asDouble( mx.lux.pos.java.TipoParametro.MULTIPLO_DESCUENTO_CRM )
+  }
+
+  static Double getAmountPromoAgeMonofocal( ) {
+    return asDouble( TipoParametro.MONTO_PROMO_EDAD_MONOFOCAL )
+  }
+
+  static Double getAmountPromoAgeMultifocal( ) {
+    return asDouble( TipoParametro.MONTO_PROMO_EDAD_MULTIFOCAL )
+  }
+
+  static Double getValidAmountPromoAge( ) {
+    return asDouble( mx.lux.pos.java.TipoParametro.MONTO_VALIDO_PROMO_EDAD )
   }
 
   static Double getAmountToGenerateFFCoupon( ) {
-    return asDouble( TipoParametro.MONTO_GENERA_FF_CUPON )
+    return asDouble( mx.lux.pos.java.TipoParametro.MONTO_GENERA_FF_CUPON )
   }
 
   static Double getAmountToApplyFFCoupon( ) {
-    return asDouble( TipoParametro.MONTO_APLICA_FF_CUPON )
+    return asDouble( mx.lux.pos.java.TipoParametro.MONTO_APLICA_FF_CUPON )
   }
 
   static Double getAmountFFCoupon( ) {
-    return asDouble( TipoParametro.MONTO_FF_CUPON )
+    return asDouble( mx.lux.pos.java.TipoParametro.MONTO_FF_CUPON )
+  }
+
+  static Boolean activeManualLp() {
+    return isTrue( TipoParametro.CARGA_MANUAL_LP_ACTIVO )
+  }
+
+  static Boolean activeImportCustomer() {
+    return isTrue( TipoParametro.IMPORTAR_CLIENTE_ACTIVO )
   }
 
   static Boolean isAckDebugEnabled() {
@@ -626,7 +729,7 @@ class Registry {
   }
 
   static Double getAdvancePct() {
-    return asDouble( TipoParametro.PORCENTAJE_ANTICIPO ) / 100.0
+    return asDouble( mx.lux.pos.java.TipoParametro.PORCENTAJE_ANTICIPO ) / 100.0
   }
 
   static Boolean isCardPaymentInDollars( String paymentType ){
@@ -716,5 +819,56 @@ class Registry {
                 session.disconnect();
         }
     }
+
+  static void getSolicitaGarbageColector(){
+    try{
+      //System.out.println( "********** INICIO: 'LIMPIEZA GARBAGE COLECTOR' **********" );
+      Runtime basurero = Runtime.getRuntime();
+      /*System.out.println( "MEMORIA TOTAL 'JVM': " + basurero.totalMemory() );
+      System.out.println( "MEMORIA [FREE] 'JVM' [ANTES]: " + basurero.freeMemory() );*/
+      basurero.gc(); //Solicitando ...
+      /*System.out.println( "MEMORIA [FREE] 'JVM' [DESPUES]: " + basurero.freeMemory() );
+      System.out.println( "********** FIN: 'LIMPIEZA GARBAGE COLECTOR' **********" );*/
+    }  catch( Exception e ){
+      e.printStackTrace();
+    }
+  }
+
+
+  static String ipCurrentMachine( ){
+    if( StringUtils.trimToEmpty(ip).length() <= 0 ){
+      String line = ""
+      try{
+        line = System.getenv("SSH_CLIENT");
+      } catch ( Exception e ) { println e }
+
+      if( StringUtils.trimToEmpty(line).length() > 0 ){
+        String[] data = StringUtils.trimToEmpty(line).split(" ")
+        if( data.length > 1 ){
+          ip = data[0]
+          println "Ip Maquina: "+ip
+        }
+      }
+
+      if(StringUtils.trimToEmpty(ip).length() <= 0){
+        Enumeration en = NetworkInterface.getNetworkInterfaces();
+        while(en.hasMoreElements()){
+          NetworkInterface ni=(NetworkInterface) en.nextElement();
+          Enumeration ee = ni.getInetAddresses();
+          while(ee.hasMoreElements()) {
+            InetAddress ia= (InetAddress) ee.nextElement();
+            if(StringUtils.trimToEmpty(ia.canonicalHostName).contains(InetAddress.getLocalHost().getHostName())){
+              ip = ia.getHostAddress()
+              println("Ip Maquina: "+ip)
+            }
+          }
+        }
+      }
+      return ip
+    } else {
+      return ip
+    }
+  }
+
 
 }

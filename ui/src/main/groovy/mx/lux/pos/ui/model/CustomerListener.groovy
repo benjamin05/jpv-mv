@@ -6,6 +6,8 @@ interface CustomerListener {
 
   void reset( )
 
+  void resetJava( )
+
   void setCustomer( Customer pCustomer )
 
   void setOperationTypeSelected( OperationType pOperation )

@@ -1,6 +1,8 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.repository.EmpleadoJava
+import mx.lux.pos.java.service.EmpleadoServiceJava
 import mx.lux.pos.model.Empleado
 import mx.lux.pos.service.EmpleadoService
 import mx.lux.pos.service.ListaPreciosService
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Component
 class AccessController {
 
   private static EmpleadoService empleadoService
+  private static EmpleadoServiceJava empleadoServiceJava
   private static SucursalService sucursalService
   private static ListaPreciosService listaPreciosService
 
@@ -27,11 +30,12 @@ class AccessController {
     this.empleadoService = empleadoService
     this.sucursalService = sucursalService
     this.listaPreciosService = listaPreciosService
+    empleadoServiceJava = new EmpleadoServiceJava()
   }
 
   static User getUser( String username ) {
     log.info( "solicitando usuario: ${username}" )
-    return User.toUser( empleadoService.obtenerEmpleado( username ) )
+    return User.toUser( empleadoServiceJava.obtenerEmpleado( username ) )
   }
 
   static boolean checkCredentials( String username, String password ) {
@@ -75,9 +79,9 @@ class AccessController {
     log.info( "log out" )
   }
 
-  private static boolean isAuthorizer( Empleado empleado ) {
-    log.info( "verificando si empleado es autorizador: ${empleado?.id}" )
-    if ( empleado?.id ) {
+  private static boolean isAuthorizer( EmpleadoJava empleado ) {
+    log.info( "verificando si empleado es autorizador: ${empleado?.idEmpleado}" )
+    if ( empleado?.idEmpleado ) {
       if ( ( 1..2 ).contains( empleado.idPuesto ) ) {
         log.info( "usuario es autorizador" )
         return true
@@ -95,7 +99,7 @@ class AccessController {
     User user = Session.get( SessionItem.USER ) as User
     log.debug( "usuario en sesion: ${user?.username}" )
     if ( StringUtils.isNotBlank( user?.username ) ) {
-      Empleado empleado = empleadoService.obtenerEmpleado( user.username )
+      EmpleadoJava empleado = empleadoServiceJava.obtenerEmpleado( user.username )
       if ( isAuthorizer( empleado ) ) {
         log.info( "usuario autorizador, no requiere autorizacion" )
         return true
@@ -111,7 +115,7 @@ class AccessController {
   static boolean canAuthorize( String username, String password ) {
     log.info( "solicitando autorizacion por usuario: $username" )
     if ( checkCredentials( username, password ) ) {
-      Empleado empleado = empleadoService.obtenerEmpleado( username )
+      EmpleadoJava empleado = empleadoServiceJava.obtenerEmpleado( username )
       if ( isAuthorizer( empleado ) ) {
         log.info( "autorizacion realizada: $username" )
         return true
@@ -137,22 +141,22 @@ class AccessController {
   }
 
   static boolean validPassAudit( String user, String password ) {
-      log.info( "solicitando autorizacion de auditora por password: $password" )
-      Boolean valid = false
-      String validUsers = Registry.idAuditoras()
-      if ( validUsers != null && validUsers.trim().contains(user) ) {
-          String[] ids = validUsers.split( "," )
-          for(String id : ids){
-            Empleado emp = empleadoService.obtenerEmpleado( user )
-            if( StringUtils.trimToEmpty(emp.passwd).equalsIgnoreCase(password) ){
-              valid = true
-              break
-            }
-          }
-      } else {
-        log.info( "autorizacion rechazada, no es usuario autorizador" )
-      }
-      return valid
+    log.info( "solicitando autorizacion de auditora por password: $password" )
+    Boolean valid = false
+    Empleado emp = empleadoService.obtenerEmpleado( user )
+    Boolean validUser = validateUser( emp )
+    if ( validUser ) {
+      //String[] ids = validUsers.split( "," )
+      //for(String id : ids){
+        if( StringUtils.trimToEmpty(emp.passwd).equalsIgnoreCase(password) ){
+          valid = true
+          //break
+        }
+      //}
+    } else {
+      log.info( "autorizacion rechazada, no es usuario autorizador" )
+    }
+    return valid
   }
 
   static boolean validaDatos( String usuario, String password, String nuevoPass, String confirmPass ){
@@ -249,4 +253,17 @@ class AccessController {
     }
     return false
   }
+
+  static Boolean validateUser( Empleado emp ){
+    Boolean valid = false
+    String validUsers = Registry.idAuditoras()
+    if( validUsers != null && validUsers.trim().contains(StringUtils.trimToEmpty(emp.id)) ){
+      valid = true
+    } else if( emp.idPuesto == 15 ){
+      valid = true
+    }
+    return valid
+  }
+
+
 }

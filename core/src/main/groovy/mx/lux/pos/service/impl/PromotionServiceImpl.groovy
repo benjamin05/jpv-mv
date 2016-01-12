@@ -1,5 +1,7 @@
 package mx.lux.pos.service.impl
 
+import mx.lux.pos.java.querys.DescuentosClaveQuery
+import mx.lux.pos.java.repository.DescuentosClaveJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
 import mx.lux.pos.service.PromotionService
@@ -52,7 +54,7 @@ class PromotionServiceImpl implements PromotionService {
 
   public void updateOrder( PromotionModel pModel, String pOrderNbr ) {
     log.debug( "Update Order: ${ pOrderNbr } " )
-    PromotionEngine.instance.updateOrder( pModel, pOrderNbr )
+    PromotionEngine.instance.updateOrderStr( pModel, pOrderNbr )
   }
 
   @Transactional
@@ -85,8 +87,14 @@ class PromotionServiceImpl implements PromotionService {
     return PromotionEngine.instance.applyOrderDiscount( pModel, pCorporateKey, pDiscountPercent )
   }
 
+  Boolean recoverOrderDiscount( PromotionModel pModel, String pCorporateKey, Double pDiscountPercent ) {
+    log.debug( String.format( "Request Order Discount (Key:%s, Discount:%,.1f%%)",
+            pCorporateKey, ( pDiscountPercent * 100.0 ) ) )
+    return PromotionEngine.instance.applyRecoverOrderDiscount( pModel, pCorporateKey, pDiscountPercent )
+  }
+
   void requestPersist( PromotionModel pModel, Boolean saveOrder ) {
-    log.debug( String.format( "Request Persist Promotions for Order:%s", pModel.order.orderNbr ) )
+    //log.debug( String.format( "Request Persist Promotions for Order:%s", pModel.order.orderNbr ) )
     PromotionCommit.writePromotions( pModel )
     PromotionCommit.writeDiscounts( pModel, saveOrder )
   }
@@ -185,20 +193,29 @@ class PromotionServiceImpl implements PromotionService {
                 String[] claveDesc = pLine.split(/\|/)
                 if(claveDesc.length >= 5){
                   Double porcentaje = 0.00
+                  BigDecimal montoMinimo = BigDecimal.ZERO
                   try{
                     porcentaje = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(claveDesc[1]))
+                    if(claveDesc.length > 5){
+                      if( StringUtils.trimToEmpty(claveDesc[6]) != null && StringUtils.trimToEmpty(claveDesc[6]).length() > 0 ){
+                        montoMinimo = new BigDecimal(NumberFormat.getInstance().parse(StringUtils.trimToEmpty(claveDesc[6])))
+                      }
+                    } else {
+                      montoMinimo = null
+                    }
                   } catch ( NumberFormatException e ){ println e }
-                  DescuentoClave dc = descuentoClaveRepository.findOne(claveDesc[0])
+                  DescuentosClaveJava dc = DescuentosClaveQuery.buscaDescuentoClavePorClave(claveDesc[0])
                   if( dc == null ){
-                    dc = new DescuentoClave()
+                    dc = new DescuentosClaveJava()
                   }
-                  dc.clave_descuento = claveDesc[0]
-                  dc.porcenaje_descuento = porcentaje
-                  dc.descripcion_descuento = claveDesc[2]
+                  dc.claveDescuento = claveDesc[0]
+                  dc.porcenajeDescuento = porcentaje
+                  dc.descripcionDescuento = claveDesc[2]
                   dc.tipo = claveDesc[3]
                   dc.vigente = StringUtils.trimToEmpty(claveDesc[4]).equalsIgnoreCase("yes") ? true : false
-                  descuentoClaveRepository.save( dc )
-                  descuentoClaveRepository.flush()
+                  dc.cupon = claveDesc.length > 5 ? StringUtils.trimToEmpty(claveDesc[5]).equalsIgnoreCase("yes") ? true : false : null
+                  dc.montoMinimo = montoMinimo
+                  DescuentosClaveQuery.saveDescuentoClave( dc )
                 }
               }
             } catch ( Exception ex ) {

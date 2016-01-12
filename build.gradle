@@ -6,6 +6,10 @@ dependencies {
   compile project( ':ui' )
 }
 
+dependencies {
+  compile project( ':core' )
+}
+
 startScripts {
     doLast {
         def windowsScriptFile = file getWindowsScript()

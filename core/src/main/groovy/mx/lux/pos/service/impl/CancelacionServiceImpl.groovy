@@ -122,6 +122,12 @@ class CancelacionServiceImpl implements CancelacionService {
     List<CausaCancelacion> listarCausasCancelacion() {
         log.info("listando causas de cancelacion")
         List<CausaCancelacion> causas = causaCancelacionRepository.findByDescripcionNotNullOrderByDescripcionAsc()
+        Collections.sort( causas, new Comparator<CausaCancelacion>() {
+            @Override
+            int compare(CausaCancelacion o1, CausaCancelacion o2) {
+                return o1.id.compareTo(o2.id)
+            }
+        })
         log.debug("obtiene causas: ${causas*.id}")
         return causas?.any() ? causas : []
     }
@@ -151,7 +157,7 @@ class CancelacionServiceImpl implements CancelacionService {
         if (StringUtils.isNotBlank(idNotaVenta)) {
             NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(idNotaVenta)
             log.debug("status: ${notaVenta?.sFactura}")
-            boolean esActiva = StringUtils.isNotBlank(notaVenta?.sFactura) && !'T'.equalsIgnoreCase(notaVenta?.sFactura)
+            boolean esActiva = !'T'.equalsIgnoreCase(notaVenta?.sFactura)
             if (StringUtils.isNotBlank(notaVenta?.id) && esActiva) {
                 List<Pago> pagos = pagoRepository.findByIdFactura(notaVenta.id)
                 pagos?.each { Pago pago ->

@@ -160,6 +160,10 @@ interface NotaVentaService {
 
   List<NotaVenta> obtenerNotaVentaPorFecha( Date fecha )
 
+  String validaClaveCrmWeb( String clave )
+
+  void guardaAcuseClaveCrm( String idFactura )
+
   Boolean cambiaIpCaja( String ip )
 
   void borrarNotaVenta( String idFactura )
@@ -169,4 +173,5 @@ interface NotaVentaService {
   Boolean validaNotaNoAnulada( String idFactura )
 
   List<NotaVenta> obtenerNotasPorCancelar(  )
+
 }

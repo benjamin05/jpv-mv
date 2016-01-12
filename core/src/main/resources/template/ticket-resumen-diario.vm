@@ -40,6 +40,12 @@ ${COLUMNA_1}Pagos externos${COLUMNA_5}${importe_efectivo_externos}
 ${COLUMNA_1}Devoluciones${COLUMNA_5}${importe_efectivo_devoluciones}
 ${COLUMNA_1}Neto${COLUMNA_5}${importe_efectivo_neto}
 
+#if("$!montoFaltanteEmp"!="" || "$!montoFaltanteMv"!="")
+#NEGRITA()#DOBLE_ALTURA()#DOBLE_ANCHURA()#FUENTE_B()#DO()FALTANTES${LF}
+#RESET_TEXTO()#FUENTE_B()#DO()${COLUMNA_1}Empleado${COLUMNA_5}${montoFaltanteEmp}
+${COLUMNA_1}Mas Vision${COLUMNA_5}${montoFaltanteMv}
+#end
+
 #* DEPOSITOS *#
 #if( $depositos )#NEGRITA()#DOBLE_ALTURA()#DOBLE_ANCHURA()#FUENTE_B()#DO()DEPOSITOS${LF}
 #foreach( $deposito in $depositos )#RESET_TEXTO()#FUENTE_B()#DO()${COLUMNA_1}Fecha: ${deposito.fechaDeposito}${COLUMNA_5}${deposito.empleado.nombre}${COLUMNA_7}${deposito.tipoDeposito}

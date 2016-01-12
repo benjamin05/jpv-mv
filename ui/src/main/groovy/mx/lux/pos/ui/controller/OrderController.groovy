@@ -1,7 +1,57 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.AcusesQuery
+import mx.lux.pos.java.querys.AcusesTipoQuery
+import mx.lux.pos.java.querys.DescuentosClaveQuery
+import mx.lux.pos.java.querys.DescuentosQuery
+import mx.lux.pos.java.querys.FormaContactoQuery
+import mx.lux.pos.java.querys.JbQuery
+import mx.lux.pos.java.querys.JbTrackQuery
+import mx.lux.pos.java.querys.ParametrosQuery
+import mx.lux.pos.java.querys.PedidoLcQuery
+import mx.lux.pos.java.querys.PreciosQuery
+import mx.lux.pos.java.querys.PromocionQuery
+import mx.lux.pos.java.repository.AcusesJava
+import mx.lux.pos.java.repository.AcusesTipoJava
+import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.AutorizaMovJava
+import mx.lux.pos.java.repository.BancoEmisorJava
+import mx.lux.pos.java.repository.CuponMvJava
+import mx.lux.pos.java.repository.DescuentosClaveJava
+import mx.lux.pos.java.repository.DescuentosJava
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.EmpleadoJava
+import mx.lux.pos.java.repository.ExamenJava
+import mx.lux.pos.java.repository.FormaContactoJava
+import mx.lux.pos.java.repository.JbJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.PagoJava
+import mx.lux.pos.java.repository.Parametros
+import mx.lux.pos.java.repository.PedidoLcJava
+import mx.lux.pos.java.repository.PreciosJava
+import mx.lux.pos.java.repository.PromocionJava
+import mx.lux.pos.java.repository.RecetaJava
+import mx.lux.pos.java.repository.TmpServiciosJava
+import mx.lux.pos.java.service.ArticulosServiceJava
+import mx.lux.pos.java.service.CancelacionServiceJava
+import mx.lux.pos.java.service.ClienteServiceJava
+import mx.lux.pos.java.service.CotizaServiceJava
+import mx.lux.pos.java.service.DetalleNotaVentaServiceJava
+import mx.lux.pos.java.service.ExamenServiceJava
+import mx.lux.pos.java.service.InventarioServiceJava
+import mx.lux.pos.java.service.NotaVentaServiceJava
+import mx.lux.pos.java.service.RecetaServiceJava
+import mx.lux.pos.java.service.TicketServiceJava
 import mx.lux.pos.model.*
+import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.querys.AutorizaMovQuery
+import mx.lux.pos.java.querys.BancoEmisorQuery
+import mx.lux.pos.java.querys.DetalleNotaVentaQuery
+import mx.lux.pos.java.querys.NotaVentaQuery
+import mx.lux.pos.java.querys.PagoQuery
+import mx.lux.pos.java.querys.RecetaQuery
+import mx.lux.pos.java.querys.TmpServiciosQuery
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.*
@@ -23,6 +73,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.swing.*
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -62,6 +113,9 @@ class OrderController {
     private static final String TAG_MONTAJE = 'MONTAJE'
     private static String MSJ_ERROR_WARRANTY = ""
     private static String TXT_ERROR_WARRANTY = ""
+    private static final String TAG_CLAVE_DESCUENTO_EDAD = "PREDAD"
+    private static final String TAG_FORMA_CARGO_EMP = 'FE'
+    private static final String TAG_FORMA_CARGO_MVIS = 'FM'
 
     private static Boolean insertSegKig
 
@@ -69,19 +123,28 @@ class OrderController {
     private static String idOrderEnsured
 
     private static NotaVentaService notaVentaService
+    private static RecetaServiceJava recetaServiceJava
+    private static NotaVentaServiceJava notaVentaServiceJava
     private static DetalleNotaVentaService detalleNotaVentaService
+    private static DetalleNotaVentaServiceJava detalleNotaVentaServiceJava
     private static PagoService pagoService
     private static TicketService ticketService
+    private static TicketServiceJava ticketServiceJava
     private static BancoService bancoService
     private static InventarioService inventarioService
+    private static InventarioServiceJava inventarioServiceJava
     private static MonedaExtranjeraService fxService
     private static Boolean displayUsd
     private static PromotionService promotionService
     private static CancelacionService cancelacionService
+    private static CancelacionServiceJava cancelacionServiceJava
     private static RecetaService recetaService
     private static ExamenService examenService
+    private static ExamenServiceJava examenServiceJava
     private static ArticuloService articuloService
+    private static ArticulosServiceJava articulosServiceJava
     private static CotizacionService cotizacionService
+    private static CotizaServiceJava cotizacionServiceJava
     private static JbService jbService
     private static FormaContactoService formaContactoService
     private static JbRepository jbRepository
@@ -100,6 +163,7 @@ class OrderController {
     private static CuponMvRepository cuponMvRepository
     private static NotaVentaRepository notaVentaRepository
     private static BancoDevRepository bancoDevRepository
+    private static ClienteServiceJava clienteServiceJava
     private static final String TAG_USD = "USD"
     private static Integer numberQuote = 0
 
@@ -169,43 +233,57 @@ class OrderController {
         this.cuponMvRepository = cuponMvRepository
         this.notaVentaRepository = notaVentaRepository
         this.bancoDevRepository = bancoDevRepository
+        recetaServiceJava = new RecetaServiceJava()
+        notaVentaServiceJava = new NotaVentaServiceJava()
+        articulosServiceJava = new ArticulosServiceJava()
+        inventarioServiceJava = new InventarioServiceJava()
+        examenServiceJava = new ExamenServiceJava()
+        cotizacionServiceJava = new CotizaServiceJava()
+        ticketServiceJava = new TicketServiceJava()
+        cancelacionServiceJava = new CancelacionServiceJava()
+        detalleNotaVentaServiceJava = new DetalleNotaVentaServiceJava()
+        clienteServiceJava = new ClienteServiceJava()
     }
 
     private static Boolean canceledWarranty
     private static String postEnsure
 
     static Order getOrder(String orderId) {
-        log.info("obteniendo orden id: ${orderId}")
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(orderId)
-        Order order = Order.toOrder(notaVenta)
-        if (StringUtils.isNotBlank(order?.id)) {
-            order.items?.clear()
-            List<DetalleNotaVenta> detalles = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(orderId)
-            detalles?.each { DetalleNotaVenta tmp ->
-                order.items?.add(OrderItem.toOrderItem(tmp))
-                order.due
-            }
-            order.payments?.clear()
-            List<Pago> pagos = pagoService.listarPagosPorIdFactura(orderId)
-            pagos?.each { Pago tmp ->
-                Payment paymentTmp = Payment.toPaymment(tmp)
-                if (tmp?.idBancoEmisor?.integer) {
-                    BancoEmisor banco = bancoService.obtenerBancoEmisor(tmp?.idBancoEmisor?.toInteger())
-                    paymentTmp.issuerBank = banco?.descripcion
-                }
-                order.payments?.add(paymentTmp)
-            }
-            return order
-        } else {
-            log.warn('no se obtiene orden, notaVenta no existe')
+      log.info("obteniendo orden id: ${orderId}")
+      //NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(orderId)
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( orderId )
+      Order order = Order.toOrder(notaVenta)
+      if (StringUtils.isNotBlank(order?.id)) {
+        order.items?.clear()
+        //List<DetalleNotaVenta> detalles = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(orderId)
+        List<DetalleNotaVentaJava> detalles = notaVenta.detalles.size() > 0 ? notaVenta.detalles : DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(orderId)
+        detalles?.each { DetalleNotaVentaJava tmp ->
+          order.items?.add(OrderItem.toOrderItem(tmp))
+          order.due
         }
-        return null
+        order.payments?.clear()
+        //List<Pago> pagos = pagoService.listarPagosPorIdFactura(orderId)
+        List<PagoJava> pagos = notaVenta.pagos.size() > 0 ? notaVenta.pagos : PagoQuery.busquedaPagosPorIdFactura(orderId)
+        pagos?.each { PagoJava tmp ->
+          Payment paymentTmp = Payment.toPaymment(tmp)
+          if (tmp?.idBancoEmi?.integer) {
+            //BancoEmisor banco = bancoService.obtenerBancoEmisor(tmp?.idBancoEmi?.toInteger())
+            BancoEmisorJava banco = BancoEmisorQuery.BuscaBancoEmisorPorId(tmp?.idBancoEmi?.toInteger())
+            paymentTmp.issuerBank = banco?.descripcion
+          }
+          order.payments?.add(paymentTmp)
+        }
+        return order
+      } else {
+        log.warn('no se obtiene orden, notaVenta no existe')
+      }
+      return null
     }
 
     static Order openOrder(String clienteID, String empID) {
-        log.info('abriendo nueva orden')
-        NotaVenta notaVenta = notaVentaService.abrirNotaVenta(clienteID, empID)
-        return Order.toOrder(notaVenta)
+      log.info('abriendo nueva orden')
+      NotaVentaJava notaVenta = notaVentaServiceJava.abrirNotaVenta(clienteID, empID)
+      return Order.toOrder(notaVenta)
     }
 
     static Item findArt(String dioptra) {
@@ -215,16 +293,18 @@ class OrderController {
         return Item.toItem(art)
     }
 
-    static Receta findRx(Order order, Customer customer) {
-        NotaVenta rxNotaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+    static RecetaJava findRx(Order order, Customer customer) {
+        //NotaVenta rxNotaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+        NotaVentaJava rxNotaVenta = NotaVentaQuery.busquedaNotaById( order.id )
         List<Rx> recetas = CustomerController.findAllPrescriptions(customer?.id)
-        Receta receta = new Receta()
+        RecetaJava receta = new RecetaJava()
         Iterator iterator = recetas.iterator();
         while (iterator.hasNext()) {
             Rx rx = iterator.next()
             if (rxNotaVenta.receta == rx?.id) {
                 rxNotaVenta.receta
-                receta = recetaService.findbyId(rxNotaVenta.receta)
+                //receta = recetaService.findbyId(rxNotaVenta.receta)
+                receta = RecetaQuery.buscaRecetaPorIdReceta( rxNotaVenta.receta )
             }
         }
         return receta
@@ -246,39 +326,41 @@ class OrderController {
     }
 
     static void savePromisedDate(String idNotaVenta, Date fechaPrometida) {
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(idNotaVenta)
-        notaVentaService.saveProDate(notaVenta, fechaPrometida)
-
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(idNotaVenta)
+      notaVentaServiceJava.saveProDate(notaVenta, fechaPrometida)
     }
 
     static void saveRxOrder(String idNotaVenta, Integer receta) {
-        log.debug( "guardando receta ${receta}" )
-        println 'receta con error'+receta
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(idNotaVenta)
-        notaVentaService.saveRx(notaVenta, receta)
+      log.debug( "guardando receta ${receta}" )
+      //NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(idNotaVenta)
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( idNotaVenta )
+      //notaVentaService.saveRx(notaVenta, receta)
+      if( receta != null ){
+        recetaServiceJava.saveRx( notaVenta, receta )
+      }
     }
 
-    static Order saveFrame(String idNotaVenta, String opciones, String forma) {
-
-        NotaVenta notaVenta = notaVentaService.saveFrame(idNotaVenta, opciones, forma)
-
-        return Order.toOrder(notaVenta)
-    }
+  static Order saveFrame(String idNotaVenta, String opciones, String forma) {
+    NotaVentaJava notaVenta = notaVentaServiceJava.saveFrame(idNotaVenta, opciones, forma)
+    return Order.toOrder(notaVenta)
+  }
 
     static Dioptra addDioptra(Order order, String dioptra) {
-        log.debug( "addDioptra( )" )
-        NotaVenta nota = notaVentaService.obtenerNotaVenta(order.id)
-        nota.setCodigo_lente(dioptra)
-        nota = notaVentaService.registrarNotaVenta(nota)
-        Dioptra diop = generaDioptra(preDioptra(nota.codigo_lente))
-        println('Codigo Lente: ' + nota.codigo_lente)
-        return diop
+      log.debug( "addDioptra( )" )
+      //NotaVenta nota = notaVentaService.obtenerNotaVenta(order.id)
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(order.id)
+      nota.setCodigoLente(dioptra)
+      //nota = notaVentaService.registrarNotaVenta(nota)
+      nota = notaVentaServiceJava.registrarNotaVenta( nota )
+      Dioptra diop = generaDioptra(preDioptra(nota.codigoLente))
+      println('Codigo Lente: ' + nota.codigoLente)
+      return diop
     }
 
     static String preDioptra(String dioString) {
         String preDioptra
         //try{
-        if (!dioString.equals(null)) {
+        if (!dioString.equals(null) && dioString.length() >= 7) {
             preDioptra = dioString.substring(0, 1) + ',' +
                     dioString.substring(1, 2) + ',' +
                     dioString.substring(2, 3) + ',' +
@@ -294,7 +376,7 @@ class OrderController {
 
     static Dioptra generaDioptra(String dioString) {
         Dioptra nuevoDioptra = new Dioptra()
-        if (dioString == null) {
+        if (StringUtils.trimToEmpty(dioString).length() <= 0) {
         } else {
             ArrayList<String> caract = new ArrayList<String>()
             String s = dioString
@@ -309,69 +391,66 @@ class OrderController {
     }
 
     static Order addItemToOrder(Order order, Item item, String surte) {
-        String orderId = order?.id
-        String clienteID = order.customer?.id
-        String empleadoID = order?.employee
-
-        log.info("agregando articulo id: ${item?.id} a orden id: ${orderId}")
-        if (item?.id) {
-            orderId = (notaVentaService.obtenerNotaVenta(orderId) ? orderId : openOrder(clienteID, empleadoID)?.id)
-            NotaVenta nota = notaVentaService.obtenerNotaVenta(orderId)
-            DetalleNotaVenta detalle = null
-            if (item.isManualPriceItem()) {
-                String rmks = nota.observacionesNv+nota.observacionesNv.trim().length() <= 0 ? order.comments : ''
-                ManualPriceDialog dlg = ManualPriceDialog.instance
-                dlg.item = item
-                dlg.remarks = rmks
-                dlg.activate()
-                if (dlg.itemAccepted) {
-                    item.listPrice = item.price
-                    detalle = new DetalleNotaVenta(
-                            idArticulo: item.id,
-                            cantidadFac: 1,
-                            precioUnitLista: item.listPrice,
-                            precioUnitFinal: item.price,
-                            precioCalcLista: item.listPrice,
-                            precioFactura: item.price,
-                            precioCalcOferta: 0,
-                            precioConv: 0,
-                            idTipoDetalle: 'N',
-                            surte: item?.type.trim().equalsIgnoreCase('B') ? 'P' : surte,
-                    )
-                    nota.observacionesNv = dlg.remarks
-
-                    notaVentaService.registrarNotaVenta(nota)
-                }
-            } else {
-                if(!TAG_GENERICOS_INVENTARIABLES.contains(item.type)){
-                    surte = ' '
-                }
-                detalle = new DetalleNotaVenta(
-                        idArticulo: item.id,
-                        cantidadFac: 1,
-                        precioUnitLista: item.listPrice,
-                        precioUnitFinal: item.price,
-                        precioCalcLista: item.listPrice,
-                        precioFactura: item.price,
-                        precioCalcOferta: 0,
-                        precioConv: 0,
-                        idTipoDetalle: 'N',
-                        surte: surte
-
-                )
-            }
-            if (detalle != null) {
-                nota = notaVentaService.registrarDetalleNotaVentaEnNotaVenta(orderId, detalle)
-            }
-            if (nota != null ) {
-                notaVentaService.registraImpuestoPorFactura( nota )
-            }
-            nota.observacionesNv = nota.observacionesNv.trim().length() <= 0 ? order.comments : ''
-            return Order.toOrder(nota)
+      String orderId = order?.id
+      String clienteID = order.customer?.id
+      String empleadoID = order?.employee
+      log.info("agregando articulo id: ${item?.id} a orden id: ${orderId}")
+      if (item?.id) {
+        orderId = (NotaVentaQuery.busquedaNotaById(orderId) ? orderId : openOrder(clienteID, empleadoID)?.id)
+        NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(orderId)
+        DetalleNotaVentaJava detalle = null
+        if (item.isManualPriceItem()) {
+          String rmks = nota.observacionesNv+nota.observacionesNv.trim().length() <= 0 ? order.comments : ''
+          ManualPriceDialog dlg = ManualPriceDialog.instance
+          dlg.item = item
+          dlg.remarks = rmks
+          dlg.activate()
+          if (dlg.itemAccepted) {
+            item.listPrice = item.price
+            detalle = new DetalleNotaVentaJava(
+                    idArticulo: item.id,
+                    cantidadFac: 1,
+                    precioUnitLista: item.listPrice,
+                    precioUnitFinal: item.price,
+                    precioCalcLista: item.listPrice,
+                    precioFactura: item.price,
+                    precioCalcOferta: 0,
+                    precioConv: 0,
+                    idTipoDetalle: 'N',
+                    surte: StringUtils.trimToEmpty(item?.type).equalsIgnoreCase('B') ? 'P' : surte,
+            )
+            nota.observacionesNv = dlg.remarks
+            notaVentaServiceJava.registrarNotaVenta(nota)
+          }
         } else {
-            log.warn("no se agrega articulo, parametros invalidos")
+          if(!TAG_GENERICOS_INVENTARIABLES.contains(item.type)){
+            surte = ' '
+          }
+          detalle = new DetalleNotaVentaJava(
+                  idArticulo: item.id,
+                  cantidadFac: 1,
+                  precioUnitLista: item.listPrice,
+                  precioUnitFinal: item.price,
+                  precioCalcLista: item.listPrice,
+                  precioFactura: item.price,
+                  precioCalcOferta: 0,
+                  precioConv: 0,
+                  idTipoDetalle: 'N',
+                  surte: surte
+           )
         }
-        return null
+        if (detalle != null) {
+          nota = notaVentaServiceJava.registrarDetalleNotaVentaEnNotaVenta(orderId, detalle)
+        }
+        if (nota != null ) {
+          notaVentaServiceJava.registraImpuestoPorFactura( nota )
+        }
+        nota.observacionesNv = nota.observacionesNv.trim().length() <= 0 ? order.comments : ''
+        return Order.toOrder(nota)
+      } else {
+        log.warn("no se agrega articulo, parametros invalidos")
+      }
+      return null
     }
 
     static Order addOrderItemToOrder(String orderId, OrderItem orderItem, String surte, String batch) {
@@ -410,35 +489,34 @@ class OrderController {
     }
 
     static Order removeOrderItemFromOrder(String orderId, OrderItem orderItem) {
-        log.info("eliminando orderItem, articulo id: ${orderItem?.item?.id} de orden id: ${orderId}")
-        if (StringUtils.isNotBlank(orderId) && orderItem?.item?.id) {
-            NotaVenta notaVenta = notaVentaService.eliminarDetalleNotaVentaEnNotaVenta(orderId, orderItem.item.id)
-            if (notaVenta?.id) {
-                NotaVenta nota = notaVentaService.obtenerNotaVenta(orderId)
-                Order o = new Order()
-                Articulo i = articuloService.obtenerArticulo(orderItem?.item?.id.toInteger())
-
-                if (!i?.indice_dioptra.equals(null)) {
-                    if(StringUtils.trimToEmpty(i?.idGenerico).equalsIgnoreCase(TAG_GENERICO_B)){
-                      nota.receta = null
-                      notaVentaRepository.save( nota )
-                    }
-                    Dioptra actDioptra = validaDioptra(generaDioptra(preDioptra(nota.codigo_lente)), generaDioptra(i.indice_dioptra))
-                    o = Order.toOrder(notaVenta)
-
-                    actDioptra = addDioptra(o, codigoDioptra(actDioptra))
-
-                }
-
-                return o
-
-            } else {
-                log.warn("no se elimina orderItem, notaVenta no existe")
+      log.info("eliminando orderItem, articulo id: ${orderItem?.item?.id} de orden id: ${orderId}")
+      if (StringUtils.isNotBlank(orderId) && orderItem?.item?.id) {
+        NotaVentaJava notaVenta = notaVentaServiceJava.eliminarDetalleNotaVentaEnNotaVenta(orderId, orderItem.item.id)
+        if (notaVenta?.idFactura) {
+          NotaVentaJava nota = NotaVentaQuery.busquedaNotaById(orderId)
+          Order o = new Order()
+          ArticulosJava i = ArticulosQuery.busquedaArticuloPorId(orderItem?.item?.id?.toInteger())
+          if (!i?.indiceDioptra?.equals(null)) {
+            if(StringUtils.trimToEmpty(i?.idGenerico).equalsIgnoreCase(TAG_GENERICO_B)){
+              nota.receta = null
+              NotaVentaQuery.updateNotaVenta( nota )
             }
+            if( StringUtils.trimToEmpty(i.indiceDioptra).length() > 0 ){
+              Dioptra actDioptra = validaDioptra(generaDioptra(preDioptra(nota.codigoLente)), generaDioptra(i.indiceDioptra))
+              o = Order.toOrder(notaVenta)
+              actDioptra = addDioptra(o, codigoDioptra(actDioptra))
+            } else {
+              o = Order.toOrder(notaVenta)
+            }
+          }
+          return o
         } else {
-            log.warn("no se elimina orderItem, parametros invalidos")
+          log.warn("no se elimina orderItem, notaVenta no existe")
         }
-        return null
+      } else {
+        log.warn("no se elimina orderItem, parametros invalidos")
+      }
+      return null
     }
 
 
@@ -552,41 +630,39 @@ class OrderController {
     }
 
     static Order placeOrder(Order order, String idEmpleado, Boolean isMultypayment) {
-        log.info("registrando orden id: ${order?.id}, cliente: ${order?.customer?.id}")
-        if (StringUtils.isNotBlank(order?.id) && order?.customer?.id) {
-            NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order.id)
-            if (StringUtils.isNotBlank(notaVenta?.id)) {
-
-              if (StringUtils.trimToEmpty(notaVenta.idEmpleado).length() <= 0) {
-                notaVenta.idEmpleado = idEmpleado
-              }
-                if (notaVenta.idCliente != null) {
-                    notaVenta.idCliente = order.customer.id
-                }
-                if( StringUtils.trimToNull(order.dioptra) == null ){
-                    notaVenta.codigo_lente = null
-                }
-                notaVenta.observacionesNv = order.comments
-                //notaVenta.empEntrego = user?.username
-                notaVenta.udf4 = isMultypayment ? "M" : ""
-                notaVenta = notaVentaService.cerrarNotaVenta(notaVenta)
-                if (inventarioService.solicitarTransaccionVenta(notaVenta)) {
-                    log.debug("transaccion de inventario correcta")
-                    if( inventarioService.solicitarTransaccionEntradaSP(notaVenta) ){
-                      log.debug("transaccion entrada SP correcta")
-                      inventarioService.insertarRegistroRemesa( notaVenta )
-                    }
-                } else {
-                    log.warn("no se pudo procesar la transaccion de inventario")
-                }
-                ServiceManager.ioServices.logSalesNotification(notaVenta.id)
-                return Order.toOrder(notaVenta)
-            } else {
-                log.warn("no se registra orden, notaVenta no existe")
+      log.info("registrando orden id: ${order?.id}, cliente: ${order?.customer?.id}")
+      if (StringUtils.isNotBlank(order?.id) && order?.customer?.id) {
+        NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
+        if (StringUtils.isNotBlank(notaVenta?.idFactura)) {
+          if (StringUtils.trimToEmpty(notaVenta.idEmpleado).length() <= 0) {
+            notaVenta.idEmpleado = idEmpleado
+          }
+          if (notaVenta.idCliente != null) {
+            notaVenta.idCliente = order.customer.id
+          }
+          if( StringUtils.trimToNull(order.dioptra) == null ){
+            notaVenta.codigoLente = null
+          }
+          notaVenta.observacionesNv = order.comments
+          notaVenta.udf4 = isMultypayment ? "M" : ""
+          notaVenta = notaVentaServiceJava.cerrarNotaVenta(notaVenta)
+          if (inventarioServiceJava.solicitarTransaccionVenta(notaVenta)) {
+            log.debug("transaccion de inventario correcta")
+            if( inventarioServiceJava.solicitarTransaccionEntradaSP(notaVenta) ){
+              log.debug("transaccion entrada SP correcta")
+              inventarioServiceJava.insertarRegistroRemesa( notaVenta )
             }
+          } else {
+                    log.warn("no se pudo procesar la transaccion de inventario")
+          }
+          ServiceManager.ioServices.logSalesNotification(notaVenta.idFactura)
+          return Order.toOrder(notaVenta)
         } else {
-            log.warn("no se registra orden, parametros invalidos")
+          log.warn("no se registra orden, notaVenta no existe")
         }
+      } else {
+        log.warn("no se registra orden, parametros invalidos")
+      }
         return null
     }
 
@@ -626,32 +702,54 @@ class OrderController {
         return jbRepository.findOne(rx)
     }
 
-    static void insertaEntrega(Order order, Boolean entregaInstante) {
-        println('Order ID: ' + order?.id)
-        Boolean alreadyDelivered = false
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
-        User user = Session.get(SessionItem.USER) as User
-        notaVenta.setEmpEntrego(user?.username)
-        notaVenta.setHoraEntrega(new Date())
-        if (notaVenta?.fechaEntrega == null) {
-            notaVenta.setFechaEntrega(new Date())
-        } else {
-          alreadyDelivered = true
+  static void insertaEntrega(Order order, Boolean entregaInstante) {
+    println('Order ID: ' + order?.id)
+    Boolean alreadyDelivered = false
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order?.id)
+    User user = Session.get(SessionItem.USER) as User
+    notaVenta.setEmpEntrego(user?.username)
+    notaVenta.setHoraEntrega(new Date())
+    if (notaVenta?.fechaEntrega == null) {
+      notaVenta.setFechaEntrega(new Date())
+    } else {
+      alreadyDelivered = true
+    }
+    println('Factura: ' + notaVenta?.getFactura())
+    String idFactura = notaVenta.getFactura()
+    notaVentaServiceJava.saveOrder(notaVenta)
+    Boolean hasRedEnsure = false
+    for(PagoJava pago : notaVenta.pagos){
+      if( StringUtils.trimToEmpty(pago.eTipoPago.idPago).equalsIgnoreCase(TAG_CUPON_SEGURO) ){
+        hasRedEnsure = true
+      }
+    }
+    Boolean validPayments = true
+    for( NotaVentaJava nv : notaVenta ){
+      for(PagoJava pay : nv.pagos){
+        if(TAG_FORMA_CARGO_EMP.equalsIgnoreCase(StringUtils.trimToEmpty(pay.idFPago)) ||
+                TAG_FORMA_CARGO_MVIS.equalsIgnoreCase(StringUtils.trimToEmpty(pay.idFPago))){
+          validPayments = false
         }
-
-        println('Factura: ' + notaVenta?.getFactura())
-        String idFactura = notaVenta.getFactura()
-        notaVentaService.saveOrder(notaVenta)
-        if( notaVenta.fechaEntrega != null ){
+      }
+    }
+    notaVentaServiceJava.saveOrder(notaVenta)
+    if( notaVenta.fechaEntrega != null ){
           if( Registry.isCouponFFActivated() && !alreadyDelivered ){
             if( !Registry.couponFFOtherDiscount() ){
-              if( notaVenta.ordenPromDet.size() <= 0 && notaVenta.desc == null ){
+              Boolean hasNotDiscount = true
+              if( notaVenta.descuentosJava != null ){
+                if( !StringUtils.trimToEmpty(notaVenta.descuentosJava.clave).equalsIgnoreCase("PREDAD") ){
+                  hasNotDiscount = false
+                }
+              }
+              if( notaVenta.ordenPromDet.size() <= 0 && hasNotDiscount && !hasRedEnsure && validPayments){
                 generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
               }
-            } else {
+            } else if(!hasRedEnsure && validPayments){
               generateCouponFAndF( StringUtils.trimToEmpty( order.id ) )
             }
           }
+        }
           Boolean orderToday = StringUtils.trimToEmpty(notaVenta.fechaHoraFactura.format("dd/MM/yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd/MM/yyyy")))
           Boolean validDateEnsure = orderToday ? true : validEnsureDateAplication(notaVenta)
         if( !alreadyDelivered ){
@@ -659,7 +757,7 @@ class OrderController {
             if( validWarranty( notaVenta, false, null, "", false ) ){
               Boolean doubleEnsure = lstWarranty.size() > 1 ? true : false
               for(Warranty warranty : lstWarranty){
-                String idFac = StringUtils.trimToEmpty(idOrderEnsured).length() > 0 ? StringUtils.trimToEmpty(idOrderEnsured) : notaVenta.id
+                String idFac = StringUtils.trimToEmpty(idOrderEnsured).length() > 0 ? StringUtils.trimToEmpty(idOrderEnsured) : notaVenta.idFactura
                 ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, idFac, doubleEnsure )
               }
               idOrderEnsured = ""
@@ -674,15 +772,15 @@ class OrderController {
                 JOptionPane.showMessageDialog( null, MSJ_ERROR_WARRANTY,
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
               }
-            }
+          }
             postEnsure = ""
-          } else {
+        } else {
             lstWarranty.clear()
             Boolean validWarranty = false
             Warranty warranty = new Warranty()
             warranty.idItem = ""
             warranty.amount = BigDecimal.ZERO
-            for(DetalleNotaVenta det : notaVenta.detalles){
+            for(DetalleNotaVentaJava det : notaVenta.detalles){
               if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
                 validWarranty = true
                 if( StringUtils.trimToEmpty(det.articulo.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
@@ -705,40 +803,39 @@ class OrderController {
             if( lstWarranty.size() > 0 ){
               Boolean doubleEnsure = lstWarranty.size() > 1 ? true : false
               for(Warranty warranty1 : lstWarranty){
-                ItemController.printWarranty( warranty1.amount, warranty1.idItem, warranty1.typeEnsure, StringUtils.trimToEmpty(notaVenta.id), doubleEnsure )
+                ItemController.printWarranty( warranty1.amount, warranty1.idItem, warranty1.typeEnsure, StringUtils.trimToEmpty(notaVenta.idFactura), doubleEnsure )
               }
               lstWarranty.clear()
             }
           }
-        }
-        }
 
-        if (entregaInstante == false) {
-            Jb trabajo = jbRepository.findOne(idFactura)
-            if( trabajo == null ){
-              idFactura = idFactura.replaceFirst("^0*", "")
-              trabajo = jbRepository.findOne( idFactura)
-            }
-            if( trabajo != null && !trabajo.estado.equalsIgnoreCase('TE')){
-              trabajo.setEstado('TE')
-              trabajo = jbRepository.saveAndFlush(trabajo)
-            }
-
-            JbTrack jbTrack = new JbTrack()
-            String bill = order?.bill.replaceFirst("^0*", "")
-            jbTrack?.rx = bill
-            jbTrack?.estado = 'TE'
-            jbTrack?.emp = user?.username
-            jbTrack?.fecha = new Date()
-            jbTrack?.id_mod = '0'
-            jbTrack?.id_viaje = null
-            jbTrack?.obs = user?.username
-
-            jbTrackService.saveJbTrack(jbTrack)
-            jbLlamadaRepository.deleteByJbLlamada(order?.bill)
-            cancelacionService.actualizaGrupo( notaVenta.id, 'E' )
         }
+    if (!entregaInstante) {
+      Jb trabajo = JbQuery.getJbRxSimple(idFactura)
+      if( trabajo == null ){
+        idFactura = idFactura.replaceFirst("^0*", "")
+        trabajo = JbQuery.getJbRxSimple(idFactura)
+      }
+      if( trabajo != null && !trabajo.estado.equalsIgnoreCase('TE')){
+        trabajo.setEstado('TE')
+        JbQuery.updateEstadoJbRx(idFactura, trabajo.estado)
+      }
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+      String bill = order?.bill.replaceFirst("^0*", "")
+      jbTrack?.rx = bill
+      jbTrack?.estado = 'TE'
+      jbTrack?.emp = user?.username
+      jbTrack?.fecha = new Date()
+      jbTrack?.idMod = '0'
+      jbTrack?.idViaje = null
+      jbTrack?.obs = user?.username
+
+      JbTrackQuery.insertJbTrack(jbTrack)
+      JbTrackQuery.insertJbTrack(jbTrack)
+      JbQuery.eliminaJbLLamada(order?.bill)
+      cancelacionServiceJava.actualizaGrupo( notaVenta.idFactura, 'E' )
     }
+  }
 
     static void printOrder(String orderId) {
         printOrder(orderId, true)
@@ -781,6 +878,16 @@ class OrderController {
         return Order.toOrder(result)
     }
 
+    static Order findOrderByTicketJava(String factura) {
+      log.info("buscando orden por ticket: ${factura}")
+      NotaVentaJava result = NotaVentaQuery.busquedaNotaByFactura(factura)
+      if( result == null ){
+        factura = String.format("%06d",Integer.parseInt(factura))
+        result = NotaVentaQuery.busquedaNotaByFactura(factura)
+      }
+      return Order.toOrder(result)
+    }
+
     static Order findOrderByIdOrder(String idOrder) {
         log.info("buscando orden por ticket: ${idOrder}")
         NotaVenta result = notaVentaService.obtenerNotaVenta(idOrder)
@@ -805,9 +912,9 @@ class OrderController {
         return false//displayUsd
     }
 
-    static SalesWithNoInventory requestConfigSalesWithNoInventory() {
-        return notaVentaService.obtenerConfigParaVentasSinInventario()
-    }
+  static SalesWithNoInventory requestConfigSalesWithNoInventory() {
+    return notaVentaServiceJava.obtenerConfigParaVentasSinInventario()
+  }
 
     static DetalleNotaVenta getDetalleNotaVenta(String idFactura, Integer idArticulo) {
         log.debug("getDetalleNotaVenta( String idFactura, Integer idArticulo )")
@@ -885,19 +992,19 @@ class OrderController {
     }
 
     static String requestEmployee(String pOrderId) {
-
-        String empName = ''
-        if (StringUtils.trimToNull(StringUtils.trimToEmpty(pOrderId)) != null) {
-            Empleado employee = notaVentaService.obtenerEmpleadoDeNotaVenta(pOrderId)
-            if (employee != null) {
-                if (((User) Session.get(SessionItem.USER)).equals(employee)) {
-                    empName = ((User) Session.get(SessionItem.USER)).toString()
-                } else {
-                    empName = User.toUser(employee).toString()
-                }
-            }
+      String empName = ''
+      if (StringUtils.trimToNull(StringUtils.trimToEmpty(pOrderId)) != null) {
+        //Empleado employee = notaVentaService.obtenerEmpleadoDeNotaVenta(pOrderId)
+        EmpleadoJava employee = notaVentaServiceJava.obtenerEmpleadoDeNotaVenta(pOrderId)
+        if (employee != null) {
+          if (((User) Session.get(SessionItem.USER)).equals(employee)) {
+            empName = ((User) Session.get(SessionItem.USER)).toString()
+          } else {
+            empName = User.toUser(employee).toString()
+          }
         }
-        return empName
+      }
+      return empName
     }
 
     static void saveCustomerForOrder(String pOrderNbr, Integer pCustomerId) {
@@ -946,6 +1053,35 @@ class OrderController {
         return null
     }
 
+
+
+    static Order saveOrderJava(Order order) {
+      log.info("registrando orden id: ${order?.id}, cliente: ${order?.customer?.id}")
+      if (StringUtils.isNotBlank(order?.id) && order?.customer?.id) {
+        NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
+        if (StringUtils.isNotBlank(notaVenta?.idFactura)) {
+          User user = Session.get(SessionItem.USER) as User
+          if (StringUtils.isBlank(notaVenta.idEmpleado)) {
+            notaVenta.idEmpleado = user?.username
+          }
+          if (notaVenta.idCliente != null) {
+            notaVenta.idCliente = order.customer.id
+          }
+          notaVenta.codigoLente = order?.dioptra
+          notaVenta.observacionesNv = order.comments
+          notaVenta = notaVentaServiceJava.registrarNotaVenta(notaVenta)
+          return Order.toOrder(notaVenta)
+        } else {
+          log.warn("no se registra orden, notaVenta no existe")
+        }
+      } else {
+        log.warn("no se registra orden, parametros invalidos")
+      }
+      return null
+    }
+
+
+
     static void notifyAlert(String pTitle, String pMessage) {
         JOptionPane.showMessageDialog(MainWindow.instance, pMessage, pTitle, JOptionPane.ERROR_MESSAGE)
     }
@@ -990,281 +1126,258 @@ class OrderController {
 
 
     static Boolean validaEntrega(String idFactura, String idSucursal, Boolean entregaInstante) {
-        String ticket = idSucursal + '-' + idFactura
-        Boolean registro = true
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket(ticket)
-        if(notaVenta == null){
-          if(idFactura.length()< 6){
-            idFactura = String.format( "%06d", Integer.parseInt(idFactura) )
-            ticket = idSucursal + '-' + idFactura
-            notaVenta = notaVentaService.obtenerNotaVentaPorTicket(ticket)
-          }
+      String ticket = idSucursal + '-' + idFactura
+      Boolean registro = true
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura(idFactura)
+      if(notaVenta == null){
+        if(idFactura.length()< 6){
+          idFactura = String.format( "%06d", Integer.parseInt(idFactura) )
+          ticket = idSucursal + '-' + idFactura
+          notaVenta = NotaVentaQuery.busquedaNotaByFactura(idFactura)
         }
-        if(notaVenta != null){
+      }
+      if(notaVenta != null){
         Order order = Order.toOrder(notaVenta)
-        List<DetalleNotaVenta> detalleVenta = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(notaVenta?.id)
+        List<DetalleNotaVentaJava> detalleVenta = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(notaVenta?.idFactura)
         Boolean entregaBo = true
         Boolean surte = false
         if (entregaInstante) {
-            Parametro genericoNoEntrega = parametroRepository.findOne(TipoParametro.GENERICOS_NO_ETREGABLES.value)
-            ArrayList<String> genericosNoEntregables = new ArrayList<String>()
-            String s = genericoNoEntrega?.valor
-            StringTokenizer st = new StringTokenizer(s.trim(), ",")
-            Iterator its = st.iterator()
-            while (its.hasNext()) {
-                genericosNoEntregables.add(its.next().toString())
-            }
-            Iterator iterator = detalleVenta.iterator();
-            while (iterator.hasNext()) {
-                DetalleNotaVenta detalle = iterator.next()
-
-                Articulo articulo = articuloService.obtenerArticulo(detalle?.idArticulo)
-                for (int a = 0; a < genericosNoEntregables.size(); a++) {
-                    String[] values = genericosNoEntregables.get(a).trim().split(":")
-                    String generico = StringUtils.trimToEmpty(values[0])
-                    String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
-                    String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
-                    String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
-                    Boolean genericoValid = false
-                    Boolean tipoValid = false
-                    Boolean subtipoValid = false
-                    Boolean marcaValid = false
-                    if (StringUtils.trimToEmpty(articulo?.idGenerico).equalsIgnoreCase(generico.trim())) {
-                      genericoValid = true
-                    }
-                    if( tipo.length() > 0 ){
-                      if (StringUtils.trimToEmpty(articulo?.tipo).equalsIgnoreCase(tipo.trim())) {
-                        tipoValid = true
-                      }
-                    } else {
-                        tipoValid = true
-                    }
-                    if( subtipo.length() > 0 ){
-                        if (StringUtils.trimToEmpty(articulo?.subtipo).equalsIgnoreCase(subtipo.trim())) {
-                            subtipoValid = true
-                        }
-                    } else {
-                        subtipoValid = true
-                    }
-                    if( marca.length() > 0 ){
-                        if (StringUtils.trimToEmpty(articulo?.marca).equalsIgnoreCase(marca.trim())) {
-                            marcaValid = true
-                        }
-                    } else {
-                        marcaValid = true
-                    }
-                    if( genericoValid && tipoValid && subtipoValid && marcaValid ){
-                      entregaBo = false
-                      Parametro diaIntervalo = Registry.find(TipoParametro.DIA_PRO)
-                      Date diaPrometido = new Date() + diaIntervalo?.valor?.toInteger()
-                      savePromisedDate(notaVenta?.id, diaPrometido)
-                    }
+          Parametros genericoNoEntrega = ParametrosQuery.BuscaParametroPorId(TipoParametro.GENERICOS_NO_ETREGABLES.value)
+          ArrayList<String> genericosNoEntregables = new ArrayList<String>()
+          String s = genericoNoEntrega?.valor
+          StringTokenizer st = new StringTokenizer(s.trim(), ",")
+          Iterator its = st.iterator()
+          while (its.hasNext()) {
+            genericosNoEntregables.add(its.next().toString())
+          }
+          Iterator iterator = detalleVenta.iterator();
+          while (iterator.hasNext()) {
+            DetalleNotaVentaJava detalle = iterator.next()
+            ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(detalle?.idArticulo)
+            for (int a = 0; a < genericosNoEntregables.size(); a++) {
+              String[] values = genericosNoEntregables.get(a).trim().split(":")
+              String generico = StringUtils.trimToEmpty(values[0])
+              String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
+              String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
+              String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
+              Boolean genericoValid = false
+              Boolean tipoValid = false
+              Boolean subtipoValid = false
+              Boolean marcaValid = false
+              if (StringUtils.trimToEmpty(articulo?.idGenerico).equalsIgnoreCase(generico.trim())) {
+                genericoValid = true
+              }
+              if( tipo.length() > 0 ){
+                if (StringUtils.trimToEmpty(articulo?.tipo).equalsIgnoreCase(tipo.trim())) {
+                  tipoValid = true
                 }
-                if (StringUtils.trimToEmpty(detalle?.surte).equals('P') && !detalle?.articulo?.generico?.inventariable) {
-                    surte = true
+              } else {
+                tipoValid = true
+              }
+              if( subtipo.length() > 0 ){
+                if (StringUtils.trimToEmpty(articulo?.subtipo).equalsIgnoreCase(subtipo.trim())) {
+                  subtipoValid = true
                 }
+              } else {
+                subtipoValid = true
+              }
+              if( marca.length() > 0 ){
+                if (StringUtils.trimToEmpty(articulo?.marca).equalsIgnoreCase(marca.trim())) {
+                  marcaValid = true
+                }
+              } else {
+                marcaValid = true
+              }
+              if( genericoValid && tipoValid && subtipoValid && marcaValid ){
+                entregaBo = false
+                Parametros diaIntervalo = Registry.find(mx.lux.pos.java.TipoParametro.DIA_PRO)
+                Date diaPrometido = new Date() + diaIntervalo?.valor?.toInteger()
+                savePromisedDate(notaVenta?.idFactura, diaPrometido)
+              }
             }
+            if (StringUtils.trimToEmpty(detalle?.surte).equals('P') && !detalle?.articulo?.generico?.inventariable) {
+              surte = true
+            }
+          }
         }
-
-        TmpServicios tmpServicios = tmpServiciosRepository.findbyIdFactura(notaVenta?.id)
+        TmpServiciosJava tmpServicios = TmpServiciosQuery.buscaTmpServiciosPorIdFactura(notaVenta?.idFactura)
         Boolean temp = false
-        if (tmpServicios?.id_serv != null) {
-            temp = true
+        if (tmpServicios?.idServ != null) {
+          temp = true
         }
-        /*println(surte == true)
-        println(temp == true)
-        println(entregaBo == true)*/
-        //*Contacto
         if(entregaInstante){
-            if (surte || temp || !entregaBo) {
-                List<FormaContacto> result = ContactController.findByIdCliente(notaVenta?.idCliente.toInteger())
-                if (result.size() == 0) {
-                    ContactDialog contacto = new ContactDialog(notaVenta)
-                    contacto.activate()
-                } else {
-                    ContactClientDialog contactoCliente = new ContactClientDialog(notaVenta)
-                    contactoCliente.activate()
-                    if (contactoCliente.formaContactoSeleted != null) {
-                        FormaContacto formaContacto = contactoCliente.formaContactoSeleted
-                        formaContacto?.rx = notaVenta?.factura
-                        formaContacto?.fecha_mod = new Date()
-                        formaContacto?.id_cliente = notaVenta?.idCliente
-                        formaContacto?.id_sucursal = notaVenta?.idSucursal
-                        formaContacto?.observaciones =  contactoCliente.formaContactoSeleted?.observaciones != '' ? contactoCliente.formaContactoSeleted?.observaciones : ' '
-                        formaContacto?.id_tipo_contacto = contactoCliente.formaContactoSeleted?.tipoContacto?.id_tipo_contacto
-                        ContactController.saveFormaContacto(formaContacto)
-                    }
+          if (surte || temp || !entregaBo) {
+            List<FormaContactoJava> result = ContactController.findByIdCliente(notaVenta?.idCliente)
+              if (result.size() == 0) {
+                ContactDialog contacto = new ContactDialog(notaVenta)
+                contacto.activate()
+              } else {
+                ContactClientDialog contactoCliente = new ContactClientDialog(notaVenta)
+                contactoCliente.activate()
+                if (contactoCliente.formaContactoSeleted != null) {
+                  FormaContactoJava formaContacto = contactoCliente.formaContactoSeleted
+                  formaContacto?.rx = notaVenta?.factura
+                  formaContacto?.fechaMod = new Date()
+                  formaContacto?.idCliente = notaVenta?.idCliente
+                  formaContacto?.idSucursal = notaVenta?.idSucursal
+                  formaContacto?.observaciones =  contactoCliente.formaContactoSeleted?.observaciones != '' ? contactoCliente.formaContactoSeleted?.observaciones : ' '
+                  formaContacto?.idTipoContacto = contactoCliente.formaContactoSeleted?.tipoContacto?.idTipoContacto
+                  ContactController.saveFormaContacto(formaContacto)
                 }
-            }
+              }
+          }
         }
         //*Contacto
         if ((order?.total - order?.paid) == 0 && entregaBo) {
-            Boolean fechaC = true
-            if (!entregaInstante) {
-                SimpleDateFormat fecha = new SimpleDateFormat("dd/MMMM/yyyy")
-                String fechaVenta = fecha.format(notaVenta?.fechaHoraFactura).toString()
-                String ahora = fecha.format(new Date())
-                if (fechaVenta.equals(ahora)) {
-                    fechaC = false
-                }
+          Boolean fechaC = true
+          if (!entregaInstante) {
+            SimpleDateFormat fecha = new SimpleDateFormat("dd/MMMM/yyyy")
+            String fechaVenta = fecha.format(notaVenta?.fechaHoraFactura).toString()
+            String ahora = fecha.format(new Date())
+            if (fechaVenta.equals(ahora)) {
+              fechaC = false
             }
-            if (fechaC) {
-                if( validaEntregaSegundaVenta( order ) ){
-                  insertaEntrega(order, entregaInstante)
-                  deliverOrderLc( notaVenta.factura )
-                } else {
-                  retenerEntrega( order.id )
-                }
-                try{
-                runScriptBckpOrder( order )
-                } catch( Exception e){
-                  println e
-                }
+          }
+          if (fechaC) {
+            if( validaEntregaSegundaVenta( order ) ){
+              insertaEntrega(order, entregaInstante)
+              deliverOrderLc( notaVenta.factura )
             } else {
-                JOptionPane.showMessageDialog(null, "No se puede entregar trabajo hoy mismo")
+              retenerEntrega( order.id )
             }
+            try{
+              runScriptBckpOrder( order )
+            } catch( Exception e){
+              println e
+            }
+          } else {
+            JOptionPane.showMessageDialog(null, "No se puede entregar trabajo hoy mismo")
+          }
         } else {
-            if (!entregaInstante) {
-                JOptionPane.showMessageDialog(null, "La nota tiene saldo pendiente por cubrir. No se puede entregar trabajo")
-            }
+          if (!entregaInstante) {
+            JOptionPane.showMessageDialog(null, "La nota tiene saldo pendiente por cubrir. No se puede entregar trabajo")
+          }
         }
-    }else{
-            registro = false
-        }
-        return registro
+      } else {
+        registro = false
+      }
+      return registro
     }
 
     static Boolean creaJb(String idFactura, Boolean cSaldo) {
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket(idFactura)
-        List<DetalleNotaVenta> detalleVenta = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(notaVenta?.id)
-        Boolean creaJB = false
-        String articulos = ''
-        String surte = ''
-        String tipoJb = ''
-        Boolean genericoD = false
-        Iterator iterator = detalleVenta.iterator();
-        while (iterator.hasNext()) {
-            DetalleNotaVenta detalle = iterator.next()
-            Articulo articulo = articuloService.obtenerArticulo(detalle?.idArticulo)
-            articulos = articulos + articulo?.articulo + ', '
-            if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('A') || StringUtils.trimToEmpty(articulo?.idGenerico).equals('E')) {
-                surte = detalle?.surte
-            }
-            if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('D')) {
-                genericoD = true
-            }
-            if( notaVenta.fechaEntrega == null ){
-            //if (articulo?.idGenerico.trim().equals('B') || articulo?.idGenerico.trim().equals('C') || articulo?.idGenerico.trim().equals('H')) {
-                creaJB = true
-                if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('C') || StringUtils.trimToEmpty(articulo?.idGenerico).equals('H')) {
-                    tipoJb = 'LC'
-                } else if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('B')) {
-                    tipoJb = 'LAB'
-                }
-            }
-            String surt = StringUtils.trimToEmpty(detalle?.surte) != '' ? StringUtils.trimToEmpty(detalle?.surte) : ''
-            if (surt.equals('P')) {
-                creaJB = true
-            }
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura(idFactura)
+      List<DetalleNotaVentaJava> detalleVenta = detalleNotaVentaServiceJava.listarDetallesNotaVentaPorIdFactura(notaVenta?.idFactura)
+      Boolean creaJB = false
+      String articulos = ''
+      String surte = ''
+      String tipoJb = ''
+      Boolean genericoD = false
+      Iterator iterator = detalleVenta.iterator();
+      while (iterator.hasNext()) {
+        DetalleNotaVentaJava detalle = iterator.next()
+        ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(detalle?.idArticulo)
+        articulos = articulos + articulo?.articulo + ', '
+        if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('A') || StringUtils.trimToEmpty(articulo?.idGenerico).equals('E')) {
+          surte = detalle?.surte
         }
-
-        TmpServicios tmpServicios = tmpServiciosRepository.findbyIdFactura(notaVenta?.id)
-        if (tmpServicios?.id_serv != null) {
-            creaJB = true
+        if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('D')) {
+          genericoD = true
         }
-
-        if ( creaJB ) {
-            Jb jb = jbRepository.findOne(notaVenta?.factura)
-            println('JB: ' + jb?.rx)
-
-            Jb nuevoJb = new Jb()
-            JbTrack nuevojbTrack = new JbTrack()
-
-            if (jb == null) {
-                String factura = notaVenta.factura.replaceFirst("^0*", "")
-                nuevoJb?.rx = factura
-                nuevoJb?.estado = 'PE'
-                nuevoJb?.id_cliente = notaVenta?.idCliente
-                nuevoJb?.emp_atendio = notaVenta?.empleado?.id
-                nuevoJb?.fecha_promesa = notaVenta?.fechaPrometida
-                nuevoJb?.num_llamada = 0
-                nuevoJb?.material = articulos
-                nuevoJb?.surte = surte
-                nuevoJb?.saldo = notaVenta.ventaNeta - notaVenta?.sumaPagos
-                nuevoJb?.jb_tipo = tipoJb
-                nuevoJb?.cliente = notaVenta?.cliente?.nombreCompleto
-                nuevoJb?.fecha_venta = notaVenta?.fechaHoraFactura
-
-                nuevojbTrack?.rx = factura
-                nuevojbTrack?.estado = 'PE'
-                nuevojbTrack?.emp = notaVenta?.empleado?.id
-                nuevojbTrack?.obs = articulos
-
-                println('jbTipo: ' + nuevoJb?.jb_tipo)
-                println('LC: ' + StringUtils.trimToEmpty(nuevoJb?.jb_tipo).equals('LC'))
-                if (StringUtils.trimToEmpty(nuevoJb?.jb_tipo).equals('LC')) {
-                    nuevoJb?.estado = 'EP'
-                    nuevoJb?.id_viaje = '8'
-
-                    JbTrack nuevoJbTrack2 = new JbTrack()
-                    nuevoJbTrack2?.rx = factura
-                    nuevoJbTrack2?.estado = 'EP'
-                    nuevoJbTrack2?.obs = '8'
-                    nuevoJbTrack2?.id_viaje = '8'
-                    nuevoJbTrack2?.emp = notaVenta?.empleado?.id
-                    nuevoJbTrack2?.fecha = new Date()
-                    nuevoJbTrack2?.id_mod = '0'
-                    println('LC: ' + nuevoJbTrack2?.id_viaje)
-                    nuevoJbTrack2 = jbTrackService.saveJbTrack(nuevoJbTrack2)
-
-                }
-
-                Parametro convenioNomina = parametroRepository.findOne(TipoParametro.CONV_NOMINA.value)
-
-
-                String s = convenioNomina?.valor
-                StringTokenizer st = new StringTokenizer(s.trim(), ",")
-                Iterator its = st.iterator()
-                Boolean convenio = false
-                while (its.hasNext()) {
-                    if (its.next().toString().equals(notaVenta?.idConvenio)) {
-                        convenio = true
-                    }
-                }
-
-                if (convenio) {
-                    nuevoJb?.estado = 'RTN'
-                    if (genericoD) {
-                        nuevoJb?.jb_tipo = 'EMA'
-                    } else {
-                        nuevoJb?.jb_tipo = 'EMP'
-                    }
-
-                }
-
-
-            }
-
-            if (cSaldo) {
-                nuevoJb?.estado = 'RTN'
-                nuevojbTrack?.estado = 'RTN'
-                nuevojbTrack?.obs = 'Factura con Saldo'
-            }
-
-            nuevoJb?.fecha_mod = new Date()
-            nuevoJb?.id_mod = '0'
-            nuevojbTrack?.fecha = new Date()
-            nuevojbTrack?.id_mod = '0'
-            if( nuevoJb.rx != null ){
-              nuevoJb = jbRepository.save(nuevoJb)
-              jbRepository.flush()
-            }
-            if( nuevojbTrack.rx != null ){
-              nuevojbTrack = jbTrackService.saveJbTrack(nuevojbTrack)
-            }
-
+        if( notaVenta.fechaEntrega == null ){
+          //if (articulo?.idGenerico.trim().equals('B') || articulo?.idGenerico.trim().equals('C') || articulo?.idGenerico.trim().equals('H')) {
+          creaJB = true
+          if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('C') || StringUtils.trimToEmpty(articulo?.idGenerico).equals('H')) {
+            tipoJb = 'LC'
+          } else if (StringUtils.trimToEmpty(articulo?.idGenerico).equals('B')) {
+            tipoJb = 'LAB'
+          }
         }
-        return creaJB
+        String surt = StringUtils.trimToEmpty(detalle?.surte) != '' ? StringUtils.trimToEmpty(detalle?.surte) : ''
+        if (surt.equals('P')) {
+          creaJB = true
+        }
+      }
+      TmpServiciosJava tmpServicios = TmpServiciosQuery.buscaTmpServiciosPorIdFactura(notaVenta?.idFactura)
+      if (tmpServicios?.idServ != null) {
+        creaJB = true
+      }
+      if ( creaJB ) {
+        JbJava jb = JbQuery.buscarPorRx(notaVenta?.factura)
+        println('JB: ' + jb?.rx)
+        JbJava nuevoJb = new JbJava()
+        mx.lux.pos.java.repository.JbTrack nuevojbTrack = new mx.lux.pos.java.repository.JbTrack()
+        if (jb == null) {
+          String factura = notaVenta.factura.replaceFirst("^0*", "")
+          nuevoJb?.rx = factura
+          nuevoJb?.estado = 'PE'
+          nuevoJb?.idCliente = notaVenta?.idCliente
+          nuevoJb?.empAtendio = notaVenta?.empleado?.idEmpleado
+          nuevoJb?.fechaPromesa = notaVenta?.fechaPrometida
+          nuevoJb?.numLlamada = 0
+          nuevoJb?.material = articulos
+          nuevoJb?.surte = surte
+          nuevoJb?.saldo = notaVenta.ventaNeta - notaVenta?.sumaPagos
+          nuevoJb?.jbTipo = tipoJb
+          nuevoJb?.cliente = notaVenta?.cliente?.nombreCompleto
+          nuevoJb?.fechaVenta = notaVenta?.fechaHoraFactura
+
+          nuevojbTrack?.rx = factura
+          nuevojbTrack?.estado = 'PE'
+          nuevojbTrack?.emp = notaVenta?.empleado?.idEmpleado
+          nuevojbTrack?.obs = articulos
+          println('jbTipo: ' + nuevoJb?.jbTipo)
+          println('LC: ' + StringUtils.trimToEmpty(nuevoJb?.jbTipo).equals('LC'))
+          if (StringUtils.trimToEmpty(nuevoJb?.jbTipo).equals('LC')) {
+            nuevoJb?.estado = 'EP'
+            nuevoJb?.idViaje = '8'
+            mx.lux.pos.java.repository.JbTrack nuevoJbTrack2 = new mx.lux.pos.java.repository.JbTrack()
+            nuevoJbTrack2?.rx = factura
+            nuevoJbTrack2?.estado = 'EP'
+            nuevoJbTrack2?.obs = '8'
+            nuevoJbTrack2?.idViaje = '8'
+            nuevoJbTrack2?.emp = notaVenta?.empleado?.idEmpleado
+            nuevoJbTrack2?.fecha = new Date()
+            nuevoJbTrack2?.idMod = '0'
+            println('LC: ' + nuevoJbTrack2?.idViaje)
+            JbTrackQuery.insertJbTrack(nuevoJbTrack2)
+          }
+          Parametros convenioNomina = ParametrosQuery.BuscaParametroPorId(TipoParametro.CONV_NOMINA.value)
+          String s = convenioNomina?.valor
+          StringTokenizer st = new StringTokenizer(s.trim(), ",")
+          Iterator its = st.iterator()
+          Boolean convenio = false
+          while (its.hasNext()) {
+            if (its.next().toString().equals(notaVenta?.idConvenio)) {
+              convenio = true
+            }
+          }
+          if (convenio) {
+            nuevoJb?.estado = 'RTN'
+            if (genericoD) {
+              nuevoJb?.jbTipo = 'EMA'
+            } else {
+              nuevoJb?.jbTipo = 'EMP'
+            }
+
+          }
+        }
+        if (cSaldo) {
+          nuevoJb?.estado = 'RTN'
+          nuevojbTrack?.estado = 'RTN'
+          nuevojbTrack?.obs = 'Factura con Saldo'
+        }
+        nuevoJb?.fechaMod = new Date()
+        nuevoJb?.idMod = '0'
+        nuevojbTrack?.fecha = new Date()
+        nuevojbTrack?.idMod = '0'
+        if( nuevoJb.rx != null ){
+          nuevoJb = JbQuery.saveJb(nuevoJb)
+        }
+        if( nuevojbTrack.rx != null ){
+          JbTrackQuery.insertJbTrack(nuevojbTrack)
+        }
+      }
+      return creaJB
     }
 
     static DescuentoClave descuentoClavexId(String idDescuentoClave) {
@@ -1303,22 +1416,24 @@ class OrderController {
 
 
     static SurteSwitch surteCallWS(Branch branch, Item item, String surte, Order order) {
-        Boolean agregaArticulo = true
-        Boolean surteSucursal = true
-        SurteSwitch surteSwitch = new SurteSwitch()
-        surteSwitch?.surte = surte
-        Precio precio = precioRepository.findbyArt(item?.name.trim())
-
-        if( (item.subtype.startsWith('S') || item.typ.equalsIgnoreCase('O')) ||
-                (item?.type?.trim().equals('A') && precio?.surte?.trim().equals('P')) ){
-            AcusesTipo acusesTipo = acusesTipoRepository.findOne('AUT')
-            String url = acusesTipo?.pagina + '?id_suc=' + branch?.id.toString().trim() + '&id_col=' + item?.color?.trim() + '&id_art=' + item?.name.toString().trim()
-            String resultado = ''
-            if(  detalleNotaVentaService.verificaValidacionSP(item?.id, order.id, '') ){
-              resultado = callWS(url, item?.id, order.id)
-            } else {
-              resultado = 'No|'+item?.name?.toString().trim()+'|noValidaSP'
-            }
+      Boolean agregaArticulo = true
+      Boolean surteSucursal = true
+      SurteSwitch surteSwitch = new SurteSwitch()
+      surteSwitch?.surte = surte
+      List<PreciosJava> lstPrecios = PreciosQuery.buscaPreciosPorArticulo(StringUtils.trimToEmpty(item?.name));
+      PreciosJava precio = lstPrecios.size() > 0 ? lstPrecios.get(0) : new PreciosJava()
+      if( Registry?.genericCustomer?.id != order.customer.id ){
+      if( ((StringUtils.trimToEmpty(item.subtype).startsWith('S') && !StringUtils.trimToEmpty(item.subtype).equalsIgnoreCase("SV"))
+              || item.typ.equalsIgnoreCase('O')) ||
+                (StringUtils.trimToEmpty(item?.type).equals('A') && StringUtils.trimToEmpty(precio?.surte).equals('P')) ){
+        AcusesTipoJava acusesTipo = AcusesTipoQuery.buscaAcuseTipoPorIdTipo('AUT')
+        String url = acusesTipo?.pagina + '?id_suc=' + StringUtils.trimToEmpty(branch?.id.toString()) + '&id_col=' + item?.color?.trim() + '&id_art=' + StringUtils.trimToEmpty(item?.name.toString())
+        String resultado = ''
+        if(  detalleNotaVentaServiceJava.verificaValidacionSP(item?.id, order.id, '') ){
+          resultado = callWS(url, item?.id, order.id)
+        } else {
+          resultado = 'No|'+StringUtils.trimToEmpty(item?.name?.toString())+'|noValidaSP'
+        }
             println(resultado)
             int index
             try {
@@ -1326,7 +1441,7 @@ class OrderController {
             } catch (ex) {
                 index = 1
             }
-            String[] result = resultado.split(/\|/)
+            String[] result = StringUtils.trimToEmpty(resultado).split(/\|/)
             String condicion = result[0]
 
             if (condicion.trim().equals('Si')) {
@@ -1350,79 +1465,69 @@ class OrderController {
                 surteSucursal = false
             }
         }
-
-        surteSwitch.setAgregaArticulo(agregaArticulo)
-        surteSwitch.setSurteSucursal(surteSucursal)
-
-        return surteSwitch
+      }
+      surteSwitch.setAgregaArticulo(agregaArticulo)
+      surteSwitch.setSurteSucursal(surteSucursal)
+      return surteSwitch
     }
 
     static void insertaAcuseAPAR(Order order, Branch branch) {
-
-        List<DetalleNotaVenta> listarDetallesNotaVentaPorIdFactura = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(order?.id)
-        String parte = ''
-        int rx = 0
-        Item item =  new Item()
-        Boolean insertarAcuse = false
-        Iterator iterator = listarDetallesNotaVentaPorIdFactura.iterator();
-        while (iterator.hasNext()) {
-            DetalleNotaVenta detalleNotaVenta = new DetalleNotaVenta()
-            detalleNotaVenta = iterator.next()
-            if (detalleNotaVenta?.articulo?.idGenerico?.trim().equals('B')) {
-                rx = 1
-            }
-            if (detalleNotaVenta?.idTipoDetalle?.trim().equals('VD') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('VI.') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('FT') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('LD') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('LI') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('CI') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('CD') ||
-                    detalleNotaVenta?.idTipoDetalle?.trim().equals('REM')
-            ) {
-                parte = parte + detalleNotaVenta?.idTipoDetalle?.trim() + ','
-            }
-
-            if (detalleNotaVenta?.surte?.trim().equals('P') && detalleNotaVenta?.articulo?.idGenerico?.trim().equals('A')) {
-                insertarAcuse = true
-                item = Item.toItem(detalleNotaVenta?.articulo)
-            }
-
-
-
-
+      List<DetalleNotaVentaJava> listarDetallesNotaVentaPorIdFactura = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(order?.id)
+      String parte = ''
+      int rx = 0
+      Item item =  new Item()
+      Boolean insertarAcuse = false
+      Iterator iterator = listarDetallesNotaVentaPorIdFactura.iterator();
+      while (iterator.hasNext()) {
+        DetalleNotaVentaJava detalleNotaVenta = new DetalleNotaVentaJava()
+        detalleNotaVenta = iterator.next()
+        if (StringUtils.trimToEmpty(detalleNotaVenta?.articulo?.idGenerico).equalsIgnoreCase('B')) {
+          rx = 1
         }
-
-        if (insertarAcuse) {
-
-            String contenidoAPAR = "parteVal=" + parte
-            contenidoAPAR = contenidoAPAR + "|facturaVal=" + order?.bill
-            contenidoAPAR = contenidoAPAR + "|rxVal=" + rx
-            contenidoAPAR = contenidoAPAR + "|id_colVal=" + item?.color
-            contenidoAPAR = contenidoAPAR + "|id_sucVal=" + branch?.id
-            contenidoAPAR = contenidoAPAR + "|id_artVal=" + item?.name
-            contenidoAPAR = contenidoAPAR + "|id_acuseVal=" + (acuseRepository?.nextIdAcuse() +1).toString() + '|'
-
-            Acuse acuseAPAR = new Acuse()
-            acuseAPAR?.contenido = contenidoAPAR
-            acuseAPAR?.idTipo = 'APAR'
-            acuseAPAR?.intentos = 0
-
-            acuseRepository.saveAndFlush(acuseAPAR)
-            insertarAcuse = false
+        if (StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('VD') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('VI.') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('FT') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('LD') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('LI') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('CI') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('CD') ||
+                StringUtils.trimToEmpty(detalleNotaVenta?.idTipoDetalle).equalsIgnoreCase('REM')
+        ) {
+          parte = parte + detalleNotaVenta?.idTipoDetalle?.trim() + ','
         }
+        if(StringUtils.trimToEmpty(detalleNotaVenta?.surte).equalsIgnoreCase('P') && StringUtils.trimToEmpty(detalleNotaVenta?.articulo?.idGenerico).equals('A')) {
+          insertarAcuse = true
+          item = Item.toItem(detalleNotaVenta?.articulo)
+        }
+      }
+      if (insertarAcuse) {
+        String contenidoAPAR = "parteVal=" + parte
+        contenidoAPAR = contenidoAPAR + "|facturaVal=" + order?.bill
+        contenidoAPAR = contenidoAPAR + "|rxVal=" + rx
+        contenidoAPAR = contenidoAPAR + "|id_colVal=" + item?.color
+        contenidoAPAR = contenidoAPAR + "|id_sucVal=" + branch?.id
+        contenidoAPAR = contenidoAPAR + "|id_artVal=" + item?.name
+        contenidoAPAR = contenidoAPAR + "|id_acuseVal=" + (acuseRepository?.nextIdAcuse() +1).toString() + '|'
+        AcusesJava acuseAPAR = new AcusesJava()
+        acuseAPAR?.contenido = contenidoAPAR
+        acuseAPAR?.idTipo = 'APAR'
+        acuseAPAR?.intentos = 0
+        acuseAPAR?.fechaCarga = new Date()
+        AcusesQuery.saveAcuses(acuseAPAR)
+        insertarAcuse = false
+      }
     }
 
     static void generaAcuse(String contenido, String nombre) {
-        try {
-            Parametro ruta = parametroRepository.findOne(TipoParametro.ARCHIVO_CONSULTA_WEB.value)
-            File archivo = new File(ruta?.valor, nombre.toString())
-            BufferedWriter out = new BufferedWriter(new FileWriter(archivo))
-            out.write(contenido)
-            out.close()
-        } catch (Exception e) {
-            e.printStackTrace()
-        }
+      try {
+        Parametros ruta = ParametrosQuery.BuscaParametroPorId(TipoParametro.ARCHIVO_CONSULTA_WEB.value)
+        File archivo = new File(ruta?.valor, nombre.toString())
+        BufferedWriter out = new BufferedWriter(new FileWriter(archivo))
+        out.write(contenido)
+        out.close()
+      } catch (Exception e) {
+        e.printStackTrace()
+      }
     }
 
     static String callUrlMethod(String url) {
@@ -1464,53 +1569,52 @@ class OrderController {
 
 
   static  String callWS(String url, Integer idArticulo, String idFactura) {
-      ExecutorService executor = Executors.newFixedThreadPool(1)
-      println url
-      LogSP log = new LogSP()
-        String respuesta = ''
-        int timeoutSecs = 20
-        final Future<?> future = executor.submit(new Runnable() {
-            public void run() {
-                try {
-                    URL urlResp = url.toURL()
-                    println urlResp.text
-                    respuesta = urlResp.text?.find( /<XX>\s*(.*)\s*<\/XX>/ ) {m, r -> return r}
-                    println "Respuesta Surte Pino: ${respuesta}"
-                } catch (Exception e) {
-                    throw new RuntimeException(e)
-                }
-            }
-        })
+    ExecutorService executor = Executors.newFixedThreadPool(1)
+    println url
+    LogSP log = new LogSP()
+    String respuesta = ''
+    int timeoutSecs = 20
+    final Future<?> future = executor.submit(new Runnable() {
+      public void run() {
         try {
-            future.get(timeoutSecs, TimeUnit.SECONDS)
-            detalleNotaVentaService.saveLogSP( idArticulo, idFactura, respuesta )
+          URL urlResp = url.toURL()
+          println urlResp.text
+          respuesta = urlResp.text?.find( /<XX>\s*(.*)\s*<\/XX>/ ) {m, r -> return r}
+          println "Respuesta Surte Pino: ${respuesta}"
         } catch (Exception e) {
-            future.cancel(true)
-            respuesta = 'No|'+idArticulo
-            this.log.warn("encountered problem while doing some work", e)
+          throw new RuntimeException(e)
         }
-        return respuesta
+      }
+    })
+    try {
+      future.get(timeoutSecs, TimeUnit.SECONDS)
+      detalleNotaVentaServiceJava.saveLogSP( idArticulo, idFactura, respuesta )
+    } catch (Exception e) {
+      future.cancel(true)
+      respuesta = 'No|'+idArticulo
+      this.log.warn("encountered problem while doing some work", e)
     }
+    return respuesta
+  }
 
 
     static String armazonString(String idNotaVenta) {
-        String armazonString = ''
-        List<DetalleNotaVenta> detalleVenta = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(idNotaVenta)
-        Iterator iterator = detalleVenta.iterator();
-        while (iterator.hasNext()) {
-            DetalleNotaVenta detalle = iterator.next()
-
-            if (detalle?.articulo?.idGenerico.trim().equals('A')) {
-                armazonString = detalle?.articulo?.articulo.trim()
-            }
-
+      String armazonString = ''
+      //List<DetalleNotaVenta> detalleVenta = detalleNotaVentaService.listarDetallesNotaVentaPorIdFactura(idNotaVenta)
+      List<DetalleNotaVentaJava> detalleVenta = DetalleNotaVentaQuery.busquedaDetallesNotaVenPorIdFactura(idNotaVenta)
+      Iterator iterator = detalleVenta.iterator();
+      while (iterator.hasNext()) {
+        DetalleNotaVentaJava detalle = iterator.next()
+        if (StringUtils.trimToEmpty(detalle?.articulo?.idGenerico).equals('A')) {
+          armazonString = StringUtils.trimToEmpty(detalle?.articulo?.articulo)
         }
-        return armazonString
+      }
+      return armazonString
     }
 
     static void validaSurtePorGenerico( Order order ){
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order.id)
-        notaVentaService.validaSurtePorGenericoInventariable( notaVenta )
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
+      notaVentaServiceJava.validaSurtePorGenericoInventariable( notaVenta )
     }
 
 
@@ -1520,21 +1624,39 @@ class OrderController {
 
 
     static void saveSuyo(Order order, User user, String dejo, String instrucciones, String condiciones, String serv) {
-        TmpServicios servicios = new TmpServicios()
-        servicios?.id_factura = order?.id
-        servicios?.fecha_prom = new Date()
-        servicios?.emp = user?.username
-        servicios?.id_cliente = order?.customer?.id
-        servicios?.cliente = order?.customer?.name + ' ' + order?.customer?.fathersName + ' ' + order?.customer?.mothersName
-        servicios?.condicion = condiciones
-        servicios?.dejo = dejo
-        servicios?.instruccion = instrucciones
-        servicios?.servicio = serv
-        tmpServiciosRepository.saveAndFlush(servicios)
-        NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+        //TmpServicios servicios = new TmpServicios()
+        TmpServiciosJava servicios = new TmpServiciosJava()
+        servicios.idFactura = order?.id
+        servicios.fechaProm = new Date()
+        servicios.emp = user?.username
+        servicios.idCliente = order?.customer?.id
+        servicios.cliente = order?.customer?.name + ' ' + order?.customer?.fathersName + ' ' + order?.customer?.mothersName
+        servicios.condicion = condiciones
+        servicios.dejo = dejo
+        servicios.instruccion = instrucciones
+        servicios.servicio = serv
+        //tmpServiciosRepository.saveAndFlush(servicios)
+        TmpServiciosQuery.saveTmpServicio(servicios)
+        //NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+        NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( order.id )
         notaVenta?.observacionesNv = dejo
-        notaVentaService.saveOrder(notaVenta)
+        //notaVentaService.saveOrder(notaVenta)
+        NotaVentaQuery.updateNotaVenta( notaVenta )
     }
+
+
+    static void deleteSuyo( Order order ){
+      QTmpServicios qTmpServicios = QTmpServicios.tmpServicios
+      List<TmpServicios> lstTmpServicio = tmpServiciosRepository.findAll( qTmpServicios.id_factura.eq(order.id) )
+      for(TmpServicios tmpServicios : lstTmpServicio){
+        tmpServiciosRepository.delete( tmpServicios.id_serv )
+        tmpServiciosRepository.flush()
+      }
+      NotaVenta notaVenta = notaVentaService.obtenerNotaVenta(order?.id)
+      notaVenta?.observacionesNv = ""
+      notaVentaService.saveOrder(notaVenta)
+    }
+
 
     static void printSuyo(Order order, User user) {
         TmpServicios servicios = tmpServiciosRepository.findOne( tmpServiciosRepository.tmpExiste(order?.id))
@@ -1562,12 +1684,12 @@ class OrderController {
 
 
     static Boolean revisaTmpservicios(String idNotaVenta) {
-        Boolean existe = false
-        Integer idTmpServicio = tmpServiciosRepository.tmpExiste(idNotaVenta)
-        if (idTmpServicio != null) {
-            existe = true
-        }
-        return existe
+      Boolean existe = false
+      TmpServiciosJava tmpServicio = TmpServiciosQuery.buscaTmpServiciosPorIdFactura(idNotaVenta)
+      if (tmpServicio != null) {
+        existe = true
+      }
+      return existe
     }
 
     static ArrayList<String> findAllServices() {
@@ -1583,24 +1705,24 @@ class OrderController {
 
 
 
-    static Boolean validOnlyOnePackage( List<OrderItem> lstItems, Integer idItem ){
-      List<Integer> lstIds = new ArrayList<Integer>()
-      for(OrderItem item : lstItems){
-        lstIds.add( item.item.id )
-      }
-      Boolean unPaquete = articuloService.validaUnSoloPaquete( lstIds, idItem )
-      return unPaquete
+  static Boolean validOnlyOnePackage( List<OrderItem> lstItems, Integer idItem ){
+    List<Integer> lstIds = new ArrayList<Integer>()
+    for(OrderItem item : lstItems){
+      lstIds.add( item.item.id )
     }
+    Boolean unPaquete = articulosServiceJava.validaUnSoloPaquete( lstIds, idItem )
+    return unPaquete
+  }
 
 
-    static Boolean validOnlyOneLens( List<OrderItem> lstItems, Integer idItem ){
-        List<Integer> lstIds = new ArrayList<Integer>()
-        for(OrderItem item : lstItems){
-            lstIds.add( item.item.id )
-        }
-        Boolean unLente = articuloService.validaUnSoloLente( lstIds, idItem )
-        return unLente
+  static Boolean validOnlyOneLens( List<OrderItem> lstItems, Integer idItem ){
+    List<Integer> lstIds = new ArrayList<Integer>()
+    for(OrderItem item : lstItems){
+      lstIds.add( item.item.id )
     }
+    Boolean unLente = articulosServiceJava.validaUnSoloLente( lstIds, idItem )
+    return unLente
+  }
 
 
     static Boolean validReusoTicket( String ticket, Integer idArticulo ){
@@ -1616,14 +1738,14 @@ class OrderController {
     }
 
 
-    static Boolean validOnlyInventariable( Order order ){
-      return notaVentaService.validaSoloInventariables( order.id )
-    }
+  static Boolean validOnlyInventariable( Order order ){
+    return notaVentaServiceJava.validaSoloInventariables( order.id )
+  }
 
 
   static void creaJbAnticipoInventariables( String idFactura ) {
     log.debug( "creaJbAnticipoInventariables( )" )
-    notaVentaService.insertaJbAnticipoInventariables( idFactura )
+    notaVentaServiceJava.insertaJbAnticipoInventariables( idFactura )
   }
 
 
@@ -1652,37 +1774,37 @@ class OrderController {
 
   static Boolean requiereAuth( Order order ){
     Boolean autorizacion = false
-    Parametro p = parametroRepository.findOne( TipoParametro.ANTICIPO_MENOR_REQUIERE_AUTORIZACIN.value )
+    Parametros p = ParametrosQuery.BuscaParametroPorId( mx.lux.pos.java.TipoParametro.ANTICIPO_MENOR_REQUIERE_AUTORIZACIN.valor )
     if( p != null ){
       final String[] TRUE_VALUES = [ "si", "s", "yes", "y", "true", "t", "on" ]
       String value = StringUtils.trimToEmpty( p.valor ).toLowerCase()
       if ( value.length() > 0 ) {
-          for ( String trueValue : TRUE_VALUES ) {
-              autorizacion = autorizacion || trueValue.equals( value )
-              if ( autorizacion )
-                  break
-          }
+        for ( String trueValue : TRUE_VALUES ) {
+          autorizacion = autorizacion || trueValue.equals( value )
+          if ( autorizacion )
+            break
+        }
       }
     }
     return autorizacion
   }
 
-    static Boolean showValidEmployee( ){
-      Boolean autorizacion = false
-      Parametro p = parametroRepository.findOne( TipoParametro.VALIDA_EMPLEADO.value )
-      if( p != null ){
-          final String[] TRUE_VALUES = [ "si", "s", "yes", "y", "true", "t", "on" ]
-          String value = StringUtils.trimToEmpty( p.valor ).toLowerCase()
-          if ( value.length() > 0 ) {
-              for ( String trueValue : TRUE_VALUES ) {
-                  autorizacion = autorizacion || trueValue.equals( value )
-                  if ( autorizacion )
-                      break
-              }
-          }
+  static Boolean showValidEmployee( ){
+    Boolean autorizacion = false
+    Parametros p = ParametrosQuery.BuscaParametroPorId( mx.lux.pos.java.TipoParametro.VALIDA_EMPLEADO.valor )
+    if( p != null ){
+      final String[] TRUE_VALUES = [ "si", "s", "yes", "y", "true", "t", "on" ]
+      String value = StringUtils.trimToEmpty( p.valor ).toLowerCase()
+      if ( value.length() > 0 ) {
+        for ( String trueValue : TRUE_VALUES ) {
+          autorizacion = autorizacion || trueValue.equals( value )
+          if ( autorizacion )
+            break
+        }
       }
-      return autorizacion
     }
+    return autorizacion
+  }
 
 
     static Descuento findDiscount( Order order ) {
@@ -1695,106 +1817,116 @@ class OrderController {
 
 
     static void updateExam( Order order ){
-      Examen examen = examenService.obtenerExamenPorIdCliente( order.customer.id )
-      if( examen != null && (examen.factura = null || examen.factura.trim().length() <= 0) ){
+      ExamenJava examen = examenServiceJava.obtenerExamenPorIdCliente( order.customer.id )
+      if( examen != null && (examen.factura = null || StringUtils.trimToEmpty(examen.factura).length() <= 0) ){
         examen.factura = order.bill
-        examenService.guardarExamen( examen )
+        examenServiceJava.guardarExamen( examen )
       }
     }
 
 
-    static void updateQuote( Order order, Integer numQuote ){
-       cotizacionService.updateQuote( order.id, numQuote )
+  static void updateRx( Order order ){
+    RecetaJava receta = RecetaQuery.buscaRecetaPorIdReceta( order.rx )
+    if( receta != null && StringUtils ){
+      receta.tipoOpt = "${StringUtils.trimToEmpty(Registry.currentSite.toString())}:${StringUtils.trimToEmpty(order.bill)}"
+      RecetaQuery.saveOrUpdateRx( receta )
     }
+  }
+
+
+  static void updateQuote( Order order, Integer numQuote ){
+    if( numQuote != null ){
+      cotizacionServiceJava.updateidFacturaQuote( order.id, numQuote )
+    } else {
+      cotizacionServiceJava.updateQuote( order.id, numQuote )
+    }
+  }
 
 
 
-    static Boolean validaEntregaSegundaVenta(Order order) {
-      Boolean valid = true
-      Boolean isGoogle = false
-      Boolean hasCupon = false
-      Boolean hasGenericB = false
-      Boolean hasGenericC = false
-      NotaVenta notaAnterior = notaVentaService.buscarNotaInicial( order.customer.id, order.id )
-      for(OrderItem item : order.items){
-        Articulo articulo = articuloService.obtenerArticulo( item.item.id )
-        if( articulo.idGenerico.equalsIgnoreCase(TAG_GENERICO_B) ){
-          hasGenericB = true
+  static Boolean validaEntregaSegundaVenta(Order order) {
+    Boolean valid = true
+    Boolean isGoogle = false
+    Boolean hasCupon = false
+    Boolean hasGenericB = false
+    Boolean hasGenericC = false
+    NotaVentaJava notaAnterior = notaVentaServiceJava.buscarNotaInicial( order.customer.id, order.id )
+    for(OrderItem item : order.items){
+      ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( item.item.id )
+      if( articulo.idGenerico.equalsIgnoreCase(TAG_GENERICO_B) ){
+        hasGenericB = true
+      }
+    }
+    if( !hasGenericB ){
+      for(Payment pago : order.payments){
+        if(pago.paymentTypeId.startsWith(TAG_CUPON) && !pago.paymentTypeId.equalsIgnoreCase(TAG_CUPON_SEGURO)){
+          hasCupon = true
         }
       }
-      if( !hasGenericB ){
-          for(Payment pago : order.payments){
-            if(pago.paymentTypeId.startsWith(TAG_CUPON) && !pago.paymentTypeId.equalsIgnoreCase(TAG_CUPON_SEGURO)){
-              hasCupon = true
-            }
-          }
-          if( hasCupon ){
-              SimpleDateFormat fecha = new SimpleDateFormat("dd/MMMM/yyyy")
-              String fechaVenta = fecha.format(order?.date).toString()
-              String ahora = fecha.format(new Date())
-              if (fechaVenta.equals(ahora)) {
-                  valid = false
-              } else {
-                  valid = true
-              }
-          } else {
-            valid = true
-          }
+      if( hasCupon ){
+        SimpleDateFormat fecha = new SimpleDateFormat("dd/MMMM/yyyy")
+        String fechaVenta = fecha.format(order?.date).toString()
+        String ahora = fecha.format(new Date())
+        if (fechaVenta.equals(ahora)) {
+          valid = false
         } else {
           valid = true
         }
-      /*} else {
+      } else {
         valid = true
-      }*/
-      return valid
+      }
+    } else {
+          valid = true
     }
+    return valid
+  }
 
 
     static void retenerEntrega(String orderId){
-      NotaVenta nota = notaVentaService.obtenerNotaVenta( orderId )
-      NotaVenta notaAnterior = notaVentaService.buscarNotaInicial( nota.idCliente, nota.id )
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( orderId )
+      NotaVentaJava notaAnterior = notaVentaServiceJava.buscarNotaInicial( nota.idCliente, nota.id )
       BigDecimal saldo = BigDecimal.ZERO
       if( nota != null ){
         saldo = nota.ventaNeta.subtract(nota.sumaPagos)
       }
-      List<DetalleNotaVenta> lstDetalles = new ArrayList<>(nota.detalles)
+      List<DetalleNotaVentaJava> lstDetalles = new ArrayList<>(nota.detalles)
       String articulos = ''
-      for(DetalleNotaVenta det : nota.detalles){
+      for(DetalleNotaVentaJava det : nota.detalles){
         articulos = articulos+","+det.articulo.articulo.trim()
       }
       articulos = articulos.replaceFirst( ",", "" )
-      JbTrack nuevoJbTrack = new JbTrack()
+      mx.lux.pos.java.repository.JbTrack nuevoJbTrack = new mx.lux.pos.java.repository.JbTrack()
       nuevoJbTrack?.rx = nota.factura
       nuevoJbTrack?.estado = 'PE'
       nuevoJbTrack?.emp = nota.idEmpleado
       nuevoJbTrack?.obs = articulos
       nuevoJbTrack?.fecha = new Date()
-      nuevoJbTrack?.id_mod = '0'
-      jbTrackService.saveJbTrack( nuevoJbTrack )
+      nuevoJbTrack?.idMod = '0'
+      JbQuery.saveJbTrack( nuevoJbTrack )
 
-      Jb jbRtn = new Jb()
+      JbJava jbRtn = new JbJava()
       jbRtn.rx = nota.factura
       jbRtn.estado = 'RTN'
-      jbRtn.id_cliente = nota.idCliente
-      jbRtn.emp_atendio = nota.idEmpleado
-      jbRtn.num_llamada = 0
+      jbRtn.idCliente = nota.idCliente
+      jbRtn.empAtendio = nota.idEmpleado
+      jbRtn.numLlamada = 0
       jbRtn.saldo = saldo
-      jbRtn.jb_tipo = 'REF'
+      jbRtn.jbTipo = 'REF'
       jbRtn.cliente = nota.cliente.nombreCompleto
-      jbRtn.id_mod = '0'
-      jbRtn.fecha_mod = new Date()
-      jbRtn.fecha_venta = nota.fechaHoraFactura
+      jbRtn.idMod = '0'
+      jbRtn.fechaMod = new Date()
+      jbRtn.fechaVenta = nota.fechaHoraFactura
       jbRtn.material = articulos
-      jbRtn = jbService.saveJb( jbRtn )
+      jbRtn = JbQuery.updateEstadoJbRx( jbRtn.rx, jbRtn.estado )
 
-      JbTrack jbTrack = new JbTrack()
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
       jbTrack.rx = jbRtn.rx
       jbTrack.estado = "RTN"
       jbTrack.obs = "PAGO CON CUPON"
-      jbTrack.emp = jbRtn.emp_atendio
+      jbTrack.emp = jbRtn.empAtendio
       jbTrack.fecha = new Date()
-      jbTrack.id_mod = '0'
-      jbTrackService.saveJbTrack( jbTrack )
+      jbTrack.idMod = '0'
+      JbQuery.saveJbTrack( jbTrack )
     }
 
 
@@ -2035,12 +2167,12 @@ class OrderController {
 
     static BigDecimal getCuponAmount(String idOrder) {
       log.debug( 'getCuponAmount( )' )
-      return notaVentaService.obtenerMontoCupon( idOrder )
+      return notaVentaServiceJava.obtenerMontoCupon( idOrder )
     }
 
     static BigDecimal getCuponAmountThirdPair(String idOrder) {
         log.debug( 'getCuponAmountThirdPair( )' )
-        return notaVentaService.obtenerMontoCuponTercerPar( idOrder )
+        return notaVentaServiceJava.obtenerMontoCuponTercerPar( idOrder )
     }
 
     static void creaJbAnticipoInventariablesMultypayment( String idFactura ) {
@@ -2053,14 +2185,16 @@ class OrderController {
 
 
     static Boolean validLenses( Order order ){
-        return notaVentaService.validaLentes( order.id )
+        //return notaVentaService.validaLentes( order.id )
+      return notaVentaServiceJava.validaLentes( order.id )
     }
 
 
     static List<Item> existeLenteContacto(Order order){
       List<Item> lstItems = new ArrayList<>()
-      List<Articulo> articulo = notaVentaService.validaLentesContacto( order.id )
-      for(Articulo art : articulo){
+      //List<Articulo> articulo = notaVentaService.validaLentesContacto( order.id )
+      List<ArticulosJava> articulo = notaVentaServiceJava.validaLentesContacto( StringUtils.trimToEmpty(order.id) )
+      for(ArticulosJava art : articulo){
         lstItems.add( Item.toItem(art) )
       }
       return lstItems
@@ -2076,7 +2210,8 @@ class OrderController {
 
     static void removePedidoLc( String orderId, Integer idArticulo ){
       log.debug( "Remover pedido de lentes de contacto" )
-      notaVentaService.removePedidoLc( orderId, idArticulo )
+      //notaVentaService.removePedidoLc( orderId, idArticulo )
+      notaVentaServiceJava.removePedidoLc( orderId, idArticulo )
     }
 
 
@@ -2091,82 +2226,81 @@ class OrderController {
 
 
     static void updateOrderLc( Order order ){
-      NotaVenta nota = notaVentaService.obtenerNotaVenta( order.id )
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( order.id )
       BigDecimal total = BigDecimal.ZERO
-      for(DetalleNotaVenta det : nota.detalles){
+      for(DetalleNotaVentaJava det : nota.detalles){
         total = total+(det.precioUnitFinal.multiply(det.cantidadFac))
       }
       nota.ventaNeta = total
       nota.ventaTotal = total
-      notaVentaService.registrarNotaVenta( nota )
+      notaVentaServiceJava.registrarNotaVenta( nota )
     }
 
     static void deliverOrderLc( String idPedido ){
-      notaVentaService.entregaPedidoLc( StringUtils.trimToEmpty(idPedido) )
+      notaVentaServiceJava.entregaPedidoLc( StringUtils.trimToEmpty(idPedido) )
     }
 
-    static Boolean validGenericNoDelivered( String idOrder ){
-        NotaVenta nota = notaVentaService.obtenerNotaVenta( idOrder )
-        List<DetalleNotaVenta> detalleVenta = new ArrayList<>()
-        for(DetalleNotaVenta det : nota.detalles){
-          detalleVenta.add( det )
-        }
-        Boolean entregaBo = false
-        Boolean surte = false
-        Parametro genericoNoEntrega = parametroRepository.findOne(TipoParametro.GENERICOS_NO_ETREGABLES.value)
-        ArrayList<String> genericosNoEntregables = new ArrayList<String>()
-        String s = genericoNoEntrega?.valor
-        StringTokenizer st = new StringTokenizer(s.trim(), ",")
-        Iterator its = st.iterator()
-        while (its.hasNext()) {
-            genericosNoEntregables.add(its.next().toString())
-        }
-        Iterator iterator = detalleVenta.iterator();
-        while (iterator.hasNext()) {
-            DetalleNotaVenta detalle = iterator.next()
-
-            Articulo articulo = articuloService.obtenerArticulo(detalle?.idArticulo)
-            for (int a = 0; a < genericosNoEntregables.size(); a++) {
-                String[] values = genericosNoEntregables.get(a).trim().split(":")
-                String generico = StringUtils.trimToEmpty(values[0])
-                String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
-                String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
-                String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
-                Boolean genericoValid = false
-                Boolean tipoValid = false
-                Boolean subtipoValid = false
-                Boolean marcaValid = false
-                if (articulo?.idGenerico.trim().equalsIgnoreCase(generico.trim())) {
-                    genericoValid = true
-                }
-                if( tipo.length() > 0 ){
-                    if (articulo?.tipo.trim().equalsIgnoreCase(tipo.trim())) {
-                        tipoValid = true
-                    }
-                } else {
-                    tipoValid = true
-                }
-                if( subtipo.length() > 0 ){
-                    if (articulo?.subtipo.trim().equalsIgnoreCase(subtipo.trim())) {
-                        subtipoValid = true
-                    }
-                } else {
-                    subtipoValid = true
-                }
-                if( marca.length() > 0 ){
-                    if (articulo?.marca.trim().equalsIgnoreCase(marca.trim())) {
-                        marcaValid = true
-                    }
-                } else {
-                    marcaValid = true
-                }
-                if( genericoValid && tipoValid && subtipoValid && marcaValid ){
-                    entregaBo = true
-                }
-            }
-        }
-      return entregaBo
+  static Boolean validGenericNoDelivered( String idOrder ){
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( idOrder )
+    List<DetalleNotaVentaJava> detalleVenta = new ArrayList<>()
+    for(DetalleNotaVentaJava det : nota.detalles){
+      detalleVenta.add( det )
     }
+    Boolean entregaBo = false
+    Boolean surte = false
+    Parametros genericoNoEntrega = ParametrosQuery.BuscaParametroPorId(mx.lux.pos.java.TipoParametro.GENERICOS_NO_ETREGABLES.valor)
+    ArrayList<String> genericosNoEntregables = new ArrayList<String>()
+    String s = genericoNoEntrega?.valor
+    StringTokenizer st = new StringTokenizer(s.trim(), ",")
+    Iterator its = st.iterator()
+    while (its.hasNext()) {
+      genericosNoEntregables.add(its.next().toString())
+    }
+    Iterator iterator = detalleVenta.iterator();
+    while (iterator.hasNext()) {
+      DetalleNotaVentaJava detalle = iterator.next()
+      ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(detalle?.idArticulo)
+      for (int a = 0; a < genericosNoEntregables.size(); a++) {
+        String[] values = genericosNoEntregables.get(a).trim().split(":")
+        String generico = StringUtils.trimToEmpty(values[0])
+        String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
+        String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
+        String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
+        Boolean genericoValid = false
+        Boolean tipoValid = false
+        Boolean subtipoValid = false
+        Boolean marcaValid = false
+        if (StringUtils.trimToEmpty(articulo?.idGenerico).equalsIgnoreCase(generico.trim())) {
+          genericoValid = true
+        }
+        if( tipo.length() > 0 ){
+          if (StringUtils.trimToEmpty(articulo?.tipo).equalsIgnoreCase(tipo.trim())) {
+            tipoValid = true
+          }
+        } else {
+          tipoValid = true
+        }
+        if( subtipo.length() > 0 ){
+          if (StringUtils.trimToEmpty(articulo?.subtipo).equalsIgnoreCase(subtipo.trim())) {
+            subtipoValid = true
+          }
+        } else {
+          subtipoValid = true
+        }
+        if( marca.length() > 0 ){
+          if (StringUtils.trimToEmpty(articulo?.marca).equalsIgnoreCase(marca.trim())) {
+            marcaValid = true
+          }
+        } else {
+          marcaValid = true
+        }
+        if( genericoValid && tipoValid && subtipoValid && marcaValid ){
+          entregaBo = true
+        }
+      }
+    }
+    return entregaBo
+  }
 
 
     static void creaJbLc( String idFactura ) {
@@ -2177,62 +2311,62 @@ class OrderController {
 
 
 
-    static Boolean validArticleGenericNoDelivered( Integer idItem ){
-        Boolean entregaBo = false
-        Parametro genericoNoEntrega = parametroRepository.findOne(TipoParametro.GENERICOS_NO_ETREGABLES.value)
-        ArrayList<String> genericosNoEntregables = new ArrayList<String>()
-        String s = genericoNoEntrega?.valor
-        StringTokenizer st = new StringTokenizer(s.trim(), ",")
-        Iterator its = st.iterator()
-        while (its.hasNext()) {
-            genericosNoEntregables.add(its.next().toString())
-        }
-        Articulo articulo = articuloService.obtenerArticulo(idItem)
-            for (int a = 0; a < genericosNoEntregables.size(); a++) {
-                String[] values = genericosNoEntregables.get(a).trim().split(":")
-                String generico = StringUtils.trimToEmpty(values[0])
-                String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
-                String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
-                String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
-                Boolean genericoValid = false
-                Boolean tipoValid = false
-                Boolean subtipoValid = false
-                Boolean marcaValid = false
-                if (articulo?.idGenerico.trim().equalsIgnoreCase(generico.trim())) {
-                    genericoValid = true
-                }
-                if( tipo.length() > 0 ){
-                    if (articulo?.tipo.trim().equalsIgnoreCase(tipo.trim())) {
-                        tipoValid = true
-                    }
-                } else {
-                    tipoValid = true
-                }
-                if( subtipo.length() > 0 ){
-                    if (articulo?.subtipo.trim().equalsIgnoreCase(subtipo.trim())) {
-                        subtipoValid = true
-                    }
-                } else {
-                    subtipoValid = true
-                }
-                if( marca.length() > 0 ){
-                    if (articulo?.marca.trim().equalsIgnoreCase(marca.trim())) {
-                        marcaValid = true
-                    }
-                } else {
-                    marcaValid = true
-                }
-                if( genericoValid && tipoValid && subtipoValid && marcaValid ){
-                    entregaBo = true
-                }
-            }
-        return entregaBo
+  static Boolean validArticleGenericNoDelivered( Integer idItem ){
+    Boolean entregaBo = false
+    Parametros genericoNoEntrega = ParametrosQuery.BuscaParametroPorId(TipoParametro.GENERICOS_NO_ETREGABLES.value)
+    ArrayList<String> genericosNoEntregables = new ArrayList<String>()
+    String s = genericoNoEntrega?.valor
+    StringTokenizer st = new StringTokenizer(s.trim(), ",")
+    Iterator its = st.iterator()
+    while (its.hasNext()) {
+      genericosNoEntregables.add(its.next().toString())
     }
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(idItem)
+    for (int a = 0; a < genericosNoEntregables.size(); a++) {
+      String[] values = genericosNoEntregables.get(a).trim().split(":")
+      String generico = StringUtils.trimToEmpty(values[0])
+      String tipo = values.length > 1 ? StringUtils.trimToEmpty(values[1]) : ''
+      String subtipo = values.length > 2 ? StringUtils.trimToEmpty(values[2]) : ''
+      String marca = values.length > 3 ? StringUtils.trimToEmpty(values[3]) : ''
+      Boolean genericoValid = false
+      Boolean tipoValid = false
+      Boolean subtipoValid = false
+      Boolean marcaValid = false
+      if (StringUtils.trimToEmpty(articulo?.idGenerico).equalsIgnoreCase(StringUtils.trimToEmpty(generico))) {
+        genericoValid = true
+      }
+      if( tipo.length() > 0 ){
+        if (StringUtils.trimToEmpty(articulo?.tipo).equalsIgnoreCase(StringUtils.trimToEmpty(tipo))) {
+          tipoValid = true
+        }
+      } else {
+        tipoValid = true
+      }
+      if( subtipo.length() > 0 ){
+        if (StringUtils.trimToEmpty(articulo?.subtipo).equalsIgnoreCase(StringUtils.trimToEmpty(subtipo))) {
+          subtipoValid = true
+        }
+      } else {
+        subtipoValid = true
+      }
+      if( marca.length() > 0 ){
+        if (StringUtils.trimToEmpty(articulo?.marca).equalsIgnoreCase(StringUtils.trimToEmpty(marca))) {
+          marcaValid = true
+        }
+      } else {
+        marcaValid = true
+      }
+      if( genericoValid && tipoValid && subtipoValid && marcaValid ){
+        entregaBo = true
+      }
+    }
+    return entregaBo
+  }
 
 
 
     static void saveBatch( String idFactura, Integer idArticulo, String lote ) {
-      notaVentaService.saveBatch( idFactura, idArticulo, lote )
+      notaVentaServiceJava.saveBatch( idFactura, idArticulo, lote )
     }
 
 
@@ -2265,18 +2399,19 @@ class OrderController {
 
 
     static Boolean esPromocionValida(String idOrder, Integer idPromo){
-      return notaVentaService.existePromoEnOrden( idOrder, idPromo )
+      //return notaVentaService.existePromoEnOrden( idOrder, idPromo )
+      return notaVentaServiceJava.existePromoEnOrden( idOrder, idPromo )
     }
 
 
-    static Boolean hasOrderLc( String bill ){
-      Boolean hasOrderLc = false
-      PedidoLc pedidoLc = articuloService.buscaPedidoLc( StringUtils.trimToEmpty(bill) )
-      if( pedidoLc != null ){
-        hasOrderLc = true
-      }
-      return hasOrderLc
+  static Boolean hasOrderLc( String bill ){
+    Boolean hasOrderLc = false
+    PedidoLcJava pedidoLc = PedidoLcQuery.buscaPedidoLcPorId( StringUtils.trimToEmpty(bill) )
+    if( pedidoLc != null ){
+      hasOrderLc = true
     }
+    return hasOrderLc
+  }
 
 
     static void createAcuse( String idOrder ){
@@ -2328,8 +2463,18 @@ class OrderController {
               StringUtils.trimToEmpty(idFacturaDestino), montoCupon, numeroCupon, ffCoupon )
     }
 
+    static CuponMvJava updateCuponMvJava( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon, Boolean ffCoupon ){
+      return notaVentaServiceJava.actualizarCuponMv( StringUtils.trimToEmpty(idFacturaOrigen),
+              StringUtils.trimToEmpty(idFacturaDestino), montoCupon, numeroCupon, ffCoupon )
+    }
+
     static NotaVenta findOrderByidOrder(String idOrder) {
       NotaVenta result = notaVentaService.obtenerNotaVenta( idOrder )
+      return result
+    }
+
+    static NotaVentaJava findOrderJavaByidOrder(String idOrder) {
+      NotaVentaJava result = NotaVentaQuery.busquedaNotaById( idOrder )
       return result
     }
 
@@ -2343,6 +2488,10 @@ class OrderController {
       ticketService.imprimeCupon( cuponMv,titulo, monto )
     }
 
+    static void printCuponTicket( CuponMvJava cuponMv, String titulo, BigDecimal monto ){
+      ticketService.imprimeCupon( cuponMv,titulo, monto )
+    }
+
     static CuponMvView cuponValid( Integer idCustomer ){
       CuponMvView cuponMvView = new CuponMvView()
       cuponMvView.amount = notaVentaService.cuponValid( idCustomer )
@@ -2352,7 +2501,7 @@ class OrderController {
 
 
     static void deleteCuponMv( String idOrder ){
-      notaVentaService.eliminarCUponMv( idOrder )
+      notaVentaServiceJava.eliminarCUponMv( idOrder )
     }
 
     static CuponMv obtenerCuponMv( String idFacturaOrigen, String idFacturaDestino, BigDecimal montoCupon, Integer numeroCupon ){
@@ -2362,6 +2511,10 @@ class OrderController {
 
     static CuponMv obtenerCuponMvByClave( String clave ){
         return notaVentaService.obtenerCuponMvClave( clave )
+    }
+
+    static CuponMvJava obtenerCuponMvJavaByClave( String clave ){
+      return notaVentaServiceJava.obtenerCuponMvClave( clave )
     }
 
     static List<CuponMv> obtenerCuponMvBySourceOrder( String order ){
@@ -2374,6 +2527,10 @@ class OrderController {
 
     static CuponMv updateCuponMvByClave( String idFacturaDest, String clave ){
         return notaVentaService.actualizarCuponMvPorClave( idFacturaDest, clave )
+    }
+
+    static CuponMvJava updateCuponMvJavaByClave( String idFacturaDest, String clave ){
+      return notaVentaServiceJava.actualizarCuponMvPorClave( idFacturaDest, clave )
     }
 
 
@@ -2406,6 +2563,7 @@ class OrderController {
     }
 
     static Boolean generatesCoupon(String claveDescuento){
+      //return notaVentaServiceJava.cuponGeneraCupon(claveDescuento)
       return notaVentaService.cuponGeneraCupon(claveDescuento)
     }
 
@@ -2414,6 +2572,9 @@ class OrderController {
       return notaVentaService.claveDescuentoNota( StringUtils.trimToEmpty(idFactura) )
     }
 
+    static String descuentoClaveJavaPoridFactura( String idFactura ){
+      return notaVentaServiceJava.claveDescuentoNota( StringUtils.trimToEmpty(idFactura) )
+    }
 
     static String isReuseOrderLc(String idOrder) {
       return notaVentaService.esReusoPedidoLc( idOrder )
@@ -2425,13 +2586,13 @@ class OrderController {
     }
 
 
-    static Boolean dayIsOpen(){
-      Boolean isOpenDay = true
-      if( Registry.validDayCloseToSell() ){
-        isOpenDay = notaVentaService.diaActualEstaAbierto()
-      }
-      return isOpenDay
+  static Boolean dayIsOpen(){
+    Boolean isOpenDay = true
+    if( Registry.validDayCloseToSell() ){
+      isOpenDay = notaVentaServiceJava.diaActualEstaAbierto()
     }
+    return isOpenDay
+  }
 
 
 
@@ -2492,9 +2653,9 @@ class OrderController {
 
     static Boolean validDioptra( String idOrder ){
       Boolean valid = false
-      NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( idOrder )
       if( notaVenta != null ){
-        valid = articuloService.validaCodigoDioptra( StringUtils.trimToEmpty(notaVenta.codigo_lente) )
+        valid = articulosServiceJava.validaCodigoDioptra( StringUtils.trimToEmpty(notaVenta.codigoLente) )
       }
       return valid
     }
@@ -2506,34 +2667,33 @@ class OrderController {
       Boolean hasLenses = false
       Date fechaInicio = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH );
       Date fechaFin = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 );
-      QDescuento qDescuento = QDescuento.descuento
-      NotaVenta nota = notaVentaService.obtenerNotaVenta( idOrder )
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( idOrder )
       if( nota!= null && nota.fechaEntrega != null ){
-        List<NotaVenta> lstNotasCliente = notaVentaService.obtenerNotaVentaPorClienteFF( nota.idCliente )
-        for(NotaVenta notaVenta : lstNotasCliente){
-          List<CuponMv> cuponMv = notaVentaService.obtenerCuponMvFacturaOriFF( StringUtils.trimToEmpty(notaVenta.factura) )
+        List<NotaVentaJava> lstNotasCliente = notaVentaServiceJava.obtenerNotaVentaPorClienteFF( nota.idCliente )
+        for(NotaVentaJava notaVenta : lstNotasCliente){
+          List<CuponMvJava> cuponMv = notaVentaServiceJava.obtenerCuponMvFacturaOriFF( StringUtils.trimToEmpty(notaVenta.factura) )
           if( cuponMv.size() > 0 && StringUtils.trimToEmpty(cuponMv.first().claveDescuento).startsWith("F") ){
             hasNoCouponApply = false
           }
         }
         if( hasNoCouponApply ){
           Integer appliedCoup = 0
-          List<CuponMv> lstCupones = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
+          List<CuponMvJava> lstCupones = notaVentaServiceJava.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
           if( lstCupones.size() <= 0 ){
-            lstCupones = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.id) )
+            lstCupones = notaVentaServiceJava.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.idFactura) )
           }
-          for(CuponMv c : lstCupones){
+          for(CuponMvJava c : lstCupones){
             if( StringUtils.trimToEmpty(c.fechaAplicacion.format("dd-MM-yyyy")).equalsIgnoreCase(StringUtils.trimToEmpty(new Date().format("dd-MM-yyyy"))) ){
               appliedCoup = appliedCoup+1
             }
           }
-          List<Descuento> lstDesc = descuentoRepository.findAll(qDescuento.clave.eq("AF200").and(qDescuento.idFactura.eq(nota.id))) as List<Descuento>
+          List<DescuentosJava> lstDesc = DescuentosQuery.buscaDescuentosPorClaveAndIdFactura("AF200", nota.idFactura)
           Integer descuentoAF = lstDesc.size()
           if( appliedCoup > 0 || descuentoAF > 0 ){
             hasNoCouponApply = false
           }
         }
-        for(DetalleNotaVenta det : nota.detalles){
+        for(DetalleNotaVentaJava det : nota.detalles){
           if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_B) ){
             hasLenses = true
           }
@@ -2542,11 +2702,11 @@ class OrderController {
           }
         }
         if( amountSale.doubleValue() >= Registry.amountToGenerateFFCoupon && hasNoCouponApply && hasLenses ){
-          List<CuponMv> cuponMvTmp = notaVentaService.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
+          List<CuponMvJava> cuponMvTmp = notaVentaServiceJava.obtenerCuponMvFacturaDest( StringUtils.trimToEmpty(nota.factura) )
           if( cuponMvTmp.size() <= 0 || !StringUtils.trimToEmpty(cuponMvTmp.first().claveDescuento).startsWith("F") ){
             String titulo = "FRIENDS AND FAMILY"
             Integer numCupon = 0
-            CuponMv cuponMv = new CuponMv()
+            CuponMvJava cuponMv = new CuponMvJava()
             cuponMv.facturaDestino = ""
             cuponMv.facturaOrigen = nota.factura
             cuponMv.fechaAplicacion = null
@@ -2555,7 +2715,7 @@ class OrderController {
             calendar.add(Calendar.DAY_OF_YEAR, Registry.diasVigenciaCuponFF)
             cuponMv.fechaVigencia = calendar.getTime()
             println cuponMv.fechaVigencia.format("dd-MM-yyyy")
-            cuponMv = updateCuponMv( nota.id, "", Registry.amountFFCoupon, numCupon, true )
+            cuponMv = updateCuponMvJava( nota.idFactura, "", Registry.amountFFCoupon, numCupon, true )
             printCuponTicket( cuponMv, titulo, Registry.amountFFCoupon )
           }
         }
@@ -2718,7 +2878,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               warranty.typeEnsure = typeEnsure
               warranty.idOrder = addIdOrder ? nota.id : ""
               idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
-              println idOrderEnsured
+              //println idOrderEnsured
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2792,7 +2952,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               warranty.typeEnsure = typeEnsureO
               warranty.idOrder = addIdOrder ? nota.id : ""
               idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
-              println idOrderEnsured
+              //println idOrderEnsured
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2815,7 +2975,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               warranty.typeEnsure = typeEnsureF
               warranty.idOrder = addIdOrder ? nota.id : ""
               idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
-              println idOrderEnsured
+              //println idOrderEnsured
               lstWarranty.add( warranty )
               lstIdGar.clear()
             } else {
@@ -2845,6 +3005,265 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
 
+  static Boolean validWarranty( NotaVentaJava nota, Boolean cleanWaranties, OrderPanel panel, String idOrderPostEnsure, Boolean addIdOrder ){
+    canceledWarranty = false
+    if( StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ){
+      postEnsure = StringUtils.trimToEmpty(idOrderPostEnsure)
+    }
+    NotaVentaJava oldNota = null
+    if( StringUtils.trimToEmpty(postEnsure).length() > 0 ){
+      oldNota = NotaVentaQuery.busquedaNotaById( postEnsure )
+      if( oldNota != null ){
+        nota.detalles.addAll( oldNota.detalles )
+      }
+    }
+    Boolean valid = true
+    Boolean applyValid = false
+    List<Integer> lstIdGar = new ArrayList<>()
+    List<Integer> lstIdArm = new ArrayList<>()
+    BigDecimal totalAmount = BigDecimal.ZERO
+    for(DetalleNotaVentaJava orderItem : nota.detalles){
+      if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
+        if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+          for(int i=0;i<orderItem.cantidadFac;i++){
+            lstIdGar.add(orderItem.idArticulo)
+          }
+        } else {
+          for(int i=0;i<orderItem.cantidadFac;i++){
+            lstIdArm.add(orderItem.idArticulo)
+            totalAmount = totalAmount.add(orderItem.precioUnitFinal)
+          }
+        }
+      }
+    }
+    Boolean hasC1 = false
+    for(PagoJava pago : nota.pagos){
+      if(TAG_CUPON_SEGURO.equalsIgnoreCase(StringUtils.trimToEmpty(pago.idFPago))){
+        hasC1 = true
+      }
+    }
+    if( oldNota != null && StringUtils.trimToEmpty(oldNota.udf5).length() > 0 ){
+      valid = false
+    }
+    Boolean sunglass = false
+    Boolean lens = false
+    Boolean ophtglass = false
+    Boolean lensKid = false
+    Boolean frame = false
+    String typeEnsure = ""
+    for(Integer idArt : lstIdArm ){
+      ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( idArt )
+      if( articulo != null ){
+        String type = StringUtils.trimToEmpty(articulo.subtipo).length() > 0 ? StringUtils.trimToEmpty(articulo.subtipo) : StringUtils.trimToEmpty(articulo.idGenSubtipo)
+        if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) ){
+          lensKid = true
+        }
+        if( StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+          frame = true
+        }
+        if( StringUtils.trimToEmpty(articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO) ){
+          ophtglass = true
+        } else if( StringUtils.trimToEmpty(articulo.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){
+          sunglass = true
+        } else if( StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
+          lens = true
+        }
+      }
+    }
+
+    if( lstIdGar.size() > 0 ){
+      if( valid && !hasC1 && totalAmount.compareTo(BigDecimal.ZERO) > 0 ){
+        if( lstIdGar.size() == 1 ){
+          List<DetalleNotaVentaJava> lstDets = new ArrayList<>()
+          BigDecimal amount = BigDecimal.ZERO
+          ArticulosJava warnt = articulosServiceJava.obtenerArticulo( lstIdGar.first() )
+          String items = ""
+          for(DetalleNotaVentaJava orderItem : nota.detalles){
+            if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS)
+                    && !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
+              if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
+                if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                  amount = amount.add(orderItem.precioUnitLista)
+                  items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                  lstDets.add( orderItem )
+                }
+                typeEnsure = "S"
+              } else {
+                if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                  String type = StringUtils.trimToEmpty(orderItem.articulo.subtipo).length() > 0 ? StringUtils.trimToEmpty(orderItem.articulo.subtipo) : StringUtils.trimToEmpty(orderItem.articulo.idGenSubtipo)
+                  if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) ||
+                          !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
+                    amount = amount.add(orderItem.precioUnitLista)
+                    items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                    lstDets.add( orderItem )
+                  }
+                } else {
+                  if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ||
+                          (StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
+                                  StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO)) ){
+                    amount = amount.add(orderItem.precioUnitLista)
+                    items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                    lstDets.add( orderItem )
+                  }
+                }
+                if( StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                  typeEnsure = "N"
+                } else if( !StringUtils.trimToEmpty(warnt.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) &&
+                        StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
+                  typeEnsure = "L"
+                }
+              }
+            }
+          }
+          BigDecimal warrantyAmount = ItemController.warrantyValidJava( amount, lstIdGar.first() )
+          if( warrantyAmount.compareTo(BigDecimal.ZERO) > 0 && segValid(lstIdGar.first(), lstIdArm) ){
+            amount = BigDecimal.ZERO
+            for(DetalleNotaVentaJava orderItem : lstDets){
+              if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS)
+                      && !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE)){
+                if( StringUtils.trimToEmpty(warnt.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
+                  if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                    amount = amount.add( orderItem.precioUnitFinal )
+                  }
+                } else {
+                  amount = amount.add( orderItem.precioUnitFinal )
+                }
+              }
+            }
+            Warranty warranty = new Warranty()
+            warranty.amount = amount
+            warranty.idItem = items.replaceFirst(",","")
+            warranty.typeEnsure = typeEnsure
+            warranty.idOrder = addIdOrder ? nota.idFactura : ""
+            idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
+            //println idOrderEnsured
+            lstWarranty.add( warranty )
+            lstIdGar.clear()
+          } else {
+            MSJ_ERROR_WARRANTY = "Seguro Invalido."
+            valid = false
+          }
+        } else if( lstIdGar.size() == 2 && frame && lens ) {
+          List<DetalleNotaVentaJava> lstDetsL = new ArrayList<>()
+          List<DetalleNotaVentaJava> lstDetsF = new ArrayList<>()
+          BigDecimal amountSegL = BigDecimal.ZERO
+          BigDecimal amountSegF = BigDecimal.ZERO
+          List<DetalleNotaVentaJava> lstLens = new ArrayList<>()
+          List<DetalleNotaVentaJava> lstFrames = new ArrayList<>()
+          ArticulosJava segFrame = new ArticulosJava()
+          ArticulosJava segLens = new ArticulosJava()
+          String typeEnsureO = ""
+          String typeEnsureF = ""
+          for(DetalleNotaVentaJava orderItem : nota.detalles){
+            if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_MONTAJE) ){
+              if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                if( StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                  if( StringUtils.trimToEmpty(orderItem.articulo.tipo).equalsIgnoreCase(TAG_TIPO_OFTALMICO) ){
+                    amountSegL = amountSegL.add(orderItem.precioUnitLista)
+                    lstLens.add( orderItem )
+                  } else {
+                    amountSegF = amountSegF.add(orderItem.precioUnitLista)
+                    lstFrames.add( orderItem )
+                  }
+                } else {
+                  amountSegL = amountSegL.add(orderItem.precioUnitLista)
+                  lstLens.add( orderItem )
+                }
+              } else {
+                if( StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_ARMAZON) ){
+                                    segFrame = orderItem.articulo
+                                    typeEnsureF = "S"
+                } else if( !StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) &&
+                        StringUtils.trimToEmpty(orderItem.articulo.articulo).startsWith(TAG_SEGUROS_OFTALMICO) ){
+                  segLens = orderItem.articulo
+                  typeEnsureO = "L"
+                  if( StringUtils.trimToEmpty(orderItem.articulo.articulo).equalsIgnoreCase(TAG_SEGUROS_OFTALMICO) ){
+                    typeEnsureO = "N"
+                  }
+                }
+              }
+            }
+          }
+
+          BigDecimal warrantyAmountLens = ItemController.warrantyValidJava( amountSegL, segLens.idArticulo )
+          BigDecimal warrantyAmountFrame = ItemController.warrantyValidJava( amountSegF, segFrame.idArticulo )
+          List<Integer> lstIdFrames = new ArrayList<>()
+          List<Integer> lstIdLens = new ArrayList<>()
+          for(DetalleNotaVentaJava detFrames : lstFrames){
+            lstIdFrames.add(detFrames.idArticulo)
+          }
+          for(DetalleNotaVentaJava detLens : lstLens){
+            lstIdLens.add(detLens.idArticulo)
+          }
+          if( warrantyAmountLens.compareTo(BigDecimal.ZERO) > 0 && segValid(segLens.idArticulo, lstIdLens) ){
+            String items = ""
+            amountSegL = BigDecimal.ZERO
+            for(DetalleNotaVentaJava orderItem : lstLens){
+              if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                amountSegL = amountSegL.add( orderItem.precioUnitFinal )
+              }
+            }
+            Warranty warranty = new Warranty()
+            warranty.amount = amountSegL
+            warranty.idItem = items.replaceFirst(",","")
+            warranty.typeEnsure = typeEnsureO
+            warranty.idOrder = addIdOrder ? nota.idFactura : ""
+            idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
+            //println idOrderEnsured
+            lstWarranty.add( warranty )
+            lstIdGar.clear()
+          } else {
+            MSJ_ERROR_WARRANTY = "Seguro Invalido."
+            valid = false
+          }
+
+          if( warrantyAmountFrame.compareTo(BigDecimal.ZERO) > 0 && segValid(segFrame.idArticulo, lstIdFrames) ){
+            String items = ""
+            amountSegF = BigDecimal.ZERO
+            for(DetalleNotaVentaJava orderItem : lstFrames){
+              if( !StringUtils.trimToEmpty(orderItem.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
+                items = items+","+StringUtils.trimToEmpty(orderItem.articulo.articulo)
+                amountSegF = amountSegF.add( orderItem.precioUnitFinal )
+              }
+            }
+            Warranty warranty = new Warranty()
+            warranty.amount = amountSegF
+            warranty.idItem = items.replaceFirst(",","")
+            warranty.typeEnsure = typeEnsureF
+            warranty.idOrder = addIdOrder ? nota.idFactura : ""
+            idOrderEnsured = StringUtils.trimToEmpty(idOrderPostEnsure).length() > 0 ? StringUtils.trimToEmpty(idOrderPostEnsure) : idOrderEnsured
+            //println idOrderEnsured
+            lstWarranty.add( warranty )
+            lstIdGar.clear()
+          } else {
+            MSJ_ERROR_WARRANTY = "Seguro Invalido."
+            valid = false
+          }
+        } else {
+          MSJ_ERROR_WARRANTY = "Seleccione solo un seguro."
+          valid = false
+        }
+      } else if( hasC1 ) {
+        MSJ_ERROR_WARRANTY = "No se puede asignar seguro a una redención."
+        valid = false
+      } else if( totalAmount.compareTo(BigDecimal.ZERO) <= 0 ) {
+        MSJ_ERROR_WARRANTY = "No se puede asignar seguro a una nota con monto \$0.00"
+        valid = false
+      }
+    } else if( cleanWaranties && lensKid ){
+      insertSegKig = true
+    } else {
+            valid = true
+    }
+    if( cleanWaranties ){
+            lstWarranty.clear()
+    }
+    return valid
+    }
+
+
+
   private static Boolean segValid(Integer itemWarr, List<Integer> items ){
     Boolean valid = true
     Boolean frame = false
@@ -2853,9 +3272,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     Boolean lens = false
     Boolean lensKid = false
     if( itemWarr != null ){
-      Articulo itemWarranty = ItemController.findArticle( itemWarr )
+      ArticulosJava itemWarranty = ArticulosQuery.busquedaArticuloPorId( itemWarr )
       for(Integer id : items){
-        Articulo item = ItemController.findArticle( id )
+        ArticulosJava item = ArticulosQuery.busquedaArticuloPorId( id )
         if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
           frame = true
         }
@@ -2907,23 +3326,24 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
 
-  static NotaVenta ensureOrder( String idOrder ){
-    NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+  static NotaVentaJava ensureOrder( String idOrder ){
+    //NotaVenta notaVenta = notaVentaService.obtenerNotaVenta( idOrder )
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( idOrder )
     if( notaVenta != null ){
       Boolean warranty = true
-      for( DetalleNotaVenta det : notaVenta.detalles ){
+      for( DetalleNotaVentaJava det : notaVenta.detalles ){
         if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
           warranty = false
         }
       }
-      if( warranty && notaVenta?.detalles.size() > 0 ){
+      if( warranty && notaVenta?.detalles?.size() > 0 ){
         AseguraNotaDialog dialog = new AseguraNotaDialog()
         dialog.show()
         if( dialog.notaVenta != null ){
           notaVenta = dialog.notaVenta
         }
       } else {
-        notaVenta = new NotaVenta()
+        notaVenta = new NotaVentaJava()
       }
     }
     return  notaVenta
@@ -2933,7 +3353,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
   static Boolean validaAplicaGarantia(String idFactura) {
     Boolean valid = true
-    NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket( StringUtils.trimToEmpty(Registry.currentSite.toString())+"-"+idFactura )
+    //NotaVenta notaVenta = notaVentaService.obtenerNotaVentaPorTicket( StringUtils.trimToEmpty(Registry.currentSite.toString())+"-"+idFactura )
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(idFactura) )
     Boolean noDelivered = true
     Boolean noCancelled = true
     Boolean noEnsured = true
@@ -2945,7 +3366,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         if( StringUtils.trimToEmpty(notaVenta.sFactura).equalsIgnoreCase("T") ){
           noCancelled = false
         }
-        for(DetalleNotaVenta det : notaVenta.detalles){
+        for(DetalleNotaVentaJava det : notaVenta.detalles){
           if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("J") ){
             noEnsured = false
           }
@@ -2959,13 +3380,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
-  static void reprintEnsure( NotaVenta notaVenta ){
+  static void reprintEnsure( NotaVentaJava notaVenta ){
     if( notaVenta.fechaEntrega != null ) {
       if(validEnsureDateAplication(notaVenta)){
         if( validWarranty( notaVenta, false, null, "", false ) ){
           Boolean doubleEnsure = lstWarranty.size() > 1
           for(Warranty warranty : lstWarranty){
-            ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.id), doubleEnsure )
+            ItemController.printWarranty( warranty.amount, warranty.idItem, warranty.typeEnsure, StringUtils.trimToEmpty(notaVenta.idFactura), doubleEnsure )
           }
           lstWarranty.clear()
         }
@@ -3000,7 +3421,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
 
-  static Boolean validEnsureDateAplication( NotaVenta notaVenta ){
+  static Boolean validEnsureDateAplication( NotaVentaJava notaVenta ){
     Boolean valid = false
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy")
     Date limitDate = new Date()
@@ -3013,6 +3434,28 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     return valid
   }
 
+
+  static Descuento findClaveApplied( String clave ) {
+    List<Descuento> desc = descuentoRepository.findByClave( StringUtils.trimToEmpty( clave ) )
+    if( desc.size() > 0 ){
+      return  desc.first()
+    }
+    return  null
+  }
+
+
+
+  static String validCrmClaveWeb( String clave ){
+    log.debug( "validCrmClaveWeb( )" )
+    String claveFree = notaVentaService.validaClaveCrmWeb( clave )
+    return claveFree
+  }
+
+
+  static void saveAcuseCrmClave( String idOrder ){
+    log.debug( "saveAcuseCrmClave( )" )
+    NotaVentaServiceJava.guardaAcuseClaveCrm( idOrder )
+  }
 
   static Boolean changeIpBox( String ip ){
     return notaVentaService.cambiaIpCaja( ip )
@@ -3028,7 +3471,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
   static Boolean validOrderNotCancelled( String idOrder ){
-    return notaVentaService.validaNotaNoAnulada( idOrder )
+    //return notaVentaService.validaNotaNoAnulada( idOrder )
+    AutorizaMovJava autorizaMov = AutorizaMovQuery.buscaAutorizaMovPorFactura( idOrder )
+    if( autorizaMov != null ){
+      return false
+    } else{
+      return true
+    }
   }
 
 
@@ -3043,6 +3492,283 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       lstOrders.add( orderToCancell )
     }
     return lstOrders
+  }
+
+
+  static BigDecimal amountPromoAge( String idOrder ){
+    BigDecimal monto = BigDecimal.ZERO
+    NotaVenta nota = notaVentaService.obtenerNotaVenta( idOrder )
+    if( nota != null ){
+      BigDecimal montoParcial = BigDecimal.ZERO
+      Boolean montoValido = false
+      Boolean hasSV = false
+      Boolean hasMF = false
+      Boolean hasFrame = false
+      for(DetalleNotaVenta det : nota.detalles){
+        if( StringUtils.trimToEmpty(det?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+          hasFrame = true
+        }
+        if( !StringUtils.trimToEmpty(det?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEG) ){
+          montoParcial = montoParcial.add(det.precioUnitFinal.multiply(det.cantidadFac))
+        }
+        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
+          if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("SV") ){
+            hasSV = true
+          } else if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("B") ||
+                  StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("P") ){
+            hasMF = true
+          }
+        }
+      }
+      if( montoParcial.compareTo(Registry.validAmountPromoAge) >= 0 ){
+        montoValido = true
+      }
+      if( nota?.idCliente != Registry.genericCustomer && montoValido && hasFrame && (hasSV || hasMF) ){
+        if( nota.cliente != null && nota?.cliente?.fechaNacimiento != null ){
+          Date fechaActual = new Date();
+          SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+          String hoy = formato.format(fechaActual);
+          String[] dat1 = formato.format(nota?.cliente?.fechaNacimiento).split("/");
+          String[] dat2 = hoy.split("/");
+          Integer anos = Integer.parseInt(dat2[2]) - Integer.parseInt(dat1[2]);
+          Integer mes = Integer.parseInt(dat2[1]) - Integer.parseInt(dat1[1]);
+          if (mes < 0) {
+              anos = anos - 1;
+          } else if (mes == 0) {
+            int dia = Integer.parseInt(dat2[0]) - Integer.parseInt(dat1[0]);
+            if (dia < 0) {
+              anos = anos - 1;
+            }
+          }
+          if( hasSV ){
+            monto = new BigDecimal( anos*Registry.amountPromoAgeMonofocal )
+          } else if( hasMF ){
+            monto = new BigDecimal( anos*Registry.amountPromoAgeMultifocal )
+          }
+        }
+      }
+    }
+    return monto
+  }
+
+
+  static Boolean canApplyDiscountAge( Order order ) {
+    Boolean smthApply = false
+    if( StringUtils.trimToEmpty(order.id).length() > 0 ){
+      Calendar cal = Calendar.getInstance();
+      cal.set(cal.get(Calendar.YEAR),
+      cal.getMinimum(Calendar.MONTH),
+      cal.getMinimum(Calendar.DAY_OF_YEAR),
+      cal.getMinimum(Calendar.HOUR_OF_DAY),
+      cal.getMinimum(Calendar.MINUTE),
+      cal.getMinimum(Calendar.SECOND));
+      Date fechaStart = cal.getTime()
+      Date fechaEnd = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 )
+      List<NotaVentaJava> lstNotasClient = NotaVentaQuery.busquedaNotaByIdClienteAndDate(order.customer.id, fechaStart, fechaEnd)
+      for(NotaVentaJava nv : lstNotasClient){
+        List<DescuentosJava> descuento = DescuentosQuery.buscaDescuentosPorIdFactura(nv.idFactura)
+        for(DescuentosJava desc : descuento){
+          if(StringUtils.trimToEmpty(desc.clave).equalsIgnoreCase(TAG_CLAVE_DESCUENTO_EDAD)){
+            smthApply = true
+          }
+        }
+      }
+    }
+    return smthApply
+  }
+
+
+  static String couponKeyValid( String couponKey, Order order ) {
+    log.debug("couponKeyValid ( "+ couponKey+" )")
+    String montoMinimo = ""
+    DescuentoClave descuentoClave = descuentoClaveRepository.descuentoClave( StringUtils.trimToEmpty(couponKey) )
+    BigDecimal minimumAmount = BigDecimal.ZERO
+    if( descuentoClave != null ){
+      if( descuentoClave.getMontoMinimo() != null && descuentoClave.getMontoMinimo().compareTo(BigDecimal.ZERO) > 0 ){
+        minimumAmount = descuentoClave.getMontoMinimo()
+      } else {
+        minimumAmount = Registry.minimunAmountAgreement
+      }
+    }
+      BigDecimal totalOrder = BigDecimal.ZERO
+      NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( order.id )
+      if( nota != null ){
+          for(DetalleNotaVentaJava det : nota.detalles){
+            if( !StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase(TAG_GENERICO_SEG) ){
+              totalOrder = totalOrder.add(det.precioUnitLista.multiply(new BigDecimal(det.cantidadFac)))
+            }
+          }
+          //println totalOrder
+          if( totalOrder.compareTo(minimumAmount) < 0 ){
+              montoMinimo = NumberFormat.getCurrencyInstance(Locale.US).format(minimumAmount)
+          }
+      }
+    return montoMinimo
+  }
+
+
+  static Boolean validMinimumAmountCrmByParameter( BigDecimal couponAmount, NotaVenta notaVenta ){
+    Boolean valid = true
+    BigDecimal totalAmount = BigDecimal.ZERO
+    String amounts = StringUtils.trimToEmpty(Registry.minimunAmountCrm)
+    if( amounts.length() > 0 ){
+      for(DetalleNotaVenta detalleNotaVenta : notaVenta.detalles){
+        if( !detalleNotaVenta.articulo.idGenerico.equalsIgnoreCase(TAG_GENERICO_SEG) ){
+          totalAmount = totalAmount.add(detalleNotaVenta.precioUnitFinal)
+        }
+      }
+      String[] ranges = amounts.split(",")
+      for(String range : ranges){
+        String[] data = StringUtils.trimToEmpty(range).split(":")
+        if( data.length > 1 && data[0].toString().isNumber() && data[1].toString().isNumber() ){
+          Double discount = 0.00
+          Double minimumAmount = 0.00
+          try{
+            discount = NumberFormat.getInstance().parse(data[0]).doubleValue()
+            minimumAmount = NumberFormat.getInstance().parse(data[1]).doubleValue()
+          } catch ( NumberFormatException e ){
+            println e
+          }
+          if( discount == couponAmount ){
+            if( totalAmount.doubleValue() < minimumAmount ){
+              valid = false
+            }
+          }
+        }
+      }
+    }
+    return  valid
+  }
+
+
+  static Boolean validMinimumAmountCrm( BigDecimal minimunAmount, NotaVenta notaVenta ){
+    Boolean valid = true
+    BigDecimal totalAmount = BigDecimal.ZERO
+    for(DetalleNotaVenta detalleNotaVenta : notaVenta.detalles){
+      if( !detalleNotaVenta.articulo.idGenerico.equalsIgnoreCase(TAG_GENERICO_SEG) ){
+        totalAmount = totalAmount.add(detalleNotaVenta.precioUnitFinal)
+      }
+    }
+    if( totalAmount.doubleValue() < minimunAmount ){
+      valid = false
+    }
+    return  valid
+  }
+
+
+  static List<PromocionJava> findCrmPromotions( ){
+    List<PromocionJava> lstPromotions = new ArrayList<>();
+    List<PromocionJava> lstPromotionsCrm = PromocionQuery.buscaPromocionesCrm()
+    for(PromocionJava promocionJava : lstPromotionsCrm){
+      /*String[] data = StringUtils.trimToEmpty(promocionJava.descripcion).split(":")
+      if( data.length > 1 ){
+        String clave = StringUtils.trimToEmpty(data[1])
+        if(DescuentosQuery.buscaDescuentoPorClave(StringUtils.trimToEmpty(clave)) == null){*/
+          lstPromotions.add(promocionJava)
+        //}
+      //}
+    }
+    return lstPromotions
+  }
+
+
+  static PromocionJava findCrmPromotionByKey( String key ){
+    PromocionJava promotion = new PromocionJava()
+    List<PromocionJava> lstPromotionsCrm = PromocionQuery.buscaPromocionesCrm()
+    for(PromocionJava promocionJava : lstPromotionsCrm){
+      String[] data = StringUtils.trimToEmpty(promocionJava.descripcion).split(":")
+      if( data.length > 1 ){
+        String keyP = StringUtils.trimToEmpty(data[1].toString()).substring(0,4)
+        String keyF = StringUtils.trimToEmpty(key).substring(0,4)
+        if( StringUtils.trimToEmpty(keyF).equalsIgnoreCase(keyP) ){
+          promotion = promocionJava
+        }
+      }
+    }
+    return promotion
+  }
+
+
+  static Boolean validRxData( String idOrder, String dioptra ) {
+    Boolean valid = true
+    NotaVentaJava notaVentaJava = NotaVentaQuery.busquedaNotaById( idOrder )
+    RecetaJava rx = null
+    if( notaVentaJava.receta != null ){
+      rx = RecetaQuery.buscaRecetaPorIdReceta( notaVentaJava.receta )
+    }
+    if( rx != null && rx.idReceta != null ){
+      Double esfDer = 0.00
+      Double cilDer = 0.00
+      Double esfIz = 0.00
+      Double cilIz = 0.00
+      try{
+        String esfDerStr = rx.odEsfR.replace("+","")
+        //esfDerStr = esfDerStr.replace("-","")
+        String cilDerStr = rx.odCilR.replace("+","")
+        //cilDerStr = cilDerStr.replace("-","")
+        String esfIzStr = rx.oiEsfR.replace("+","")
+        //esfIzStr = esfIzStr.replace("-","")
+        String cilIzStr = rx.oiCilR.replace("+","")
+        //cilIzStr = cilIzStr.replace("-","")
+        esfDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfDerStr).length() > 0 ? StringUtils.trimToEmpty(esfDerStr) : "0").doubleValue()
+        cilDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilDerStr).length() > 0 ? StringUtils.trimToEmpty(cilDerStr) : "0").doubleValue()
+        esfIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfIzStr).length() > 0 ? StringUtils.trimToEmpty(esfIzStr) : "0").doubleValue()
+        cilIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilIzStr).length() > 0 ? StringUtils.trimToEmpty(cilIzStr) : "0").doubleValue()
+      } catch ( NumberFormatException e ) { println e }
+
+      String dataLimits = Registry.limitGraduation
+      String[] data = StringUtils.trimToEmpty(dataLimits).split(",")
+      for(String d : data){
+        String[] dataTmp = StringUtils.trimToEmpty(d).split(":")
+        if( dataTmp.length >= 3 ){
+          Double firstLimit = 0.00
+          Double secondLimit = 0.00
+          try{
+            firstLimit = NumberFormat.getInstance().parse(dataTmp[1])
+            secondLimit = NumberFormat.getInstance().parse(dataTmp[2])
+          } catch ( NumberFormatException e ) { println e }
+
+          if( StringUtils.trimToEmpty(dioptra).startsWith(dataTmp[0]) ){
+            Boolean esferaVaild = true
+            if( esfDer < 0 ){
+              if( esfDer < secondLimit.doubleValue()*-1 ){
+                esferaVaild = false
+              }
+            } else {
+              if( esfDer > secondLimit ){
+                esferaVaild = false
+              }
+            }
+            if( esfIz < 0 ){
+              if( esfIz < secondLimit.doubleValue()*-1 ){
+                esferaVaild = false
+              }
+            } else {
+              if( esfIz > secondLimit ){
+                esferaVaild = false
+              }
+            }
+            if( esfDer > firstLimit || esfIz > firstLimit || esfDer.abs()+cilDer.abs() > secondLimit || esfIz.abs()+cilIz.abs() > secondLimit ){
+              valid = false
+            }
+          }
+        }
+      }
+      /*if( StringUtils.trimToEmpty(dioptra).startsWith("C") ){
+        if( esfDer > 6 || esfIz > 6 || esfDer+cilDer > 6 || esfIz+cilIz > 6 ){
+          valid = false
+        }
+      } else if( StringUtils.trimToEmpty(dioptra).startsWith("P") ){
+        if( esfDer > 8 || esfIz > 8 || esfDer+cilDer > 12 || esfIz+cilIz > 12 ){
+          valid = false
+        }
+      } else if( StringUtils.trimToEmpty(dioptra).startsWith("H") ){
+        if( esfDer > 10 || esfIz > 10 || esfDer+cilDer > 16 || esfIz+cilIz > 16 ){
+          valid = false
+        }
+      }*/
+    }
+    return valid
   }
 
 

@@ -1,7 +1,10 @@
 package mx.lux.pos.model;
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 
 @Entity
@@ -28,6 +31,10 @@ public class DescuentoClave implements Serializable {
 
     @Column( name = "cupon")
     private Boolean cupon;
+
+    @Type( type = "mx.lux.pos.model.MoneyAdapter" )
+    @Column( name = "monto_minimo")
+    private BigDecimal montoMinimo;
 
     public String getClave_descuento() {
         return clave_descuento;
@@ -75,5 +82,13 @@ public class DescuentoClave implements Serializable {
 
     public void setCupon(Boolean cupon) {
         this.cupon = cupon;
+    }
+
+    public BigDecimal getMontoMinimo() {
+        return montoMinimo;
+    }
+
+    public void setMontoMinimo(BigDecimal montoMinimo) {
+        this.montoMinimo = montoMinimo;
     }
 }

@@ -5,6 +5,8 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import mx.lux.pos.model.NotaVenta
 import mx.lux.pos.model.Receta
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.RecetaJava
 import org.apache.commons.lang.StringUtils
 
 //import sun.swing.StringUIClientPropertyKey
@@ -80,6 +82,8 @@ class Rx {
       String name = ''
         if(StringUtils.trimToEmpty(optometristName) != '' && StringUtils.trimToEmpty(idOpt) != ''){
           name = '['+idOpt.trim()+']'+optometristName
+        } else {
+          name = '['+idOpt.trim()+']'
         }
     }
 
@@ -104,13 +108,13 @@ class Rx {
     String getTipoEditRx(){
         String tipo = ''
         if( useGlasses.equalsIgnoreCase('l') ){
-            tipo = 'MONOFOCAL'
+            tipo = 'M'
         } else if( useGlasses.equalsIgnoreCase('c') ){
-            tipo = 'MONOFOCAL'
+            tipo = 'M'
         } else if( useGlasses.equalsIgnoreCase('b') ){
-            tipo = 'BIFOCAL'
+            tipo = 'B'
         } else if( useGlasses.equalsIgnoreCase('p') ){
-            tipo = 'PROGRESIVO'
+            tipo = 'P'
         }
 
         return tipo
@@ -181,6 +185,59 @@ class Rx {
           idRxOri: receta.idRxOri,
           folio: receta.folio,
           order: Order.toOrder(receta?.notaVenta != null ? receta?.notaVenta : new NotaVenta())
+      )
+      return prescription
+    }
+    return null
+  }
+
+
+  static Rx toRx( RecetaJava receta ) {
+    if ( receta?.idReceta ) {
+      Rx prescription = new Rx(
+            id: receta.idReceta,
+            exam: receta.examen,
+            clientName: receta?.cliNombreCompleto(),
+            idClient: receta.idCliente,
+            rxDate: receta.fechaReceta,
+            useGlasses: receta.sUsoAnteojos,
+            optometristName: StringUtils.trimToEmpty(receta?.empleado?.getNombreEmpleado())+' '+StringUtils.trimToEmpty(receta?.empleado?.apPatEmpleado)+' '+StringUtils.trimToEmpty(receta?.empleado?.apMatEmpleado),
+            idOpt: receta.idOptometrista,
+            typeOpt: StringUtils.trimToEmpty(receta.tipoOpt),
+            odEsfR: StringUtils.trimToEmpty(receta.odEsfR),
+            odCilR: StringUtils.trimToEmpty(receta.odCilR),
+            odEjeR: StringUtils.trimToEmpty(receta.odEjeR),
+            odAdcR: StringUtils.trimToEmpty(receta.odAdcR),
+            odAdiR: StringUtils.trimToEmpty(receta.odAdiR),
+            odPrismH: StringUtils.trimToEmpty(receta.odPrismaH),
+            oiEsfR: StringUtils.trimToEmpty(receta.oiEsfR),
+            oiCilR: StringUtils.trimToEmpty(receta.oiCilR),
+            oiEjeR: StringUtils.trimToEmpty(receta.oiEjeR),
+            oiAdcR: StringUtils.trimToEmpty(receta.oiAdcR),
+            oiAdiR: StringUtils.trimToEmpty(receta.oiAdiR),
+            oiPrismH: StringUtils.trimToEmpty(receta.oiPrismaH),
+            diLejosR: StringUtils.trimToEmpty(receta.diLejosR),
+            diCercaR: StringUtils.trimToEmpty(receta.diCercaR),
+            odAvR: "20/${StringUtils.trimToEmpty(receta.odAvR)}" ?: '',
+            oiAvR: "20/${StringUtils.trimToEmpty(receta.oiAvR)}" ?: '',
+            altOblR: StringUtils.trimToEmpty(receta.altOblR),
+            observacionesR: StringUtils.trimToEmpty(receta.observacionesR),
+            fPrint: receta.fImpresa,
+            idSync: receta.idSync,
+            DateMod: receta.fechaMod,
+            modId: receta.idMod,
+            idStore: receta.idSucursal,
+            diOd: StringUtils.trimToEmpty(receta.diOd),
+            diOi: StringUtils.trimToEmpty(receta.diOi),
+            materialArm: StringUtils.trimToEmpty(receta.materialArm),
+            odPrismaV: receta.odPrismaV ?: '',
+            oiPrismaV: receta.oiPrismaV ?: '',
+            treatment: receta.tratamientos,
+            udf5: receta.udf5,
+            udf6: receta.udf6,
+            idRxOri: receta.idRxOri,
+            folio: receta.folio,
+            order: Order.toOrder(receta?.notaVenta != null ? receta?.notaVenta : new NotaVentaJava())
       )
       return prescription
     }

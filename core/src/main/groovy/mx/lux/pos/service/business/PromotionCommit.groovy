@@ -1,5 +1,7 @@
 package mx.lux.pos.service.business
 
+import mx.lux.pos.java.querys.PromocionQuery
+import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.GrupoArticuloDetRepository
 import mx.lux.pos.repository.GrupoArticuloRepository
@@ -102,17 +104,142 @@ class PromotionCommit {
     NotaVenta dbOrder = RepositoryFactory.orders.findOne( pModel.order.orderNbr )
     Double netAmount = 0
     Double amountEnsure = 0
+    Double amountRestOrder = 0
+    Double amountDesc = 0
+    String generic = ""
+    Boolean crm = false
+    Boolean allGen = false
+    Boolean oneValGen = false
+    Boolean twoValGen = false
+    Boolean oneNotValGen = false
+    BigDecimal discountAmount = BigDecimal.ZERO
+    if( pModel.orderDiscount != null && StringUtils.trimToEmpty(pModel.orderDiscount.discountType.text).equalsIgnoreCase("Descuentos CRM") ){
+      crm = true
+      if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length() >= 11 &&
+              !StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(0,4).isNumber()){
+        generic = StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(1,3)
+        String clave = ""
+        Integer percentajeInt = 0
+        for(int i=0;i<StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length();i++){
+          if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.charAt(i).toString()).isNumber()){
+            Integer number = 0
+            try{
+              number = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.charAt(i).toString()))
+            } catch ( NumberFormatException e ) { println e }
+            clave = clave+StringUtils.trimToEmpty((10-number).toString())
+          } else {
+            clave = clave+0
+          }
+        }
+        String percentaje = StringUtils.trimToEmpty(clave).substring(3,5)
+        try{
+              percentajeInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(percentaje))
+        } catch ( NumberFormatException e) { e.printStackTrace() }
+        discountAmount = new BigDecimal(percentajeInt.doubleValue()*Registry.multiplyDiscountCrm)
+        if( generic.contains("**") ){
+              allGen = true
+        } else if( generic.replace("!","\\!").contains("\\!") ){
+              oneNotValGen = true
+        } else if( generic.contains("_") ){
+              oneValGen = true
+        } else {
+              twoValGen = true
+        }
+      } else if(StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).length() >= 10 &&
+              StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description).substring(0,4).isNumber() ){
+        List<PromocionJava> lstPromo = PromocionQuery.buscaPromocionesCrm( )
+        PromocionJava promo = null
+        for(PromocionJava p : lstPromo){
+          String descPromo = StringUtils.trimToEmpty(p.descripcion.replaceAll(" ",""))
+          String descClave = "crm:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.substring(0,4))}"
+          if(descPromo.startsWith(descClave)){
+            promo = p
+          } else {
+            descClave = "CRM:${StringUtils.trimToEmpty(pModel.orderDiscount.discountType.description.substring(0,4))}"
+            if(descPromo.startsWith(descClave)){
+              promo = p
+            }
+          }
+        }
+        if(promo != null){
+          generic = StringUtils.trimToEmpty(promo.idGenerico)
+          discountAmount = promo.precioDescontado
+          if( generic.contains("*") ){
+            allGen = true
+          } else if( StringUtils.trimToEmpty(promo.genericoc).length() <= 0 ){
+            oneValGen = true
+            generic = "_"+generic
+          } else if( StringUtils.trimToEmpty(promo.genericoc).length() > 0 ){
+            twoValGen = true
+            generic = generic+StringUtils.trimToEmpty(promo.genericoc)
+          }
+        }
+      }
+    }
     for ( DetalleNotaVenta dbOrderLine : dbOrder.detalles ) {
       if( pModel.orderDiscount != null ){
         if( !Registry.genericsWithoutDiscount.contains(StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico))  ){
           PromotionOrderDetail orderDetail = pModel.order.orderDetailSet.get( dbOrderLine.idArticulo )
-          if ( orderDetail != null ) {
-            dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+          if( crm ){
+            if( allGen ){
+              if ( orderDetail != null ) {
+                dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+              } else {
+                dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+              }
+              dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+              netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+              amountDesc = amountDesc+dbOrderLine.precioUnitLista.doubleValue()-dbOrderLine.precioUnitFinal.doubleValue()
+            } else if( oneValGen ){
+              if( StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
+                if ( orderDetail != null ) {
+                  dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+                } else {
+                  dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+                }
+                dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+                netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+                amountDesc = amountDesc+dbOrderLine.precioUnitLista.doubleValue()-dbOrderLine.precioUnitFinal.doubleValue()
+              } else {
+                amountRestOrder = amountRestOrder+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+              }
+            } else if( twoValGen ){
+              if( StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase(generic.substring(0,1)) ||
+                      StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
+                if ( orderDetail != null ) {
+                  dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+                } else {
+                  dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+                }
+                dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+                netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+                amountDesc = amountDesc+dbOrderLine.precioUnitLista.doubleValue()-dbOrderLine.precioUnitFinal.doubleValue()
+              } else {
+                amountRestOrder = amountRestOrder+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+              }
+            } else if( oneNotValGen ){
+              if( !StringUtils.trimToEmpty(dbOrderLine.articulo.idGenerico).equalsIgnoreCase(generic.substring(1)) ){
+                if ( orderDetail != null ) {
+                  dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+                } else {
+                  dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+                }
+                dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+                netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+                amountDesc = amountDesc+dbOrderLine.precioUnitLista.doubleValue()-dbOrderLine.precioUnitFinal.doubleValue()
+              } else {
+                amountRestOrder = amountRestOrder+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
+              }
+            }
           } else {
-            dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+            if ( orderDetail != null ) {
+              dbOrderLine.precioUnitFinal = asAmount( orderDetail.finalPrice )
+            } else {
+              dbOrderLine.precioUnitFinal = dbOrderLine.precioUnitLista
+            }
+            dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
+            netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
           }
-          dbOrderLine.precioFactura = dbOrderLine.precioUnitFinal
-          netAmount += dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
           RepositoryFactory.orderLines.save( dbOrderLine )
         } else {
           amountEnsure = amountEnsure+dbOrderLine.precioUnitFinal.doubleValue() * dbOrderLine.cantidadFac
@@ -129,13 +256,37 @@ class PromotionCommit {
         RepositoryFactory.orderLines.save( dbOrderLine )
       }
     }
+    BigDecimal diff = discountAmount.subtract(amountDesc)
+    if( diff.compareTo(BigDecimal.ZERO) < 0 || diff.compareTo(BigDecimal.ZERO) > 0 ){
+      amountDesc = amountDesc+diff.doubleValue()
+      netAmount = netAmount-diff.doubleValue()
+      List<DetalleNotaVenta> lstDet = new ArrayList<>(dbOrder.detalles)
+      Collections.sort(lstDet, new Comparator<DetalleNotaVenta>() {
+          @Override
+          int compare(DetalleNotaVenta o1, DetalleNotaVenta o2) {
+              return o2.precioUnitFinal.compareTo(o1.precioUnitFinal)
+          }
+      })
+      for(DetalleNotaVenta dbOrderLine : lstDet){
+        if(dbOrderLine.precioUnitFinal.compareTo(dbOrderLine.precioUnitLista) < 0){
+          dbOrderLine.precioUnitFinal = asAmount( (dbOrderLine.precioUnitFinal.subtract(diff)) as Double)
+          RepositoryFactory.orderLines.save( dbOrderLine )
+          break
+        }
+      }
+    }
     RepositoryFactory.orderLines.flush()
-    netAmount = netAmount+amountEnsure
+    netAmount = netAmount+amountEnsure+amountRestOrder
     dbOrder.ventaNeta = asAmount( netAmount.round() )
     dbOrder.ventaTotal = asAmount( netAmount.round() )
+
     if ( pModel.hasOrderDiscountApplied() ) {
       println pModel.orderDiscount.discountAmount.round()
-      dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount.round() )
+      if( amountDesc > 0 && StringUtils.trimToEmpty(pModel.orderDiscount.discountType.text).equalsIgnoreCase("Descuentos CRM") ){
+        dbOrder.montoDescuento = asAmount( amountDesc )
+      } else {
+        dbOrder.montoDescuento = asAmount( pModel.orderDiscount.discountAmount.round() )
+      }
       dbOrder.por100Descuento = Math.round( pModel.orderDiscount.discountPercent * 100.0 ) as Integer
     } else {
       dbOrder.montoDescuento = BigDecimal.ZERO

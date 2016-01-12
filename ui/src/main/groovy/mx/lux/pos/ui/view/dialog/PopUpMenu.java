@@ -1,22 +1,18 @@
 package mx.lux.pos.ui.view.dialog;
 
 import java.awt.Component;
-import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.List;
 
 import javax.swing.*;
 
 import mx.lux.pos.model.Jb;
-import mx.lux.pos.querys.JbQuery;
-import mx.lux.pos.querys.JbTrackQuery;
-import mx.lux.pos.querys.ParametrosQuery;
-import mx.lux.pos.repository.JbTrack;
-import mx.lux.pos.repository.Parametros;
-import mx.lux.pos.service.JbServiceJava;
+import mx.lux.pos.java.querys.JbQuery;
+import mx.lux.pos.java.querys.JbTrackQuery;
+import mx.lux.pos.java.querys.ParametrosQuery;
+import mx.lux.pos.java.repository.JbTrack;
+import mx.lux.pos.java.repository.Parametros;
 import mx.lux.pos.ui.model.Session;
 import mx.lux.pos.ui.model.SessionItem;
 import mx.lux.pos.ui.model.User;
@@ -25,11 +21,9 @@ import mx.lux.pos.ui.resources.utilidades.SolicitaUrl;
 import mx.lux.pos.ui.view.panel.ConsultaPanel;
 import org.apache.commons.lang3.StringUtils;
 
-import mx.lux.pos.ui.resources.utilidades.LlamadaUrl;
-
-import static mx.lux.pos.querys.JbQuery.getMaterialJbRx;
-import static mx.lux.pos.querys.JbQuery.getRotoJbRx;
-import static mx.lux.pos.querys.JbQuery.updateEstadoJbRx;
+import static mx.lux.pos.java.querys.JbQuery.getMaterialJbRx;
+import static mx.lux.pos.java.querys.JbQuery.getRotoJbRx;
+import static mx.lux.pos.java.querys.JbQuery.updateEstadoJbRx;
 import static org.jfree.util.Log.debug;
 import static org.jfree.util.Log.info;
 import static org.jfree.util.Log.log;

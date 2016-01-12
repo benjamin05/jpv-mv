@@ -1390,8 +1390,19 @@ public class ReportServiceImpl implements ReportService {
 
         if( articulo.getArticulo() != null ){
           List<Precio> price = precioRepository.findByArticulo( articulo.getArticulo() );
-          if(price.size() >= 1){
-            precio = price.get(0).getPrecio();
+          BigDecimal precioOferta = BigDecimal.ZERO;
+          BigDecimal precioLista = BigDecimal.ZERO;
+          for(Precio precio1 : price){
+            if( StringUtils.trimToEmpty(precio1.getLista()).equalsIgnoreCase("O") ){
+              precioOferta = precio1.getPrecio();
+            } else if( StringUtils.trimToEmpty(precio1.getLista()).equalsIgnoreCase("L") ){
+              precioLista = precio1.getPrecio();
+            }
+          }
+          if(precioOferta.compareTo(BigDecimal.ZERO) > 0){
+            precio = precioOferta;
+          } else {
+            precio = precioLista;
           }
         }
 
@@ -1594,7 +1605,11 @@ public class ReportServiceImpl implements ReportService {
               } else if( StringUtils.trimToEmpty(desc.getClave()).startsWith("H") ){
                   desc.getDescuentosClave().setDescripcion_descuento( "CUPON 2P LC" );
               } else if( StringUtils.trimToEmpty(desc.getClave()).length() >= 11 ){
+                if( StringUtils.trimToEmpty(desc.getTipoClave()).equalsIgnoreCase("DIRECCION") ){
+                  desc.getDescuentosClave().setDescripcion_descuento( "Descuento CRM" );
+                } else {
                   desc.getDescuentosClave().setDescripcion_descuento( "Redencion de Seguro" );
+                }
               }
             } else {
               desc.getDescuentosClave().setClave_descuento(desc.getClave());

@@ -1,5 +1,9 @@
 package mx.lux.pos.service.io
 
+import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.TransInvDetJava
+import mx.lux.pos.java.repository.TransInvJava
 import mx.lux.pos.model.*
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.impl.ServiceFactory
@@ -45,6 +49,19 @@ class ShippingNoticeFileSunglass extends ShippingNoticeFile {
     return sb.toString()
   }
 
+
+  String format( TransInvJava pIssueTr ) {
+    StringBuffer sb = new StringBuffer()
+    if ( InvTrType.ISSUE.equals( pIssueTr.idTipoTrans ) ) {
+      sb.append( this.formatHeader( pIssueTr ) )
+      for ( TransInvDetJava det : pIssueTr.trDet ) {
+        sb.append( "\n" )
+        sb.append( this.formatDetail( det ) )
+      }
+    }
+    return sb.toString()
+  }
+
   protected String formatDetail( TransInvDetalle pIssueDet ) {
     StringList det = new StringList()
     Articulo part = ServiceFactory.partMaster.obtenerArticulo( pIssueDet.sku )
@@ -66,6 +83,30 @@ class ShippingNoticeFileSunglass extends ShippingNoticeFile {
     }
     return det.toString( DELIMITER )
   }
+
+
+  protected String formatDetail( TransInvDetJava pIssueDet ) {
+    StringList det = new StringList()
+    ArticulosJava part = ArticulosQuery.busquedaArticuloPorId( pIssueDet.sku )
+    for ( DetFld fld : DetFld.values() ) {
+      switch ( fld ) {
+        case DetFld.Sku: det.addInteger( pIssueDet.sku, "%06d" ); break
+        case DetFld.Qty: det.addDouble( pIssueDet.cantidad as Double, "%.6f" ); break
+        case DetFld.Price: det.addDouble( part.precio, "%.6f" ); break
+        case DetFld.Supplier: det.add( part.proveedor ); break
+        case DetFld.fld_1: det.addDouble( UNKNOWN as Double, "%.6f" ); break
+        case DetFld.fld_7:
+        case DetFld.fld_8: det.addInteger( UNKNOWN ); break
+        case DetFld.fld_2:
+        case DetFld.fld_3:
+        case DetFld.fld_4:
+        case DetFld.fld_5:
+        case DetFld.fld_6: det.add( " " ); break
+      }
+    }
+    return det.toString( DELIMITER )
+  }
+
 
   protected String formatHeader( TransInv pIssueTr ) {
     StringList hdr = new StringList()
@@ -101,9 +142,53 @@ class ShippingNoticeFileSunglass extends ShippingNoticeFile {
     return hdr.toString( DELIMITER )
   }
 
+
+  protected String formatHeader( TransInvJava pIssueTr ) {
+    StringList hdr = new StringList()
+    for ( HdrFld fld : HdrFld.values() ) {
+      // TODO: (rld) Integrate USD Rate
+      switch ( fld ) {
+        case HdrFld.MovType: hdr.add( MOV_TYPE ); break
+        case HdrFld.MovCode: hdr.add( MOV_CODE ); break
+        case HdrFld.Supplier: hdr.add( SUPPLIER ); break
+        case HdrFld.TrDate: hdr.addDate( pIssueTr.fecha, FMT_TR_DATE ); break
+        case HdrFld.VAT: hdr.addDouble( Registry.currentVAT, "%.2f" ); break
+        case HdrFld.Curr: hdr.add( CURRENCY ); break
+        case HdrFld.UsdRate: hdr.addDouble( USD_RATE, "%,.4f" ); break
+        case HdrFld.fld_1:
+        case HdrFld.fld_2:
+        case HdrFld.fld_3:
+        case HdrFld.fld_4:
+        case HdrFld.fld_5:
+        case HdrFld.fld_6:
+        case HdrFld.fld_7: hdr.add( "" ); break
+        case HdrFld.TrRef:
+          hdr.add( String.format( "%s%06d", pIssueTr.idTipoTrans.substring( 0, 1 ), pIssueTr.folio ) )
+          break
+        case HdrFld.SiteTo:
+          if ( pIssueTr.idSucursalDestino != null ) {
+            hdr.add( SunglassUtils.formatSite( pIssueTr.idSucursalDestino ) )
+          } else {
+            hdr.add( " " )
+          }
+          break
+      }
+    }
+    return hdr.toString( DELIMITER )
+  }
+
+
   protected File getIssueFile( TransInv pIssueTr ) {
     String filename = String.format( "%s.%s.%d.txt", SunglassUtils.formatSite( pIssueTr.sucursalDestino ),
         pIssueTr.idTipoTrans.substring( 0, 1 ), pIssueTr.folio )
+    String absolutePath = String.format( "%s%s%s", this.location, File.separator, filename )
+    return new File( absolutePath )
+  }
+
+
+  protected File getIssueFile( TransInvJava pIssueTr ) {
+    String filename = String.format( "%s.%s.%d.txt", SunglassUtils.formatSite( pIssueTr.idSucursalDestino ),
+            pIssueTr.idTipoTrans.substring( 0, 1 ), pIssueTr.folio )
     String absolutePath = String.format( "%s%s%s", this.location, File.separator, filename )
     return new File( absolutePath )
   }
@@ -148,6 +233,15 @@ class ShippingNoticeFileSunglass extends ShippingNoticeFile {
 
   // Public methods
   String write( TransInv pIssueTr ) {
+    File file = this.getIssueFile( pIssueTr )
+    PrintStream strOut = new PrintStream( file )
+    strOut.println this.format( pIssueTr )
+    strOut.close()
+    logger.debug( String.format( 'Generando archivo de salida (MiEmpresa): %s', file.absolutePath ) )
+    return file.absolutePath
+  }
+
+  String write( TransInvJava pIssueTr ) {
     File file = this.getIssueFile( pIssueTr )
     PrintStream strOut = new PrintStream( file )
     strOut.println this.format( pIssueTr )

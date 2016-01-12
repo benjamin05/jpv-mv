@@ -427,18 +427,16 @@ class ShowOrderPanel extends JPanel {
     }
     JButton source = ev.source as JButton
     source.enabled = false
-    if( validIp ){
-      if(ppButton.getText().equals('Pagar')){
-          doShowPayment()
-      } else{
-          doPrint()
+    if(ppButton.getText().equals('Pagar')){
+      if( validIp ){
+        doShowPayment()
+      } else {
+        sb.optionPane(message: 'Los pagos solo se pueden registrar en caja.',
+                      messageType: JOptionPane.ERROR_MESSAGE
+        ).createDialog(this, 'Pago en caja').show()
       }
-    } else {
-      sb.optionPane(
-         message: 'Los pagos solo se pueden registrar en caja.',
-         messageType: JOptionPane.ERROR_MESSAGE
-      ).createDialog(this, 'Pago en caja')
-         .show()
+    } else{
+      doPrint()
     }
     source.enabled = true
   }
@@ -554,11 +552,12 @@ class ShowOrderPanel extends JPanel {
         }
     }
 
-    private void cancelToday(){
-      Integer question = JOptionPane.showConfirmDialog(new JDialog(), String.format(MSJ_CANCELAR, order.bill), TXT_CANCELAR,
-            JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
-      if( question == 0 ){
-        String causa = CancellationController.findCancellationReasonById( 5 )
+  private void cancelToday(){
+    Integer question = JOptionPane.showConfirmDialog(new JDialog(), String.format(MSJ_CANCELAR, order.bill), TXT_CANCELAR,
+          JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
+    if( question == 0 ){
+      String causa = CancellationController.findCancellationReasonById( 5 )
+      if( CancellationController.orderHasValidStatus( order.id, 5.toString() ) ){
         CancellationController.cancelOrder( order.id, causa, '', false )
         if( !StringUtils.trimToEmpty(causa).equalsIgnoreCase(TAG_RAZON_CAMBIO_FORMA_PAGO) ){
             CancellationController.sendCancellationOrderLc( StringUtils.trimToEmpty( order.bill ) )
@@ -585,8 +584,14 @@ class ShowOrderPanel extends JPanel {
         }
         CancellationController.refreshOrder( order )
         doBindings()
+      } else {
+        sb.optionPane(
+              message: 'Trabajo en Laboratorio, no se puede cancelar. Espere a recibirlo.',
+              messageType: JOptionPane.ERROR_MESSAGE
+        ).createDialog( this, 'No se puede cancelar' ).show()
       }
     }
+  }
 
 
     public void cleanAll( ){

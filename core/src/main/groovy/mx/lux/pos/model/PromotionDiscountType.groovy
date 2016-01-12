@@ -43,7 +43,12 @@ enum PromotionDiscountType {
   }
 
     static  PromotionDiscountType PromotionDiscount( String pIdType, String pDescription,String pText, DescuentoClave descuentoClave ) {
-        PromotionDiscountType discountType   = CouponDiscount
+      PromotionDiscountType discountType = null
+      if( StringUtils.trimToEmpty(pDescription).equalsIgnoreCase("PrEdad") || StringUtils.trimToEmpty(pText).equalsIgnoreCase("Descuentos CRM")){
+        discountType   = CorporateDiscount
+      } else {
+        discountType   = CouponDiscount
+      }
         discountType.idType = StringUtils.trimToEmpty( pIdType ).toUpperCase( )
         discountType.description = StringUtils.trimToEmpty( pDescription ).toUpperCase( )
         discountType.text = StringUtils.trimToEmpty( pText == null ? "Descuento Sobre Venta" : pText )
