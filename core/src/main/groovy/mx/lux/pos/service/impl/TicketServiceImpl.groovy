@@ -2276,7 +2276,7 @@ class TicketServiceImpl implements TicketService {
         }
         if(precioO.id != null && precioO.precio != null && precioO.precio.compareTo(BigDecimal.ZERO) > 0){
           precio = precioO
-        } else if(precioL.id != null && precioL.precio != null && precioL.precio.compareTo(BigDecimal.ZERO) > 0){
+        } else if(precioL.id != null && precioL.precio != null ){
           precio = precioL
         } else if(precios.size() <= 0){
           precio = new Precio()

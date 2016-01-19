@@ -335,6 +335,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
     }
 
+
+    //Mapea los elementos de la pantalla con los datos de la BD
     private void doBindings() {
       if(promoAgeActive){
         calculatedPromoAge()
@@ -403,6 +405,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
     }
 
+    //Busca y actualiza la nota actual para mostrar los datos correspondientes
     void updateOrder(String pOrderId) {
       String comments = ''
       if( order.comments != null && order.comments != '' ){
@@ -426,6 +429,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         NumberFormat.getCurrencyInstance(Locale.US).format(it ?: 0)
     }
 
+
+    //Busca y despliega el dialogo con los datos dorrespondientes al cliente seleccionado
     private def doCustomerSearch = { ActionEvent ev ->
         JButton source = ev.source as JButton
         source.enabled = false
@@ -454,6 +459,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         source.enabled = true
     }
 
+
+    //Muestra el dialogo correspondiente a los diferentes tipos de clientes GENERAL, NUEVO, PROCESO, CAJA, COTIZA y EDITA CLIENTE CAJA.
     private def operationTypeChanged = { ItemEvent ev ->
         if (ev.stateChange == ItemEvent.SELECTED && this.uiEnabled) {
             switch (ev.item) {
@@ -583,7 +590,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
     }
 
-
+   //Busca y valida el articulo que se inserta en la caja de texto.
     private def doItemSearch( Boolean holdPromo, String log ) {
       Registry.getSolicitaGarbageColector()
       println "holdPromo: "+holdPromo
