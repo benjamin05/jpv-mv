@@ -6,6 +6,7 @@ import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.*
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.view.action.ExitAction
+import mx.lux.pos.ui.view.dialog.AdjustSaleDialog
 import mx.lux.pos.ui.view.dialog.AuthorizationDialog
 import mx.lux.pos.ui.view.dialog.AuthorizationIpDialog
 import mx.lux.pos.ui.view.dialog.ChangeIpBoxDialog
@@ -98,6 +99,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem loadPartClassMenuItem
     private JMenuItem generateInventoryFile
     private JMenuItem newSalesDayMenuItem
+    private JMenuItem adjustSaleMenuItem
     private JMenuItem reprintEnsureMenuItem
     private JMenuItem ipBoxMenuItem
     private JMenuItem freedomCouponMenuItem
@@ -248,6 +250,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
                                 inventoryTransactionMenuItem.visible = userLoggedIn
                                 inventoryOhQueryMenuItem.visible = userLoggedIn
+                                adjustSaleMenuItem.visible = userLoggedIn
                                 //generateInventoryFile.visible = userLoggedIn
                                 //loadPartsMenuItem.visible = userLoggedIn
                                 //loadPartClassMenuItem.visible = userLoggedIn
@@ -277,6 +280,15 @@ class MainWindow extends JFrame implements KeyListener {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
                                     InvQryController.instance.requestInvLcTicket() }
+                        )
+                        adjustSaleMenuItem = menuItem( text: 'Reclasificar Venta',
+                                visible: false,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    AdjustSaleDialog dialog = new AdjustSaleDialog()
+                                    dialog.show()
+                                }
                         )
                         /*loadPartsMenuItem = menuItem( text: TEXT_LOAD_PARTS_TITLE,
                                 visible: true,

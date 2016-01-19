@@ -114,6 +114,9 @@ class OrderController {
     private static String MSJ_ERROR_WARRANTY = ""
     private static String TXT_ERROR_WARRANTY = ""
     private static final String TAG_CLAVE_DESCUENTO_EDAD = "PREDAD"
+    private static final String TAG_TRANSACCION_VENTA = "VENTA"
+    private static final String TAG_TRANSACCION_CANCELACION = "DEVOLUCION"
+    private static final String TAG_TRANSACCION_REM_SP = "ENTRADA_SP"
     private static final String TAG_FORMA_CARGO_EMP = 'FE'
     private static final String TAG_FORMA_CARGO_MVIS = 'FM'
 
@@ -164,6 +167,8 @@ class OrderController {
     private static NotaVentaRepository notaVentaRepository
     private static BancoDevRepository bancoDevRepository
     private static ClienteServiceJava clienteServiceJava
+    private static TransInvRepository transInvRepository
+    private static TransInvDetalleRepository transInvDetalleRepository
     private static final String TAG_USD = "USD"
     private static Integer numberQuote = 0
 
@@ -199,7 +204,9 @@ class OrderController {
             FormaContactoService formaContactoService,
             CuponMvRepository cuponMvRepository,
             NotaVentaRepository notaVentaRepository,
-            BancoDevRepository bancoDevRepository
+            BancoDevRepository bancoDevRepository,
+            TransInvRepository transInvRepository,
+            TransInvDetalleRepository transInvDetalleRepository
 
     ) {
         this.notaVentaService = notaVentaService
@@ -243,6 +250,8 @@ class OrderController {
         cancelacionServiceJava = new CancelacionServiceJava()
         detalleNotaVentaServiceJava = new DetalleNotaVentaServiceJava()
         clienteServiceJava = new ClienteServiceJava()
+        this.transInvRepository = transInvRepository
+        this.transInvDetalleRepository = transInvDetalleRepository
     }
 
     private static Boolean canceledWarranty
@@ -3772,4 +3781,58 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+
+  static void reclassifyFrame(Order order, Item oldItem, Item newItem) {
+    Integer cantidad = 0
+    NotaVentaJava notaVentaJava = NotaVentaQuery.busquedaNotaById( StringUtils.trimToEmpty(order.id) )
+    if( notaVentaJava != null ){
+      for( DetalleNotaVentaJava det : notaVentaJava.detalles){
+        if( det.idArticulo == oldItem.id){
+          det.idArticulo = newItem.id
+          DetalleNotaVentaQuery.updateArtiuloDetalleNotaVenta( det, oldItem.id )
+        }
+      }
+    }
+    List<TransInv> transInv = transInvRepository.findByReferencia( StringUtils.trimToEmpty(notaVentaJava.idFactura) )
+    for(TransInv tr : transInv){
+      QTransInvDetalle qTransInvDetalle = QTransInvDetalle.transInvDetalle
+      List<TransInvDetalle> transInvDet = transInvDetalleRepository.findAll( qTransInvDetalle.idTipoTrans.eq(StringUtils.trimToEmpty(tr.idTipoTrans)).
+              and(qTransInvDetalle.folio.eq(tr.folio))) as List<TransInvDetalle>
+      for(TransInvDetalle trDet : transInvDet){
+        if( trDet.idTipoTrans.equalsIgnoreCase(TAG_TRANSACCION_VENTA) || trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_CANCELACION) ||
+                trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_REM_SP)){
+          if( trDet.sku == oldItem.id ){
+            ArticulosJava articuloViejo = ArticulosQuery.busquedaArticuloPorId( oldItem.id )
+            ArticulosJava articuloNuevo = ArticulosQuery.busquedaArticuloPorId( newItem.id )
+            if( trDet.idTipoTrans.equalsIgnoreCase(TAG_TRANSACCION_VENTA) ){
+              if( articuloViejo != null && articuloNuevo != null ){
+                articuloViejo.existencia = articuloViejo.existencia+trDet.cantidad
+                articuloNuevo.existencia = articuloNuevo.existencia-trDet.cantidad
+              }
+            } else if( trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_CANCELACION) ||
+                    trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_REM_SP) ){
+              articuloViejo.existencia = articuloViejo.existencia-trDet.cantidad
+              articuloNuevo.existencia = articuloNuevo.existencia+trDet.cantidad
+            }
+            ArticulosQuery.saveOrUpdateArticulos( articuloViejo )
+            ArticulosQuery.saveOrUpdateArticulos( articuloNuevo )
+            trDet.sku = newItem.id
+            transInvDetalleRepository.save( trDet )
+            transInvDetalleRepository.flush()
+          }
+        }
+      }
+    }
+  }
+
+
+
+  static String obtieneDioptra(String idOrder) {
+    String dioptra = ""
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( StringUtils.trimToEmpty(idOrder) )
+    if( nota != null && StringUtils.trimToEmpty(nota.codigoLente).length() > 0 ){
+      dioptra = StringUtils.trimToEmpty(nota.codigoLente)
+    }
+    return dioptra
+  }
 }

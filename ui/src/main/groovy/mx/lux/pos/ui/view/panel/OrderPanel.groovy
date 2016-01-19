@@ -725,7 +725,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   updateOrder( StringUtils.trimToEmpty(order.id) )
                 }
                 Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, false)
+                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, false, order.id)
                 editRx.show()
                 OrderController.saveRxOrder(order?.id, this.rec.idReceta)
               } else {
@@ -898,7 +898,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           /*if( artString.equalsIgnoreCase('L') ){
             uso = 'BIFOCAL'
           }*/
-          EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', uso, false, false)
+          EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', uso, false, false, order.id)
           editRx.show()
 
           this.disableUI()
@@ -1146,7 +1146,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             rec = OrderController.findRx(order, customer)
             if( hasLc && (rec == null || rec.idReceta == null) ){
               Branch branch = Session.get(SessionItem.BRANCH) as Branch
-              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
+              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true, order.id)
               editRx.show()
               try {
                 if( rec != null ){
@@ -1188,7 +1188,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                             Order armOrder = OrderController.getOrder(order?.id)
                             if (rec.idReceta == null) {   //Receta Nueva
                                 Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, true)
+                                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, true, order.id)
                                 editRx.show()
                                 try {
                                     OrderController.saveRxOrder(order?.id, rec.idReceta)
@@ -1946,7 +1946,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           Boolean continueSave = true
           if( hasLc && (rec == null || rec.idReceta == null) ){
             Branch branch = Session.get(SessionItem.BRANCH) as Branch
-            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true, order.id)
             editRx.show()
             try {
               if( rec != null ){
@@ -1987,7 +1987,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           Order armOrder = OrderController.getOrder(order?.id)
                           if (rec.idReceta == null) {   //Receta Nueva
                               Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false)
+                              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false, order.id)
                               editRx.show()
                               try {
                                   OrderController.saveRxOrder(order?.id, rec.idReceta)
@@ -2148,7 +2148,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           rec = OrderController.findRx(order, customer)
           if( hasLc && (rec == null || rec.idReceta == null) ){
             Branch branch = Session.get(SessionItem.BRANCH) as Branch
-            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true, order.id)
             editRx.show()
             try {
               if( rec != null ){
@@ -2187,7 +2187,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           Order armOrder = OrderController.getOrder(order?.id)
                           if (rec.idReceta == null) {   //Receta Nueva
                               Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false)
+                              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false, order.id)
                               editRx.show()
                               try {
                                   OrderController.saveRxOrder(order?.id, rec.idReceta)
