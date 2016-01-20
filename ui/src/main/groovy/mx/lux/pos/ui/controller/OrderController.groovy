@@ -115,8 +115,11 @@ class OrderController {
     private static String TXT_ERROR_WARRANTY = ""
     private static final String TAG_CLAVE_DESCUENTO_EDAD = "PREDAD"
     private static final String TAG_TRANSACCION_VENTA = "VENTA"
+    private static final String TAG_TRANSACCION_SALIDA = "SALIDA"
     private static final String TAG_TRANSACCION_CANCELACION = "DEVOLUCION"
     private static final String TAG_TRANSACCION_REM_SP = "ENTRADA_SP"
+    private static final String TAG_TRANSACCION_S = "S"
+    private static final String TAG_TRANSACCION_ENTRADA = "E"
     private static final String TAG_FORMA_CARGO_EMP = 'FE'
     private static final String TAG_FORMA_CARGO_MVIS = 'FM'
 
@@ -3801,18 +3804,17 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             List<TransInvDetalle> transInvDet = transInvDetalleRepository.findAll( qTransInvDetalle.idTipoTrans.eq(StringUtils.trimToEmpty(tr.idTipoTrans)).
                     and(qTransInvDetalle.folio.eq(tr.folio))) as List<TransInvDetalle>
             for(TransInvDetalle trDet : transInvDet){
-                if( trDet.idTipoTrans.equalsIgnoreCase(TAG_TRANSACCION_VENTA) || trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_CANCELACION) ||
-                        trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_REM_SP)){
+                /*if( trDet.idTipoTrans.equalsIgnoreCase(TAG_TRANSACCION_VENTA) || trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_CANCELACION) ||
+                        trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_REM_SP) || trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_SALIDA)){*/
                     if( trDet.sku == oldItem.id ){
                         ArticulosJava articuloViejo = ArticulosQuery.busquedaArticuloPorId( oldItem.id )
                         ArticulosJava articuloNuevo = ArticulosQuery.busquedaArticuloPorId( newItem.id )
-                        if( trDet.idTipoTrans.equalsIgnoreCase(TAG_TRANSACCION_VENTA) ){
+                        if( trDet.tipoMov.equalsIgnoreCase(TAG_TRANSACCION_S) ){
                             if( articuloViejo != null && articuloNuevo != null ){
                                 articuloViejo.existencia = articuloViejo.existencia+trDet.cantidad
                                 articuloNuevo.existencia = articuloNuevo.existencia-trDet.cantidad
                             }
-                        } else if( trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_CANCELACION) ||
-                                trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_REM_SP) ){
+                        } else if( trDet.tipoMov.equalsIgnoreCase(TAG_TRANSACCION_ENTRADA) ){
                             articuloViejo.existencia = articuloViejo.existencia-trDet.cantidad
                             articuloNuevo.existencia = articuloNuevo.existencia+trDet.cantidad
                         }
@@ -3822,7 +3824,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
                         transInvDetalleRepository.save( trDet )
                         transInvDetalleRepository.flush()
                     }
-                }
+                //}
             }
       }
     } catch ( Exception e ){
