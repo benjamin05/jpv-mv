@@ -58,23 +58,23 @@ class AdjustSaleDialog extends JDialog {
         resizable: true,
         pack: true,
         modal: true,
-        preferredSize: [ 500, 300 ],
-        location: [ 200, 250 ],
+        preferredSize: [ 550, 300 ],
+        location: [ 200, 200 ],
     ) {
       panel() {
         borderLayout()
-        panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap 4", "20[][grow,fill][fill][grow,fill]20", "20[]10[]" ) ) {
+        panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap 4", "10[][grow,fill][fill][grow,fill]10", "20[]10[]" ) ) {
           label( text: "Numero de Ticket:" )
           txtBill = textField( document: new UpperCaseDocument() )
+          label( " " )
           button( text: "Buscar", preferredSize: UI_Standards.BUTTON_SIZE,
-                constraints: "span 2",
                 actionPerformed: { onSearch() }
           )
           lblWarning = label( foreground: UI_Standards.WARNING_FOREGROUND, text: " ", constraints: "span 4" )
-          label( text: "Articulo:" )
+          label( text: "Articulo Anterior:" )
           txtArticle = textField( constraints: "span 2", editable: false )
           label( text: " " )
-          label( text: "Articulo Seleccionado:" )
+          label( text: "Articulo Nuevo:" )
           txtArticleSelected = textField( editable: false )
           label( text: "Color:" )
           txtColour = textField( editable: false )
@@ -169,8 +169,8 @@ class AdjustSaleDialog extends JDialog {
           SuggestedItemsDialog dialog = new SuggestedItemsDialog(this, StringUtils.trimToEmpty(oldItem.name), results, true)
           dialog.show()
           itemSelected = dialog.item
-          txtArticle.text = StringUtils.trimToEmpty(oldItem != null ? oldItem.name : "")
-          txtArticleSelected.text = StringUtils.trimToEmpty(itemSelected != null ? itemSelected.name : "")
+          txtArticle.text = StringUtils.trimToEmpty(oldItem != null ? "[${oldItem.id}]${oldItem.name}" : "")
+          txtArticleSelected.text = StringUtils.trimToEmpty(itemSelected != null ? "[${itemSelected.id}]${itemSelected.name}" : "")
           txtColour.text = StringUtils.trimToEmpty(itemSelected != null ? itemSelected.color : "")
         } else {
           lblWarning.text = "No existen articulos validos para esta factura."
