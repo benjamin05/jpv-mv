@@ -139,8 +139,14 @@ class AdjustSaleDialog extends JDialog {
 
   protected void onButtonOk( ) {
     if( order != null && oldItem != null && itemSelected != null ){
-      OrderController.reclassifyFrame( order, oldItem, itemSelected )
-      dispose()
+      if( OrderController.reclassifyFrame( order, oldItem, itemSelected ) ){
+        sb.optionPane(message: "Transaccion Actualizada Correctamente", optionType: JOptionPane.DEFAULT_OPTION)
+                .createDialog(new JTextField(), "Transaccion").show()
+        dispose()
+      } else {
+        sb.optionPane(message: "Error al Actualizar la transaccion", optionType: JOptionPane.DEFAULT_OPTION)
+                .createDialog(new JTextField(), "Error").show()
+      }
     }
   }
 
@@ -160,7 +166,7 @@ class AdjustSaleDialog extends JDialog {
         }
         if( results ){
           lblWarning.text = " "
-          SuggestedItemsDialog dialog = new SuggestedItemsDialog(this, StringUtils.trimToEmpty(oldItem.name), results)
+          SuggestedItemsDialog dialog = new SuggestedItemsDialog(this, StringUtils.trimToEmpty(oldItem.name), results, true)
           dialog.show()
           itemSelected = dialog.item
           txtArticle.text = StringUtils.trimToEmpty(oldItem != null ? oldItem.name : "")

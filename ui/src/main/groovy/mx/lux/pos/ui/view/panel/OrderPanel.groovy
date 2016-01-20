@@ -670,7 +670,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     resultsTmp.add(i)
                   }
                 }
-                SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, resultsTmp.size() > 0 ? resultsTmp : results)
+                SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, resultsTmp.size() > 0 ? resultsTmp : results, false)
                 dialog.show()
                 item = dialog.item
                 if (item?.id) {

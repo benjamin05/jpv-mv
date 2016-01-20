@@ -3782,47 +3782,54 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
 
-  static void reclassifyFrame(Order order, Item oldItem, Item newItem) {
-    Integer cantidad = 0
-    NotaVentaJava notaVentaJava = NotaVentaQuery.busquedaNotaById( StringUtils.trimToEmpty(order.id) )
-    if( notaVentaJava != null ){
-      for( DetalleNotaVentaJava det : notaVentaJava.detalles){
-        if( det.idArticulo == oldItem.id){
-          det.idArticulo = newItem.id
-          DetalleNotaVentaQuery.updateArtiuloDetalleNotaVenta( det, oldItem.id )
-        }
-      }
-    }
-    List<TransInv> transInv = transInvRepository.findByReferencia( StringUtils.trimToEmpty(notaVentaJava.idFactura) )
-    for(TransInv tr : transInv){
-      QTransInvDetalle qTransInvDetalle = QTransInvDetalle.transInvDetalle
-      List<TransInvDetalle> transInvDet = transInvDetalleRepository.findAll( qTransInvDetalle.idTipoTrans.eq(StringUtils.trimToEmpty(tr.idTipoTrans)).
-              and(qTransInvDetalle.folio.eq(tr.folio))) as List<TransInvDetalle>
-      for(TransInvDetalle trDet : transInvDet){
-        if( trDet.idTipoTrans.equalsIgnoreCase(TAG_TRANSACCION_VENTA) || trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_CANCELACION) ||
-                trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_REM_SP)){
-          if( trDet.sku == oldItem.id ){
-            ArticulosJava articuloViejo = ArticulosQuery.busquedaArticuloPorId( oldItem.id )
-            ArticulosJava articuloNuevo = ArticulosQuery.busquedaArticuloPorId( newItem.id )
-            if( trDet.idTipoTrans.equalsIgnoreCase(TAG_TRANSACCION_VENTA) ){
-              if( articuloViejo != null && articuloNuevo != null ){
-                articuloViejo.existencia = articuloViejo.existencia+trDet.cantidad
-                articuloNuevo.existencia = articuloNuevo.existencia-trDet.cantidad
-              }
-            } else if( trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_CANCELACION) ||
-                    trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_REM_SP) ){
-              articuloViejo.existencia = articuloViejo.existencia-trDet.cantidad
-              articuloNuevo.existencia = articuloNuevo.existencia+trDet.cantidad
+  static Boolean reclassifyFrame(Order order, Item oldItem, Item newItem) {
+    Boolean reclassified = true
+    try{
+      Integer cantidad = 0
+      NotaVentaJava notaVentaJava = NotaVentaQuery.busquedaNotaById( StringUtils.trimToEmpty(order.id) )
+      if( notaVentaJava != null ){
+            for( DetalleNotaVentaJava det : notaVentaJava.detalles){
+                if( det.idArticulo == oldItem.id){
+                    det.idArticulo = newItem.id
+                    DetalleNotaVentaQuery.updateArtiuloDetalleNotaVenta( det, oldItem.id )
+                }
             }
-            ArticulosQuery.saveOrUpdateArticulos( articuloViejo )
-            ArticulosQuery.saveOrUpdateArticulos( articuloNuevo )
-            trDet.sku = newItem.id
-            transInvDetalleRepository.save( trDet )
-            transInvDetalleRepository.flush()
-          }
-        }
       }
+      List<TransInv> transInv = transInvRepository.findByReferencia( StringUtils.trimToEmpty(notaVentaJava.idFactura) )
+      for(TransInv tr : transInv){
+            QTransInvDetalle qTransInvDetalle = QTransInvDetalle.transInvDetalle
+            List<TransInvDetalle> transInvDet = transInvDetalleRepository.findAll( qTransInvDetalle.idTipoTrans.eq(StringUtils.trimToEmpty(tr.idTipoTrans)).
+                    and(qTransInvDetalle.folio.eq(tr.folio))) as List<TransInvDetalle>
+            for(TransInvDetalle trDet : transInvDet){
+                if( trDet.idTipoTrans.equalsIgnoreCase(TAG_TRANSACCION_VENTA) || trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_CANCELACION) ||
+                        trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_REM_SP)){
+                    if( trDet.sku == oldItem.id ){
+                        ArticulosJava articuloViejo = ArticulosQuery.busquedaArticuloPorId( oldItem.id )
+                        ArticulosJava articuloNuevo = ArticulosQuery.busquedaArticuloPorId( newItem.id )
+                        if( trDet.idTipoTrans.equalsIgnoreCase(TAG_TRANSACCION_VENTA) ){
+                            if( articuloViejo != null && articuloNuevo != null ){
+                                articuloViejo.existencia = articuloViejo.existencia+trDet.cantidad
+                                articuloNuevo.existencia = articuloNuevo.existencia-trDet.cantidad
+                            }
+                        } else if( trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_CANCELACION) ||
+                                trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_REM_SP) ){
+                            articuloViejo.existencia = articuloViejo.existencia-trDet.cantidad
+                            articuloNuevo.existencia = articuloNuevo.existencia+trDet.cantidad
+                        }
+                        ArticulosQuery.saveOrUpdateArticulos( articuloViejo )
+                        ArticulosQuery.saveOrUpdateArticulos( articuloNuevo )
+                        trDet.sku = newItem.id
+                        transInvDetalleRepository.save( trDet )
+                        transInvDetalleRepository.flush()
+                    }
+                }
+            }
+      }
+    } catch ( Exception e ){
+      reclassified = false
+      print e.message
     }
+    return reclassified
   }
 
 
