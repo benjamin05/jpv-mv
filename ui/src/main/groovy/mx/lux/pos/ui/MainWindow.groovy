@@ -250,7 +250,8 @@ class MainWindow extends JFrame implements KeyListener {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
                                 inventoryTransactionMenuItem.visible = userLoggedIn
                                 inventoryOhQueryMenuItem.visible = userLoggedIn
-                                adjustSaleMenuItem.visible = userLoggedIn
+                                User u = Session.get(SessionItem.USER) as User
+                                adjustSaleMenuItem.visible = AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password))
                                 //generateInventoryFile.visible = userLoggedIn
                                 //loadPartsMenuItem.visible = userLoggedIn
                                 //loadPartClassMenuItem.visible = userLoggedIn
