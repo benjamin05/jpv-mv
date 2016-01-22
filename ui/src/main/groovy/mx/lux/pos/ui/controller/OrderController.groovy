@@ -3844,4 +3844,71 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     }
     return dioptra
   }
+
+
+  static Boolean validRxDataByParam( Rx rx, String dioptra ) {
+    Boolean valid = true
+    if( rx != null ){
+            Double esfDer = 0.00
+            Double cilDer = 0.00
+            Double esfIz = 0.00
+            Double cilIz = 0.00
+            try{
+                String esfDerStr = rx.odEsfR.replace("+","")
+                //esfDerStr = esfDerStr.replace("-","")
+                String cilDerStr = rx.odCilR.replace("+","")
+                //cilDerStr = cilDerStr.replace("-","")
+                String esfIzStr = rx.oiEsfR.replace("+","")
+                //esfIzStr = esfIzStr.replace("-","")
+                String cilIzStr = rx.oiCilR.replace("+","")
+                //cilIzStr = cilIzStr.replace("-","")
+                esfDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfDerStr).length() > 0 ? StringUtils.trimToEmpty(esfDerStr) : "0").doubleValue()
+                cilDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilDerStr).length() > 0 ? StringUtils.trimToEmpty(cilDerStr) : "0").doubleValue()
+                esfIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfIzStr).length() > 0 ? StringUtils.trimToEmpty(esfIzStr) : "0").doubleValue()
+                cilIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilIzStr).length() > 0 ? StringUtils.trimToEmpty(cilIzStr) : "0").doubleValue()
+            } catch ( NumberFormatException e ) { println e }
+
+            String dataLimits = Registry.limitGraduation
+            String[] data = StringUtils.trimToEmpty(dataLimits).split(",")
+            for(String d : data){
+                String[] dataTmp = StringUtils.trimToEmpty(d).split(":")
+                if( dataTmp.length >= 3 ){
+                    Double firstLimit = 0.00
+                    Double secondLimit = 0.00
+                    try{
+                        firstLimit = NumberFormat.getInstance().parse(dataTmp[1])
+                        secondLimit = NumberFormat.getInstance().parse(dataTmp[2])
+                    } catch ( NumberFormatException e ) { println e }
+
+                    if( StringUtils.trimToEmpty(dioptra).startsWith(dataTmp[0]) ){
+                        Boolean esferaVaild = true
+                        if( esfDer < 0 ){
+                            if( esfDer < secondLimit.doubleValue()*-1 ){
+                                esferaVaild = false
+                            }
+                        } else {
+                            if( esfDer > secondLimit ){
+                                esferaVaild = false
+                            }
+                        }
+                        if( esfIz < 0 ){
+                            if( esfIz < secondLimit.doubleValue()*-1 ){
+                                esferaVaild = false
+                            }
+                        } else {
+                            if( esfIz > secondLimit ){
+                                esferaVaild = false
+                            }
+                        }
+                        if( esfDer > firstLimit || esfIz > firstLimit || esfDer.abs()+cilDer.abs() > secondLimit || esfIz.abs()+cilIz.abs() > secondLimit ){
+                            valid = false
+                        }
+                    }
+                }
+            }
+    }
+    return valid
+  }
+
+
 }

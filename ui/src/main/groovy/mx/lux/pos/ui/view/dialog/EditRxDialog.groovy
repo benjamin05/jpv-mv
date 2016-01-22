@@ -939,7 +939,7 @@ class EditRxDialog extends JDialog{
       Boolean dataValid = true
       if( !StringUtils.trimToEmpty(title).equalsIgnoreCase("Nueva Receta") ){
         String dio = OrderController.obtieneDioptra( idOrder )
-        dataValid = OrderController.validRxData(idOrder, dio)
+        dataValid = OrderController.validRxDataByParam(setDataRx(), dio)
       }
       if( dataValid ){
         if(StringUtils.trimToEmpty(txtEmpleado.text).isEmpty()){
@@ -962,6 +962,26 @@ class EditRxDialog extends JDialog{
     }
 
 
+
+    Rx setDataRx(){
+      Rx rx = new Rx()
+      rx.setOdEsfR(txtOdEsfera.text)
+      rx.setOdCilR(txtOdCil.text)
+      rx.setOdEjeR(txtOdEje.text)
+      rx.setOdAdcR(txtOdAd.text)
+      rx.setDiOd(txtOdDm.text)
+      rx.setDiLejosR(txtDILejos.text)
+      rx.setOiAdcR(txtOiAd.text)
+      rx.setOiEsfR(txtOiEsfera.text)
+      rx.setOiCilR(txtOiCil.text)
+      rx.setOiEjeR(txtOiEje.text)
+      rx.setDiOi(txtOiDm.text)
+      rx.setAltOblR(txtAltOblea.text)
+      rx.setObservacionesR(txtObservaciones.text)
+      rx.setIdOpt(txtEmpleado.text)
+      rx.setFolio(txtFolio.text)
+      return rx
+    }
 
 
 }
