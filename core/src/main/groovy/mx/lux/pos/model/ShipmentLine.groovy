@@ -10,6 +10,7 @@ class ShipmentLine {
   String colorDesc
   String brand
   String type
+  String subtype
   String barcode
   Integer qty = 0
   
@@ -19,6 +20,7 @@ class ShipmentLine {
     shadow.setCodigoColor( colorCode )
     shadow.setDescripcionColor( colorDesc )
     shadow.setTipo( type )
+    shadow.setSubtipo( subtype )
     shadow.setMarca( brand )
     shadow.setCB( barcode )
     return shadow
@@ -46,6 +48,10 @@ class ShipmentLine {
   
   void setType( String pType ) {
     this.type = StringUtils.trimToEmpty( pType ).toUpperCase( )
+  }
+
+  void setSubtype( String pSubtype ) {
+    this.subtype = StringUtils.trimToEmpty( pSubtype ).toUpperCase( )
   }
   
   String toString() {
