@@ -490,4 +490,13 @@ class ItemController {
     return articuloService.obtenerMontoGarantia( warrantyAmount )
   }
 
+
+
+  static Integer calculateStock( Integer sku ){
+    Integer existencia = 0;
+    articulosServiceJava
+    return existencia
+  }
+
+
 }

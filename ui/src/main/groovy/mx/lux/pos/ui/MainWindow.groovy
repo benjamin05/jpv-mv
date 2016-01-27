@@ -14,6 +14,7 @@ import mx.lux.pos.ui.view.dialog.CustomerSearchDialog
 import mx.lux.pos.ui.view.dialog.EntregaTrabajoDialog
 import mx.lux.pos.ui.view.dialog.FreedomCouponDialog
 import mx.lux.pos.ui.view.dialog.ImportEmployeeDialog
+import mx.lux.pos.ui.view.dialog.RecalculateDialog
 import mx.lux.pos.ui.view.dialog.ReprintEnsureDialog
 import mx.lux.pos.ui.view.panel.*
 import net.miginfocom.swing.MigLayout
@@ -84,6 +85,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem cuponMvReportMenuItem
     private JMenuItem inventoryTransactionMenuItem
     private JMenuItem inventoryOhQueryMenuItem
+    private JMenuItem recalculateMenuItem
     private JMenuItem salesBySellerByBrandMenuItem
     private JMenuItem stockbyBrandMenuItem
     private JMenuItem stockbyBrandColorMenuItem
@@ -248,6 +250,8 @@ class MainWindow extends JFrame implements KeyListener {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
                                 inventoryTransactionMenuItem.visible = userLoggedIn
                                 inventoryOhQueryMenuItem.visible = userLoggedIn
+                                User u = Session.get(SessionItem.USER) as User
+                                recalculateMenuItem.visible = AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password))
                                 //generateInventoryFile.visible = userLoggedIn
                                 //loadPartsMenuItem.visible = userLoggedIn
                                 //loadPartClassMenuItem.visible = userLoggedIn
@@ -277,6 +281,15 @@ class MainWindow extends JFrame implements KeyListener {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
                                     InvQryController.instance.requestInvLcTicket() }
+                        )
+                        recalculateMenuItem = menuItem( text: 'Recalcular',
+                                visible: false,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    RecalculateDialog dialog = new RecalculateDialog()
+                                    dialog.show()
+                                }
                         )
                         /*loadPartsMenuItem = menuItem( text: TEXT_LOAD_PARTS_TITLE,
                                 visible: true,
