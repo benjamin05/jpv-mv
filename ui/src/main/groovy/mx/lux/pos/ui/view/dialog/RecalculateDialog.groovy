@@ -126,6 +126,7 @@ class RecalculateDialog extends JDialog implements FocusListener{
         sb.optionPane(message: 'Se actualizo correctamente la existencia.',
                 messageType: JOptionPane.DEFAULT_OPTION).
                 createDialog(this, 'Actualizado').show()
+        dispose()
       } else {
         sb.optionPane(message: "Error al actualizar la existencia.", optionType: JOptionPane.ERROR_MESSAGE)
                 .createDialog(new JTextField(), "Error")
@@ -134,7 +135,6 @@ class RecalculateDialog extends JDialog implements FocusListener{
     } else {
       lblWarning.setText( "Verifique los datos" )
     }
-    dispose()
   }
 
 
