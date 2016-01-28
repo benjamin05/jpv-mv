@@ -509,12 +509,14 @@ class ItemController {
     SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
     ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( idArticulo )
     TransInvJava trans = transInvServiceJava.obtieneUltimaTransaccionPorIdArticulo( idArticulo )
-    if( articulo != null && trans != null ){
+    if( articulo != null ){
       articulo.existencia = stock
       ArticulosQuery.saveOrUpdateArticulos( articulo )
-      trans.observaciones = StringUtils.trimToEmpty(trans.observaciones)+"|${StringUtils.trimToEmpty(idArticulo.toString())}|" +
-              "${StringUtils.trimToEmpty(user.username)}|${df.format(new Date())}|rec"
-      TransInvQuery.saveOrUpdateTransInv( trans )
+      if( trans != null ){
+        trans.observaciones = StringUtils.trimToEmpty(trans.observaciones)+"|${StringUtils.trimToEmpty(idArticulo.toString())}|" +
+                  "${StringUtils.trimToEmpty(user.username)}|${df.format(new Date())}|rec"
+        TransInvQuery.saveOrUpdateTransInv( trans )
+      }
       update = true
     }
     return update

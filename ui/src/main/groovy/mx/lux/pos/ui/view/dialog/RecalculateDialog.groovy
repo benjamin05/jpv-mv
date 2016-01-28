@@ -77,7 +77,7 @@ class RecalculateDialog extends JDialog implements FocusListener{
         panel( constraints: BorderLayout.PAGE_END ) {
           borderLayout()
           panel( constraints: BorderLayout.LINE_END ) {
-            button( text: "Generar", preferredSize: UI_Standards.BUTTON_SIZE,
+            button( text: "Aplicar", preferredSize: UI_Standards.BUTTON_SIZE,
                 actionPerformed: { onButtonOk() }
             )
             button( text: "Cerrar", preferredSize: UI_Standards.BUTTON_SIZE,
@@ -128,7 +128,7 @@ class RecalculateDialog extends JDialog implements FocusListener{
                 createDialog(this, 'Actualizado').show()
         dispose()
       } else {
-        sb.optionPane(message: "Error al actualizar la existencia.", optionType: JOptionPane.ERROR_MESSAGE)
+        sb.optionPane(message: "Error al actualizar la existencia.", optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "Error")
                 .show()
       }
