@@ -3,6 +3,9 @@ package mx.lux.pos.ui.view.dialog
 import groovy.swing.SwingBuilder
 import mx.lux.pos.ui.controller.ItemController
 import mx.lux.pos.ui.model.Item
+import mx.lux.pos.ui.model.Session
+import mx.lux.pos.ui.model.SessionItem
+import mx.lux.pos.ui.model.User
 import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.verifier.DateVerifier
 import net.miginfocom.swing.MigLayout
@@ -29,8 +32,9 @@ class RecalculateDialog extends JDialog implements FocusListener{
   private JTextField txtExistIni
   private JTextField txtExistFin
   private JLabel lblWarning
-  private Date selectedDateStart
-  private Date selectedDateEnd
+  private Integer idArticulo
+  private Integer stock
+  private Integer oldStock
 
   public boolean button = false
 
@@ -45,7 +49,7 @@ class RecalculateDialog extends JDialog implements FocusListener{
         resizable: true,
         pack: true,
         modal: true,
-        preferredSize: [ 360, 220 ],
+        preferredSize: [ 480, 280 ],
         location: [ 200, 250 ],
     ) {
       panel() {
@@ -55,16 +59,20 @@ class RecalculateDialog extends JDialog implements FocusListener{
           //label( text: " ", constraints: "span 2" )
           label( text: "Sku:" )
           txtSku = textField()
-          lblWarning = label( " ", constraints: 'span 2' )
+          label( text: " ", constraints: "span 2" )
+          //button( text: "Limpiar", actionPerformed: { refreshUI() }, constraints: 'span 2' )
+          label( "" )
+          lblWarning = label( "                       ", constraints: 'span 2', foreground: UI_Standards.WARNING_FOREGROUND )
+          label( " ", constraints: 'span 2' )
           txtSku.addFocusListener(this)
           label( text: "Articulo:" )
-          txtArticulo = textField()
+          txtArticulo = textField( editable: false )
           label( text: "Color:" )
-          txtColor = textField()
+          txtColor = textField( editable: false )
           label( text: "Existencia Actual:" )
-          txtExistIni = textField()
+          txtExistIni = textField( editable: false )
           label( text: "Existencia Correcta:" )
-          txtExistFin = textField()
+          txtExistFin = textField( editable: false )
         }
         panel( constraints: BorderLayout.PAGE_END ) {
           borderLayout()
@@ -84,15 +92,12 @@ class RecalculateDialog extends JDialog implements FocusListener{
 
   // UI Management
   protected void refreshUI( ) {
-    if ( selectedDateStart == null || selectedDateEnd == null ) {
-      selectedDateStart = DateUtils.truncate( new Date(), Calendar.MONTH )
-      selectedDateEnd = DateUtils.truncate( new Date(), Calendar.DATE )
-    }
     txtSku.setText( "" )
     txtArticulo.setText( "" )
     txtColor.setText( "" )
     txtExistFin.setText( "" )
     txtExistIni.setText( "" )
+    lblWarning.setText(" ")
   }
 
   // Public Methods
@@ -111,18 +116,25 @@ class RecalculateDialog extends JDialog implements FocusListener{
 
   // UI Response
   protected void onButtonCancel( ) {
-    /*selectedDateStart = null
-    selectedDateEnd = null
-    button = false
-    setVisible( false )*/
     dispose()
   }
 
   protected void onButtonOk( ) {
-    /*selectedDateStart = dv.parse( txtDateStart.getText() )
-    selectedDateEnd = dv.parse( txtDateEnd.getText() )
-    button = true
-    setVisible( false )*/
+    if( idArticulo != null && stock != null && oldStock != stock){
+      User u = Session.get(SessionItem.USER) as User
+      if( ItemController.updateStock( idArticulo, stock, u ) ){
+        sb.optionPane(message: 'Se actualizo correctamente la existencia.',
+                messageType: JOptionPane.DEFAULT_OPTION).
+                createDialog(this, 'Actualizado').show()
+      } else {
+        sb.optionPane(message: "Error al actualizar la existencia.", optionType: JOptionPane.ERROR_MESSAGE)
+                .createDialog(new JTextField(), "Error")
+                .show()
+      }
+    } else {
+      lblWarning.setText( "Verifique los datos" )
+    }
+    dispose()
   }
 
 
@@ -133,19 +145,27 @@ class RecalculateDialog extends JDialog implements FocusListener{
 
   public void focusLost(FocusEvent e) {
     lblWarning.setText(" ")
-    Integer idItem = null
-    try{
-      idItem = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtSku.text))
-    } catch ( NumberFormatException ex ) { println(ex.message) }
-    if( idItem != null ){
-        Item item = ItemController.findItem( idItem )
-        Integer existCalc = ItemController.generateInventoryFile()
-        txtArticulo.setText( StringUtils.trimToEmpty(item.name) )
-        txtColor.setText( StringUtils.trimToEmpty(item.color) )
-        txtExistIni.setText( StringUtils.trimToEmpty(item.stock.toString()) )
-
-    } else {
-      lblWarning.setText("No existe el articulo.")
+    if( StringUtils.trimToEmpty(txtSku.text).length() > 0 ){
+      Integer idItem = null
+      try{
+        idItem = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtSku.text))
+      } catch ( NumberFormatException ex ) { println(ex.message) }
+      if( idItem != null ){
+        Item item = ItemController.findItem( idItem.intValue() )
+        stock = ItemController.calculateStock( idItem.intValue() )
+        oldStock = item.stock
+        if( item != null ){
+          idArticulo = item.id
+          txtArticulo.setText( StringUtils.trimToEmpty(item.name) )
+          txtColor.setText( StringUtils.trimToEmpty(item.color) )
+          txtExistIni.setText( StringUtils.trimToEmpty(item.stock.toString()) )
+          txtExistFin.setText( StringUtils.trimToEmpty(stock.toString()) )
+        } else {
+          lblWarning.setText("No existe el articulo.")
+        }
+      } else {
+        lblWarning.setText("No existe el articulo.")
+      }
     }
   }
 
