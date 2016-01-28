@@ -5,6 +5,7 @@ import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.ui.controller.CustomerController
+import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Rx
 import mx.lux.pos.ui.model.UpperCaseDocument
 import mx.lux.pos.ui.view.renderer.DateCellRenderer
@@ -82,6 +83,7 @@ class EditRxDialog extends JDialog{
 
     private static String itemUso = null
     private static String limpiarAux
+    private static String idOrder
 
     private static List<Rx> lstRecetasFinal = new ArrayList<>()
 
@@ -100,13 +102,14 @@ class EditRxDialog extends JDialog{
     Boolean obligatory
     String Title
 
-    EditRxDialog(Component parent, Rx receta, Integer idCliente, Integer idSucursal, String titulo, String uso, Boolean edit, Boolean obligatory) {
+    EditRxDialog(Component parent, Rx receta, Integer idCliente, Integer idSucursal, String titulo, String uso, Boolean edit, Boolean obligatory, String idOrder) {
         sb = new SwingBuilder()
         component = parent
         itemUso = uso
         rec = null
         editRx = edit
         title = titulo
+        this.idOrder = idOrder
         this.obligatory = obligatory
         if (itemUso.trim().equals('M')) {
             mostrarParametroSV = true
@@ -934,25 +937,51 @@ class EditRxDialog extends JDialog{
 
     Boolean validDataRx(){
       Boolean dataValid = true
-      if(StringUtils.trimToEmpty(txtEmpleado.text).isEmpty()){
-        dataValid = false
-      } else if(txtDILejos.visible && StringUtils.trimToEmpty(txtDILejos.text).length() <= 0){
-        dataValid = false
-      } else if(txtAltOblea.visible && StringUtils.trimToEmpty(txtAltOblea.text).length() <= 0){
-        dataValid = false
-      } else if( txtOdDm.visible && StringUtils.trimToEmpty(txtOdDm.text).length() <= 0 ){
-        dataValid = false
-      } else if( txtOiDm.visible && StringUtils.trimToEmpty(txtOiDm.text).length() <= 0 ){
-        dataValid = false
-      } else if(StringUtils.trimToEmpty(txtOdCil.text).length() > 0 && StringUtils.trimToEmpty(txtOdEje.text).length() <= 0){
-        dataValid = false
-      } else if(StringUtils.trimToEmpty(txtOiCil.text).length() > 0 && StringUtils.trimToEmpty(txtOiEje.text).length() <= 0){
-        dataValid = false
+      if( !StringUtils.trimToEmpty(title).equalsIgnoreCase("Nueva Receta") ){
+        String dio = OrderController.obtieneDioptra( idOrder )
+        dataValid = OrderController.validRxDataByParam(setDataRx(), dio)
+      }
+      if( dataValid ){
+        if(StringUtils.trimToEmpty(txtEmpleado.text).isEmpty()){
+          dataValid = false
+        } else if(txtDILejos.visible && StringUtils.trimToEmpty(txtDILejos.text).length() <= 0){
+          dataValid = false
+        } else if(txtAltOblea.visible && StringUtils.trimToEmpty(txtAltOblea.text).length() <= 0){
+          dataValid = false
+        } else if( txtOdDm.visible && StringUtils.trimToEmpty(txtOdDm.text).length() <= 0 ){
+          dataValid = false
+        } else if( txtOiDm.visible && StringUtils.trimToEmpty(txtOiDm.text).length() <= 0 ){
+          dataValid = false
+        } else if(StringUtils.trimToEmpty(txtOdCil.text).length() > 0 && StringUtils.trimToEmpty(txtOdEje.text).length() <= 0){
+          dataValid = false
+        } else if(StringUtils.trimToEmpty(txtOiCil.text).length() > 0 && StringUtils.trimToEmpty(txtOiEje.text).length() <= 0){
+          dataValid = false
+        }
       }
       return dataValid
     }
 
 
+
+    Rx setDataRx(){
+      Rx rx = new Rx()
+      rx.setOdEsfR(txtOdEsfera.text)
+      rx.setOdCilR(txtOdCil.text)
+      rx.setOdEjeR(txtOdEje.text)
+      rx.setOdAdcR(txtOdAd.text)
+      rx.setDiOd(txtOdDm.text)
+      rx.setDiLejosR(txtDILejos.text)
+      rx.setOiAdcR(txtOiAd.text)
+      rx.setOiEsfR(txtOiEsfera.text)
+      rx.setOiCilR(txtOiCil.text)
+      rx.setOiEjeR(txtOiEje.text)
+      rx.setDiOi(txtOiDm.text)
+      rx.setAltOblR(txtAltOblea.text)
+      rx.setObservacionesR(txtObservaciones.text)
+      rx.setIdOpt(txtEmpleado.text)
+      rx.setFolio(txtFolio.text)
+      return rx
+    }
 
 
 }

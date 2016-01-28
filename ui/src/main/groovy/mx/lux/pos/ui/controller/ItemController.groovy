@@ -28,6 +28,7 @@ import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.ModelLc
+import mx.lux.pos.ui.model.OrderItem
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -43,6 +44,7 @@ class ItemController {
   private static final String TXT_ARCHIVO_GENERADO = 'Archivo de Inventario'
   private static final String MSJ_ARCHIVO_NO_GENERADO = 'No se genero correctamente el archivo de inventario'
   private static final String TAG_GENERICO_H = 'H'
+  private static final String TAG_GENERICO_A = 'A'
   private static final String TAG_GEN_TIPO_C = 'C'
   private static ArticuloService articuloService
   private static ArticulosServiceJava articulosServiceJava
@@ -490,4 +492,17 @@ class ItemController {
     return articuloService.obtenerMontoGarantia( warrantyAmount )
   }
 
+
+
+  static Item findFrameWithoutColor( Order order ) {
+    log.debug( "findFrameWithoutColor" )
+    Item item = null
+    for(OrderItem i : order.items){
+      if( TAG_GENERICO_A.equalsIgnoreCase(StringUtils.trimToEmpty(i.item.type)) &&
+              StringUtils.trimToEmpty(i.item.color).length() <= 0 ){
+        item = i.item
+      }
+    }
+    return item
+  }
 }
