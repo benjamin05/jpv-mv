@@ -153,7 +153,7 @@ class RecalculateDialog extends JDialog implements FocusListener{
       if( idItem != null ){
         Item item = ItemController.findItem( idItem.intValue() )
         stock = ItemController.calculateStock( idItem.intValue() )
-        oldStock = item.stock
+        oldStock = item != null ? item.stock : 0
         if( item != null ){
           idArticulo = item.id
           txtArticulo.setText( StringUtils.trimToEmpty(item.name) )

@@ -126,4 +126,6 @@ public interface ReportService {
     String obtenerReporteBodegas( Date fechaBodega );
 
     String obtenerReporteVentasMultipago( Date dateStart, Date dateEnd );
+
+    String obtenerArticuloPorSku( String Sku );
 }

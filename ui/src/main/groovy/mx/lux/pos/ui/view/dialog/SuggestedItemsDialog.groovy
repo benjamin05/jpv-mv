@@ -26,10 +26,12 @@ class SuggestedItemsDialog extends JDialog {
   private DefaultTableModel model
   private JTable tableItems
   private static final Integer COLUMN_DESCRIPTION = 2
+  private Boolean adjust
 
-  SuggestedItemsDialog( Component parent, String code, List<Item> suggestions ) {
+  SuggestedItemsDialog( Component parent, String code, List<Item> suggestions, Boolean adjust ) {
     this.code = code
     this.suggestions.addAll( suggestions )
+    this.adjust = adjust
     Collections.sort(this.suggestions, new Comparator<Item>() {
         @Override
         int compare(Item o1, Item o2) {
@@ -57,7 +59,7 @@ class SuggestedItemsDialog extends JDialog {
         title: "Art\u00edculos sugeridos con: ${code ?: ''}",
         location: parent.locationOnScreen,
         resizable: false,
-        preferredSize: [ 520  , 380 ] as Dimension,
+        preferredSize: adjust ? [ 600  , 380 ] as Dimension : [ 520  , 380 ] as Dimension,
         modal: true,
         pack: true,
     ) {
@@ -76,11 +78,19 @@ class SuggestedItemsDialog extends JDialog {
       scrollPane( constraints: BorderLayout.CENTER ) {
         tableItems = table( selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doItemClick ) {
           model = tableModel( list: suggestions ) {
-            closureColumn( header: 'Sku', read: {Item tmp -> tmp?.id}, maxWidth: 60 )
-            closureColumn( header: 'Art\u00edculo', read: {Item tmp -> tmp?.name}, maxWidth: 120 )
-            closureColumn( header: 'Descripci\u00f3n', read: {Item tmp -> tmp?.description}, maxWidth: 180 )
-             closureColumn( header: 'Precio', read: {Item tmp -> tmp?.price}, cellRenderer: new MoneyCellRenderer(), maxWidth: 100 )
-            closureColumn( header: 'Existencia', read: {Item tmp -> tmp?.stock}, type: Integer, maxWidth: 80 )
+            if( adjust ){
+              closureColumn( header: 'Sku', read: {Item tmp -> tmp?.id}, maxWidth: 60 )
+              closureColumn( header: 'Art\u00edculo', read: {Item tmp -> tmp?.name}, maxWidth: 90 )
+              closureColumn( header: 'Descripci\u00f3n', read: {Item tmp -> tmp?.description}, maxWidth: 380)
+              closureColumn( header: 'Precio', read: {Item tmp -> tmp?.price}, cellRenderer: new MoneyCellRenderer(), maxWidth: 80 )
+              closureColumn( header: 'Existencia', read: {Item tmp -> tmp?.stock}, type: Integer, maxWidth: 50 )
+            } else {
+              closureColumn( header: 'Sku', read: {Item tmp -> tmp?.id}, maxWidth: 60 )
+              closureColumn( header: 'Art\u00edculo', read: {Item tmp -> tmp?.name}, maxWidth: 120 )
+              closureColumn( header: 'Descripci\u00f3n', read: {Item tmp -> tmp?.description}, maxWidth: 180)
+              closureColumn( header: 'Precio', read: {Item tmp -> tmp?.price}, cellRenderer: new MoneyCellRenderer(), maxWidth: 100 )
+              closureColumn( header: 'Existencia', read: {Item tmp -> tmp?.stock}, type: Integer, maxWidth: 80 )
+            }
           } as DefaultTableModel
         }
 

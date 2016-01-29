@@ -114,6 +114,12 @@ class OrderController {
     private static String MSJ_ERROR_WARRANTY = ""
     private static String TXT_ERROR_WARRANTY = ""
     private static final String TAG_CLAVE_DESCUENTO_EDAD = "PREDAD"
+    private static final String TAG_TRANSACCION_VENTA = "VENTA"
+    private static final String TAG_TRANSACCION_SALIDA = "SALIDA"
+    private static final String TAG_TRANSACCION_CANCELACION = "DEVOLUCION"
+    private static final String TAG_TRANSACCION_REM_SP = "ENTRADA_SP"
+    private static final String TAG_TRANSACCION_S = "S"
+    private static final String TAG_TRANSACCION_ENTRADA = "E"
     private static final String TAG_FORMA_CARGO_EMP = 'FE'
     private static final String TAG_FORMA_CARGO_MVIS = 'FM'
 
@@ -164,6 +170,8 @@ class OrderController {
     private static NotaVentaRepository notaVentaRepository
     private static BancoDevRepository bancoDevRepository
     private static ClienteServiceJava clienteServiceJava
+    private static TransInvRepository transInvRepository
+    private static TransInvDetalleRepository transInvDetalleRepository
     private static final String TAG_USD = "USD"
     private static Integer numberQuote = 0
 
@@ -199,7 +207,9 @@ class OrderController {
             FormaContactoService formaContactoService,
             CuponMvRepository cuponMvRepository,
             NotaVentaRepository notaVentaRepository,
-            BancoDevRepository bancoDevRepository
+            BancoDevRepository bancoDevRepository,
+            TransInvRepository transInvRepository,
+            TransInvDetalleRepository transInvDetalleRepository
 
     ) {
         this.notaVentaService = notaVentaService
@@ -243,6 +253,8 @@ class OrderController {
         cancelacionServiceJava = new CancelacionServiceJava()
         detalleNotaVentaServiceJava = new DetalleNotaVentaServiceJava()
         clienteServiceJava = new ClienteServiceJava()
+        this.transInvRepository = transInvRepository
+        this.transInvDetalleRepository = transInvDetalleRepository
     }
 
     private static Boolean canceledWarranty
@@ -3767,6 +3779,133 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           valid = false
         }
       }*/
+    }
+    return valid
+  }
+
+
+
+  static Boolean reclassifyFrame(Order order, Item oldItem, Item newItem) {
+    Boolean reclassified = true
+    try{
+      Integer cantidad = 0
+      NotaVentaJava notaVentaJava = NotaVentaQuery.busquedaNotaById( StringUtils.trimToEmpty(order.id) )
+      if( notaVentaJava != null ){
+            for( DetalleNotaVentaJava det : notaVentaJava.detalles){
+                if( det.idArticulo == oldItem.id){
+                    det.idArticulo = newItem.id
+                    DetalleNotaVentaQuery.updateArtiuloDetalleNotaVenta( det, oldItem.id )
+                }
+            }
+      }
+      List<TransInv> transInv = transInvRepository.findByReferencia( StringUtils.trimToEmpty(notaVentaJava.idFactura) )
+      for(TransInv tr : transInv){
+            QTransInvDetalle qTransInvDetalle = QTransInvDetalle.transInvDetalle
+            List<TransInvDetalle> transInvDet = transInvDetalleRepository.findAll( qTransInvDetalle.idTipoTrans.eq(StringUtils.trimToEmpty(tr.idTipoTrans)).
+                    and(qTransInvDetalle.folio.eq(tr.folio))) as List<TransInvDetalle>
+            for(TransInvDetalle trDet : transInvDet){
+                /*if( trDet.idTipoTrans.equalsIgnoreCase(TAG_TRANSACCION_VENTA) || trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_CANCELACION) ||
+                        trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_REM_SP) || trDet.idTipoTrans.equalsIgnoreCase( TAG_TRANSACCION_SALIDA)){*/
+                    if( trDet.sku == oldItem.id ){
+                        ArticulosJava articuloViejo = ArticulosQuery.busquedaArticuloPorId( oldItem.id )
+                        ArticulosJava articuloNuevo = ArticulosQuery.busquedaArticuloPorId( newItem.id )
+                        if( trDet.tipoMov.equalsIgnoreCase(TAG_TRANSACCION_S) ){
+                            if( articuloViejo != null && articuloNuevo != null ){
+                                articuloViejo.existencia = articuloViejo.existencia+trDet.cantidad
+                                articuloNuevo.existencia = articuloNuevo.existencia-trDet.cantidad
+                            }
+                        } else if( trDet.tipoMov.equalsIgnoreCase(TAG_TRANSACCION_ENTRADA) ){
+                            articuloViejo.existencia = articuloViejo.existencia-trDet.cantidad
+                            articuloNuevo.existencia = articuloNuevo.existencia+trDet.cantidad
+                        }
+                        ArticulosQuery.saveOrUpdateArticulos( articuloViejo )
+                        ArticulosQuery.saveOrUpdateArticulos( articuloNuevo )
+                        trDet.sku = newItem.id
+                        transInvDetalleRepository.save( trDet )
+                        transInvDetalleRepository.flush()
+                    }
+                //}
+            }
+      }
+    } catch ( Exception e ){
+      reclassified = false
+      print e.message
+    }
+    return reclassified
+  }
+
+
+
+  static String obtieneDioptra(String idOrder) {
+    String dioptra = ""
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaById( StringUtils.trimToEmpty(idOrder) )
+    if( nota != null && StringUtils.trimToEmpty(nota.codigoLente).length() > 0 ){
+      dioptra = StringUtils.trimToEmpty(nota.codigoLente)
+    }
+    return dioptra
+  }
+
+
+  static Boolean validRxDataByParam( Rx rx, String dioptra ) {
+    Boolean valid = true
+    if( rx != null ){
+            Double esfDer = 0.00
+            Double cilDer = 0.00
+            Double esfIz = 0.00
+            Double cilIz = 0.00
+            try{
+                String esfDerStr = rx.odEsfR.replace("+","")
+                //esfDerStr = esfDerStr.replace("-","")
+                String cilDerStr = rx.odCilR.replace("+","")
+                //cilDerStr = cilDerStr.replace("-","")
+                String esfIzStr = rx.oiEsfR.replace("+","")
+                //esfIzStr = esfIzStr.replace("-","")
+                String cilIzStr = rx.oiCilR.replace("+","")
+                //cilIzStr = cilIzStr.replace("-","")
+                esfDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfDerStr).length() > 0 ? StringUtils.trimToEmpty(esfDerStr) : "0").doubleValue()
+                cilDer = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilDerStr).length() > 0 ? StringUtils.trimToEmpty(cilDerStr) : "0").doubleValue()
+                esfIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(esfIzStr).length() > 0 ? StringUtils.trimToEmpty(esfIzStr) : "0").doubleValue()
+                cilIz = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(cilIzStr).length() > 0 ? StringUtils.trimToEmpty(cilIzStr) : "0").doubleValue()
+            } catch ( NumberFormatException e ) { println e }
+
+            String dataLimits = Registry.limitGraduation
+            String[] data = StringUtils.trimToEmpty(dataLimits).split(",")
+            for(String d : data){
+                String[] dataTmp = StringUtils.trimToEmpty(d).split(":")
+                if( dataTmp.length >= 3 ){
+                    Double firstLimit = 0.00
+                    Double secondLimit = 0.00
+                    try{
+                        firstLimit = NumberFormat.getInstance().parse(dataTmp[1])
+                        secondLimit = NumberFormat.getInstance().parse(dataTmp[2])
+                    } catch ( NumberFormatException e ) { println e }
+
+                    if( StringUtils.trimToEmpty(dioptra).startsWith(dataTmp[0]) ){
+                        Boolean esferaVaild = true
+                        if( esfDer < 0 ){
+                            if( esfDer < secondLimit.doubleValue()*-1 ){
+                                esferaVaild = false
+                            }
+                        } else {
+                            if( esfDer > secondLimit ){
+                                esferaVaild = false
+                            }
+                        }
+                        if( esfIz < 0 ){
+                            if( esfIz < secondLimit.doubleValue()*-1 ){
+                                esferaVaild = false
+                            }
+                        } else {
+                            if( esfIz > secondLimit ){
+                                esferaVaild = false
+                            }
+                        }
+                        if( esfDer > firstLimit || esfIz > firstLimit || esfDer.abs()+cilDer.abs() > secondLimit || esfIz.abs()+cilIz.abs() > secondLimit ){
+                            valid = false
+                        }
+                    }
+                }
+            }
     }
     return valid
   }

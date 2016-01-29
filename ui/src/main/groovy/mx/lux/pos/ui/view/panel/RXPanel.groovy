@@ -247,7 +247,8 @@ class RXPanel extends JPanel {
                     )
                     menuItem( text: 'Editar', visible: selection?.order?.deliveryDate == null,
                             actionPerformed: {
-                                EditRxDialog editRx = new EditRxDialog( this, selection, selection.idClient, selection.idStore, selection.clientName, selection.tipoEditRx, true, false )
+                                EditRxDialog editRx = new EditRxDialog( this, selection, selection.idClient, selection.idStore, selection.clientName, selection.tipoEditRx, true, false,
+                                        selection?.order?.id)
                                 editRx.show()
                                 lstRecetas.clear()
                                 lstRecetas.addAll( CustomerController.findAllPrescriptions( idCliente ) )
