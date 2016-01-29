@@ -24,10 +24,12 @@ class KardexReportDialog extends JDialog {
   private Date selectedDateStart
   private Date selectedDateEnd
   private String sku
+  private title
 
   public boolean button = false
 
-  KardexReportDialog( ) {
+  KardexReportDialog( String title ) {
+    this.title = title
     buildUI()
   }
 

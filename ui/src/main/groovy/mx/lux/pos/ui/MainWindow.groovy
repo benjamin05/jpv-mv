@@ -105,6 +105,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem freedomCouponMenuItem
     private JMenuItem cotizacionMenuItem
     private JMenuItem kardexMenuItem
+    private JMenuItem kardexBySkuMenuItem
     private JMenuItem salesTodayMenuItem
     private JMenuItem salesByPeriodMenuItem
     private JMenuItem entregaMenuItem
@@ -359,6 +360,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 paymentsMenuItem.visible = userLoggedIn
                                 quoteMenuItem.visible = userLoggedIn
                                 kardexMenuItem.visible = userLoggedIn
+                                kardexBySkuMenuItem.visible = userLoggedIn
                                 //salesTodayMenuItem.visible = userLoggedIn
                                 //salesByPeriodMenuItem.visible = userLoggedIn
                                 undeliveredJobsReportMenuItem.visible = userLoggedIn
@@ -516,6 +518,14 @@ class MainWindow extends JFrame implements KeyListener {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
                                     ReportController.fireReport( ReportController.Report.Kardex )
+                                }
+                        )
+                        kardexBySkuMenuItem = menuItem( text: "Kardex por Sku",
+                                visible: false,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    ReportController.fireReport( ReportController.Report.KardexBySku )
                                 }
                         )
                         multipaymentMenuItem = menuItem(text: "Multipago",

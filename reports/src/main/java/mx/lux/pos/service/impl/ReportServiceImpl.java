@@ -19,6 +19,8 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -1944,4 +1946,26 @@ public class ReportServiceImpl implements ReportService {
       }
       return true;
     }
+
+
+
+    public String obtenerArticuloPorSku( String sku ){
+      log.debug( "obtenerArticuloPorSku( "+StringUtils.trimToEmpty(sku)+" )" );
+      String articulo = "";
+      Integer idArticulo = 0;
+      try{
+        idArticulo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(sku)).intValue();
+      } catch ( NumberFormatException e ) {
+        System.out.println( e.getMessage() );
+      } catch ( ParseException e ) {
+        System.out.println( e.getMessage() );
+      }
+      Articulo articuloRow = articuloRepository.findbyId( idArticulo);
+      if( articuloRow != null ){
+        articulo = StringUtils.trimToEmpty(articuloRow.getArticulo())+(StringUtils.trimToEmpty(articuloRow.getCodigoColor()).length() > 0 ? ","+StringUtils.trimToEmpty(articuloRow.getCodigoColor()) : "");
+      }
+      return articulo;
+    }
+
+
 }
