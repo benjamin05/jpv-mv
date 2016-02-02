@@ -606,6 +606,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       if( OrderController.dayIsOpen() ){
         if (StringUtils.isNotBlank(input)) {
           //sb.doOutside {
+            if(input.trim().contains("!")){
+              String[] inputTmp = input.split("!")
+              input = StringUtils.trimToEmpty(inputTmp[0])
+            }
             if( input.contains(/$/) ){
               String[] inputTmp = input.split(/\$/)
               if( input.trim().contains(/$$/) ) {
