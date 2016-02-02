@@ -525,15 +525,15 @@ class ReportController {
     if( StringUtils.trimToEmpty(articulo) != '' && reportForDateStart != null && reportForDateEnd != null ){
       //Integer sku = NumberFormat.getInstance().parse( strSku )
       reportService.obtenerReporteDeKardex( articulo, reportForDateStart, reportForDateEnd )
-      kardexReportDialog = null
     }
+    kardexReportDialog = null
   }
 
 
   static void kardexBySkuReport() {
     log.debug( 'Imprime el reporte de kardex por sku' )
     if ( kardexReportDialog == null ) {
-      kardexReportDialog = new KardexReportDialog("Seleccionar SKU y fechas")
+      kardexReportDialog = new KardexReportDialog("Seleccionar Sku y fechas")
     }
     kardexReportDialog.setTitle( "Kardex Por Sku" )
     kardexReportDialog.activate()
@@ -543,8 +543,8 @@ class ReportController {
     if( StringUtils.trimToEmpty(articulo) != '' && reportForDateStart != null && reportForDateEnd != null ){
       //Integer sku = NumberFormat.getInstance().parse( strSku )
       reportService.obtenerReporteDeKardex( articulo, reportForDateStart, reportForDateEnd )
-      kardexReportDialog = null
     }
+    kardexReportDialog = null
   }
 
 
