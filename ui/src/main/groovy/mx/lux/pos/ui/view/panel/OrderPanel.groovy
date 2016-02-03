@@ -610,17 +610,24 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               String[] inputTmp = input.split("!")
               input = StringUtils.trimToEmpty(inputTmp[0])
             }
+            Boolean oneSign = false
             if( input.contains(/$/) ){
               String[] inputTmp = input.split(/\$/)
               if( input.trim().contains(/$$/) ) {
                 article = inputTmp[0]
               } else {
                 article = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
+                oneSign = true
               }
             } else {
               article = input.trim()
             }
             List<Item> results = ItemController.findItemsByQuery(article)
+            if( !results?.any() && oneSign ){
+              String[] inputTmp = input.split(/\$/)
+              article = StringUtils.trimToEmpty(inputTmp[0])+"*"
+              results = ItemController.findItemsByQuery(article)
+            }
             if (results?.any()) {
               Item item = new Item()
               if (results.size() == 1) {
