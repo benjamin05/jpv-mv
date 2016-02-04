@@ -71,6 +71,7 @@ class ShippingNoticeFile {
                   parsed.colorDesc = part.descripcionColor
                   parsed.brand = part.marca
                   parsed.type = part.tipo
+                  parsed.subtype = part.subtipo
                   shipment.lines.add(parsed)
               } else {
                   parsed = new ShipmentLine()
@@ -97,6 +98,7 @@ class ShippingNoticeFile {
       parsed.colorDesc = tokens.entry( DetFld.ColorDesc.ordinal() )
       parsed.brand = tokens.entry( DetFld.SubType.ordinal() )
       parsed.type = tokens.entry( DetFld.Type.ordinal() )
+      parsed.subtype = tokens.entry( DetFld.SubType.ordinal() )
     }
     return parsed
   }
@@ -116,6 +118,7 @@ class ShippingNoticeFile {
           parsed.colorDesc = tokens.entry( DetFld.ColorDesc.ordinal() )
           parsed.brand = tokens.entry( DetFld.SubType.ordinal() )
           parsed.type = tokens.entry( DetFld.Type.ordinal() )
+          parsed.subtype = tokens.entry( DetFld.SubType.ordinal() )
       }
       return parsed
   }
