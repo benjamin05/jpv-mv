@@ -51,6 +51,7 @@ class MainWindow extends JFrame implements KeyListener {
     private CustomerSearchDialog customerDialog
     private JPanel dailyClosePanel
     private JPanel consultaPanel
+    private JPanel envioPanel
     private JPanel priceListPanel
     private JPanel invoicePanel
     private JToolBar infoBar
@@ -121,6 +122,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem disactivateSPItem
     private JMenuItem cellarReportMenuItem
     private JMenuItem consultaMenuItem
+    private JMenuItem envioMenuItem
     private PromotionService promotionService
 
 
@@ -607,6 +609,7 @@ class MainWindow extends JFrame implements KeyListener {
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
                                 consultaMenuItem.visible = userLoggedIn
+                                envioMenuItem.visible = userLoggedIn
                             }
                     ) {
                         consultaMenuItem = menuItem( text: 'Consulta Trabajos',
@@ -620,6 +623,20 @@ class MainWindow extends JFrame implements KeyListener {
                                         }
                                         consultaPanel.limpiaPantalla()
                                         mainPanel.layout.show( mainPanel, 'consultaPanel' )
+                                    }
+                                }
+                        )
+                        envioMenuItem = menuItem( text: 'Envio Trabajos',
+                                visible: true,
+                                actionPerformed: {
+                                    actionPerformed: {
+                                        clean( envioPanel )
+                                        if( envioPanel == null ){
+                                            envioPanel = new EnvioPanel();
+                                            mainPanel.add( 'envioPanel', envioPanel )
+                                        }
+                                        //envioPanel.limpiaPantalla()
+                                        mainPanel.layout.show( mainPanel, 'envioPanel' )
                                     }
                                 }
                         )
