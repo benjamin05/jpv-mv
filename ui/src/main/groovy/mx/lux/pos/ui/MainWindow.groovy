@@ -603,7 +603,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 }
                         )*/
                     }
-                    /*controlTrabajosMenu = menu( text: 'Control de Trabajos', mnemonic: 'C',
+                    controlTrabajosMenu = menu( text: 'Control de Trabajos', mnemonic: 'C',
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
                                 consultaMenuItem.visible = userLoggedIn
@@ -623,7 +623,7 @@ class MainWindow extends JFrame implements KeyListener {
                                     }
                                 }
                         )
-                    }*/
+                    }
                     toolsMenu = menu( text: 'Herramientas', mnemonic: 'H',
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
