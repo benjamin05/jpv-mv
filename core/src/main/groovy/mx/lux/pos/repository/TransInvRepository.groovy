@@ -18,4 +18,6 @@ extends JpaRepository<TransInv, Integer>,
 
   List<TransInv> findBySucursalDestino( Integer pSucursalDestino )
 
+  List<TransInv> findByReferencia( String referencia )
+
 }

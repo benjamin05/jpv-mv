@@ -116,4 +116,31 @@ public class DetalleNotaVentaQuery {
         e.printStackTrace();
       }
     }
+
+
+
+
+    public static DetalleNotaVentaJava updateArtiuloDetalleNotaVenta (DetalleNotaVentaJava detalleNotaVentaJava, Integer artViejo) throws ParseException {
+      String sql = "";
+      DetalleNotaVentaJava detalleNotaVenta = null;
+      if( detalleNotaVentaJava.getId() != null ){
+        sql = String.format("UPDATE detalle_nota_ven SET id_articulo = %d, id_tipo_detalle = '%s', cantidad_fac = %f, precio_unit_lista = %s," +
+                    "precio_unit_final = %s, fecha_mod = NOW(), surte = '%s', precio_calc_lista = %s, precio_calc_oferta = %s, precio_factura = %s," +
+                    "precio_conv = %s, id_rep_venta = '%s' WHERE id_factura = '%s' AND id_articulo = %d",
+                    detalleNotaVentaJava.getIdArticulo(), detalleNotaVentaJava.getIdTipoDetalle(), detalleNotaVentaJava.getCantidadFac(),
+                    Utilities.toMoney(detalleNotaVentaJava.getPrecioUnitLista()), Utilities.toMoney(detalleNotaVentaJava.getPrecioUnitFinal()),
+                    detalleNotaVentaJava.getSurte(),Utilities.toMoney(detalleNotaVentaJava.getPrecioCalcLista()), Utilities.toMoney(detalleNotaVentaJava.getPrecioCalcOferta()),
+                    Utilities.toMoney(detalleNotaVentaJava.getPrecioFactura()),Utilities.toMoney(detalleNotaVentaJava.getPrecioConv()),
+                    StringUtils.trimToEmpty(detalleNotaVentaJava.getIdRepVenta()), StringUtils.trimToEmpty(detalleNotaVentaJava.getIdFactura()), artViejo);
+      }
+      Connections db = new Connections();
+      db.updateQuery(sql);
+      db.close();
+      if( detalleNotaVentaJava.getId() != null ){
+        detalleNotaVenta = detalleNotaVentaJava;
+      } else {
+        detalleNotaVenta = busquedaDetallesNotaVenPorIdFacturaEIdArticulo(detalleNotaVentaJava.getIdFactura(), detalleNotaVentaJava.getIdArticulo());
+      }
+      return detalleNotaVenta;
+    }
 }
