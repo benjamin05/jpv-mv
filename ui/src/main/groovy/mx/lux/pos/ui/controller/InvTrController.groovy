@@ -796,4 +796,11 @@ class InvTrController {
           }
       } )
   }
+
+
+  void readAutIssueFile(){
+    ServiceManager.getInventoryService().leerArchivoAutorizacionSalidas( )
+  }
+
+
 }

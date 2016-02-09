@@ -104,4 +104,6 @@ interface InventarioService {
   void solicitarTransaccionDevolucionSP( NotaVenta pNotaVenta )
 
   Boolean generaArchivoSalida( InvTrRequest pRequest )
+
+  void leerArchivoAutorizacionSalidas(  )
 }

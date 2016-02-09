@@ -35,6 +35,7 @@ class InventarioServiceImpl implements InventarioService {
   private static final String TR_TYPE_RETURN = "DEVOLUCION"
   private static final String TR_TYPE_RECEIPT_SP = "ENTRADA_SP"
   private static final String TAG_ID_GEN_TIPO_NO_STOCK = 'NC'
+  private static final String TAG_ID_GEN_ARMAZON = 'A'
 
   private Logger log = LoggerFactory.getLogger( this.class )
 
@@ -465,6 +466,14 @@ class InventarioServiceImpl implements InventarioService {
   Boolean generaArchivoSalida( InvTrRequest pRequest ){
     Boolean applied = true
     try{
+      for(InvTrDetRequest det : pRequest.skuList){
+        Articulo articulo = articuloRepository.findOne( det.sku )
+        if( !StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_ID_GEN_ARMAZON) ){
+          applied = false
+          break
+        }
+      }
+      if(applied){
       Integer idSuc = Registry.currentSite
       TransInv transInv = new TransInv()
       transInv.idTipoTrans = TR_TYPE_ISSUE
@@ -504,11 +513,71 @@ class InventarioServiceImpl implements InventarioService {
         strOut.close()
         log.debug(file.absolutePath)
       }
+    }
     } catch ( Exception e ){
       applied = false
       println e.message
     }
     return applied
+  }
+
+
+  void leerArchivoAutorizacionSalidas( ){
+    Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
+    Parametro parametro = parametroRepository.findOne( TipoParametro.RUTA_RECIBIDOS.value )
+    String ubicacionSource = ubicacion.valor
+    String ubicacionsDestination = parametro.valor
+    File source = new File( ubicacionSource )
+    File destination = new File( ubicacionsDestination )
+    if ( source.exists() && destination.exists() ) {
+      source.eachFile() { file ->
+        println file.getName()
+        if ( file.getName().endsWith( ".sda" ) ) {
+          try {
+            Integer folio = 0
+            Integer renglones = 1
+            String[] title = file.getName().split("_")
+            String[] strFolio = StringUtils.trimToEmpty(title[1].toString()).split(/\./)
+            try{
+              folio = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(strFolio[0])).intValue()
+            } catch ( NumberFormatException e ){
+              println e.message
+            }
+            List<TransInv> transInv = transInvRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+            if( transInv.size() > 0 ){
+              List<TransInvDetalle> lstDetalles = transInvDetalleRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+              Boolean valid = true
+              for(TransInvDetalle det : lstDetalles){
+                Articulo articulo = articuloRepository.findOne( det.sku )
+                if( articulo != null ){
+                  if( articulo.cantExistencia < det.linea ){
+                    valid = false
+                    break
+                  }
+                }
+              }
+              if( valid ){
+                for(TransInvDetalle det : lstDetalles){
+                  Articulo articulo = articuloRepository.findOne( det.sku )
+                  if( articulo != null ){
+                    det.cantidad = det.linea
+                    det.linea = renglones
+                    det = transInvDetalleRepository.saveAndFlush(det)
+                    articulo.cantExistencia = articulo.cantExistencia-det.cantidad
+                    articuloRepository.saveAndFlush( articulo )
+                    renglones = renglones+1
+                  }
+                }
+              }
+            }
+          } catch ( Exception e ){
+            println e.message
+          }
+          def newFile = new File( destination, file.name )
+          def moved = file.renameTo( newFile )
+        }
+      }
+    }
   }
 
 
