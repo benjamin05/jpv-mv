@@ -1,12 +1,16 @@
 package mx.lux.pos.ui.view.panel
 
+import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
+import mx.lux.pos.java.repository.JbJava
+import mx.lux.pos.model.IPromotionAvailable
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.InvoiceController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.controller.TaxpayerController
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.view.dialog.SuggestedTaxpayersDialog
+import mx.lux.pos.ui.view.renderer.MoneyCellRenderer
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.time.DateUtils
@@ -18,6 +22,7 @@ import javax.swing.event.ChangeListener
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import java.awt.event.MouseEvent
 import java.util.List
 
 class EnvioPanel extends JPanel {
@@ -55,16 +60,20 @@ class EnvioPanel extends JPanel {
   private boolean editable
   private Branch branch
   private String estadoDefault
-  private List<String> estados
+  private List<JbJava> lstBySend
   private List<String> dominios
   private Order order
   private Invoice invoice
   private Date today = new Date()
+  private DefaultTableModel devModel
+  private DefaultTableModel noSendModel
+  private DefaultTableModel bySendModel
 
   private static final String TAG_CANCELADO = 'T'
 
     EnvioPanel( ) {
     sb = new SwingBuilder()
+    lstBySend = OrderController.jbBySend()
     /*invoiced = false
     editable = false
     branch = Session.get( SessionItem.BRANCH ) as Branch
@@ -78,11 +87,8 @@ class EnvioPanel extends JPanel {
   }
 
   private void buildUI( ) {
-    sb.panel( this,
-        border: new TitledBorder( 'Envio de Trabajos' ),
-        layout: new MigLayout( 'fill,wrap', '[fill]', '[top][fill][bottom]' )
-    ) {
-      panel( layout: new MigLayout( 'insets 0,center', '50[fill][fill,120!]80[fill][fill,120!]80[fill][fill,120!]50' ) ) {
+    sb.panel( this, layout: new MigLayout('wrap', '[fill,grow]', '[fill,grow]') ) {
+      panel( layout: new MigLayout( 'center,wrap 6', '[][fill,120!]30[][fill,100!]30[][fill,100!]' ) ) {
           label( 'Fecha' )
           dateEnd = spinner( model: spinnerDateModel(), enabled: false )
           dateEnd.editor = new JSpinner.DateEditor( dateEnd as JSpinner, 'dd/MM/yyyy' )
@@ -101,80 +107,35 @@ class EnvioPanel extends JPanel {
           txtFolio = textField( )
       }
 
-      panel( border: loweredEtchedBorder(), layout: new MigLayout( 'center,wrap 4', '[][fill,140!][center][fill]' ) ) {
-        /*label( 'Cliente' )
-        lblCliente = label( constraints: 'span' )
-
-        label( 'Folio' )
-        lblFolio = label()
-        label( 'Fecha' )
-        lblFecha = label()
-
-        label( 'Status' )
-        lblEstatus = label( foreground: Color.BLUE )
-        editButton = button( 'Modificar', visible: false, actionPerformed: doEdit, constraints: 'skip' )
-
-        label( 'RFC' )
-        rfcInput = textField( document: new UpperCaseDocument(), actionPerformed: doRfcSearch )
-        cbExtranjero = checkBox( 'Extranjero', itemStateChanged: doToggleForeign, constraints: 'wrap' )
-
-        label( 'Nombre/Raz\u00f3n Social' )
-        txtRazonSocial = textField( document: new UpperCaseDocument(), constraints: 'span' )
-
-        lblCallNum = label( 'Calle y N\u00famero', constraints: 'hidemode 3' )
-        txtCallNum = textField( document: new UpperCaseDocument(), constraints: 'span,hidemode 3' )
-
-        lblColonia = label( 'Colonia', constraints: 'hidemode 3' )
-        txtCol = textField( document: new UpperCaseDocument(), constraints: 'span,hidemode 3' )
-
-        lblCiudad = label( 'Delegaci\u00f3n/Municipio' )
-        txtDelMun = textField( document: new UpperCaseDocument(), constraints: 'span' )
-
-        lblCP = label( 'CP', constraints: 'hidemode 3' )
-        txtCP = textField( document: new UpperCaseDocument(), constraints: 'hidemode 3' )
-
-        lblEstado = label( 'Estado', constraints: 'hidemode 3' )
-        cbEstado = comboBox( items: estados, constraints: 'hidemode 3' )
-
-        lblPais = label( 'Pa\u00eds', visible: false, constraints: 'hidemode 3' )
-        txtPais = textField( 'MEXICO', visible: false, document: new UpperCaseDocument(), constraints: 'wrap,hidemode 3' )
-
-        label( 'Correo Electr\u00f3nico' )
-        txtCorreo = textField()
-        label( '@' )
-        cbCorreo = comboBox( items: dominios, editable: true )
-        panel(border: titledBorder(""), layout: new MigLayout('fill,wrap 4,center', '[fill,grow]'), constraints: 'span 4') {
-          label( text: 'Desglosar: ' )
-          cbDesgloseLente = checkBox( text: 'Lente', selected: true )
-          cbDesgloseRx = checkBox( text: 'Rx', selected: true )
-          cbDesgloseCliente = checkBox( text: 'Paciente', selected: true )
-          label( text: ' ' )
-          cbDesgloseLenteArmazon = checkBox( text: 'Lente y Armazon', selected: false )
-          cbDesgloseLente.addActionListener( new ActionListener() {
-              @Override
-              void actionPerformed(ActionEvent e) {
-                if( cbDesgloseLente.selected ){
-                  cbDesgloseLenteArmazon.selected = false
-                }
-              }
-          })
-          cbDesgloseLenteArmazon.addActionListener( new ActionListener() {
-              @Override
-              void actionPerformed(ActionEvent e) {
-                  if( cbDesgloseLenteArmazon.selected ){
-                    cbDesgloseLente.selected = false
-                  }
-              }
-          })
-        }*/
+      panel( layout: new MigLayout( 'wrap 3', '[fill,200!,center]110[fill,200!,center]110[fill,200!,center]', '[270!]' ) ) {
+        scrollPane( ) {
+          table(selectionMode: ListSelectionModel.SINGLE_SELECTION) {
+            devModel = tableModel(list: new ArrayList<String>()) {
+              propertyColumn(header: "Devoluciones SP", propertyName: "", editable: false)
+            } as DefaultTableModel
+          }
+        }
+        scrollPane( ) {
+          table(selectionMode: ListSelectionModel.SINGLE_SELECTION) {
+            noSendModel = tableModel(list: new ArrayList<String>()) {
+              propertyColumn(header: "No Enviar", propertyName: "", editable: false)
+            } as DefaultTableModel
+          }
+        }
+        scrollPane( ) {
+          table(selectionMode: ListSelectionModel.SINGLE_SELECTION) {
+            bySendModel = tableModel(list: lstBySend) {
+              propertyColumn(header: "Por Enviar", propertyName: "rx", editable: false)
+            } as DefaultTableModel
+          }
+        }
       }
 
-      panel( layout: new MigLayout( 'right', '[fill,100!]' ) ) {
-        /*printInvoiceButton = button( 'Imprimir', visible: false, actionPerformed: doPrintInvoice, constraints: 'hidemode 3' )
-        printReferenceButton = button( 'Ligas', visible: false, actionPerformed: doPrintReference, constraints: 'hidemode 3' )
-        displayButton = button( 'Ver', visible: false, actionPerformed: doShowInvoice, constraints: 'hidemode 3' )
-        requestButton = button( 'Solicitar', actionPerformed: doRequest, constraints: 'hidemode 3' )
-        button( 'Limpiar', actionPerformed: doClear )*/
+      panel( layout: new MigLayout( 'center', '80[fill,100!]80' ) ) {
+        button( 'Cerrar Via'  )//actionPerformed: doPrintInvoice )
+        button( 'Reimpresion' )//actionPerformed: doPrintReference )
+        button( 'Previo' )//actionPerformed: doShowInvoice )
+        button( 'Actualizar' )//actionPerformed: doRequest )
       }
     }
   }

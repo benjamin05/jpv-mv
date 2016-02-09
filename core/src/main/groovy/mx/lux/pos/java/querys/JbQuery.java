@@ -323,4 +323,24 @@ public class JbQuery {
 
       return jb;
     }
+
+
+    public static List<JbJava> buscarJbPorEstado( String estado ){
+      List<JbJava> lstJb = new ArrayList<JbJava>();
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "select * from jb where estado = '"+StringUtils.trimToEmpty(estado)+"';";
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          JbJava jb = new JbJava();
+          jb = jb.setValores(rs);
+          lstJb.add(jb);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJb;
+    }
 }
