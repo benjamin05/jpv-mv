@@ -181,7 +181,18 @@ class InvTrView implements NavigationBarListener {
         if ( InvTrViewMode.QUERY.equals(data.viewMode) ) {
           controller.requestPrint( data.qryInvTr.idTipoTrans, data.qryInvTr.folio )
         } else {
-          controller.requestSaveAndPrint( this )
+          if ( InvTrViewMode.ISSUE.equals(data.viewMode) ) {
+            if( controller.generatedIssueFile( this ) ){
+                JOptionPane.showMessageDialog( this.panel, "Autorizacion de Devolucion Enviada",
+                        "Autorizacion", JOptionPane.INFORMATION_MESSAGE )
+                controller.showQueryTransaction( this )
+            } else {
+              JOptionPane.showMessageDialog( this.panel, "Error al enviar Autorizacion de Devolucion",
+                      "Error", JOptionPane.ERROR_MESSAGE )
+            }
+          } else {
+            controller.requestSaveAndPrint( this )
+          }
         }
       }
     } else {

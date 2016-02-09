@@ -442,25 +442,13 @@ class InvTrController {
     String seed = part[0]
     List<Articulo> partList = ItemController.findPartsByQuery( seed, true )
     if( partList.size() == 0 ){
-      if( seed.contains("!") ){
-        String[] inputTmp = seed.split("!")
-        seed = inputTmp[0]
-        partList = ItemController.findPartsByQuery( seed, true )
-      }
-      Boolean oneSign = false
       if( seed.contains(/$/) ){
         String[] inputTmp = seed.split(/\$/)
         if( seed.trim().contains(/$$/) ) {
           seed = inputTmp[0]
         } else {
           seed = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
-          oneSign = true
         }
-        partList = ItemController.findPartsByQuery( seed, true )
-      }
-      if( !partList?.any() && oneSign ){
-        String[] inputTmp = seed.split(",")
-        seed = StringUtils.trimToEmpty(inputTmp[0])+"*"
         partList = ItemController.findPartsByQuery( seed, true )
       }
     }
@@ -607,7 +595,7 @@ class InvTrController {
     receiptDialog.show()
     log.debug(receiptDialog.getTxtClave())
     if ( StringUtils.trimToEmpty(receiptDialog.getTxtClave()).length() > 0 ) {
-      String path = Registry.inputFilePath
+      String path = Registry.getParametroOS("ruta_por_recibir")
       File source = new File( path )
       File rem = null
       source.eachFile { file ->
@@ -786,4 +774,26 @@ class InvTrController {
     ServiceManager.ticketService.imprimeTransaccionesInventario( fechaTicket )
   }
 
+  Boolean generatedIssueFile( InvTrView pView ){
+    log.debug( "generatedIssueFile" )
+    InvTrRequest request = RequestAdapter.getRequest( pView.data )
+    return ServiceManager.getInventoryService().generaArchivoSalida( request )
+  }
+
+  Boolean showQueryTransaction( InvTrView pView ){
+      InvTrController controller = this
+      SwingUtilities.invokeLater( new Runnable() {
+          void run( ) {
+              pView.uiDisabled = true
+              controller.dispatchViewModeQuery( pView )
+              InvTrFilter filter = pView.data.qryDataset.filter
+              filter.reset()
+              filter.setDateRange( new Date() )
+              pView.data.qryDataset.requestTransactions()
+              pView.data.txtStatus = pView.panel.MSG_TRANSACTION_POSTED
+              pView.fireRefreshUI()
+              pView.uiDisabled = false
+          }
+      } )
+  }
 }

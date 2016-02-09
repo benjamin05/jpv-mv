@@ -462,4 +462,54 @@ class InventarioServiceImpl implements InventarioService {
   }
 
 
+  Boolean generaArchivoSalida( InvTrRequest pRequest ){
+    Boolean applied = true
+    try{
+      Integer idSuc = Registry.currentSite
+      TransInv transInv = new TransInv()
+      transInv.idTipoTrans = TR_TYPE_ISSUE
+      transInv.folio = obtenerSiguienteFolio( pRequest.trType )
+      transInv.fecha = new Date()
+      transInv.sucursal = idSuc
+      transInv.sucursalDestino = 0
+      transInv.referencia = ''
+      transInv.observaciones = StringUtils.trimToEmpty(pRequest.remarks)
+      transInv.idEmpleado = StringUtils.trimToEmpty(pRequest.idUser)
+      transInv.fechaMod = new Date()
+      transInv = transInvRepository.saveAndFlush( transInv )
+      if( transInv.numReg != null ){
+        for(InvTrDetRequest det : pRequest.skuList){
+          TransInvDetalle transInvDetalle = new TransInvDetalle()
+          transInvDetalle.idTipoTrans = StringUtils.trimToEmpty(transInv.idTipoTrans)
+          transInvDetalle.folio = transInv.folio
+          transInvDetalle.linea = det.qty
+          transInvDetalle.sku = det.sku
+          transInvDetalle.tipoMov = 'S'
+          transInvDetalle.cantidad = 0
+          transInvDetalleRepository.saveAndFlush( transInvDetalle )
+        }
+        String rutaPorEnviar = Registry.archivePath.trim()
+        Integer contador = 1
+        File file = new File( "${rutaPorEnviar}/${idSuc}_${transInv.folio}.sd" )
+        PrintStream strOut = new PrintStream( file )
+        StringBuffer sb = new StringBuffer()
+        sb.append("${contador}|${transInv.folio}|${transInv.observaciones}|${pRequest.skuList.size()}|")
+        sb.append( "\n" )
+        for(InvTrDetRequest detalle : pRequest.skuList){
+          contador = contador+1
+          sb.append("${contador}|${detalle.sku}|${detalle.qty}|")
+          sb.append( "\n" )
+        }
+        strOut.println sb.toString()
+        strOut.close()
+        log.debug(file.absolutePath)
+      }
+    } catch ( Exception e ){
+      applied = false
+      println e.message
+    }
+    return applied
+  }
+
+
 }

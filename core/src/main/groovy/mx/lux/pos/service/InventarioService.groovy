@@ -102,4 +102,6 @@ interface InventarioService {
   void insertarRegistroRemesa( NotaVenta pNotaVenta )
 
   void solicitarTransaccionDevolucionSP( NotaVenta pNotaVenta )
+
+  Boolean generaArchivoSalida( InvTrRequest pRequest )
 }
