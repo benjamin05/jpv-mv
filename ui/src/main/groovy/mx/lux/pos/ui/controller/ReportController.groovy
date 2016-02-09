@@ -40,7 +40,7 @@ class ReportController {
     Payments, Quote, Exams, OptometristSales,
     Promotions, Kardex, SalesToday, PaymentsbyPeriod,
     Coupon, UndeliveredJobsAudit, ExamsByOpto,
-    Cellar, CouponMv, Multipayment
+    Cellar, CouponMv, Multipayment, KardexBySku
   }
 
   @Autowired
@@ -515,7 +515,7 @@ class ReportController {
   static void kardexByDateAndSkuReport() {
     log.debug( 'Imprime el reporte de kardex por sku y fecha' )
     if ( kardexReportDialog == null ) {
-      kardexReportDialog = new KardexReportDialog()
+      kardexReportDialog = new KardexReportDialog("Seleccionar Articulo y fechas")
     }
     kardexReportDialog.setTitle( "Kardex Por Articulo" )
     kardexReportDialog.activate()
@@ -525,9 +525,28 @@ class ReportController {
     if( StringUtils.trimToEmpty(articulo) != '' && reportForDateStart != null && reportForDateEnd != null ){
       //Integer sku = NumberFormat.getInstance().parse( strSku )
       reportService.obtenerReporteDeKardex( articulo, reportForDateStart, reportForDateEnd )
-      kardexReportDialog = null
     }
+    kardexReportDialog = null
   }
+
+
+  static void kardexBySkuReport() {
+    log.debug( 'Imprime el reporte de kardex por sku' )
+    if ( kardexReportDialog == null ) {
+      kardexReportDialog = new KardexReportDialog("Seleccionar Sku y fechas")
+    }
+    kardexReportDialog.setTitle( "Kardex Por Sku" )
+    kardexReportDialog.activate()
+    String articulo = reportService.obtenerArticuloPorSku(kardexReportDialog.getSku())
+    Date reportForDateStart = kardexReportDialog.getSelectedDateStart()
+    Date reportForDateEnd = kardexReportDialog.getSelectedDateEnd()
+    if( StringUtils.trimToEmpty(articulo) != '' && reportForDateStart != null && reportForDateEnd != null ){
+      //Integer sku = NumberFormat.getInstance().parse( strSku )
+      reportService.obtenerReporteDeKardex( articulo, reportForDateStart, reportForDateEnd )
+    }
+    kardexReportDialog = null
+  }
+
 
   static void todaySales(){
     log.debug( 'Imprime el reporte de ventas del dia' )
@@ -637,6 +656,7 @@ class ReportController {
       case Report.OptometristSales: fireOptometristSalesReport(); break;
       case Report.Promotions: firePromotionsListReport(); break;
       case Report.Kardex: kardexByDateAndSkuReport(); break;
+      case Report.KardexBySku: kardexBySkuReport(); break;
       case Report.SalesToday: todaySales(); break;
       case Report.PaymentsbyPeriod: paymentsByPeriod(); break;
       case Report.Coupon: coupons(); break;

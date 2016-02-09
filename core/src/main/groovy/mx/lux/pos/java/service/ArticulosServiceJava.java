@@ -22,6 +22,8 @@ public class ArticulosServiceJava {
 
   private static final String TAG_GENERICO_H = "H";
   private static final String TAG_GENERICO_B = "B";
+  private static final String TAG_TRANSACCION_ENTRADA = "E";
+  private static final String TAG_TRANSACCION_SALIDA = "S";
 
   public ArticulosJava obtenerArticulo(Integer id) throws ParseException {
     return obtenerArticulo( id, true );
@@ -314,6 +316,21 @@ public class ArticulosServiceJava {
         PedidoLcQuery.updatePedidoLcDet( pedidoDet );
       }
     }
+  }
+
+
+
+  public Integer calculaExistencia( Integer idArticulo ) throws ParseException {
+    Integer existencia = 0;
+    List<TransInvDetJava> lstTrans = TransInvDetQuery.buscaTransInvDetPorSku( idArticulo );
+    for(TransInvDetJava det : lstTrans){
+      if( StringUtils.trimToEmpty(det.getTipoMov()).equalsIgnoreCase(TAG_TRANSACCION_ENTRADA) ){
+        existencia = existencia+det.getCantidad();
+      } else if( StringUtils.trimToEmpty(det.getTipoMov()).equalsIgnoreCase(TAG_TRANSACCION_SALIDA) ) {
+        existencia = existencia-det.getCantidad();
+      }
+    }
+    return existencia;
   }
 
 

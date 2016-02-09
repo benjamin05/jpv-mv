@@ -15,6 +15,7 @@ import mx.lux.pos.ui.view.dialog.CustomerSearchDialog
 import mx.lux.pos.ui.view.dialog.EntregaTrabajoDialog
 import mx.lux.pos.ui.view.dialog.FreedomCouponDialog
 import mx.lux.pos.ui.view.dialog.ImportEmployeeDialog
+import mx.lux.pos.ui.view.dialog.RecalculateDialog
 import mx.lux.pos.ui.view.dialog.ReprintEnsureDialog
 import mx.lux.pos.ui.view.panel.*
 import net.miginfocom.swing.MigLayout
@@ -85,6 +86,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem cuponMvReportMenuItem
     private JMenuItem inventoryTransactionMenuItem
     private JMenuItem inventoryOhQueryMenuItem
+    private JMenuItem recalculateMenuItem
     private JMenuItem salesBySellerByBrandMenuItem
     private JMenuItem stockbyBrandMenuItem
     private JMenuItem stockbyBrandColorMenuItem
@@ -105,6 +107,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem freedomCouponMenuItem
     private JMenuItem cotizacionMenuItem
     private JMenuItem kardexMenuItem
+    private JMenuItem kardexBySkuMenuItem
     private JMenuItem salesTodayMenuItem
     private JMenuItem salesByPeriodMenuItem
     private JMenuItem entregaMenuItem
@@ -251,6 +254,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 inventoryTransactionMenuItem.visible = userLoggedIn
                                 inventoryOhQueryMenuItem.visible = userLoggedIn
                                 User u = Session.get(SessionItem.USER) as User
+                                recalculateMenuItem.visible = AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password))
                                 adjustSaleMenuItem.visible = AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password))
                                 //generateInventoryFile.visible = userLoggedIn
                                 //loadPartsMenuItem.visible = userLoggedIn
@@ -281,6 +285,15 @@ class MainWindow extends JFrame implements KeyListener {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
                                     InvQryController.instance.requestInvLcTicket() }
+                        )
+                        recalculateMenuItem = menuItem( text: 'Recalcular',
+                                visible: false,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    RecalculateDialog dialog = new RecalculateDialog()
+                                    dialog.show()
+                                }
                         )
                         adjustSaleMenuItem = menuItem( text: 'Reclasificar Venta',
                                 visible: false,
@@ -359,6 +372,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 paymentsMenuItem.visible = userLoggedIn
                                 quoteMenuItem.visible = userLoggedIn
                                 kardexMenuItem.visible = userLoggedIn
+                                kardexBySkuMenuItem.visible = userLoggedIn
                                 //salesTodayMenuItem.visible = userLoggedIn
                                 //salesByPeriodMenuItem.visible = userLoggedIn
                                 undeliveredJobsReportMenuItem.visible = userLoggedIn
@@ -516,6 +530,14 @@ class MainWindow extends JFrame implements KeyListener {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
                                     ReportController.fireReport( ReportController.Report.Kardex )
+                                }
+                        )
+                        kardexBySkuMenuItem = menuItem( text: "Kardex por Sku",
+                                visible: false,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    ReportController.fireReport( ReportController.Report.KardexBySku )
                                 }
                         )
                         multipaymentMenuItem = menuItem(text: "Multipago",

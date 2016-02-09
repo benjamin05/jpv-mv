@@ -12,6 +12,8 @@ class ArticuloSombra {
   def String codigoColor = null
   def String descripcionColor = null
   def String tipo = null
+  def String subtipo = null
+  def String descripcionArticulo = null
   def String marca = null
   def String cb = null
   def Integer existencia = 0
@@ -63,6 +65,14 @@ class ArticuloSombra {
     tipo = StringUtils.trimToNull( pValue )
   }
 
+  void setSubtipo( String pValue ) {
+    subtipo = StringUtils.trimToNull( pValue )
+  }
+
+  void setDescripcionArt( String pValue ) {
+    descripcionArticulo = StringUtils.trimToNull( pValue )
+  }
+
   void setMarca( String pValue ) {
     marca = StringUtils.trimToNull( pValue )
   }
@@ -82,6 +92,10 @@ class ArticuloSombra {
       pPart.codigoColor = codigoColor
     if ( descripcionColor != null )
       pPart.descripcionColor = descripcionColor
+    if ( subtipo != null && StringUtils.trimToEmpty(subtipo).length() > 0 )
+      pPart.subtipo = subtipo
+    if ( descripcionArticulo != null && StringUtils.trimToEmpty(descripcionArticulo).length() > 0 )
+      pPart.descripcion = descripcionArticulo
     if ( tipo != null ) {
       pPart.tipo = tipo
       pPart.idGenTipo = tipo

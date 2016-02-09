@@ -6,6 +6,7 @@ import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.business.ResourceManager
 import mx.lux.pos.service.impl.ServiceFactory
 import mx.lux.pos.util.StringList
+import org.apache.commons.lang.StringUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -71,6 +72,8 @@ class ShippingNoticeFile {
                   parsed.colorDesc = part.descripcionColor
                   parsed.brand = part.marca
                   parsed.type = part.tipo
+                  parsed.subtype = part.subtipo
+                  parsed.partDesc = part.descripcion
                   shipment.lines.add(parsed)
               } else {
                   parsed = new ShipmentLine()
@@ -87,6 +90,22 @@ class ShippingNoticeFile {
     Shipment shipment = null
     ShipmentLine parsed = null
     StringList tokens = new StringList( pDetailLine, DELIMITER )
+    List<Articulo> parts = ServiceFactory.partMaster.listarArticulosPorCodigo( tokens.entry( DetFld.PartCode.ordinal() ), false ) as List<Articulo>
+    String subtype = ""
+    String partDesc = ""
+    Collections.sort( parts, new Comparator<Articulo>() {
+        @Override
+        int compare(Articulo o1, Articulo o2) {
+            return o1.id.compareTo(o2.id)
+        }
+    })
+    for( Articulo art : parts ){
+      if(StringUtils.trimToEmpty(art.subtipo).length() > 0){
+        subtype = StringUtils.trimToEmpty(art.subtipo)
+        partDesc = StringUtils.trimToEmpty(art.descripcion)
+        break
+      }
+    }
     if ( tokens.size >= DetFld.values().size() ) {
       parsed = new ShipmentLine()
       parsed.partCode = tokens.entry( DetFld.PartCode.ordinal() )
@@ -97,6 +116,8 @@ class ShippingNoticeFile {
       parsed.colorDesc = tokens.entry( DetFld.ColorDesc.ordinal() )
       parsed.brand = tokens.entry( DetFld.SubType.ordinal() )
       parsed.type = tokens.entry( DetFld.Type.ordinal() )
+      parsed.subtype = subtype//tokens.entry( DetFld.SubType.ordinal() )
+      parsed.partDesc = partDesc
     }
     return parsed
   }
@@ -106,6 +127,22 @@ class ShippingNoticeFile {
       Shipment shipment = null
       ShipmentLine parsed = null
       StringList tokens = new StringList( pDetailLine, DELIMITER )
+      List<Articulo> parts = ServiceFactory.partMaster.listarArticulosPorCodigo( tokens.entry( DetFld.PartCode.ordinal() ), false ) as List<Articulo>
+      String subtype = ""
+      String partDesc = ""
+      Collections.sort( parts, new Comparator<Articulo>() {
+          @Override
+          int compare(Articulo o1, Articulo o2) {
+              return o1.id.compareTo(o2.id)
+          }
+      })
+      for( Articulo art : parts ){
+          if(StringUtils.trimToEmpty(art.subtipo).length() > 0){
+              subtype = StringUtils.trimToEmpty(art.subtipo)
+              partDesc = StringUtils.trimToEmpty(art.descripcion)
+              break
+          }
+      }
       if ( tokens.size >= DetFldAccesory.values().size() ) {
           parsed = new ShipmentLine()
           parsed.partCode = tokens.entry( DetFld.PartCode.ordinal() )
@@ -116,6 +153,8 @@ class ShippingNoticeFile {
           parsed.colorDesc = tokens.entry( DetFld.ColorDesc.ordinal() )
           parsed.brand = tokens.entry( DetFld.SubType.ordinal() )
           parsed.type = tokens.entry( DetFld.Type.ordinal() )
+          parsed.subtype = subtype//tokens.entry( DetFld.SubType.ordinal() )
+          parsed.partDesc = partDesc
       }
       return parsed
   }

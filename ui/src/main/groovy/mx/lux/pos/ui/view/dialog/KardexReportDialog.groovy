@@ -24,10 +24,16 @@ class KardexReportDialog extends JDialog {
   private Date selectedDateStart
   private Date selectedDateEnd
   private String sku
+  private String title
+  private String label
+  private String label2
 
   public boolean button = false
 
-  KardexReportDialog( ) {
+  KardexReportDialog( String title ) {
+    this.title = title
+    label = title.contains("Sku") ? "Sku:" : "Articulo:"
+    label2 = title.contains("Sku") ? "Seleccione el Sku y las fechas a consultar" : "Seleccione el Articulo y las fechas a consultar"
     buildUI()
   }
 
@@ -44,9 +50,9 @@ class KardexReportDialog extends JDialog {
       panel() {
         borderLayout()
         panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap 2", "20[][grow,fill]40", "20[]10[]" ) ) {
-          label( text: "Seleccione el SKU y las fechas a consultar", constraints: "span 2" )
+          label( text: label2, constraints: "span 2" )
           label( text: " ", constraints: "span 2" )
-          label( text: 'Articulo:' )
+          label( text: label )
           txtSku = textField( document: new UpperCaseDocument() )
           label( text: "Fecha Inicio:" )
           txtDateStart = textField()
@@ -107,7 +113,8 @@ class KardexReportDialog extends JDialog {
     selectedDateEnd = null
     sku = null
     button = false
-    setVisible( false )
+    //setVisible( false )
+    dispose()
   }
 
   protected void onButtonOk( ) {
