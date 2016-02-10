@@ -8,6 +8,7 @@ import mx.lux.pos.ui.model.adapter.InvTrAdapter
 import mx.lux.pos.ui.view.component.NavigationBar.Command
 import mx.lux.pos.ui.view.component.NavigationBarListener
 import mx.lux.pos.ui.view.driver.*
+import org.apache.commons.lang.StringUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -181,6 +182,13 @@ class InvTrView implements NavigationBarListener {
         if ( InvTrViewMode.QUERY.equals(data.viewMode) ) {
           controller.requestPrint( data.qryInvTr.idTipoTrans, data.qryInvTr.folio )
         } else {
+          Boolean onlyFrames = true
+          for(InvTrSku part : data.skuList){
+            if(!StringUtils.trimToEmpty(part.part.idGenerico).equalsIgnoreCase("A")){
+              onlyFrames = false
+              break
+            }
+          }
           if ( InvTrViewMode.ISSUE.equals(data.viewMode) ) {
             if( controller.generatedIssueFile( this ) ){
                 JOptionPane.showMessageDialog( this.panel, "Autorizacion de Devolucion Enviada",
