@@ -7,6 +7,7 @@ import mx.lux.pos.service.ArticuloService
 import mx.lux.pos.service.EmpleadoService
 import mx.lux.pos.service.InventarioService
 import mx.lux.pos.service.SucursalService
+import mx.lux.pos.service.TicketService
 import mx.lux.pos.service.business.*
 import mx.lux.pos.service.io.InventoryAdjustFile
 import mx.lux.pos.service.io.ShippingNoticeFile
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional
 
 import javax.annotation.Resource
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 
 @Service( 'inventarioService' )
 @Transactional( readOnly = true )
@@ -63,6 +65,9 @@ class InventarioServiceImpl implements InventarioService {
 
   @Resource
   private EmpleadoService empleadoService
+
+  @Resource
+  private TicketService ticketService
 
   // Services
   List<TipoTransInv> listarTiposTransaccion( ) {
@@ -498,11 +503,11 @@ class InventarioServiceImpl implements InventarioService {
           transInvDetalleRepository.saveAndFlush( transInvDetalle )
         }
         String rutaPorEnviar = Registry.archivePath.trim()
-        Integer contador = 1
+        Integer contador = 0
         File file = new File( "${rutaPorEnviar}/${idSuc}_${transInv.folio}.sd" )
         PrintStream strOut = new PrintStream( file )
         StringBuffer sb = new StringBuffer()
-        sb.append("${contador}|${transInv.folio}|${transInv.observaciones}|${pRequest.skuList.size()}|")
+        sb.append("${transInv.folio}|${transInv.observaciones}|${pRequest.skuList.size()}|")
         sb.append( "\n" )
         for(InvTrDetRequest detalle : pRequest.skuList){
           contador = contador+1
@@ -523,6 +528,7 @@ class InventarioServiceImpl implements InventarioService {
 
 
   void leerArchivoAutorizacionSalidas( ){
+    SimpleDateFormat df = new SimpleDateFormat("ddMMyyyy")
     Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
     Parametro parametro = parametroRepository.findOne( TipoParametro.RUTA_RECIBIDOS.value )
     String ubicacionSource = ubicacion.valor
@@ -543,8 +549,8 @@ class InventarioServiceImpl implements InventarioService {
             } catch ( NumberFormatException e ){
               println e.message
             }
-            List<TransInv> transInv = transInvRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
-            if( transInv.size() > 0 ){
+            List<TransInv> lstTransInv = transInvRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+            if( lstTransInv.size() > 0 ){
               List<TransInvDetalle> lstDetalles = transInvDetalleRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
               Boolean valid = true
               for(TransInvDetalle det : lstDetalles){
@@ -568,13 +574,40 @@ class InventarioServiceImpl implements InventarioService {
                     renglones = renglones+1
                   }
                 }
+                TransInv transInv = lstTransInv.first()
+                transInv.referencia = "AUTORIZADA ${df.format(new Date())}"
+                transInvRepository.saveAndFlush( transInv )
+                transInv.trDet.addAll(lstDetalles)
+                ticketService.imprimeTransInv( transInv )
+                def newFile = new File( destination, file.name )
+                def moved = file.renameTo( newFile )
               }
             }
           } catch ( Exception e ){
             println e.message
           }
-          def newFile = new File( destination, file.name )
-          def moved = file.renameTo( newFile )
+        } else if ( file.getName().endsWith( ".sdn" ) ) {
+          try {
+            Integer folio = 0
+            Integer renglones = 1
+            String[] title = file.getName().split("_")
+            String[] strFolio = StringUtils.trimToEmpty(title[1].toString()).split(/\./)
+            try{
+              folio = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(strFolio[0])).intValue()
+            } catch ( NumberFormatException e ){
+              println e.message
+            }
+            List<TransInv> lstTransInv = transInvRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+            if( lstTransInv.size() > 0 ){
+              TransInv transInv = lstTransInv.first()
+              transInv.referencia = "NO AUTORIZADA ${df.format(new Date())}"
+              transInvRepository.saveAndFlush( transInv )
+            }
+            def newFile = new File( destination, file.name )
+            def moved = file.renameTo( newFile )
+          } catch ( Exception e ){
+            println e.message
+          }
         }
       }
     }

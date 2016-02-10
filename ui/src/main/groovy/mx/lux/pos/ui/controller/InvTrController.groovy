@@ -777,7 +777,7 @@ class InvTrController {
   Boolean generatedIssueFile( InvTrView pView ){
     log.debug( "generatedIssueFile" )
     InvTrRequest request = RequestAdapter.getRequest( pView.data )
-    return ServiceManager.getInventoryService().generaArchivoSalida( request )
+      return ServiceManager.getInventoryService().generaArchivoSalida(request)
   }
 
   Boolean showQueryTransaction( InvTrView pView ){

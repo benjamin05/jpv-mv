@@ -189,7 +189,7 @@ class InvTrView implements NavigationBarListener {
               break
             }
           }
-          if ( InvTrViewMode.ISSUE.equals(data.viewMode) ) {
+          if ( InvTrViewMode.ISSUE.equals(data.viewMode) && onlyFrames ) {
             if( controller.generatedIssueFile( this ) ){
                 JOptionPane.showMessageDialog( this.panel, "Autorizacion de Devolucion Enviada",
                         "Autorizacion", JOptionPane.INFORMATION_MESSAGE )
