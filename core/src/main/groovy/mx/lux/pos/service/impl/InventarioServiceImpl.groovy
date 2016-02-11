@@ -594,6 +594,7 @@ class InventarioServiceImpl implements InventarioService {
                 doctoInv.fechaMod = new Date()
                 doctoInv.idSucursal = Registry.currentSite
                 doctoInv.cantidad = StringUtils.trimToEmpty(cantidadTotal.toString())
+                doctoInv.estado = 'pendiente'
                 doctoInvRepository.saveAndFlush(doctoInv)
                 ticketService.imprimeTransInv( transInv )
                 def newFile = new File( destination, file.name )
