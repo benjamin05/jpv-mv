@@ -61,6 +61,9 @@ class InventarioServiceImpl implements InventarioService {
   private ParametroRepository parametroRepository
 
   @Resource
+  private DoctoInvRepository doctoInvRepository
+
+  @Resource
   private ArticuloService articuloService
 
   @Resource
@@ -551,18 +554,19 @@ class InventarioServiceImpl implements InventarioService {
             }
             List<TransInv> lstTransInv = transInvRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
             if( lstTransInv.size() > 0 ){
-              List<TransInvDetalle> lstDetalles = transInvDetalleRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+              List<TransInvDetalle> lstDetallesTmp = transInvDetalleRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+              List<TransInvDetalle> lstDetalles = new ArrayList<>()
               Boolean valid = true
-              for(TransInvDetalle det : lstDetalles){
+              for(TransInvDetalle det : lstDetallesTmp){
                 Articulo articulo = articuloRepository.findOne( det.sku )
                 if( articulo != null ){
-                  if( articulo.cantExistencia < det.linea ){
-                    valid = false
-                    break
+                  if( articulo.cantExistencia >= det.linea ){
+                    lstDetalles.add( det )
                   }
                 }
               }
               if( valid ){
+                Integer cantidadTotal = 0
                 for(TransInvDetalle det : lstDetalles){
                   Articulo articulo = articuloRepository.findOne( det.sku )
                   if( articulo != null ){
@@ -572,12 +576,25 @@ class InventarioServiceImpl implements InventarioService {
                     articulo.cantExistencia = articulo.cantExistencia-det.cantidad
                     articuloRepository.saveAndFlush( articulo )
                     renglones = renglones+1
+                    cantidadTotal = cantidadTotal+det.cantidad
                   }
                 }
                 TransInv transInv = lstTransInv.first()
                 transInv.referencia = "AUTORIZADA ${df.format(new Date())}"
                 transInvRepository.saveAndFlush( transInv )
                 transInv.trDet.addAll(lstDetalles)
+                DoctoInv doctoInv = new DoctoInv()
+                doctoInv.idDocto = StringUtils.trimToEmpty(transInv.folio.toString())
+                doctoInv.idTipoDocto = 'DA'
+                doctoInv.fecha = new Date()
+                doctoInv.usuario = 'EXT'
+                doctoInv.referencia = 'DEVOLUCION APLICADA'
+                doctoInv.idSync = '1'
+                doctoInv.idMod = '0'
+                doctoInv.fechaMod = new Date()
+                doctoInv.idSucursal = Registry.currentSite
+                doctoInv.cantidad = StringUtils.trimToEmpty(cantidadTotal.toString())
+                doctoInvRepository.saveAndFlush(doctoInv)
                 ticketService.imprimeTransInv( transInv )
                 def newFile = new File( destination, file.name )
                 def moved = file.renameTo( newFile )
