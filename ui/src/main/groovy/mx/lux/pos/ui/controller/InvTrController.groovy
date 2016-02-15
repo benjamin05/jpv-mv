@@ -23,7 +23,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import javax.swing.*
-import java.nio.channels.FileChannel
 
 class InvTrController {
 
@@ -194,37 +193,6 @@ class InvTrController {
         return response
       }
   }
-
-
-  protected void generaAcuseAjusteInventario(InvTrViewMode viewMode, InvTrView pView){
-    String[] dataFileName = pView.data.inFile.name.split(/\./)
-    String newFileName = ""
-    if( dataFileName.length >= 3 ){
-      newFileName = dataFileName[0]+"."+dataFileName[1]+"."+"aja"
-    } else {
-      newFileName = pView.data.inFile.name
-    }
-    File deleted = new File( SettingsController.instance.processedPath, pView.data.inFile.name )
-    FileChannel source = null;
-    FileChannel destination = null;
-      source = new FileInputStream(pView.data.inFile).getChannel();
-      destination = new FileOutputStream(deleted).getChannel();
-      if (destination != null && source != null) {
-          destination.transferFrom(source, 0, source.size());
-      }
-      if (source != null) {
-          source.close();
-      }
-      if (destination != null) {
-          destination.close();
-      }
-
-
-    File moved = new File( Registry.archivePath, newFileName )
-    pView.data.inFile.renameTo( moved )
-    //pView.data.inFile.renameTo( copy )
-  }
-
 
   protected void dispatchViewModeAdjust( InvTrView pView ) {
     pView.data.clear()
@@ -755,9 +723,6 @@ class InvTrController {
           dispatchPrintTransaction( viewMode.trType.idTipoTrans, trNbr )
           if (InvTrViewMode.RECEIPT.equals( viewMode ) || InvTrViewMode.INBOUND.equals( viewMode )) {
             String resultado = confirmaEntrada(viewMode, pView)
-          }
-          if( InvTrViewMode.FILE_ADJUST.equals( viewMode ) ){
-            generaAcuseAjusteInventario(viewMode, pView)
           }
           if( ServiceManager.getInventoryService().isReceiptDuplicate() ){
             dispatchPrintTransaction( viewMode.trType.idTipoTrans, trNbr )
