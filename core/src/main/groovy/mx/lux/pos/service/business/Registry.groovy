@@ -777,11 +777,12 @@ class Registry {
         else
             fileProperties = "linux.properties"
 
-        Properties properties = new Properties();
+        /*Properties properties = new Properties();
         Resource resource = new ClassPathResource(fileProperties)
-        properties = PropertiesLoaderUtils.loadProperties(resource)
-
-        return properties.getProperty( key )
+        properties = PropertiesLoaderUtils.loadProperties(resource)*/
+        Parametro p = RepositoryFactory.getRegistry().findOne( StringUtils.trimToEmpty(key) )
+        //return properties.getProperty( key )
+      return StringUtils.trimToEmpty(p != null ? StringUtils.trimToEmpty(p.valor) : "")
     }
 
     static Boolean executeCommand( String command ){
