@@ -182,7 +182,7 @@ class InvTrView implements NavigationBarListener {
         if ( InvTrViewMode.QUERY.equals(data.viewMode) ) {
           controller.requestPrint( data.qryInvTr.idTipoTrans, data.qryInvTr.folio )
         } else {
-          Boolean onlyFrames = true
+          /*Boolean onlyFrames = true
           for(InvTrSku part : data.skuList){
             if(!StringUtils.trimToEmpty(part.part.idGenerico).equalsIgnoreCase("A")){
               onlyFrames = false
@@ -198,9 +198,9 @@ class InvTrView implements NavigationBarListener {
               JOptionPane.showMessageDialog( this.panel, "Error al enviar Autorizacion de Devolucion",
                       "Error", JOptionPane.ERROR_MESSAGE )
             }
-          } else {
+          } else {*/
             controller.requestSaveAndPrint( this )
-          }
+          //}
         }
       }
     } else {

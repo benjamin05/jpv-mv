@@ -540,7 +540,6 @@ class InventarioServiceImpl implements InventarioService {
     File destination = new File( ubicacionsDestination )
     if ( source.exists() && destination.exists() ) {
       source.eachFile() { file ->
-        println file.getName()
         if ( file.getName().endsWith( ".sda" ) ) {
           try {
             Integer folio = 0
