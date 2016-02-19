@@ -887,7 +887,8 @@ class InvTrController {
 
 
   Boolean validReference( String idTipoTrans, String ref ){
-    if( RepositoryFactory.inventoryMaster.findByIdTipoTransAndReferencia( idTipoTrans, ref ) != null ){
+    List<TransInv> lstTrans = RepositoryFactory.inventoryMaster.findByIdTipoTransAndReferencia( idTipoTrans, ref )
+    if( lstTrans.size() > 0 ){
       return false
     } else {
       return true
