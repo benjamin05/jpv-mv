@@ -164,7 +164,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 orderMenuItem.visible = userLoggedIn
                                 orderSearchMenuItem.visible = userLoggedIn
                                 dailyCloseMenuItem.visible = userLoggedIn
-                                priceListMenuItem.visible = userLoggedIn
+                                priceListMenuItem.visible = isManager
                                 invoiceMenuItem.visible = userLoggedIn
                                 nationalClientMenuItem.visible = userLoggedIn
                                 // TODO: Benja enable feature cotizacionMenuItem.visible = userLoggedIn
@@ -403,7 +403,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 couponMenuItem.visible = isManager
                                 cellarReportMenuItem.visible = isManager
                                 cuponMvReportMenuItem.visible = userLoggedIn
-                                multipaymentMenuItem.visible = userLoggedIn
+                                multipaymentMenuItem.visible = false
                             }
                     ) {
                         salesReportMenuItem = menuItem( text: "Ventas",

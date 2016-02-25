@@ -226,7 +226,7 @@ class ShowOrderPanel extends JPanel {
                 printRxButton = button( 'Imprimir Rx', actionPerformed: doPrintRx, constraints: 'hidemode 3' )
                 returnButton = button( 'Devoluci\u00f3n', actionPerformed: doRefund, constraints: 'hidemode 3' )
                 printReturnButton = button( '<html><p align="center">Imprimir<br>Cancelaci\u00f3n</p></html>', actionPerformed: doPrintRefund, constraints: 'hidemode 3' )
-                ppButton = button( 'Pagar', actionPerformed: doSwitchPP  )
+                ppButton = button( 'Pagar', actionPerformed: doSwitchPP, constraints: 'hidemode 3'  )
                 println "boton imprimir visible: ${ppButton.getText().equals('Pagar')}"
                 printButton = button( 'Imprimir', actionPerformed: {doPrint()}, constraints: 'hidemode 3' )
 
@@ -268,6 +268,7 @@ class ShowOrderPanel extends JPanel {
       //bean( cancelButton, visible: bind {!'T'.equalsIgnoreCase( order.status )} )
         bean( cancelTotalButton, visible: bind {!'T'.equalsIgnoreCase( order.status ) && IOController.getInstance().isManager(user.username)} )
         bean( cancelTransfButton, visible: bind {!'T'.equalsIgnoreCase( order.status ) && IOController.getInstance().isManager(user.username)} )
+        println ppButton.getText().equals('Pagar')
         bean( ppButton, visible: bind {IOController.getInstance().isManager(user.username)} )
         bean( printRxButton, visible: bind {(order.rx != null)} )
       sumaPagos = BigDecimal.ZERO
@@ -290,9 +291,9 @@ class ShowOrderPanel extends JPanel {
     } else {
         ppButton?.setText('Pagar')
     }
-    /*sb.build {
-      bean( printButton, visible: bind { ppButton.getText().equals('Pagar') } )
-    }*/
+    sb.build {
+      bean( printButton, visible: bind { ppButton.getText().equals('Pagar') || !ppButton.visible } )
+    }
   }
 
   private def dateConverter = { Date val ->

@@ -89,12 +89,14 @@ class LogInPanel extends JPanel implements KeyListener{
         }
       } else {
         if( IOController.instance.isManager(StringUtils.trimToEmpty(user.username))){
+          messages.text = 'Su contrase\u00f1a ha expirado'
+          messages.visible = true
           AccessController.logOut()
           ChangePasswordDialog dialog = new ChangePasswordDialog()
           dialog.show()
         } else {
           AccessController.logOut()
-          messages.text = 'Su Contrase\u00f1a ha expirado'
+          messages.text = '<html>Su contrase\u00f1a ha expirado<br>solicitar cambio al gerente<html>'
           messages.visible = true
         }
       }
