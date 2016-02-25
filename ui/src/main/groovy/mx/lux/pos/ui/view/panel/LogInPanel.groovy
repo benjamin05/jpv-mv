@@ -68,10 +68,15 @@ class LogInPanel extends JPanel implements KeyListener{
     logInButton.enabled = false
     User user = AccessController.logIn( username.text, password.text )
     if ( StringUtils.isNotBlank( user?.username ) ) {
-      messages.text = null
-      messages.visible = false
-      doAction()
-      loggedOk = true
+      if( AccessController.validTimePass( StringUtils.trimToEmpty(user.username) ) ){
+        messages.text = null
+        messages.visible = false
+        doAction()
+        loggedOk = true
+      } else {
+        messages.text = 'Su Contrase\u00f1a ha expirado'
+        messages.visible = true
+      }
     } else {
       messages.text = 'Empleado/Contrase\u00f1a incorrectos'
       messages.visible = true

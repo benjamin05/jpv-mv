@@ -3,10 +3,12 @@ package mx.lux.pos.service.impl
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.AcusesTipo
 import mx.lux.pos.model.Empleado
+import mx.lux.pos.model.LogAsignaSubgerente
 import mx.lux.pos.model.Parametro
 import mx.lux.pos.model.TipoParametro
 import mx.lux.pos.repository.AcusesTipoRepository
 import mx.lux.pos.repository.EmpleadoRepository
+import mx.lux.pos.repository.LogAsignaSubgerenteRepository
 import mx.lux.pos.repository.ParametroRepository
 import mx.lux.pos.service.EmpleadoService
 import mx.lux.pos.service.business.Registry
@@ -31,6 +33,9 @@ class EmpleadoServiceImpl implements EmpleadoService {
 
   @Resource
   private ParametroRepository parametroRepository
+
+  @Resource
+  private LogAsignaSubgerenteRepository logAsignaSubgerenteRepository
 
   @Resource
   private AcusesTipoRepository acusesTipoRepository
@@ -131,6 +136,43 @@ class EmpleadoServiceImpl implements EmpleadoService {
       }
     }
     return newEmpleado
+  }
+
+
+  @Transactional
+  @Override
+  void insertaSubgerente( String idEmpleado, String idEmpleadoAsigno, Date fechaInicial, Date fechaFinal, Integer horas ){
+    log.debug( "insertaSubgerente( )" )
+    LogAsignaSubgerente log = new LogAsignaSubgerente()
+    log.fecha = new Date()
+    log.empleadoAsigno = StringUtils.trimToEmpty( idEmpleadoAsigno )
+    log.empleadoAsignado = StringUtils.trimToEmpty( idEmpleado )
+    log.fechaInicial = fechaInicial
+    log.fechaFinal = fechaFinal
+    log.horas = horas
+    logAsignaSubgerenteRepository.saveAndFlush( log )
+  }
+
+
+  @Override
+  LogAsignaSubgerente obtenerSubgerenteActual(  ){
+    LogAsignaSubgerente log = logAsignaSubgerenteRepository.findLastSubmanager()
+    if( log != null ){
+      if( log.horas != null ){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(log.fecha);
+        cal.add(Calendar.HOUR_OF_DAY, log.horas);
+        Date vigencia = cal.getTime();
+        if( vigencia.compareTo(new Date()) < 0){
+          log = null
+        }
+      } else {
+        if( log.fechaInicial.compareTo(new Date()) > 0 || log.fechaFinal.compareTo(new Date()) < 0 ){
+          log= null
+        }
+      }
+    }
+    return log
   }
 
 

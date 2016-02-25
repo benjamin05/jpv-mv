@@ -54,7 +54,7 @@ public class DetalleNotaVentaServiceJava {
 
   public LogSpJava saveLogSP( Integer idArticulo, String idFactura, String respuesta ) throws ParseException {
     log.debug( "saveLogSP( )" );
-    String[] resp = respuesta != null ? respuesta.split("|") : new String[0];
+    String[] resp = respuesta != null ? respuesta.split("\\|") : new String[0];
     Boolean respuestaServ = false;
     Date fechaLlamada = new Date();
     Date fechaRespuesta = null;

@@ -145,9 +145,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         advanceOnlyInventariable = false
         String clientesActivos = OrderController.obtieneTiposClientesActivos()
         for(OperationType customer : lstCustomers){
-            if(clientesActivos.contains(customer.value)){
-               customerTypes.add(customer)
+          if( customer.compareTo(OperationType.PAYING) == 0 ){
+            User user = Session.get( SessionItem.USER ) as User
+            if( IOController.getInstance().isManager(user.username) ){
+              if(clientesActivos.contains(customer.value)){
+                customerTypes.add(customer)
+              }
             }
+          } else {
+            if(clientesActivos.contains(customer.value)){
+              customerTypes.add(customer)
+            }
+          }
         }
         promoAgeActive = Registry.promoAgeActive
         customer = CustomerController.findDefaultCustomer()

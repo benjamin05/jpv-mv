@@ -2,6 +2,7 @@ package mx.lux.pos.ui.model
 
 import mx.lux.pos.model.TipoTransInv
 import mx.lux.pos.service.InventarioService
+import mx.lux.pos.ui.controller.IOController
 import mx.lux.pos.ui.resources.ServiceManager
 
 class LcViewMode {
@@ -34,7 +35,8 @@ class LcViewMode {
    
   // Public Methods
   static List<LcViewMode> listViewModes() {
-    if (list == null) {
+    //if (list == null) {
+      User user = Session.get(SessionItem.USER) as User
       list = new ArrayList<LcViewMode>()
       InventarioService inventory = ServiceManager.getInventoryService()
       ISSUE = new LcViewMode( "Otras Salidas" )
@@ -49,8 +51,11 @@ class LcViewMode {
       INBOUND = new LcViewMode( inventory.obtenerTipoTransaccionEntradaAlmacen() )
       FILE_ADJUST.trType = inventory.obtenerTipoTransaccionAjuste()
       //list.addAll( [QUERY, ISSUE, RECEIPT, ADJUST, RETURN, OUTBOUND,INBOUND, FILE_ADJUST] )
-      list.addAll( [QUERY, SEND_ORDER, RECEIPT] )
-    }
+      list.addAll( [QUERY] )
+      if( IOController.getInstance().isManager(user.username) ){
+        list.addAll( [SEND_ORDER, RECEIPT] )
+      }
+    //}
     return list
   }
   

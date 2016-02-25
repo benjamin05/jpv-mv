@@ -3,6 +3,7 @@ package mx.lux.pos.ui.view.panel
 import mx.lux.pos.model.InvAdjustSheet
 import mx.lux.pos.model.Shipment
 import mx.lux.pos.ui.controller.LcController
+import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.model.adapter.LcAdapter
 import mx.lux.pos.ui.view.component.NavigationBar.Command
@@ -176,7 +177,12 @@ class LcView implements NavigationBarListener {
         if ( LcViewMode.QUERY.equals(data.viewMode) ) {
           controller.requestPrint( data.qryInvTr.idTipoTrans, data.qryInvTr.folio )
         } else {
-          controller.requestSaveAndPrint( this )
+          if( OrderController.dayIsOpen() ){
+            controller.requestSaveAndPrint( this )
+          } else {
+            panel.sb.optionPane(message: 'No se pueden realizar la transaccion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+                    .createDialog(new JTextField(), "Dia cerrado").show()
+          }
         }
       }
     } else {
