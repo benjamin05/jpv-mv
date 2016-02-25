@@ -65,7 +65,7 @@ class InvTrViewMode {
       if( IOController.getInstance().isManager(user.username) ){
         list.addAll( [QUERY, RECEIPT, ISSUE, ADJUST, FILE_ADJUST, INBOUND, OUTBOUND, OTHER_RECEIPT, OTHER_ISSUE] )
       } else {
-        list.addAll( [QUERY, ADJUST, FILE_ADJUST, INBOUND, OUTBOUND] )
+        list.addAll( [QUERY] )
       }
       if( Registry.totalOutputEnabled() ){
         list.addAll( [ISSUE_FRAMES, ISSUE_ACCESORIES] )

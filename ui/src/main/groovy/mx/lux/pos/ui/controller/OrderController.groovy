@@ -1412,11 +1412,11 @@ class OrderController {
         StringTokenizer st = new StringTokenizer(StringUtils.trimToEmpty(s), ",")
         //Iterator its = st.iterator()
         String[] its = StringUtils.trimToEmpty(s).trim().split(',')
-        for(int i=0;i<its.length;i++){
+        /*for(int i=0;i<its.length;i++){
           if( !surte.equalsIgnoreCase(its[i]) && !its[i].equalsIgnoreCase("P") ){
             surteOption.add(its[i])
           }
-        }
+        }*/
         /*while (its.hasNext()) {
             if (!its.next().toString().trim().equals(surte)) {
                 surteOption.add(its.next().toString())

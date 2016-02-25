@@ -259,7 +259,7 @@ class AccessController {
       if( logSub != null && StringUtils.trimToEmpty(empleado.id).equalsIgnoreCase(logSub.empleadoAsignado) ){
         isSubManager = true
       }
-      if ( empleado.idPuesto == 1 || isSubManager ) {
+      if ( empleado.idPuesto == 1 || empleado.idPuesto == 15 || isSubManager ) {
         log.info( "usuario es autorizador" )
         return true
       } else {

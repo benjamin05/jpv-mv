@@ -111,7 +111,7 @@ class IOController {
     Boolean isManager( String idEmployee ){
       Boolean valid = false
       Empleado emp = ServiceManager.employeeService.obtenerEmpleado( StringUtils.trimToEmpty(idEmployee) )
-      if( emp.idPuesto == 1 ){
+      if( emp.idPuesto == 1 || emp.idPuesto == 15 ){
         valid = true
       }
       if( !valid ){

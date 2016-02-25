@@ -51,7 +51,7 @@ class ChangePasswordDialog extends JDialog {
         panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap 2", "20[][grow,fill]60", "20[]10[]" ) ) {
           label( text: "Inserte el Usuario y Password", constraints: "span 2" )
           label( text: " ", constraints: "span 2" )
-          label( text: "Usuario:" )
+          label( text: "Empleado:" )
           txtUsuario = textField( document: new UpperCaseDocument() )
           //label( text: "Password:" )
           //txtPassword = passwordField(  )
@@ -93,7 +93,7 @@ class ChangePasswordDialog extends JDialog {
     password = StringUtils.trimToEmpty(AccessController.getUser(StringUtils.trimToEmpty(txtUsuario.getText())).password)//txtPassword.getText().trim()
     nuevoPassword = txtNuevoPassword.getText().trim()
     confirmaPassword = txtConfirmaPass.getText().trim()
-    if( nuevoPassword.length() >= 8 ){
+    if( nuevoPassword.length() >= 8 && nuevoPassword.length() <= 10){
         button = true
         String existEmpleado = AccessController.validaDatos( usuario, password, nuevoPassword, confirmaPassword )
         if( StringUtils.trimToEmpty(existEmpleado).length() <= 0 ){
@@ -109,7 +109,7 @@ class ChangePasswordDialog extends JDialog {
         }
     } else {
         lblWarning.visible = true
-        lblWarning.text = 'El password debe tener almenos 8 caracteres'
+        lblWarning.text = '<html>El password debe tener<br>minimo 8 caracteres y maximo 10<html>'
     }
   }
 

@@ -88,6 +88,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem cuponMvReportMenuItem
     private JMenuItem inventoryTransactionMenuItem
     private JMenuItem inventoryOhQueryMenuItem
+    private JMenuItem inventoryLcOhQueryMenuItem
     private JMenuItem recalculateMenuItem
     private JMenuItem salesBySellerByBrandMenuItem
     private JMenuItem stockbyBrandMenuItem
@@ -155,8 +156,11 @@ class MainWindow extends JFrame implements KeyListener {
                     ordersMenu = menu( text: 'Ventas', mnemonic: 'V',
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
-                                User user = Session.get(SessionItem.USER) as User
-                                Boolean isManager = IOController.getInstance().isManager(user.username)
+                                Boolean isManager = false
+                                if( userLoggedIn ){
+                                  User user = Session.get(SessionItem.USER) as User
+                                  isManager = IOController.getInstance().isManager(user.username)
+                                }
                                 orderMenuItem.visible = userLoggedIn
                                 orderSearchMenuItem.visible = userLoggedIn
                                 dailyCloseMenuItem.visible = userLoggedIn
@@ -257,9 +261,10 @@ class MainWindow extends JFrame implements KeyListener {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
                                 inventoryTransactionMenuItem.visible = userLoggedIn
                                 inventoryOhQueryMenuItem.visible = userLoggedIn
+                                inventoryLcOhQueryMenuItem.visible = userLoggedIn
                                 User u = Session.get(SessionItem.USER) as User
-                                recalculateMenuItem.visible = AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password))
-                                adjustSaleMenuItem.visible = AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password))
+                                recalculateMenuItem.visible = userLoggedIn ? AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password)) : false
+                                adjustSaleMenuItem.visible = userLoggedIn ? AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password)) : false
                                 //generateInventoryFile.visible = userLoggedIn
                                 //loadPartsMenuItem.visible = userLoggedIn
                                 //loadPartClassMenuItem.visible = userLoggedIn
@@ -290,7 +295,7 @@ class MainWindow extends JFrame implements KeyListener {
                                     garbage.gc();
                                     InvQryController.instance.requestInvOhTicket() }
                         )
-                        inventoryOhQueryMenuItem = menuItem( text: "Ticket Existencias LC", visible: true,
+                        inventoryLcOhQueryMenuItem = menuItem( text: "Ticket Existencias LC", visible: true,
                                 actionPerformed: {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
@@ -360,8 +365,11 @@ class MainWindow extends JFrame implements KeyListener {
                     reportsMenu = menu( text: "Reportes", mnemonic: "R",
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
-                                User user = Session.get(SessionItem.USER) as User
-                                Boolean isManager = IOController.getInstance().isManager(user.username)
+                                Boolean isManager = false
+                                if( userLoggedIn ){
+                                  User user = Session.get(SessionItem.USER) as User
+                                  isManager = IOController.getInstance().isManager(user.username)
+                                }
                                 cancellationReportMenuItem.visible = isManager
                                 dailyCloseReportMenuItem.visible = userLoggedIn
                                 //incomePerBranchReportMenuItem.visible = userLoggedIn
@@ -661,8 +669,11 @@ class MainWindow extends JFrame implements KeyListener {
                     toolsMenu = menu( text: 'Herramientas', mnemonic: 'H',
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
-                                User user = Session.get( SessionItem.USER ) as User
-                                Boolean isManager = IOController.getInstance().isManager(user.username)//StringUtils.trimToEmpty(Registry.idManager)
+                                Boolean isManager = false
+                                if(userLoggedIn){
+                                  User user = Session.get( SessionItem.USER ) as User
+                                  isManager = IOController.getInstance().isManager(user.username)//StringUtils.trimToEmpty(Registry.idManager)
+                                }
                                 sessionMenuItem.visible = userLoggedIn
                                 newSalesDayMenuItem.visible = isManager
                                 entregaMenuItem.visible = isManager
