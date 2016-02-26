@@ -173,7 +173,7 @@ class AccessController {
     } else if( !StringUtils.trimToEmpty(nuevoPass).equals(StringUtils.trimToEmpty(confirmPass)) ){
       empleadoValido = "El Password no coincide con la cofirmacion"
     } else if( StringUtils.trimToEmpty(nuevoPass).length() < 8 ){
-      empleadoValido = "El password debe contener almenos 8 caracteres"
+      empleadoValido = "El password debe contener al menos 8 caracteres"
     } else if( StringUtils.trimToEmpty(empleado.passwd).equals(StringUtils.trimToEmpty(nuevoPass)) ){
       empleadoValido = "El password no debe ser el mismo que el anterior"
     }
@@ -196,7 +196,7 @@ class AccessController {
       contador = contador+1
     }
     if( contador < 2 ){
-      empleadoValido = "<html>El password debe contener almenos 2 de las siguientes condiciones<br> -Mayusculas     -Minusculas<br>  -Numeros     -Simbolos(#"+/\$/+"%&)<html>"
+      empleadoValido = "<html>El password debe contener al menos 2 de las siguientes combinaciones:<br>-Mayusculas<br>-Minusculas<br>-Numeros<br>-Simbolos(#"+/\$/+"%&)<html>"
     }
     return empleadoValido
   }

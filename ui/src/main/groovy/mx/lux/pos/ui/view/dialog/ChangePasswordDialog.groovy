@@ -43,7 +43,7 @@ class ChangePasswordDialog extends JDialog {
         resizable: true,
         pack: true,
         modal: true,
-        preferredSize: [ 400, 350 ],
+        preferredSize: [ 400, 400 ],
         location: [ 200, 250 ],
     ) {
       panel() {

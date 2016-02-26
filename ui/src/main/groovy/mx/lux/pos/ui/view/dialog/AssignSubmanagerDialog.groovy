@@ -72,7 +72,7 @@ class AssignSubmanagerDialog extends JDialog {
         label( 'Fecha Final:' )
         finalDate = spinner( model: spinnerDateModel() )
         finalDate.editor = new JSpinner.DateEditor( finalDate as JSpinner, 'dd-MM-yyyy' )
-        finalDate.value = DateUtils.addDays( today, 1 )
+        //finalDate.value = DateUtils.addDays( today, 1 )
         rbHours = radioButton( text:"Por Horas", buttonGroup:group, actionPerformed: onSelect, constraints:"span 2")
         label( 'Horas:' )
         hours = textField( enabled: false )
@@ -103,7 +103,7 @@ class AssignSubmanagerDialog extends JDialog {
       if( rbDays.selected ){
         Date today = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH );
         Date dayStart = rbDays.selected ? initialDate.value as Date : null
-        Date dayEnd = rbDays.selected ? finalDate.value as Date : null
+        Date dayEnd = rbDays.selected ? new Date( DateUtils.ceiling( finalDate.value as Date, Calendar.DAY_OF_MONTH ).getTime() - 1 ) : null
         if(dayStart != null && dayEnd != null && dayStart.compareTo(today) >= 0 && dayStart.compareTo(dayEnd) < 0){
           if( AccessController.saveSubManager( StringUtils.trimToEmpty(username.text), dayStart, dayEnd, null ) ){
             sb.optionPane(message: 'Se registro el subgerente correctamente', messageType: JOptionPane.DEFAULT_OPTION).
