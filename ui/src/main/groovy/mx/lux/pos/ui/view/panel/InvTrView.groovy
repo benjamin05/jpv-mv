@@ -185,7 +185,7 @@ class InvTrView implements NavigationBarListener {
           if( OrderController.dayIsOpen() ){
             controller.requestSaveAndPrint( this )
           } else {
-            panel.sb.optionPane(message: 'No se pueden realizar la transaccion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+            panel.sb.optionPane(message: 'No se puede realizar la transaccion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
                     .createDialog(new JTextField(), "Dia cerrado").show()
           }
         }

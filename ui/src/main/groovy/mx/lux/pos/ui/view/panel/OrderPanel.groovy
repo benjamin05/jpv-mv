@@ -783,7 +783,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if(log.equalsIgnoreCase("actionPerformed")){
           focusItem = true
         }
-        sb.optionPane(message: 'No se pueden realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+        sb.optionPane(message: 'No se puede realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "Dia cerrado").show()
       }
       itemSearch.enabled = true

@@ -324,7 +324,7 @@ class ShowOrderPanel extends JPanel {
         }
       }
     } else {
-      sb.optionPane(message: 'No se pueden realizar la cancelacion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+      sb.optionPane(message: 'No se puede realizar la cancelacion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "Dia cerrado").show()
     }
     source.enabled = true
@@ -350,7 +350,7 @@ class ShowOrderPanel extends JPanel {
         }
       }
     } else {
-      sb.optionPane(message: 'No se pueden realizar la cancelacion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+      sb.optionPane(message: 'No se puede realizar la cancelacion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
               .createDialog(new JTextField(), "Dia cerrado").show()
     }
     source.enabled = true
@@ -453,7 +453,7 @@ class ShowOrderPanel extends JPanel {
           ).createDialog(this, 'Pago en caja').show()
         }
       } else {
-        sb.optionPane(message: 'No se pueden realizar la cancelacion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+        sb.optionPane(message: 'No se puede realizar el pago. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "Dia cerrado").show()
       }
     } else{
