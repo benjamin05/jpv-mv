@@ -2,14 +2,21 @@ package mx.lux.pos.ui.view.panel
 
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
+import mx.lux.pos.model.Empleado
+import mx.lux.pos.ui.controller.AccessController
 import mx.lux.pos.ui.controller.DailyCloseController
 import mx.lux.pos.ui.model.DailyClose
+import mx.lux.pos.ui.model.Session
+import mx.lux.pos.ui.model.SessionItem
+import mx.lux.pos.ui.model.User
+import mx.lux.pos.ui.view.dialog.AuthorizationByManagerDialog
 import mx.lux.pos.ui.view.dialog.dailyclose.DailyCloseDepositsDialog
 import mx.lux.pos.ui.view.dialog.dailyclose.TerminalCloseDialog
 import mx.lux.pos.ui.view.dialog.dailyclose.TerminalFixDialog
 import mx.lux.pos.ui.view.renderer.DateCellRenderer
 import mx.lux.pos.ui.view.renderer.MoneyCellRenderer
 import net.miginfocom.swing.MigLayout
+import org.apache.commons.lang.StringUtils
 import org.apache.commons.lang3.time.DateUtils
 
 import javax.swing.*
@@ -125,13 +132,29 @@ class DailyClosePanel extends JPanel {
     if ( SwingUtilities.isLeftMouseButton( ev ) ) {
       DailyClose selection = ev.source.selectedElement as DailyClose
       if ( ev.clickCount == 2 && selection?.date ) {
-        DailyCloseController.validPendingClosedDays( )
-        boolean dataLoaded = DailyCloseController.loadDayData( selection )
-        if ( dataLoaded ) {
-          DailyClose updated = DailyCloseController.findByDate( selection?.date )
-          new DailyCloseDepositsDialog( this, updated ).show()
+       Boolean validUser = true
+        /*User user = (User)Session.get( SessionItem.USER )
+        Empleado emp = AccessController.findEmployee( StringUtils.trimToEmpty(user.username) )
+        if (AccessController.isManager(emp)) {
+          validUser = true
         } else {
-          sb.optionPane().showMessageDialog( this, 'Se ha producido un error al cargar los datos', 'Error', JOptionPane.ERROR_MESSAGE )
+          AuthorizationByManagerDialog authDialog = new AuthorizationByManagerDialog(this, "Esta operacion requiere autorizaci\u00f3n")
+          authDialog.show()
+          if (authDialog.authorized) {
+            validUser = true
+          }
+        }*/
+        if( validUser ){
+          DailyCloseController.validPendingClosedDays( )
+          boolean dataLoaded = DailyCloseController.loadDayData( selection )
+          if ( dataLoaded ) {
+            DailyClose updated = DailyCloseController.findByDate( selection?.date )
+            new DailyCloseDepositsDialog( this, updated ).show()
+          } else {
+            sb.optionPane().showMessageDialog( this, 'Se ha producido un error al cargar los datos', 'Error', JOptionPane.ERROR_MESSAGE )
+          }
+        } else {
+          sb.optionPane().showMessageDialog( this, 'El cierre requiere autorizacion de gerente', 'Error', JOptionPane.ERROR_MESSAGE )
         }
       }
     }

@@ -40,6 +40,29 @@ public class TransInvDetQuery {
 	}
 
 
+
+    public static List<TransInvDetJava> buscaTransInvDetPorSku( Integer idArticulo ){
+      List<TransInvDetJava> lstTransInvDet = new ArrayList<TransInvDetJava>();
+      TransInvDetJava transInvDetJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from trans_inv_det where sku = '%d';",idArticulo);
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          transInvDetJava = new TransInvDetJava();
+          transInvDetJava = transInvDetJava.mapeoTransInvDet(rs);
+          lstTransInvDet.add(transInvDetJava);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstTransInvDet;
+    }
+
+
+
     public static void saveOrUpdateTransInvDet(TransInvDetJava transInvDetJava) throws ParseException {
       Connections db = new Connections();
       String sql = "";

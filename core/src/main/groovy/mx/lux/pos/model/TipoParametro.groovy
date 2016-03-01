@@ -67,6 +67,7 @@ enum TipoParametro {
   MAX_DISCOUNT_STORE( 'tope_descto_tienda', '10.0' ),
   MAX_LONG_DESC_FACTURA( 'max_long_desc_efactura', '50' ),
   METODO_BUSQUEDA_ARTICULOS( 'metodo_busqueda_articulos', 'RB*,Letras especificadas|RB*+A,Letras especificadas+generico|D+BIOMED,D+Descripcion|+Q,Generico' ),
+  MESES_VIGENCIA_PASSWORD('meses_vigencia_password','3'),
   MOSTRAR_NO_STOCK_TICKET_LC( 'mostrar_no_stock_ticket_lc', 'no' ),
   MONTO_GENERA_FF_CUPON( 'monto_genera_ff_cupon', '1000' ),
   MONTO_APLICA_FF_CUPON( 'monto_aplica_ff_cupon', '1000' ),

@@ -583,6 +583,10 @@ class Registry {
     return  asInteger(TipoParametro.PORT_LINUX)
   }
 
+  static Integer getMonthsToChangePass() {
+    return  asInteger(TipoParametro.MESES_VIGENCIA_PASSWORD)
+  }
+
     static Integer getValidityEnsureKid() {
         return  asInteger(TipoParametro.VIGENCIA_SEGURO_INFANTIL)
     }

@@ -3,6 +3,7 @@ package mx.lux.pos.ui.model
 import mx.lux.pos.model.TipoTransInv
 import mx.lux.pos.service.InventarioService
 import mx.lux.pos.service.business.Registry
+import mx.lux.pos.ui.controller.IOController
 import mx.lux.pos.ui.resources.ServiceManager
 
 class InvTrViewMode {
@@ -38,7 +39,8 @@ class InvTrViewMode {
    
   // Public Methods
   static List<InvTrViewMode> listViewModes() {
-    if (list == null) {
+    //if (list == null) {
+      User user = Session.get( SessionItem.USER ) as User
       list = new ArrayList<InvTrViewMode>()
       InventarioService inventory = ServiceManager.getInventoryService()
       ISSUE = new InvTrViewMode( inventory.obtenerTipoTransaccionSalida() )
@@ -60,11 +62,15 @@ class InvTrViewMode {
       ISSUE_ACCESORIES = new InvTrViewMode( inventory.obtenerTipoTransaccionSalida() )
       ISSUE_ACCESORIES.text = "[SALIDA_ACCESORIOS] SALIDA TOTAL ACCESORIOS"
       //list.addAll( [QUERY, ISSUE, RECEIPT, ADJUST, RETURN, OUTBOUND,INBOUND, FILE_ADJUST] )
-      list.addAll( [QUERY, RECEIPT, ISSUE, ADJUST, FILE_ADJUST, INBOUND, OUTBOUND, OTHER_RECEIPT, OTHER_ISSUE] )
+      if( IOController.getInstance().isManager(user.username) ){
+        list.addAll( [QUERY, RECEIPT, ISSUE, ADJUST, FILE_ADJUST, INBOUND, OUTBOUND, OTHER_RECEIPT, OTHER_ISSUE] )
+      } else {
+        list.addAll( [QUERY] )
+      }
       if( Registry.totalOutputEnabled() ){
         list.addAll( [ISSUE_FRAMES, ISSUE_ACCESORIES] )
       }
-    }
+    //}
     return list
   }
   

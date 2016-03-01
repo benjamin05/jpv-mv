@@ -4,11 +4,14 @@ import groovy.util.logging.Slf4j
 import mx.lux.pos.java.querys.ArticulosQuery
 import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.querys.PedidoLcQuery
+import mx.lux.pos.java.querys.TransInvQuery
 import mx.lux.pos.java.repository.ModeloLcJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PedidoLcDetJava
 import mx.lux.pos.java.repository.PedidoLcJava
+import mx.lux.pos.java.repository.TransInvJava
 import mx.lux.pos.java.service.NotaVentaServiceJava
+import mx.lux.pos.java.service.TransInvServiceJava
 import mx.lux.pos.model.Articulo
 import mx.lux.pos.model.Generico
 import mx.lux.pos.model.ModeloLc
@@ -28,6 +31,7 @@ import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.ModelLc
+import mx.lux.pos.ui.model.User
 import mx.lux.pos.ui.model.OrderItem
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,6 +39,7 @@ import org.springframework.stereotype.Component
 
 import javax.swing.*
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 
 @Slf4j
 @Component
@@ -51,14 +56,16 @@ class ItemController {
   private static TicketService ticketService
   private static NotaVentaService notaVentaService
   private static NotaVentaServiceJava notaVentaServiceJava
+  private static TransInvServiceJava transInvServiceJava
 
   @Autowired
   public ItemController( ArticuloService articuloService, TicketService ticketService, NotaVentaService notaVentaService ) {
     this.articuloService = articuloService
     this.ticketService = ticketService
     this.notaVentaService = notaVentaService
-    this.articulosServiceJava = new ArticulosServiceJava()
+    articulosServiceJava = new ArticulosServiceJava()
     notaVentaServiceJava = new NotaVentaServiceJava()
+    transInvServiceJava = new TransInvServiceJava()
   }
 
   static Item findItem( Integer id ) {
@@ -494,6 +501,30 @@ class ItemController {
 
 
 
+  static Integer calculateStock( Integer sku ){
+    return articulosServiceJava.calculaExistencia( sku )
+  }
+
+
+  static Boolean updateStock( Integer idArticulo, Integer stock, User user ){
+    Boolean update = false
+    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( idArticulo )
+    TransInvJava trans = transInvServiceJava.obtieneUltimaTransaccionPorIdArticulo( idArticulo )
+    if( articulo != null ){
+      articulo.existencia = stock
+      ArticulosQuery.saveOrUpdateArticulos( articulo )
+      if( trans != null ){
+        trans.observaciones = StringUtils.trimToEmpty(trans.observaciones)+"|${StringUtils.trimToEmpty(idArticulo.toString())}|" +
+                  "${StringUtils.trimToEmpty(user.username)}|${df.format(new Date())}|rec"
+        TransInvQuery.saveOrUpdateTransInv( trans )
+      }
+      update = true
+    }
+    return update
+  }
+
+
   static Item findFrameWithoutColor( Order order ) {
     log.debug( "findFrameWithoutColor" )
     Item item = null
@@ -505,4 +536,6 @@ class ItemController {
     }
     return item
   }
+
+
 }

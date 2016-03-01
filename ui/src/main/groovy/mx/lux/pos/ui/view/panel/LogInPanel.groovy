@@ -3,8 +3,10 @@ package mx.lux.pos.ui.view.panel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.controller.AccessController
+import mx.lux.pos.ui.controller.IOController
 import mx.lux.pos.ui.model.UpperCaseDocument
 import mx.lux.pos.ui.model.User
+import mx.lux.pos.ui.view.dialog.ChangePasswordDialog
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang3.StringUtils
 
@@ -68,10 +70,36 @@ class LogInPanel extends JPanel implements KeyListener{
     logInButton.enabled = false
     User user = AccessController.logIn( username.text, password.text )
     if ( StringUtils.isNotBlank( user?.username ) ) {
-      messages.text = null
-      messages.visible = false
-      doAction()
-      loggedOk = true
+      if( AccessController.validTimePass( StringUtils.trimToEmpty(user.username) ) ){
+        if( !StringUtils.trimToEmpty(user.password).equalsIgnoreCase("1234") ){
+          messages.text = null
+          messages.visible = false
+          doAction()
+          loggedOk = true
+        } else {
+          if( IOController.instance.isManager(StringUtils.trimToEmpty(user.username))){
+            AccessController.logOut()
+            ChangePasswordDialog dialog = new ChangePasswordDialog()
+            dialog.show()
+          } else {
+            AccessController.logOut()
+            messages.text = 'Es necesario cambiar contrase\u00f1a'
+            messages.visible = true
+          }
+        }
+      } else {
+        if( IOController.instance.isManager(StringUtils.trimToEmpty(user.username))){
+          messages.text = 'Su contrase\u00f1a ha expirado.'
+          messages.visible = true
+          AccessController.logOut()
+          ChangePasswordDialog dialog = new ChangePasswordDialog()
+          dialog.show()
+        } else {
+          AccessController.logOut()
+          messages.text = '<html>Su contrase\u00f1a ha expirado,<br>solicitar cambio al Gerente.<html>'
+          messages.visible = true
+        }
+      }
     } else {
       messages.text = 'Empleado/Contrase\u00f1a incorrectos'
       messages.visible = true

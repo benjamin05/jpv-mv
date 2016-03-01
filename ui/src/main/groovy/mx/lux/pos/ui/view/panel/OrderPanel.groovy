@@ -145,9 +145,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         advanceOnlyInventariable = false
         String clientesActivos = OrderController.obtieneTiposClientesActivos()
         for(OperationType customer : lstCustomers){
-            if(clientesActivos.contains(customer.value)){
-               customerTypes.add(customer)
+          if( customer.compareTo(OperationType.PAYING) == 0 ){
+            User user = Session.get( SessionItem.USER ) as User
+            if( IOController.getInstance().isManager(user.username) ){
+              if(clientesActivos.contains(customer.value)){
+                customerTypes.add(customer)
+              }
             }
+          } else {
+            if(clientesActivos.contains(customer.value)){
+              customerTypes.add(customer)
+            }
+          }
         }
         promoAgeActive = Registry.promoAgeActive
         customer = CustomerController.findDefaultCustomer()
@@ -606,17 +615,28 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       if( OrderController.dayIsOpen() ){
         if (StringUtils.isNotBlank(input)) {
           //sb.doOutside {
+            if(input.trim().contains("!")){
+              String[] inputTmp = input.split("!")
+              input = StringUtils.trimToEmpty(inputTmp[0])
+            }
+            Boolean oneSign = false
             if( input.contains(/$/) ){
               String[] inputTmp = input.split(/\$/)
               if( input.trim().contains(/$$/) ) {
                 article = inputTmp[0]
               } else {
                 article = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
+                oneSign = true
               }
             } else {
               article = input.trim()
             }
             List<Item> results = ItemController.findItemsByQuery(article)
+            if( !results?.any() && oneSign ){
+              String[] inputTmp = input.split(/\$/)
+              article = StringUtils.trimToEmpty(inputTmp[0])+"*"
+              results = ItemController.findItemsByQuery(article)
+            }
             if (results?.any()) {
               Item item = new Item()
               if (results.size() == 1) {
@@ -763,7 +783,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if(log.equalsIgnoreCase("actionPerformed")){
           focusItem = true
         }
-        sb.optionPane(message: 'No se pueden realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+        sb.optionPane(message: 'No se puede realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "Dia cerrado").show()
       }
       itemSearch.enabled = true

@@ -442,13 +442,25 @@ class InvTrController {
     String seed = part[0]
     List<Articulo> partList = ItemController.findPartsByQuery( seed, true )
     if( partList.size() == 0 ){
+      if( seed.contains("!") ){
+        String[] inputTmp = seed.split("!")
+        seed = inputTmp[0]
+        partList = ItemController.findPartsByQuery( seed, true )
+      }
+      Boolean oneSign = false
       if( seed.contains(/$/) ){
         String[] inputTmp = seed.split(/\$/)
         if( seed.trim().contains(/$$/) ) {
           seed = inputTmp[0]
         } else {
           seed = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
+          oneSign = true
         }
+        partList = ItemController.findPartsByQuery( seed, true )
+      }
+      if( !partList?.any() && oneSign ){
+        String[] inputTmp = seed.split(",")
+        seed = StringUtils.trimToEmpty(inputTmp[0])+"*"
         partList = ItemController.findPartsByQuery( seed, true )
       }
     }

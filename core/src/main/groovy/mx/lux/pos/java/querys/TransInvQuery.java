@@ -96,4 +96,28 @@ public class TransInvQuery {
         return transInv;
     }
 
+
+
+    public static TransInvJava buscaTransInvPorIdArticulo( Integer idArticulo ){
+      TransInvJava transInvJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM trans_inv " +
+                "WHERE id_tipo_trans = (SELECT id_tipo_trans FROM trans_inv_det WHERE sku = %d ORDER BY num_reg DESC LIMIT 1) " +
+                "AND folio = (SELECT folio FROM trans_inv_det WHERE sku = %d ORDER BY num_reg DESC LIMIT 1);",
+                    idArticulo,idArticulo);
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          transInvJava = new TransInvJava();
+          transInvJava = transInvJava.mapeoTransInv( rs );
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return transInvJava;
+    }
+
+
 }

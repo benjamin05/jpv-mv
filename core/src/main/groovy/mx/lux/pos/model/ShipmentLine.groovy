@@ -10,7 +10,9 @@ class ShipmentLine {
   String colorDesc
   String brand
   String type
+  String subtype
   String barcode
+  String partDesc
   Integer qty = 0
   
   ArticuloSombra getPartShadow() {
@@ -19,6 +21,8 @@ class ShipmentLine {
     shadow.setCodigoColor( colorCode )
     shadow.setDescripcionColor( colorDesc )
     shadow.setTipo( type )
+    shadow.setSubtipo( subtype )
+    shadow.setDescripcionArt( partDesc )
     shadow.setMarca( brand )
     shadow.setCB( barcode )
     return shadow
@@ -46,6 +50,14 @@ class ShipmentLine {
   
   void setType( String pType ) {
     this.type = StringUtils.trimToEmpty( pType ).toUpperCase( )
+  }
+
+  void setSubtype( String pSubtype ) {
+    this.subtype = StringUtils.trimToEmpty( pSubtype ).toUpperCase( )
+  }
+
+  void setPartDesc( String pPartDesc ) {
+    this.partDesc = StringUtils.trimToEmpty( pPartDesc ).toUpperCase( )
   }
   
   String toString() {
