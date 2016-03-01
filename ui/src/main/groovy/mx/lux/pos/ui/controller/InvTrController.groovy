@@ -19,10 +19,12 @@ import mx.lux.pos.ui.view.dialog.ReceiptDialog
 import mx.lux.pos.ui.view.panel.InvTrView
 import mx.lux.pos.util.StringList
 import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import javax.swing.*
+import java.text.SimpleDateFormat
 
 class InvTrController {
 
@@ -799,7 +801,16 @@ class InvTrController {
 
 
   void readAutIssueFile(){
-    ServiceManager.getInventoryService().leerArchivoAutorizacionSalidas( )
+    //SimpleDateFormat df = new SimpleDateFormat("HH")
+    Integer maxHour = Registry.getMaximunHourToReadIssueFile()
+    Date topDate = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH )
+    Calendar cal = Calendar.getInstance()
+    cal.setTime(topDate)
+    cal.add(Calendar.HOUR, maxHour)
+    topDate = cal.getTime()
+    if( new Date().compareTo(topDate) <= 0 ){
+      ServiceManager.getInventoryService().leerArchivoAutorizacionSalidas( )
+    }
   }
 
 
