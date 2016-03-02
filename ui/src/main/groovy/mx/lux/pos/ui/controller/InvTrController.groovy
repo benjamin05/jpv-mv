@@ -865,6 +865,10 @@ class InvTrController {
             if( part.cantExistencia-det.qty >= 0 ){
               data.skuList.add( new InvTrSku( data, contador, part, det.qty ) )
               contador = contador+1
+            } else if( part.cantExistencia > 0 ){
+              det.qty = part.cantExistencia
+              data.skuList.add( new InvTrSku( data, contador, part, det.qty ) )
+              contador = contador+1
             }
           }
           InvTrRequest request = RequestAdapter.getRequest( data )

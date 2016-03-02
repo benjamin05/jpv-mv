@@ -562,6 +562,9 @@ class InventarioServiceImpl implements InventarioService {
                 if( articulo != null ){
                   if( articulo.cantExistencia >= det.linea ){
                     lstDetalles.add( det )
+                  } else if( articulo.cantExistencia > 0) {
+                    det.linea = articulo.cantExistencia
+                    lstDetalles.add( det )
                   }
                 }
               }
