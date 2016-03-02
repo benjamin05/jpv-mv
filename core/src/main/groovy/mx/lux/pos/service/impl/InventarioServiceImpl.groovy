@@ -579,6 +579,9 @@ class InventarioServiceImpl implements InventarioService {
                     cantidadTotal = cantidadTotal+det.cantidad
                   }
                 }
+                List<TransInvDetalle> lstDet = new ArrayList<>(lstDetalles)
+                lstTransInv.first().trDet.addAll(lstDet)
+                InventoryCommit.exportarTransaccion( lstTransInv.first() )
                 TransInv transInv = lstTransInv.first()
                 transInv.referencia = "AUTORIZADA ${df.format(new Date())}"
                 transInvRepository.saveAndFlush( transInv )
@@ -629,6 +632,30 @@ class InventarioServiceImpl implements InventarioService {
         }
       }
     }
+  }
+
+
+  void registraDoctoInv( List<TransInvDetalle> lstDetalles ){
+    Integer cantidadTotal = 0
+    for(TransInvDetalle det : lstDetalles){
+      Articulo articulo = articuloRepository.findOne( det.sku )
+      if( articulo != null ){
+        cantidadTotal = cantidadTotal+det.cantidad
+      }
+    }
+    DoctoInv doctoInv = new DoctoInv()
+    doctoInv.idDocto = StringUtils.trimToEmpty(lstDetalles.first().folio.toString())
+    doctoInv.idTipoDocto = 'DA'
+    doctoInv.fecha = new Date()
+    doctoInv.usuario = 'EXT'
+    doctoInv.referencia = 'DEVOLUCION APLICADA'
+    doctoInv.idSync = '1'
+    doctoInv.idMod = '0'
+    doctoInv.fechaMod = new Date()
+    doctoInv.idSucursal = Registry.currentSite
+    doctoInv.cantidad = StringUtils.trimToEmpty(cantidadTotal.toString())
+    doctoInv.estado = 'pendiente'
+    doctoInvRepository.saveAndFlush(doctoInv)
   }
 
 

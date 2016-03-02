@@ -106,4 +106,6 @@ interface InventarioService {
   Boolean generaArchivoSalida( InvTrRequest pRequest )
 
   void leerArchivoAutorizacionSalidas(  )
+
+  void registraDoctoInv( List<TransInvDetalle> lstTransDet )
 }
