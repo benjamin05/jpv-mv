@@ -23,6 +23,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import javax.swing.*
+import java.text.NumberFormat
 
 class InvTrController {
 
@@ -445,7 +446,16 @@ class InvTrController {
       if( seed.contains("!") ){
         String[] inputTmp = seed.split("!")
         seed = inputTmp[0]
-        partList = ItemController.findPartsByQuery( seed, true )
+          Integer id = 0
+          try{
+            id = NumberFormat.getInstance().parse( StringUtils.trimToEmpty(seed) )
+          } catch ( NumberFormatException e ){
+            println e.message
+          }
+        Articulo art = ItemController.findArticle( id )
+        if( art != null ){
+          partList.add( art )
+        }
       }
       Boolean oneSign = false
       if( seed.contains(/$/) ){
