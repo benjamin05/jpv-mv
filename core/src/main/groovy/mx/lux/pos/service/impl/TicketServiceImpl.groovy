@@ -1487,7 +1487,7 @@ class TicketServiceImpl implements TicketService {
           qty: String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
       ]
         cantidad = cantidad+trDet.cantidad
-      parts.add( tkPart )
+        parts.add( tkPart )
     }
     String barcode = ""
     AddressAdapter companyAddress = Registry.companyAddress
@@ -1588,7 +1588,11 @@ class TicketServiceImpl implements TicketService {
                 quantity: cantidad,
                 parts: parts
         ]
-        imprimeTicket( "template/ticket-entrada-inventario.vm", tkInvTr )
+        if( StringUtils.trimToEmpty(pTrans.idTipoTrans).equalsIgnoreCase("ENTRADA") ){
+          imprimeTicket( "template/ticket-entrada-inventario.vm", tkInvTr )
+        } else {
+          imprimeTicket( "template/ticket-entrada-sucursal.vm", tkInvTr )
+        }
     } else if ( InventorySearch.esTipoTransaccionOtraSalida( pTrans.idTipoTrans ) ) {
           def tkInvTr = [
                   nombre_ticket: "ticket-salida-inventario",
