@@ -1,6 +1,8 @@
 package mx.lux.pos.repository
 
 import mx.lux.pos.model.TransInv
+import mx.lux.pos.repository.impl.RepositoryFactory
+import mx.lux.pos.service.business.InventoryCommit
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -14,6 +16,9 @@ class TransInvIntegration extends Specification {
   
   @Resource
   private TransInvRepository repository
+
+  @Resource
+  private TransInvDetalleRepository repositoryDet
   
   def "test ListarTransacciones por Fecha"(  ) {
     when:
@@ -71,6 +76,21 @@ class TransInvIntegration extends Specification {
     then:
       list.numberOfElements == 1 
   }
-  
-  
+
+
+    def 'regerenara archivos de salida'( ) {
+        when:
+
+        def transInv = repository.findByIdTipoTransAndFolio("SALIDA", 282)
+        transInv.first().trDet.addAll(repositoryDet.findByIdTipoTransAndFolio("SALIDA", 282))
+
+        then:
+        InventoryCommit.exportarTransaccion( transInv.first() )
+
+        then:
+        0 * _
+
+        //then:
+        //null == actual
+    }
 }
