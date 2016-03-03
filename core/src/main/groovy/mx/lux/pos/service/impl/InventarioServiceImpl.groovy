@@ -588,7 +588,9 @@ class InventarioServiceImpl implements InventarioService {
                 TransInv transInv = lstTransInv.first()
                 transInv.referencia = "AUTORIZADA ${df.format(new Date())}"
                 transInvRepository.saveAndFlush( transInv )
-                transInv.trDet.addAll(lstDetalles)
+                if( transInv.trDet.size() <= 0 ){
+                  transInv.trDet.addAll(lstDetalles)
+                }
                 DoctoInv doctoInv = new DoctoInv()
                 doctoInv.idDocto = StringUtils.trimToEmpty(transInv.folio.toString())
                 doctoInv.idTipoDocto = 'DA'
