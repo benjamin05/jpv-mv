@@ -9,6 +9,7 @@ import mx.lux.pos.ui.model.adapter.InvTrAdapter
 import mx.lux.pos.ui.view.component.NavigationBar.Command
 import mx.lux.pos.ui.view.component.NavigationBarListener
 import mx.lux.pos.ui.view.driver.*
+import org.apache.commons.lang.StringUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -182,15 +183,33 @@ class InvTrView implements NavigationBarListener {
         if ( InvTrViewMode.QUERY.equals(data.viewMode) ) {
           controller.requestPrint( data.qryInvTr.idTipoTrans, data.qryInvTr.folio )
         } else {
+          Boolean onlyFrames = true
+          for(InvTrSku part : data.skuList){
+            if(!StringUtils.trimToEmpty(part.part.idGenerico).equalsIgnoreCase("A")){
+              onlyFrames = false
+              break
+            }
+          }
           if( OrderController.dayIsOpen() ){
-            controller.requestSaveAndPrint( this )
+            if ( InvTrViewMode.ISSUE.equals(data.viewMode) && onlyFrames ) {
+              if( controller.generatedIssueFile( this ) ){
+                JOptionPane.showMessageDialog( this.panel, "Autorizacion de Devolucion Enviada",
+                        "Autorizacion", JOptionPane.INFORMATION_MESSAGE )
+                controller.showQueryTransaction( this )
+              } else {
+                JOptionPane.showMessageDialog( this.panel, "Error al enviar Autorizacion de Devolucion",
+                      "Error", JOptionPane.ERROR_MESSAGE )
+              }
+            } else {
+              controller.requestSaveAndPrint( this )
+            }
           } else {
             panel.sb.optionPane(message: 'No se puede realizar la transaccion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
-                    .createDialog(new JTextField(), "Dia cerrado").show()
+                .createDialog(new JTextField(), "Dia cerrado").show()
           }
         }
       }
-    } else {
+    }else {
       logger.debug( "[View] Input not valid" )
       this.fireRefreshUI()
     }
