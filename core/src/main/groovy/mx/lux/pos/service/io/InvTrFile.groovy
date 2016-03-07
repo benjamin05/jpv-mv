@@ -83,7 +83,7 @@ class InvTrFile {
       for ( DetFldIssue fld : DetFldIssue.values() ) {
           switch ( fld ) {
               case DetFldIssue.Color: det.add( articulo.codigoColor.trim() != '' ? articulo.codigoColor : '0000' ); break
-              case DetFldIssue.Remarks: det.add( pInvTr.observaciones.trim() != '' ? pInvTr.observaciones : '' ); break
+              case DetFldIssue.Remarks: det.add( StringUtils.trimToEmpty(pInvTr.referencia).startsWith("F") ? StringUtils.trimToEmpty(pInvTr.referencia) : StringUtils.trimToEmpty(pInvTr.observaciones) ); break
               case DetFldIssue.ModSend: det.add( 'ENTERO' ); break
               case DetFldIssue.Sku: det.add( articulo.articulo ); break
               case DetFldIssue.MovType: det.add( pTrDet.tipoMov ); break

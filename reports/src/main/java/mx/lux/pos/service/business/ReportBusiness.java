@@ -1666,7 +1666,9 @@ public class ReportBusiness {
             }
             kardexArticulo.setSaldoInicio( saldoInicio );
             kardexArticulo.setSaldoFinal( saldoFin );
-            lstKardezSku.add( kardexArticulo );
+            if( kardexArticulo.getEntrada() != 0 || kardexArticulo.getSalida() != 0){
+              lstKardezSku.add( kardexArticulo );
+            }
         }
         return lstKardezSku;
     }

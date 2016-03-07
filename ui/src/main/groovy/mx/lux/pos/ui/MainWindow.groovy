@@ -888,6 +888,8 @@ class MainWindow extends JFrame implements KeyListener {
             DailyCloseController.RegistrarPromociones()
             DailyCloseController.RegistrarClavesDescuento()
             IOController.getInstance().autoUpdateEmployeeFile()
+            InvTrController controllerInv = InvTrController.instance
+            controllerInv.readAutIssueFile()
             //IOController.getInstance().startAsyncNotifyDispatcher()
         }
     }

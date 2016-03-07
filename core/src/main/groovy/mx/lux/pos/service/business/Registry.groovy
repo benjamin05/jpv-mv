@@ -595,6 +595,12 @@ class Registry {
         return  asInteger(TipoParametro.VIGENCIA_SEGURO_OFTALMICO)
     }
 
+
+  static Integer getMaximunHourToReadIssueFile() {
+    return  asInteger(TipoParametro.HORA_LECTURA_ARCHIVO_SALIDA)
+  }
+
+
     static Integer getValidityEnsureFrame() {
         return  asInteger(TipoParametro.VIGENCIA_SEGURO_SOLAR)
     }

@@ -46,6 +46,7 @@ enum TipoParametro {
   GENERICO_PRECIO_VARIABLE( 'generico_precio_variable', '' ),
   GENERICOS_NO_APLICA_DESCUENTO( 'genericos_no_aplica_descuento', 'J' ),
   HOST_LINUX('host_linux','192.168.1.100'),
+  HORA_LECTURA_ARCHIVO_SALIDA( 'hora_lectura_archivo_salida', '13' ),
   ID_CLIENTE_GENERICO( 'cli_gen', '1' ),
   ID_ESTADO( 'id_estado', '' ),
   ID_CAUSAS_CAN( 'id_causas_can_validar', '5,9,12,13,14' ),

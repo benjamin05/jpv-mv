@@ -2,10 +2,23 @@ package mx.lux.pos.ui.controller
 
 import mx.lux.pos.model.Cliente
 import mx.lux.pos.model.ClientePais
+import mx.lux.pos.repository.TransInvDetalleRepository
+import mx.lux.pos.repository.TransInvRepository
+import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.ClienteService
+import mx.lux.pos.service.ContactoService
+import mx.lux.pos.service.ConvenioService
+import mx.lux.pos.service.EmpleadoService
 import mx.lux.pos.service.EstadoService
+import mx.lux.pos.service.ExamenService
 import mx.lux.pos.service.LocalidadService
 import mx.lux.pos.service.MunicipioService
+import mx.lux.pos.service.NotaVentaService
+import mx.lux.pos.service.PaisesService
+import mx.lux.pos.service.RecetaService
+import mx.lux.pos.service.SucursalService
+import mx.lux.pos.service.business.InventoryCommit
+import mx.lux.pos.service.impl.FormaContactoService
 import mx.lux.pos.ui.model.Address
 import mx.lux.pos.ui.model.Customer
 import mx.lux.pos.ui.model.CustomerType
@@ -21,17 +34,50 @@ class CustomerControllerTest extends Specification {
   private EstadoService estadoService
   private MunicipioService municipioService
   private LocalidadService localidadService
+  private ConvenioService convenioService
+  private EmpleadoService empleadoService
+  private RecetaService recetaService
+  private ExamenService examenService
+  private SucursalService sucursalService
+  private PaisesService paisesService
+  private NotaVentaService notaService
+  private ContactoService contactoService
+  private FormaContactoService formaContactoService
+  private TransInvRepository transInvRepository
+  private TransInvDetalleRepository transInvDetalleRepository
 
   def setup( ) {
     clienteService = Mock( ClienteService )
     estadoService = Mock( EstadoService )
     municipioService = Mock( MunicipioService )
     localidadService = Mock( LocalidadService )
+    convenioService = Mock( ConvenioService )
+    empleadoService = Mock( EmpleadoService )
+    recetaService = Mock( RecetaService )
+    examenService = Mock( ExamenService )
+    sucursalService = Mock( SucursalService )
+    paisesService = Mock( PaisesService )
+    notaService = Mock( NotaVentaService )
+    contactoService = Mock( ContactoService )
+    formaContactoService = Mock( FormaContactoService )
+    transInvRepository = Mock( TransInvRepository )
+    transInvDetalleRepository = Mock( TransInvDetalleRepository )
     controller = new CustomerController(
         clienteService,
         estadoService,
         municipioService,
-        localidadService
+        localidadService,
+        convenioService,
+         empleadoService,
+            recetaService,
+            examenService,
+            sucursalService,
+            paisesService,
+            notaService,
+            contactoService,
+            formaContactoService,
+            //transInvRepository,
+            //transInvDetalleRepository
     )
   }
 
@@ -162,4 +208,6 @@ class CustomerControllerTest extends Specification {
     then:
     assertCustomerEquals( expected, actual )
   }
+
+
 }
