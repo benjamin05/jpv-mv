@@ -145,9 +145,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         advanceOnlyInventariable = false
         String clientesActivos = OrderController.obtieneTiposClientesActivos()
         for(OperationType customer : lstCustomers){
-            if(clientesActivos.contains(customer.value)){
-               customerTypes.add(customer)
+          if( customer.compareTo(OperationType.PAYING) == 0 ){
+            User user = Session.get( SessionItem.USER ) as User
+            if( IOController.getInstance().isManager(user.username) ){
+              if(clientesActivos.contains(customer.value)){
+                customerTypes.add(customer)
+              }
             }
+          } else {
+            if(clientesActivos.contains(customer.value)){
+              customerTypes.add(customer)
+            }
+          }
         }
         promoAgeActive = Registry.promoAgeActive
         customer = CustomerController.findDefaultCustomer()
@@ -606,20 +615,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       if( OrderController.dayIsOpen() ){
         if (StringUtils.isNotBlank(input)) {
           //sb.doOutside {
-          List<Item> results = new ArrayList<>()
             if(input.trim().contains("!")){
               String[] inputTmp = input.split("!")
               input = StringUtils.trimToEmpty(inputTmp[0])
-              Integer id = 0
-              try{
-                id = NumberFormat.getInstance().parse( StringUtils.trimToEmpty(input) )
-              } catch ( NumberFormatException e ){
-                println e.message
-              }
-              Item item = ItemController.findItem( id )
-              if( item != null ){
-                results.add( item )
-              }
             }
             Boolean oneSign = false
             if( input.contains(/$/) ){
@@ -633,9 +631,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             } else {
               article = input.trim()
             }
-            if( results.size() <= 0 ){
-              results = ItemController.findItemsByQuery(article)
-            }
+            List<Item> results = ItemController.findItemsByQuery(article)
             if( !results?.any() && oneSign ){
               String[] inputTmp = input.split(/\$/)
               article = StringUtils.trimToEmpty(inputTmp[0])+"*"
@@ -787,7 +783,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if(log.equalsIgnoreCase("actionPerformed")){
           focusItem = true
         }
-        sb.optionPane(message: 'No se pueden realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+        sb.optionPane(message: 'No se puede realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "Dia cerrado").show()
       }
       itemSearch.enabled = true

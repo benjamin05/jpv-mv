@@ -197,7 +197,7 @@ class DiscountCouponDialog extends JDialog {
   protected void verifyCorporateKey( ) {
     if ( txtCorporateKey.getText( ).length( ) > 0 ) {
         descuentoClave = OrderController.descuentoClavexId(txtCorporateKey.text)
-        if( descuentoClave == null ){
+        if( descuentoClave == null && !StringUtils.trimToEmpty(title).equalsIgnoreCase("CRM") && !StringUtils.trimToEmpty(title).equalsIgnoreCase("Seguro")){
           descuentoClave = OrderController.descuentoClaveCupon(StringUtils.trimToEmpty(txtCorporateKey.text))//aqui
         }
         if( descuentoClave != null && StringUtils.trimToEmpty(title).equalsIgnoreCase("Seguro")){

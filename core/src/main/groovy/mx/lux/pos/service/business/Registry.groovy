@@ -559,6 +559,10 @@ class Registry {
         return  asInteger(TipoParametro.ALMACEN_POR_ACLARAR)
     }
 
+  static Integer getMonthsToChangePass() {
+    return  asInteger(TipoParametro.MESES_VIGENCIA_PASSWORD)
+  }
+
     static Integer getValidityEnsureKid() {
         return  asInteger(TipoParametro.VIGENCIA_SEGURO_INFANTIL)
     }
@@ -566,6 +570,12 @@ class Registry {
     static Integer getValidityEnsureOpht() {
         return  asInteger(TipoParametro.VIGENCIA_SEGURO_OFTALMICO)
     }
+
+
+  static Integer getMaximunHourToReadIssueFile() {
+    return  asInteger(TipoParametro.HORA_LECTURA_ARCHIVO_SALIDA)
+  }
+
 
     static Integer getValidityEnsureFrame() {
         return  asInteger(TipoParametro.VIGENCIA_SEGURO_SOLAR)
