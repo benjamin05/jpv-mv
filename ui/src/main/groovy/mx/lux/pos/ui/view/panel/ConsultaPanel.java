@@ -7,10 +7,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 
 import javax.swing.*;
@@ -141,7 +143,7 @@ public class ConsultaPanel extends JPanel {
 			        if( tblBusqueda.getRowCount() > 0 && tblBusqueda.getSelectedRow() >= 0){
 			        	Integer selectedRow = tblBusqueda.getSelectedRow();
 			        	selectedData = (String) tblBusqueda.getValueAt(selectedRow, 0);			            
-				        String saldo = String.format("$%s", JbQuery.buscarPorRx(StringUtils.trimToEmpty(selectedData)).getSaldo());
+				        String saldo = String.format("%s", NumberFormat.getCurrencyInstance(Locale.US).format(JbQuery.buscarPorRx(StringUtils.trimToEmpty(selectedData)).getSaldo()));
 				        lblSaldo.setText(saldo);
 			        }			        
 			      }									
