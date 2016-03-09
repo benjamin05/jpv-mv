@@ -876,6 +876,7 @@ class MainWindow extends JFrame implements KeyListener {
             DailyCloseController.RegistrarClavesDescuento()
             IOController.getInstance().autoUpdateEmployeeFile()
             InvTrController controllerInv = InvTrController.instance
+            controllerInv.readAdjutFile()
             controllerInv.readAutIssueFile()
             //IOController.getInstance().startAsyncNotifyDispatcher()
         }
