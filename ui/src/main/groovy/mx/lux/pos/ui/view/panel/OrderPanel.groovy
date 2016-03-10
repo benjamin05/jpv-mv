@@ -1460,6 +1460,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if( discountAgeApplied && promoAgeActive && promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
           promotionDriver.addPromoDiscountAge( order, promoAmount )
         }
+      OrderController.validSPWithoutLens( order )
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
       Order newOrder = OrderController.placeOrder(order, vendedor, false)
       OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )

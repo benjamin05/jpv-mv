@@ -1626,7 +1626,6 @@ class OrderController {
 
     static void validaSurtePorGenerico( Order order ){
       NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
-      detalleNotaVentaServiceJava.validaSPSinLente( notaVenta )
       notaVentaServiceJava.validaSurtePorGenericoInventariable( notaVenta )
     }
 
@@ -3909,6 +3908,12 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             }
     }
     return valid
+  }
+
+
+  static void validSPWithoutLens( Order order ){
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
+    detalleNotaVentaServiceJava.validaSPSinLente( notaVenta )
   }
 
 
