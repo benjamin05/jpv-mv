@@ -1626,6 +1626,7 @@ class OrderController {
 
     static void validaSurtePorGenerico( Order order ){
       NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
+      detalleNotaVentaServiceJava.validaSPSinLente( notaVenta )
       notaVentaServiceJava.validaSurtePorGenericoInventariable( notaVenta )
     }
 
