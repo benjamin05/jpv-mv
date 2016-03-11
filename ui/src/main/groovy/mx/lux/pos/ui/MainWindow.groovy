@@ -378,7 +378,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 undeliveredJobsAuditReportMenuItem.visible = isManager
                                 salesReportMenuItem.visible = userLoggedIn
                                 //salesByLineReportMenuItem.visible = userLoggedIn
-                                salesBySellerReportMenuItem.visible = userLoggedIn
+                                salesBySellerReportMenuItem.visible = isManager
                                 //salesByBrandReportMenuItem.visible = userLoggedIn
                                 //salesBySellerByBrandMenuItem.visible = userLoggedIn
                                 stockbyBrandMenuItem.visible = isManager
@@ -397,7 +397,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 //salesByPeriodMenuItem.visible = userLoggedIn
                                 undeliveredJobsReportMenuItem.visible = isManager
                                 discountsMenuItem.visible = isManager
-                                optometristSalesMenuItem.visible = userLoggedIn
+                                optometristSalesMenuItem.visible = isManager
                                 //examsMenuItem.visible = userLoggedIn
                                 examsByOptoMenuItem.visible = isManager
                                 couponMenuItem.visible = isManager
