@@ -13,6 +13,7 @@ import mx.lux.pos.repository.ParametroRepository
 import mx.lux.pos.service.EmpleadoService
 import mx.lux.pos.service.business.Registry
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.time.DateUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -156,21 +157,29 @@ class EmpleadoServiceImpl implements EmpleadoService {
 
   @Override
   LogAsignaSubgerente obtenerSubgerenteActual(  ){
-    LogAsignaSubgerente log = logAsignaSubgerenteRepository.findLastSubmanager()
-    if( log != null ){
-      if( log.horas != null ){
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(log.fecha);
-        cal.add(Calendar.HOUR_OF_DAY, log.horas);
-        Date vigencia = cal.getTime();
-        if( vigencia.compareTo(new Date()) < 0){
-          log = null
+    List<LogAsignaSubgerente> logs = logAsignaSubgerenteRepository.findSubmanagersProgrammed()
+    LogAsignaSubgerente log = null
+    for(LogAsignaSubgerente logTmp : logs){
+      if( logTmp.fechaInicial == null ){
+        Date fecha = DateUtils.truncate( logTmp.fecha, Calendar.DAY_OF_MONTH )
+        Date hoy = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH )
+        if( fecha.compareTo(hoy) == 0 ){
+          Calendar cal = Calendar.getInstance();
+          cal.setTime(logTmp.fecha);
+          cal.add(Calendar.HOUR_OF_DAY, logTmp.horas);
+          Date vigencia = cal.getTime();
+          if( vigencia.compareTo(new Date()) >= 0){
+            log = logTmp
+          }
         }
       } else {
-        if( log.fechaInicial.compareTo(new Date()) > 0 || log.fechaFinal.compareTo(new Date()) < 0 ){
-          log= null
+        if( logTmp.fechaInicial.compareTo(new Date()) <= 0 && logTmp.fechaFinal.compareTo(new Date()) >= 0 ){
+          log= logTmp
         }
       }
+    }
+    if( log != null && log.id == null ){
+      log = null
     }
     return log
   }
