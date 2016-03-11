@@ -176,4 +176,26 @@ class EmpleadoServiceImpl implements EmpleadoService {
   }
 
 
+
+  @Override
+  List<LogAsignaSubgerente> obtenerSubgerentesActualYProgramados( ){
+    List<LogAsignaSubgerente> log = new ArrayList<>()
+    List<LogAsignaSubgerente> logTmp = logAsignaSubgerenteRepository.findSubmanagersProgrammed()
+    for(LogAsignaSubgerente logData : logTmp){
+      if( logData.horas != null ){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(logData.fecha);
+        cal.add(Calendar.HOUR_OF_DAY, logData.horas);
+        Date vigencia = cal.getTime();
+        if( vigencia.compareTo(new Date()) > 0 ){
+          log.add( logData )
+        }
+      } else {
+        log.add( logData )
+      }
+    }
+    return log
+  }
+
+
 }

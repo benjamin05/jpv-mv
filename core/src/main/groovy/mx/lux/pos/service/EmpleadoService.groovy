@@ -19,4 +19,6 @@ interface EmpleadoService {
   void insertaSubgerente( String idEmpleado, String idEmpleadoAsigno, Date fechaInicial, Date fechaFinal, Integer horas )
 
   LogAsignaSubgerente obtenerSubgerenteActual(  )
+
+  List<LogAsignaSubgerente> obtenerSubgerentesActualYProgramados( )
 }

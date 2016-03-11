@@ -99,7 +99,7 @@ class AssignSubmanagerDialog extends JDialog {
     JButton source = ev.source as JButton
     source.enabled = false
     if ( fullName.text != null ) {
-      if( !AccessController.existSubmanager() ){
+      if( AccessController.validTimeSubmanager(rbDays.selected, initialDate.value as Date, finalDate.value as Date, hours.text) ){
       if( rbDays.selected ){
         Date today = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH );
         Date dayStart = rbDays.selected ? initialDate.value as Date : null
