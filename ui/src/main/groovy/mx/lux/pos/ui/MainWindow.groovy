@@ -75,6 +75,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem invoiceMenuItem
     private JMenuItem sessionMenuItem
     private JMenuItem cancellationReportMenuItem
+    private JMenuItem submanagersReportMenuItem
     private JMenuItem dailyCloseReportMenuItem
     private JMenuItem assignSubManagerMenuItem
     private JMenuItem incomePerBranchReportMenuItem
@@ -371,6 +372,7 @@ class MainWindow extends JFrame implements KeyListener {
                                   isManager = IOController.getInstance().isManager(user.username)
                                 }
                                 cancellationReportMenuItem.visible = isManager
+                                submanagersReportMenuItem.visible = isManager
                                 dailyCloseReportMenuItem.visible = userLoggedIn
                                 //incomePerBranchReportMenuItem.visible = userLoggedIn
                                 //sellerRevenueReportMenuItem.visible = userLoggedIn
@@ -574,6 +576,14 @@ class MainWindow extends JFrame implements KeyListener {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
                                     ReportController.fireReport( ReportController.Report.Payments )
+                                }
+                        )
+                        submanagersReportMenuItem = menuItem( text: "Subgerentes Asignados",
+                                visible: false,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    ReportController.fireReport( ReportController.Report.Submanager )
                                 }
                         )
                         /*promotionsMenuItem = menuItem( text: "Promociones en Ventas",
