@@ -40,7 +40,8 @@ class ReportController {
     Payments, Quote, Exams, OptometristSales,
     Promotions, Kardex, SalesToday, PaymentsbyPeriod,
     Coupon, UndeliveredJobsAudit, ExamsByOpto,
-    Cellar, CouponMv, Multipayment, KardexBySku
+    Cellar, CouponMv, Multipayment, KardexBySku,
+    Submanager
   }
 
   @Autowired
@@ -629,6 +630,22 @@ class ReportController {
   }
 
 
+  static void fireSubmanagerReport(){
+    log.debug( "Imprime el reporte de subgerentes asignados" )
+    if( twoDateDialog == null ){
+      twoDateDialog = new TwoDatesSelectionDialog()
+    }
+    twoDateDialog.setTitle( 'Subgerentes Asignados' )
+    twoDateDialog.activate()
+    Date dateStart = twoDateDialog.selectedDateStart
+    Date dateEnd = twoDateDialog.selectedDateEnd
+    if( dateStart != null && dateEnd != null && twoDateDialog.button ){
+      reportService.obtenerReporteSubgerentesAsignados( dateStart, dateEnd )
+      twoDateDialog = null
+    }
+  }
+
+
   // Public Methods
   static void fireReport( Report pReport ) {
     switch ( pReport ) {
@@ -664,6 +681,7 @@ class ReportController {
       case Report.ExamsByOpto: fireExamsByOptoReport(); break;
       case Report.Cellar: fireCellarReport(); break;
       case Report.Multipayment: fireMultipaymentReport(); break;
+      case Report.Submanager: fireSubmanagerReport(); break;
     }
   }
 }

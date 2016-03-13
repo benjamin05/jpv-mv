@@ -62,6 +62,8 @@ public class ReportServiceImpl implements ReportService {
 
     private static String MULTIPAGO = "reports/Multipago.jrxml";
 
+    private static String SUBGERENTES_ASIGNADOS = "reports/Subgerentes_Asignados.jrxml";
+
     private static String CANCELACIONES_COMPLETO = "reports/Cancelaciones_Completo.jrxml";
     
     private static String VENTA_POR_LINEA_FACTURA = "reports/Venta_Por_Linea.jrxml";
@@ -1968,4 +1970,29 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
+
+    public String obtenerReporteSubgerentesAsignados( Date dateStart, Date dateEnd ){
+      log.info( "obtenerReporteSubgerentesAsignados()" );
+
+        Random random = new Random();
+        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Subgerentes-Asignados%s.txt",random.nextInt()) );
+        org.springframework.core.io.Resource template = new ClassPathResource( SUBGERENTES_ASIGNADOS );
+        log.info( "Ruta:{}", report.getAbsolutePath() );
+
+        Sucursal sucursal = sucursalService.obtenSucursalActual();
+        List<LogAsignaSubgerente> lstLog = reportBusiness.obtenersubgerentesAsignadosPorFecha( dateStart, dateEnd );
+        log.info( "tamañoLista:{}", lstLog.size() );
+
+        Map<String, Object> parametros = new HashMap<String, Object>();
+        parametros.put( "fechaActual", new SimpleDateFormat( "hh:mm" ).format( new Date() ) );
+        parametros.put( "fechaInicio", new SimpleDateFormat( "dd/MM/yyyy" ).format( dateStart ) );
+        parametros.put( "fechaFin", new SimpleDateFormat( "dd/MM/yyyy" ).format( dateEnd ) );
+        parametros.put( "sucursal", sucursal.getNombre() );
+        parametros.put( "lstLog", lstLog );
+
+        String reporte = reportBusiness.CompilayGeneraReporte( template, parametros, report );
+        log.info( "reporte:{}", reporte );
+
+        return null;
+    }
 }
