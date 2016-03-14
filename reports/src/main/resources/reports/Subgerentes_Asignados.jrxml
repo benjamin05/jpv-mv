@@ -97,7 +97,7 @@
 			<subreport>
 				<reportElement uuid="4b1231ff-871d-48cf-8bf8-46028e9d1c3c" x="0" y="25" width="612" height="100"/>
 				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($P{lstLog})]]></dataSourceExpression>
-				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "Subgerentes_Asignados_Det.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA["reports/Subgerentes_Asignados_Det.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</detail>

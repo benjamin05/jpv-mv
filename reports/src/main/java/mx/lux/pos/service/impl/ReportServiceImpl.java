@@ -1978,6 +1978,8 @@ public class ReportServiceImpl implements ReportService {
         File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Subgerentes-Asignados%s.txt",random.nextInt()) );
         org.springframework.core.io.Resource template = new ClassPathResource( SUBGERENTES_ASIGNADOS );
         log.info( "Ruta:{}", report.getAbsolutePath() );
+        dateStart = DateUtils.truncate( dateStart, Calendar.DAY_OF_MONTH );
+        dateEnd = new Date( DateUtils.ceiling( dateEnd, Calendar.DAY_OF_MONTH ).getTime() - 1 );
 
         Sucursal sucursal = sucursalService.obtenSucursalActual();
         List<LogAsignaSubgerente> lstLog = reportBusiness.obtenersubgerentesAsignadosPorFecha( dateStart, dateEnd );
