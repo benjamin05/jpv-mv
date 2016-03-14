@@ -319,39 +319,40 @@ class AccessController {
     Boolean valid = true
     List<LogAsignaSubgerente> logs = ServiceManager.employeeService.obtenerSubgerentesActualYProgramados( )
     for(LogAsignaSubgerente log : logs){
-      Boolean sameDay = false
-      if( log.fechaInicial != null && DateUtils.truncate( log.fechaInicial, Calendar.DAY_OF_MONTH ).compareTo(DateUtils.truncate( initialDate, Calendar.DAY_OF_MONTH )) ){
+      Date vigencia = null
+      Date vigenciaValidar = null
+      if( log.horas != null && StringUtils.trimToEmpty(hours).length() > 0 ){
+      Integer hoursInt = 0
+        try{
+          hoursInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(hours)).intValue()
+        } catch ( NumberFormatException e ){
+          println e.message
+        }
+          Calendar cal = Calendar.getInstance();
+          cal.setTime(log.fecha);
+          cal.add(Calendar.HOUR_OF_DAY, log.horas);
+          vigencia = cal.getTime();
+          Calendar cal1 = Calendar.getInstance();
+          cal1.setTime(new Date());
+          cal1.add(Calendar.HOUR_OF_DAY, hoursInt);
+          vigenciaValidar = cal1.getTime();
+      }
+      /*if( log.fechaInicial == null && vigenciaValidar.compareTo(vigencia) <= 0 && initialDate.compareTo(vigencia) <= 0){
           valid = false
           break
-      }
+      }*/
         if( validDays ){
-          if( log.fechaFinal != null && (initialDate.compareTo(log.fechaFinal) <= 0 && initialDate.compareTo(log.fechaInicial) > 0) ){
+          if( log.fechaFinal != null && (initialDate.compareTo(log.fechaFinal) <= 0 && initialDate.compareTo(log.fechaInicial) >= 0) ){
             valid = false
             break
           }
         } else {
-          Integer hoursInt = 0
-          try{
-            hoursInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(hours)).intValue()
-          } catch ( NumberFormatException e ){
-            println e.message
-          }
-          if( log.horas != null ){
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(log.fecha);
-            cal.add(Calendar.HOUR_OF_DAY, log.horas);
-            Date vigencia = cal.getTime();
-            Calendar cal1 = Calendar.getInstance();
-            cal1.setTime(new Date());
-            cal1.add(Calendar.HOUR_OF_DAY, hoursInt);
-            Date vigenciaValidar = cal1.getTime();
-            if( vigenciaValidar.compareTo(vigencia) <= 0 ){
-              valid = false
-              break
-            }
+          if( vigencia != null && vigenciaValidar != null && ((new Date().compareTo(vigencia) <= 0) || (vigenciaValidar.compareTo(vigencia) <= 0)) ){
+            valid = false
+            break
           }
         }
-    }
+      }
     //LogAsignaSubgerente log = ServiceManager.employeeService.obtenerSubgerenteActual()
     return valid
   }
