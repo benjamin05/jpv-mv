@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.swing.*;
 
+import mx.lux.pos.java.repository.JbJava;
 import mx.lux.pos.model.Jb;
 import mx.lux.pos.java.querys.JbQuery;
 import mx.lux.pos.java.querys.JbTrackQuery;
@@ -153,7 +154,7 @@ public class PopUpMenu {
         if ( rx == null )
             return;
 
-        Jb jb = JbQuery.getJbRxSimple(rx);
+        JbJava jb = JbQuery.buscarPorRx(rx);
 
         if ( jb == null )
             return;

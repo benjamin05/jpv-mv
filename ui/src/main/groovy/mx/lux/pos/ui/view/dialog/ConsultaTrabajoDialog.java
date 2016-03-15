@@ -27,6 +27,7 @@ import javax.swing.table.DefaultTableModel;
 
 import mx.lux.pos.java.querys.EmpleadoQuery;
 import mx.lux.pos.java.querys.JbQuery;
+import mx.lux.pos.java.repository.JbJava;
 import mx.lux.pos.java.repository.JbTrack;
 import mx.lux.pos.model.Jb;
 import org.apache.commons.lang3.StringUtils;
@@ -368,20 +369,20 @@ public class ConsultaTrabajoDialog extends JDialog {
 	
 	private void setData( ){
 
-        Jb jb = JbQuery.getJbRxSimple(rx);
+        JbJava jb = JbQuery.buscarPorRx(rx);
 
         if ( jb != null ) {
 
             txtRx.setText(jb.getRx());
             txtEstadoRx.setText( JbQuery.buscarEstadoPorId( StringUtils.trimToEmpty(jb.getEstado()) ).getDescr() );
 
-            if ( jb.getFecha_venta() != null )
-                txtFechaEstado.setText(df.format(jb.getFecha_venta()));
+            if ( jb.getFechaVenta() != null )
+                txtFechaEstado.setText(df.format(jb.getFechaVenta()));
             else
                 txtFechaEstado.setText("");
 
             txtCliente.setText(jb.getCliente());
-            txtAtendio.setText(jb.getEmp_atendio());
+            txtAtendio.setText(jb.getEmpAtendio());
             txtSaldo.setText(jb.getSaldo() != null ? String.format("$%s", jb.getSaldo()) : "$0.00");
 
             modelo.setRowCount(0);
