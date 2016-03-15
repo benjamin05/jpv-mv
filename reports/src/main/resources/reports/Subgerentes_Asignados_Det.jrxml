@@ -9,41 +9,43 @@
 	<field name="fechaFinal" class="java.util.Date"/>
 	<field name="horas" class="java.lang.String"/>
 	<field name="fecha" class="java.util.Date"/>
+	<field name="empAsigno.nombreCompleto" class="java.lang.String"/>
+	<field name="empAsignado.nombreCompleto" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
 	<title>
 		<band height="22" splitType="Stretch">
 			<staticText>
-				<reportElement uuid="0166862c-9009-4843-8989-ac774f0b9705" x="115" y="0" width="119" height="14"/>
+				<reportElement uuid="0166862c-9009-4843-8989-ac774f0b9705" x="110" y="0" width="152" height="14"/>
 				<textElement textAlignment="Center">
 					<font fontName="DejaVu Sans" size="12"/>
 				</textElement>
 				<text><![CDATA[Empleado Asigno]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="9cd4bd67-6a89-4f22-8273-bfc99d4d8808" x="234" y="0" width="132" height="14"/>
+				<reportElement uuid="9cd4bd67-6a89-4f22-8273-bfc99d4d8808" x="262" y="0" width="161" height="14"/>
 				<textElement textAlignment="Center">
 					<font fontName="DejaVu Sans" size="12"/>
 				</textElement>
 				<text><![CDATA[Empleado Asignado]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="82adc24c-30b0-4c69-ac8c-5dacafe2c7db" x="366" y="0" width="93" height="14"/>
+				<reportElement uuid="82adc24c-30b0-4c69-ac8c-5dacafe2c7db" x="423" y="0" width="80" height="14"/>
 				<textElement>
 					<font fontName="DejaVu Sans" size="12"/>
 				</textElement>
 				<text><![CDATA[Fecha Inicial]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="8bfdb890-8a87-4d5c-b832-8772e94f9a03" x="459" y="0" width="92" height="14"/>
+				<reportElement uuid="8bfdb890-8a87-4d5c-b832-8772e94f9a03" x="503" y="0" width="72" height="14"/>
 				<textElement>
 					<font fontName="DejaVu Sans" size="12"/>
 				</textElement>
 				<text><![CDATA[Fecha Final]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="8bfdb890-8a87-4d5c-b832-8772e94f9a03" x="551" y="0" width="48" height="14"/>
+				<reportElement uuid="8bfdb890-8a87-4d5c-b832-8772e94f9a03" x="575" y="0" width="37" height="14"/>
 				<textElement textAlignment="Center">
 					<font fontName="DejaVu Sans" size="12"/>
 				</textElement>
@@ -61,33 +63,33 @@
 	<detail>
 		<band height="15" splitType="Stretch">
 			<textField>
-				<reportElement uuid="3a22456f-404b-40ee-ad03-ead845163ed8" x="115" y="0" width="119" height="15"/>
+				<reportElement uuid="3a22456f-404b-40ee-ad03-ead845163ed8" x="110" y="0" width="32" height="15"/>
 				<textElement textAlignment="Center">
-					<font fontName="DejaVu Sans"/>
+					<font fontName="DejaVu Sans" size="7"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{empleadoAsigno}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[[$F{empleadoAsigno}]]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="9d0a337b-a7b4-4dde-833f-e9d811f89585" x="234" y="0" width="132" height="15"/>
+				<reportElement uuid="9d0a337b-a7b4-4dde-833f-e9d811f89585" x="262" y="0" width="32" height="15"/>
 				<textElement textAlignment="Center">
-					<font fontName="DejaVu Sans"/>
+					<font fontName="DejaVu Sans" size="7"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{empleadoAsignado}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[[$F{empleadoAsignado}]]]></textFieldExpression>
 			</textField>
 			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
-				<reportElement uuid="ec420672-2246-4c7b-9ddd-61f066b17c34" x="366" y="0" width="93" height="15"/>
+				<reportElement uuid="ec420672-2246-4c7b-9ddd-61f066b17c34" x="423" y="0" width="80" height="15"/>
 				<textElement>
 					<font fontName="DejaVu Sans"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{fechaInicial}]]></textFieldExpression>
 			</textField>
 			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
-				<reportElement uuid="93883400-a567-42b2-97a8-ff5da78875ac" x="459" y="0" width="92" height="15"/>
+				<reportElement uuid="93883400-a567-42b2-97a8-ff5da78875ac" x="503" y="0" width="72" height="15"/>
 				<textElement/>
 				<textFieldExpression><![CDATA[$F{fechaFinal}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="e7ce02c1-532a-41f0-917a-4a96b1c8d2a2" x="551" y="0" width="48" height="15"/>
+				<reportElement uuid="e7ce02c1-532a-41f0-917a-4a96b1c8d2a2" x="575" y="0" width="37" height="15"/>
 				<textElement textAlignment="Center"/>
 				<textFieldExpression><![CDATA[$F{horas}]]></textFieldExpression>
 			</textField>
@@ -97,6 +99,20 @@
 					<font fontName="DejaVu Sans"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{fecha}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="2a83d137-52cf-4158-b229-2307042513ee" x="142" y="0" width="120" height="15"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{empAsigno.nombreCompleto}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="3c8b1611-ebac-4fe3-a417-3819df31c47a" x="294" y="0" width="129" height="15"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{empAsignado.nombreCompleto}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
