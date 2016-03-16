@@ -125,6 +125,7 @@ enum TipoParametro {
   VIGENCIA_SEGURO_INFANTIL('vigencia_seguro_infantil','1'),
   VIGENCIA_SEGURO_OFTALMICO('vigencia_seguro_oftalmico','2'),
   VIGENCIA_SEGURO_SOLAR('vigencia_seguro_solar','1'),
+  VOLVER_LLAMAR('volver_llamar','1'),
   ALMACENES('almacenes','00000'),
   ALMACEN_POR_ACLARAR('almacen_por_aclarar','4000'),
   ACTIVE_STORE_DISCOUNT( 'desc_tienda_activo', 'no' ),

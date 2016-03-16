@@ -52,8 +52,8 @@ public class ConsultaPanel extends JPanel {
 	private static JButton btnLimpiar;
 	private JTable tblBusqueda;
 	private JScrollPane jScrollPane0;
-	final String columnNames[] = { "Rx", "Cliente", "Estado", "Fecha", "Atendió", "Promesa" };
-	String rowData[][] = { };	
+	final String[] columnNames = [ "Rx", "Cliente", "Estado", "Fecha", "Atendió", "Promesa" ];
+	String[] rowData = [ ];
 	private Vector cabecerasArr = null;
 	private DefaultTableModel modelo = null;
 	List<JbJava> lstJbs = new ArrayList<JbJava>();
@@ -88,7 +88,8 @@ public class ConsultaPanel extends JPanel {
 
 	private JTable getTblBusqueda() {
 		if (tblBusqueda == null) {
-			tblBusqueda = new JTable(rowData, columnNames);					
+			//tblBusqueda = new JTable(rowData, columnNames);
+            tblBusqueda = new JTable();
 			modelo = new DefaultTableModel(){
 			    @Override
 			    public boolean isCellEditable(int row, int column) {
@@ -144,7 +145,7 @@ public class ConsultaPanel extends JPanel {
 			        	Integer selectedRow = tblBusqueda.getSelectedRow();
 			        	selectedData = (String) tblBusqueda.getValueAt(selectedRow, 0);			            
 				        String saldo = String.format("%s", NumberFormat.getCurrencyInstance(Locale.US).format(JbQuery.buscarPorRx(StringUtils.trimToEmpty(selectedData)).getSaldo()));
-				        lblSaldo.setText(saldo);
+				        lblSaldo.setText(saldo.length() <= 0 ? "" : saldo);
 			        }			        
 			      }									
 			});
@@ -349,7 +350,7 @@ public class ConsultaPanel extends JPanel {
         txtCliente.setText("");
         txtRx.setText("");
         cbEstados.setSelectedIndex(0);
-        lblSaldo.setText("");
+        lblSaldo.setText(" ");
     }
 	
 	private void limpiarTabla(){

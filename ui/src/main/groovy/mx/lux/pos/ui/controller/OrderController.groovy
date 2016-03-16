@@ -3917,4 +3917,14 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static Rx findRxByBill(String bill) {
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(bill) )
+    RecetaJava receta = null
+    if( nota != null && nota.receta != null ){
+      receta = RecetaQuery.buscaRecetaPorIdReceta( nota.receta )
+    }
+    return Rx.toRx(receta)
+  }
+
+
 }

@@ -1,8 +1,12 @@
-package mx.lux.pos.ui.view.dialog;
+package mx.lux.pos.ui.view.dialog
+
+import mx.lux.pos.ui.model.Customer;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.List;
 
 import javax.swing.*;
@@ -14,6 +18,10 @@ import mx.lux.pos.java.querys.JbTrackQuery;
 import mx.lux.pos.java.querys.ParametrosQuery;
 import mx.lux.pos.java.repository.JbTrack;
 import mx.lux.pos.java.repository.Parametros;
+import mx.lux.pos.ui.controller.CustomerController;
+import mx.lux.pos.ui.controller.ItemController;
+import mx.lux.pos.ui.controller.OrderController;
+import mx.lux.pos.ui.model.Rx;
 import mx.lux.pos.ui.model.Session;
 import mx.lux.pos.ui.model.SessionItem;
 import mx.lux.pos.ui.model.User;
@@ -33,8 +41,11 @@ import static org.jfree.util.Log.log;
 public class PopUpMenu {
 
 	private JPopupMenu pMenu;
+    private JMenuItem itemRxData;
 	private JMenuItem itemConsultaTrabajo;
 	private JMenuItem itemInfoPino;
+    private JMenuItem itemCustomerData;
+    private JMenuItem itemReschedule;
     private JMenuItem itemRetener;
     private JMenuItem itemDesretener;
 	
@@ -42,12 +53,18 @@ public class PopUpMenu {
 	    pMenu = new JPopupMenu();
 
 	    itemConsultaTrabajo = new JMenuItem("Consultar Trabajo");
+        itemRxData = new JMenuItem("Datos Receta");
 	    itemInfoPino = new JMenuItem("Info Laboratorio");
+        itemCustomerData = new JMenuItem("Datos Cliente");
+        itemReschedule = new JMenuItem("Reprogramar");
         itemRetener = new JMenuItem("Retener");
         itemDesretener = new JMenuItem("Desretener");
 
+        pMenu.add(itemRxData);
         pMenu.add(itemConsultaTrabajo);
         pMenu.add(itemInfoPino);
+        pMenu.add(itemCustomerData);
+        pMenu.add(itemReschedule);
         pMenu.add( itemRetener );
         pMenu.add(itemDesretener);
 
@@ -56,12 +73,24 @@ public class PopUpMenu {
 
         habilitaOpciones(rx);
 
-	    itemConsultaTrabajo.addActionListener(new ActionListener() {
+	    itemRxData.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ConsultaTrabajoDialog consulta = new ConsultaTrabajoDialog( rx );				
+                Rx prescription = OrderController.findRxByBill( rx )
+                if( prescription != null && prescription.id != null ){
+                  ConsultRxDialog rxConsulta = new ConsultRxDialog(prescription, false);
+                  rxConsulta.show()
+                }
 			}
 		});
+
+        itemConsultaTrabajo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ConsultaTrabajoDialog consulta = new ConsultaTrabajoDialog( rx );
+                consulta.show();
+            }
+        });
 
 	    itemInfoPino.addActionListener(new ActionListener() {			
 			@Override
@@ -83,6 +112,28 @@ public class PopUpMenu {
 				InfoLaboratorioDialog dialogo = new InfoLaboratorioDialog(lstDatos, rx);
 			}
 		});
+
+
+        itemCustomerData.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Customer customer = CustomerController.findCustomerByBill( rx )
+                if( customer != null && customer.id != null ){
+                  ConsultCustomerDialog dialog = new ConsultCustomerDialog( component, customer, false )
+                  dialog.show()
+                }
+            }
+        });
+
+
+        itemReschedule.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              RescheduleDialog dialog = new RescheduleDialog( rx )
+              dialog.show()
+            }
+        });
+
 
         itemRetener.addActionListener(new ActionListener() {
             @Override

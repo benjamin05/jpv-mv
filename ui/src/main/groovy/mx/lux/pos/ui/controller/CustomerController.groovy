@@ -4,10 +4,12 @@ import groovy.util.logging.Slf4j
 import mx.lux.pos.java.querys.ClientesQuery
 import mx.lux.pos.java.querys.ImpHistorialQuery
 import mx.lux.pos.java.querys.MunicipioQuery
+import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.repository.ClientesJava
 import mx.lux.pos.java.repository.ExamenJava
 import mx.lux.pos.java.repository.ImpHistorialJava
 import mx.lux.pos.java.repository.MunicipioJava
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.service.ClienteServiceJava
 import mx.lux.pos.java.service.ContactoServiceJava
 import mx.lux.pos.java.service.ExamenServiceJava
@@ -1135,6 +1137,16 @@ class CustomerController {
       ImpHistorialQuery.saveImpHistorial( impHistorialJava )
     }
     return sample
+  }
+
+
+  static Customer findCustomerByBill(String bill) {
+    NotaVentaJava nota = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(bill) )
+    ClientesJava cliente = null
+    if( nota != null && nota.cliente != null){
+      cliente = nota.cliente
+    }
+    return Customer.toCustomer(cliente)
   }
 
 

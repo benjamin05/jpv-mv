@@ -579,6 +579,10 @@ class Registry {
         return  asInteger(TipoParametro.ALMACEN_POR_ACLARAR)
     }
 
+  static Integer getCallAgain() {
+    return  asInteger(TipoParametro.VOLVER_LLAMAR)
+  }
+
   static Integer getPortLinux() {
     return  asInteger(TipoParametro.PORT_LINUX)
   }
