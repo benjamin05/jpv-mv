@@ -194,7 +194,7 @@ class EditRxDialog extends JDialog{
                 label()
 
             }
-            rxPanel = panel( layout: new MigLayout('fill,wrap', '[fill]'), visible: false, constraints: 'hidemode 3' ) {
+            rxPanel = panel( layout: new MigLayout('fill,wrap', '[fill]'), visible: false, constraints: 'hidemode 3', maximumSize: [580,70] ) {
                 borderLayout()
                 scrollPane( constraints: BorderLayout.CENTER ) {
                     table( selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doClick ) {
