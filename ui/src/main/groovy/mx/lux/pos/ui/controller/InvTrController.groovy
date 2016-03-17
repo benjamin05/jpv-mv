@@ -480,13 +480,34 @@ class InvTrController {
     String seed = part[0]
     List<Articulo> partList = ItemController.findPartsByQuery( seed, true )
     if( partList.size() == 0 ){
+      if( seed.contains("!") ){
+        String[] inputTmp = seed.split("!")
+        seed = inputTmp[0]
+          Integer id = 0
+          try{
+            id = NumberFormat.getInstance().parse( StringUtils.trimToEmpty(seed) )
+          } catch ( NumberFormatException e ){
+            println e.message
+          }
+        Articulo art = ItemController.findArticle( id )
+        if( art != null ){
+          partList.add( art )
+        }
+      }
+      Boolean oneSign = false
       if( seed.contains(/$/) ){
         String[] inputTmp = seed.split(/\$/)
         if( seed.trim().contains(/$$/) ) {
           seed = inputTmp[0]
         } else {
           seed = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
+          oneSign = true
         }
+        partList = ItemController.findPartsByQuery( seed, true )
+      }
+      if( !partList?.any() && oneSign ){
+        String[] inputTmp = seed.split(",")
+        seed = StringUtils.trimToEmpty(inputTmp[0])+"*"
         partList = ItemController.findPartsByQuery( seed, true )
       }
     }

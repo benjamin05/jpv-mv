@@ -1465,7 +1465,7 @@ class OrderController {
 
                 surteSwitch.surte = 'P'
             } else if (condicion.trim().equals('No') && result.size() == 2) {
-                Integer question = JOptionPane.showConfirmDialog(new JDialog(), '¿Desea Continuar con la venta?', 'Almacen Central no Responde o sin Existencias',
+                Integer question = JOptionPane.showConfirmDialog(new JDialog(), '<html>Almacen Central no Responde o sin Existencias<br>¿Desea Continuar con la venta?<html>', '¡Atencion!',
                         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
                 if (question == 0) {
                     surteSucursal = false
