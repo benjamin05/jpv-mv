@@ -53,6 +53,10 @@ public class RecetaJava {
     String udf6;
     String idRxOri;
     String folio;
+    String dh;
+    String dv;
+    String pte;
+    String base;
     EmpleadoJava empleado;
     NotaVentaJava notaVenta;
 
@@ -376,6 +380,38 @@ public class RecetaJava {
         this.idSucursal = idSucursal;
     }
 
+    public String getDh() {
+        return dh;
+    }
+
+    public void setDh(String dh) {
+        this.dh = dh;
+    }
+
+    public String getDv() {
+        return dv;
+    }
+
+    public void setDv(String dv) {
+        this.dv = dv;
+    }
+
+    public String getPte() {
+        return pte;
+    }
+
+    public void setPte(String pte) {
+        this.pte = pte;
+    }
+
+    public String getBase() {
+        return base;
+    }
+
+    public void setBase(String base) {
+        this.base = base;
+    }
+
     public EmpleadoJava getEmpleado() {
         return empleado;
     }
@@ -438,6 +474,10 @@ public class RecetaJava {
             this.setIdSync(rs.getString("id_sync"));
             this.setFechaMod(rs.getDate("fecha_mod"));
             this.setIdMod(rs.getString("id_mod"));
+            this.setDh(rs.getString("dh"));
+            this.setDv(rs.getString("dv"));
+            this.setPte(rs.getString("pte"));
+            this.setBase(rs.getString("base"));
             this.setEmpleado( empleado() );
             this.setNotaVenta( notaVenta() );
         } catch (SQLException e) {

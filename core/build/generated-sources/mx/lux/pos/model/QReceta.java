@@ -22,7 +22,11 @@ public class QReceta extends EntityPathBase<Receta> {
 
     public final StringPath altOblR = createString("altOblR");
 
+    public final StringPath base = createString("base");
+
     public final QCliente cliente;
+
+    public final StringPath dh = createString("dh");
 
     public final StringPath diCercaR = createString("diCercaR");
 
@@ -31,6 +35,8 @@ public class QReceta extends EntityPathBase<Receta> {
     public final StringPath diOd = createString("diOd");
 
     public final StringPath diOi = createString("diOi");
+
+    public final StringPath dv = createString("dv");
 
     public final QEmpleado empleado;
 
@@ -95,6 +101,8 @@ public class QReceta extends EntityPathBase<Receta> {
     public final StringPath oiPrismaH = createString("oiPrismaH");
 
     public final StringPath oiPrismaV = createString("oiPrismaV");
+
+    public final StringPath pte = createString("pte");
 
     public final StringPath sUsoAnteojos = createString("sUsoAnteojos");
 

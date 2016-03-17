@@ -56,6 +56,10 @@ class EditRxDialog extends JDialog{
     private JTextField txtOdDm
     private JTextField txtOdPrisma
     private JComboBox cbOdUbic
+    private JTextField txtDh
+    private JTextField txtDv
+    private JTextField txtPte
+    private JTextField txtBase
 
     private JTextField txtOiEsfera
     private JTextField txtOiCil
@@ -158,12 +162,12 @@ class EditRxDialog extends JDialog{
                 resizable: true,
                 pack: true,
                 modal: true,
-                preferredSize: [600, 460],
+                preferredSize: [600, 550],
                 layout: new MigLayout('wrap,center', '[fill,grow]'),
-                location: [200, 200],
+                location: [200, 130],
                 undecorated: true,
         ) {
-            empleadoPanel = panel(layout: new MigLayout('fill,wrap 3, left', '[fill][fill][fill,grow,left]')) {
+            empleadoPanel = panel(layout: new MigLayout('fill,wrap 3, left', '[fill][fill][fill,grow,left]'), maximumSize: [600, 200]) {
                 label(text: 'Uso:')
                 cbUso = comboBox(items: comboUso)
                 cbUso.addActionListener(new ActionListener() {
@@ -194,7 +198,7 @@ class EditRxDialog extends JDialog{
                 label()
 
             }
-            rxPanel = panel( layout: new MigLayout('fill,wrap', '[fill]'), visible: false, constraints: 'hidemode 3', maximumSize: [580,70] ) {
+            rxPanel = panel( layout: new MigLayout('fill,wrap', '[fill]', '[fill,grow]'), visible: false, constraints: 'hidemode 3', minimumSize: [580,70], maximumSize: [580,70] ) {
                 borderLayout()
                 scrollPane( constraints: BorderLayout.CENTER ) {
                     table( selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doClick ) {
@@ -211,7 +215,7 @@ class EditRxDialog extends JDialog{
                     }
                 }
             }
-            panel(border: titledBorder("Rx"), layout: new MigLayout('fill,wrap ,center', '[fill,grow]')) {
+            panel(border: titledBorder("Rx"), layout: new MigLayout('fill,wrap ,center', '[fill,grow]'), preferredSize: [600, 250],) {
                 panel(layout: new MigLayout('fill,wrap 8,center',
                         '''[center][fill,grow,center][fill,grow,center][fill,grow,center][fill,grow,center]
                             [fill,grow,center][center][fill,grow,center]''')) {
@@ -419,6 +423,35 @@ class EditRxDialog extends JDialog{
                         }
                     })
                 }
+                panel(border: titledBorder("Medidas Armazon"), layout: new MigLayout('fill,wrap 6,center', '[fill,grow][fill][fill,grow][fill][fill,grow][fill,grow]')) {
+                  label(text: '  ')
+                  label(text: 'Dh')
+                  txtDh = textField()
+                  label(text: 'Pte')
+                  txtPte = textField()
+                  label(text: '  ')
+                  label(text: '  ')
+                  label(text: 'Dv')
+                  txtDv = textField()
+                  label(text: 'Base')
+                  txtBase = textField()
+                  txtBase.addFocusListener(new FocusListener() {
+                    @Override
+                    void focusGained(FocusEvent e) {
+
+                    }
+                    @Override
+                    void focusLost(FocusEvent e) {
+                      try{
+                        validacion(txtBase, 999999999, 0, 0.01, '.00', '')
+                      } catch( Exception ex ){
+                        dataRxValid = false
+                        println ex
+                      }
+                    }
+                  })
+                  label(text: '  ')
+                }
                 scrollPane(border: titledBorder(title: 'Observaciones')) {
                     txtObservaciones = textArea(document: new UpperCaseDocument(), lineWrap: true)
                 }
@@ -549,6 +582,10 @@ class EditRxDialog extends JDialog{
             txtOiDm.setText(fillDecimals(receta.diOi))
             txtOiAd.setText(fillDecimals(receta.oiAdcR))
             txtAltOblea.setText(fillDecimals(receta.altOblR))
+            txtDh.setText(receta.dh)
+            txtDv.setText(receta.dv)
+            txtPte.setText(receta.pte)
+            txtBase.setText(fillDecimals(receta.base))
             txtObservaciones.setText(receta.observacionesR)
             if( editRx ){
               btnTraerReceta.visible = false
@@ -623,6 +660,10 @@ class EditRxDialog extends JDialog{
         receta.setObservacionesR(txtObservaciones.text)
         receta.setIdOpt(txtEmpleado.text)
         receta.setFolio(txtFolio.text)
+        receta.setDh(StringUtils.trimToEmpty(txtDh.text))
+        receta.setDv(StringUtils.trimToEmpty(txtDv.text))
+        receta.setPte(StringUtils.trimToEmpty(txtPte.text))
+        receta.setBase(StringUtils.trimToEmpty(txtBase.text))
         if (!receta?.idClient) {
             receta.setIdStore(idSucursal)
             receta.setIdClient(idCliente)
@@ -955,6 +996,9 @@ class EditRxDialog extends JDialog{
         } else if(StringUtils.trimToEmpty(txtOdCil.text).length() > 0 && StringUtils.trimToEmpty(txtOdEje.text).length() <= 0){
           dataValid = false
         } else if(StringUtils.trimToEmpty(txtOiCil.text).length() > 0 && StringUtils.trimToEmpty(txtOiEje.text).length() <= 0){
+          dataValid = false
+        } else if( StringUtils.trimToEmpty(txtDh.text).length() <= 0 || StringUtils.trimToEmpty(txtDv.text).length() <= 0 ||
+                StringUtils.trimToEmpty(txtPte.text).length() <= 0 || StringUtils.trimToEmpty(txtBase.text).length() <= 0){
           dataValid = false
         }
       }
