@@ -1505,8 +1505,24 @@ class TicketServiceImpl implements TicketService {
     }*/
     if ( InventorySearch.esTipoTransaccionSalida( pTrans.idTipoTrans ) ) {
       barcode = StringUtils.trimToEmpty(Registry.currentSite.toString())+StringUtils.trimToEmpty(String.format("%06d",pTrans.folio))
+      String titulo = "Solicitud de devolucion en  espera de autorizacion".toUpperCase()
+      String pieTicket1 = "Documento no valido para realizar devolucion".toUpperCase()
+      String pieTicket2 = ""
+      Boolean mostratCodigo = false
+      for(TransInvDetalle det : pTrans.trDet){
+        if( det.cantidad > 0 || det.cantidad < 0 ){
+          titulo = "SALIDA DE MERCANCIA"
+          pieTicket1 = "Devolucion autorizada".toUpperCase()
+          pieTicket2 = "Enviar mercancia antes de 48 hrs.".toUpperCase()
+          mostratCodigo = true
+        }
+      }
       def tkInvTr = [
           nombre_ticket: "ticket-salida-inventario",
+          titulo: titulo,
+          pieTicket1: pieTicket1,
+          pieTicket2: pieTicket2,
+          mostrarCodigo: mostratCodigo,
           effDate: adapter.getText( pTrans, adapter.FLD_TR_EFF_DATE ),
           thisSite: adapter.getText( site ),
           user: adapter.getText( emp ),
