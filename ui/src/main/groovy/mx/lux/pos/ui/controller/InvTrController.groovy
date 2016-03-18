@@ -874,9 +874,15 @@ class InvTrController {
     if( term.length() > 0 ){
       if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
         valid = false
+        println "IP caja: ${term}"
+        println "IP de maquina: ${ip}"
+        println "IP NO valida, no se procesan archivos de autorizacion de salida"
       }
     }
     if( new Date().compareTo(topDate) <= 0 && valid ){
+      println "IP caja: ${term}"
+      println "IP de maquina: ${ip}"
+      println "IP valida procesa archivos de autorizacion de salida"
       ServiceManager.getInventoryService().leerArchivoAutorizacionSalidas( )
       readDevolutionFile( )
     }
