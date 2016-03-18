@@ -868,7 +868,15 @@ class InvTrController {
     cal.setTime(topDate)
     cal.add(Calendar.HOUR, maxHour)
     topDate = cal.getTime()
-    if( new Date().compareTo(topDate) <= 0 ){
+    Boolean valid = true
+    String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+    String ip = Registry.ipCurrentMachine()
+    if( term.length() > 0 ){
+      if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
+        valid = false
+      }
+    }
+    if( new Date().compareTo(topDate) <= 0 && valid ){
       ServiceManager.getInventoryService().leerArchivoAutorizacionSalidas( )
       readDevolutionFile( )
     }
