@@ -1475,8 +1475,17 @@ class TicketServiceImpl implements TicketService {
     def parts = [ ]
     Integer cantidad = 0
     String referencia = ''
+    Boolean isSalidaIncomp = true
+    for ( TransInvDetalle trDet in pTrans.trDet ) {
+      if( trDet.idTipoTrans.equalsIgnoreCase("SALIDA") ){
+        if( trDet.cantidad > 0 || trDet.cantidad < 0 ){
+          isSalidaIncomp = false
+        }
+      }
+    }
     for ( TransInvDetalle trDet in pTrans.trDet ) {
       Articulo part = ServiceFactory.partMaster.obtenerArticulo( trDet.sku, true)
+
       def tkPart = [
           sku: adapter.getText( trDet, adapter.FLD_TRD_SKU ),
           partNbr: adapter.getText( part, adapter.FLD_PART_CODE ),
@@ -1484,9 +1493,9 @@ class TicketServiceImpl implements TicketService {
           partColor: adapter.getText( part, adapter.FLD_PART_CODE_PLUS_COLOR ) ,
           desc: adapter.getText( part, adapter.FLD_PART_DESC ),
           price: String.format( '%12s', adapter.getText( part, adapter.FLD_PART_PRICE ) ),
-          qty: String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
+          qty: isSalidaIncomp ? String.format( '%5s', trDet.linea ) : String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
       ]
-        cantidad = cantidad+trDet.cantidad
+        cantidad = isSalidaIncomp ? cantidad+trDet.linea : cantidad+trDet.cantidad
         parts.add( tkPart )
     }
     String barcode = ""
