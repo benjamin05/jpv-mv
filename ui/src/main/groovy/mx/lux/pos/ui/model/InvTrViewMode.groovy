@@ -48,11 +48,11 @@ class InvTrViewMode {
       QUERY = new InvTrViewMode( "Consulta" )
       ADJUST = new InvTrViewMode( inventory.obtenerTipoTransaccionAjuste() )
       RETURN = new InvTrViewMode( inventory.obtenerTipoTransaccionDevolucionExtraordinaria() )
-      FILE_ADJUST = new InvTrViewMode( 'Ajuste archivo' )
+      //FILE_ADJUST = new InvTrViewMode( 'Ajuste archivo' )
       OUTBOUND = new InvTrViewMode( inventory.obtenerTipoTransaccionSalidaAlmacen() )
       OUTBOUND.text = '[SALIDA_FACTURAR]SALIDA POR FACTURAR'
       INBOUND = new InvTrViewMode( inventory.obtenerTipoTransaccionEntradaAlmacen() )
-      FILE_ADJUST.trType = inventory.obtenerTipoTransaccionAjuste()
+      //FILE_ADJUST.trType = inventory.obtenerTipoTransaccionAjuste()
       OTHER_RECEIPT = new InvTrViewMode( inventory.obtenerTipoTransaccionOtraEntrada() )
       OTHER_RECEIPT.text = "[OTRAS_ENTRADAS]LENTES DE CONTACTO"
       OTHER_ISSUE = new InvTrViewMode( inventory.obtenerTipoTransaccionOtraSalida() )
@@ -63,7 +63,7 @@ class InvTrViewMode {
       ISSUE_ACCESORIES.text = "[SALIDA_ACCESORIOS] SALIDA TOTAL ACCESORIOS"
       //list.addAll( [QUERY, ISSUE, RECEIPT, ADJUST, RETURN, OUTBOUND,INBOUND, FILE_ADJUST] )
       if( IOController.getInstance().isManager(user.username) ){
-        list.addAll( [QUERY, RECEIPT, ISSUE, ADJUST, FILE_ADJUST, INBOUND, OUTBOUND, OTHER_RECEIPT, OTHER_ISSUE] )
+        list.addAll( [QUERY, RECEIPT, ISSUE, ADJUST, INBOUND, OUTBOUND, OTHER_RECEIPT, OTHER_ISSUE] )
       } else {
         list.addAll( [QUERY] )
       }

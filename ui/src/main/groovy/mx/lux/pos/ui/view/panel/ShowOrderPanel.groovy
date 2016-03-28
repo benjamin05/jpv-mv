@@ -270,7 +270,7 @@ class ShowOrderPanel extends JPanel {
         bean( cancelTransfButton, visible: bind {!'T'.equalsIgnoreCase( order.status ) && IOController.getInstance().isManager(user.username)} )
         println ppButton.getText().equals('Pagar')
         bean( ppButton, visible: bind {IOController.getInstance().isManager(user.username)} )
-        bean( printRxButton, visible: bind {(order.rx != null)} )
+        bean( printRxButton, visible: bind {(order.rx != null) && IOController.getInstance().isManager(user.username)} )
       sumaPagos = BigDecimal.ZERO
       for ( Payment payment : order.payments ) {
         println(payment?.amount)

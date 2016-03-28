@@ -3,6 +3,7 @@ package mx.lux.pos.java.repository;
 import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.querys.ArticulosQuery;
 import mx.lux.pos.java.querys.GenericosQuery;
+import mx.lux.pos.model.Articulo;
 import org.apache.commons.lang.StringUtils;
 
 import java.math.BigDecimal;
@@ -311,5 +312,35 @@ public class ArticulosJava {
       this.setMarca(StringUtils.trimToEmpty(this.getMarca()));
       this.setProveedor(StringUtils.trimToEmpty(this.getProveedor()));
       this.setIndiceDioptra(StringUtils.trimToEmpty(this.getIndiceDioptra()));
+    }
+
+
+    public ArticulosJava castToArticulosJava( Articulo articulosJava ) throws ParseException {
+        this.setIdArticulo(articulosJava.getId());
+        this.setArticulo(articulosJava.getArticulo());
+        this.setColorCode(articulosJava.getCodigoColor());
+        this.setDescArticulo(articulosJava.getDescripcion());
+        this.setIdGenerico(articulosJava.getIdGenerico());
+        this.setIdGenTipo(articulosJava.getIdGenTipo());
+        this.setIdGenSubtipo(articulosJava.getIdGenSubtipo());
+        this.setPrecio(articulosJava.getPrecio());
+        this.setPrecioO(articulosJava.getPrecioO());
+        this.setsArticulo(articulosJava.getsArticulo());
+        this.setIdSync(articulosJava.getIdSync());
+        this.setFechaMod(articulosJava.getFechaMod());
+        this.setIdMod(articulosJava.getIdMod());
+        this.setIdSucursal(articulosJava.getIdSucursal());
+        this.setColorDesc(articulosJava.getDescripcionColor());
+        this.setIdCb(articulosJava.getIdCb());
+        this.setIdDisenoLente(articulosJava.getIdDisenoLente());
+        this.setExistencia(articulosJava.getCantExistencia());
+        this.setTipo(articulosJava.getTipo());
+        this.setSubtipo(articulosJava.getSubtipo());
+        this.setMarca(articulosJava.getMarca());
+        this.setProveedor(articulosJava.getProveedor());
+        this.setIndiceDioptra(articulosJava.getIndice_dioptra());
+        this.setGenerico( generico() );
+
+        return this;
     }
 }

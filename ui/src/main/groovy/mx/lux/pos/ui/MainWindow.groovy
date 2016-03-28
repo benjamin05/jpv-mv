@@ -75,6 +75,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem invoiceMenuItem
     private JMenuItem sessionMenuItem
     private JMenuItem cancellationReportMenuItem
+    private JMenuItem submanagersReportMenuItem
     private JMenuItem dailyCloseReportMenuItem
     private JMenuItem assignSubManagerMenuItem
     private JMenuItem incomePerBranchReportMenuItem
@@ -371,6 +372,7 @@ class MainWindow extends JFrame implements KeyListener {
                                   isManager = IOController.getInstance().isManager(user.username)
                                 }
                                 cancellationReportMenuItem.visible = isManager
+                                submanagersReportMenuItem.visible = isManager
                                 dailyCloseReportMenuItem.visible = userLoggedIn
                                 //incomePerBranchReportMenuItem.visible = userLoggedIn
                                 //sellerRevenueReportMenuItem.visible = userLoggedIn
@@ -378,7 +380,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 undeliveredJobsAuditReportMenuItem.visible = isManager
                                 salesReportMenuItem.visible = userLoggedIn
                                 //salesByLineReportMenuItem.visible = userLoggedIn
-                                salesBySellerReportMenuItem.visible = userLoggedIn
+                                salesBySellerReportMenuItem.visible = isManager
                                 //salesByBrandReportMenuItem.visible = userLoggedIn
                                 //salesBySellerByBrandMenuItem.visible = userLoggedIn
                                 stockbyBrandMenuItem.visible = isManager
@@ -397,7 +399,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 //salesByPeriodMenuItem.visible = userLoggedIn
                                 undeliveredJobsReportMenuItem.visible = isManager
                                 discountsMenuItem.visible = isManager
-                                optometristSalesMenuItem.visible = userLoggedIn
+                                optometristSalesMenuItem.visible = isManager
                                 //examsMenuItem.visible = userLoggedIn
                                 examsByOptoMenuItem.visible = isManager
                                 couponMenuItem.visible = isManager
@@ -574,6 +576,14 @@ class MainWindow extends JFrame implements KeyListener {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
                                     ReportController.fireReport( ReportController.Report.Payments )
+                                }
+                        )
+                        submanagersReportMenuItem = menuItem( text: "Subgerentes Asignados",
+                                visible: false,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    ReportController.fireReport( ReportController.Report.Submanager )
                                 }
                         )
                         /*promotionsMenuItem = menuItem( text: "Promociones en Ventas",
@@ -876,6 +886,7 @@ class MainWindow extends JFrame implements KeyListener {
             DailyCloseController.RegistrarClavesDescuento()
             IOController.getInstance().autoUpdateEmployeeFile()
             InvTrController controllerInv = InvTrController.instance
+            controllerInv.readAdjutFile()
             controllerInv.readAutIssueFile()
             //IOController.getInstance().startAsyncNotifyDispatcher()
         }

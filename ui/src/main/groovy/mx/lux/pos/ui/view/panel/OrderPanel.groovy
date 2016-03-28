@@ -615,9 +615,20 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       if( OrderController.dayIsOpen() ){
         if (StringUtils.isNotBlank(input)) {
           //sb.doOutside {
+          List<Item> results = new ArrayList<>()
             if(input.trim().contains("!")){
               String[] inputTmp = input.split("!")
               input = StringUtils.trimToEmpty(inputTmp[0])
+              Integer id = 0
+              try{
+                id = NumberFormat.getInstance().parse( StringUtils.trimToEmpty(input) )
+              } catch ( NumberFormatException e ){
+                println e.message
+              }
+              Item item = ItemController.findItem( id )
+              if( item != null ){
+                results.add( item )
+              }
             }
             Boolean oneSign = false
             if( input.contains(/$/) ){
@@ -631,7 +642,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             } else {
               article = input.trim()
             }
-            List<Item> results = ItemController.findItemsByQuery(article)
+            if( results.size() <= 0 ){
+              results = ItemController.findItemsByQuery(article)
+            }
             if( !results?.any() && oneSign ){
               String[] inputTmp = input.split(/\$/)
               article = StringUtils.trimToEmpty(inputTmp[0])+"*"
@@ -1460,6 +1473,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if( discountAgeApplied && promoAgeActive && promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
           promotionDriver.addPromoDiscountAge( order, promoAmount )
         }
+      ItemController.validTransSurtePino( StringUtils.trimToEmpty(order.id) )
+      OrderController.validSPWithoutLens( order )
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
       Order newOrder = OrderController.placeOrder(order, vendedor, false)
       OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )

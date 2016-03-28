@@ -1,5 +1,14 @@
 package mx.lux.pos.service.impl
 
+import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.querys.DoctoInvQuery
+import mx.lux.pos.java.querys.TransInvDetQuery
+import mx.lux.pos.java.querys.TransInvQuery
+import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.DoctoInvJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.TransInvDetJava
+import mx.lux.pos.java.repository.TransInvJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
@@ -471,7 +480,8 @@ class InventarioServiceImpl implements InventarioService {
   }
 
 
-  Boolean generaArchivoSalida( InvTrRequest pRequest ){
+  Integer generaArchivoSalida( InvTrRequest pRequest ){
+    Integer folio = 0
     Boolean applied = true
     try{
       for(InvTrDetRequest det : pRequest.skuList){
@@ -495,6 +505,7 @@ class InventarioServiceImpl implements InventarioService {
       transInv.fechaMod = new Date()
       transInv = transInvRepository.saveAndFlush( transInv )
       if( transInv.numReg != null ){
+        folio = transInv.folio
         for(InvTrDetRequest det : pRequest.skuList){
           TransInvDetalle transInvDetalle = new TransInvDetalle()
           transInvDetalle.idTipoTrans = StringUtils.trimToEmpty(transInv.idTipoTrans)
@@ -526,7 +537,7 @@ class InventarioServiceImpl implements InventarioService {
       applied = false
       println e.message
     }
-    return applied
+    return folio
   }
 
 
@@ -540,7 +551,6 @@ class InventarioServiceImpl implements InventarioService {
     File destination = new File( ubicacionsDestination )
     if ( source.exists() && destination.exists() ) {
       source.eachFile() { file ->
-        println file.getName()
         if ( file.getName().endsWith( ".sda" ) ) {
           try {
             Integer folio = 0
@@ -575,19 +585,28 @@ class InventarioServiceImpl implements InventarioService {
                   if( articulo != null ){
                     det.cantidad = det.linea
                     det.linea = renglones
-                    det = transInvDetalleRepository.saveAndFlush(det)
+                    //det = transInvDetalleRepository.saveAndFlush(det)
+                    TransInvDetJava transInvDetJava = new TransInvDetJava()
+                    transInvDetJava.castToTransInvDetJava(det)
+                    TransInvDetQuery.saveOrUpdateTransInvDet( transInvDetJava )
                     articulo.cantExistencia = articulo.cantExistencia-det.cantidad
-                    articuloRepository.saveAndFlush( articulo )
+                    //articuloRepository.saveAndFlush( articulo )
+                    ArticulosJava articulosJava = new ArticulosJava()
+                    articulosJava.castToArticulosJava( articulo )
+                    ArticulosQuery.saveOrUpdateArticulos( articulosJava )
                     renglones = renglones+1
                     cantidadTotal = cantidadTotal+det.cantidad
                   }
                 }
-                List<TransInvDetalle> lstDet = new ArrayList<>(lstDetalles)
+                List<TransInvDetalle> lstDet = transInvDetalleRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
                 lstTransInv.first().trDet.addAll(lstDet)
                 InventoryCommit.exportarTransaccion( lstTransInv.first() )
                 TransInv transInv = lstTransInv.first()
                 transInv.referencia = "AUTORIZADA ${df.format(new Date())}"
-                transInvRepository.saveAndFlush( transInv )
+                //transInvRepository.saveAndFlush( transInv )
+                TransInvJava transInvJava = new TransInvJava()
+                transInvJava.castToTransInvJava( transInv )
+                TransInvQuery.saveOrUpdateTransInv( transInvJava )
                 if( transInv.trDet.size() <= 0 ){
                   transInv.trDet.addAll(lstDetalles)
                 }
@@ -603,7 +622,10 @@ class InventarioServiceImpl implements InventarioService {
                 doctoInv.idSucursal = Registry.currentSite
                 doctoInv.cantidad = StringUtils.trimToEmpty(cantidadTotal.toString())
                 doctoInv.estado = 'pendiente'
-                doctoInvRepository.saveAndFlush(doctoInv)
+                //doctoInvRepository.saveAndFlush(doctoInv)
+                DoctoInvJava doctoInvJava = new DoctoInvJava()
+                doctoInvJava.castToDoctoInvJava( doctoInv )
+                DoctoInvQuery.saveDoctoInv( doctoInvJava )
                 ticketService.imprimeTransInv( transInv )
                 def newFile = new File( destination, file.name )
                 def moved = file.renameTo( newFile )
