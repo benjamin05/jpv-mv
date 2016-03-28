@@ -480,7 +480,8 @@ class InventarioServiceImpl implements InventarioService {
   }
 
 
-  Boolean generaArchivoSalida( InvTrRequest pRequest ){
+  Integer generaArchivoSalida( InvTrRequest pRequest ){
+    Integer folio = 0
     Boolean applied = true
     try{
       for(InvTrDetRequest det : pRequest.skuList){
@@ -504,6 +505,7 @@ class InventarioServiceImpl implements InventarioService {
       transInv.fechaMod = new Date()
       transInv = transInvRepository.saveAndFlush( transInv )
       if( transInv.numReg != null ){
+        folio = transInv.folio
         for(InvTrDetRequest det : pRequest.skuList){
           TransInvDetalle transInvDetalle = new TransInvDetalle()
           transInvDetalle.idTipoTrans = StringUtils.trimToEmpty(transInv.idTipoTrans)
@@ -535,7 +537,7 @@ class InventarioServiceImpl implements InventarioService {
       applied = false
       println e.message
     }
-    return applied
+    return folio
   }
 
 

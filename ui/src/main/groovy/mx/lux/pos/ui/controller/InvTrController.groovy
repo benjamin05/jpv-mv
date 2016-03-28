@@ -836,7 +836,7 @@ class InvTrController {
     ServiceManager.ticketService.imprimeTransaccionesInventario( fechaTicket )
   }
 
-  Boolean generatedIssueFile( InvTrView pView ){
+  Integer generatedIssueFile( InvTrView pView ){
     log.debug( "generatedIssueFile" )
     InvTrRequest request = RequestAdapter.getRequest( pView.data )
       return ServiceManager.getInventoryService().generaArchivoSalida(request)
@@ -874,9 +874,9 @@ class InvTrController {
     if( term.length() > 0 ){
       if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
         valid = false
-        println "IP caja: ${term}"
+          println "IP caja: ${term}"
         println "IP de maquina: ${ip}"
-        println "IP NO valida, no se procesan archivos de autorizacion de salida"
+        println "IP valida procesa archivos de autorizacion de salida"
       }
     }
     if( new Date().compareTo(topDate) <= 0 && valid ){
