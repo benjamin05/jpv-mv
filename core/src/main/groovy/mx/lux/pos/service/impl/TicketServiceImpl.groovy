@@ -1514,9 +1514,9 @@ class TicketServiceImpl implements TicketService {
     }*/
     if ( InventorySearch.esTipoTransaccionSalida( pTrans.idTipoTrans ) ) {
       barcode = StringUtils.trimToEmpty(Registry.currentSite.toString())+StringUtils.trimToEmpty(String.format("%06d",pTrans.folio))
-      String titulo = "Solicitud de devolucion en  espera de autorizacion".toUpperCase()
-      String pieTicket1 = "Documento no valido para realizar devolucion".toUpperCase()
-      String pieTicket2 = ""
+      String titulo = "   Solicitud de devolucion   en espera de autorizacion".toUpperCase()
+      String pieTicket1 = "Documento no valido".toUpperCase()
+      String pieTicket2 = "para realizar devolucion".toUpperCase()
       Boolean mostratCodigo = false
       for(TransInvDetalle det : pTrans.trDet){
         if( det.cantidad > 0 || det.cantidad < 0 ){
