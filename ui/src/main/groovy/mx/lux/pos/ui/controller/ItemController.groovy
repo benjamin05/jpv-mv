@@ -2,11 +2,14 @@ package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
 import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.querys.DetalleNotaVentaQuery
 import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.querys.PedidoLcQuery
 import mx.lux.pos.java.querys.TransInvQuery
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.java.repository.ModeloLcJava
 import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.PedidoLcDetJava
 import mx.lux.pos.java.repository.PedidoLcJava
 import mx.lux.pos.java.repository.TransInvJava
@@ -51,6 +54,8 @@ class ItemController {
   private static final String TAG_GENERICO_H = 'H'
   private static final String TAG_GENERICO_A = 'A'
   private static final String TAG_GEN_TIPO_C = 'C'
+  private static final String TAG_SURTE_PINO = 'P'
+  private static final String TAG_TIPO_PAGO_TRANSFERENCIA = 'TR'
   private static ArticuloService articuloService
   private static ArticulosServiceJava articulosServiceJava
   private static TicketService ticketService
@@ -535,6 +540,44 @@ class ItemController {
       }
     }
     return item
+  }
+
+
+  static void validTransSurtePino( String idOrder ){
+    NotaVentaJava notaVentaJava = NotaVentaQuery.busquedaNotaById( idOrder )
+    String oldOrder = ""
+    Boolean cambiarSurte = false
+    for(PagoJava pagoJava : notaVentaJava.pagos){
+      if( StringUtils.trimToEmpty(pagoJava.idFPago).equalsIgnoreCase(TAG_TIPO_PAGO_TRANSFERENCIA) ){
+        String[] data = StringUtils.trimToEmpty(pagoJava.refClave).split(":")
+        oldOrder = StringUtils.trimToEmpty(data[0].length() > 0 ? data[0] : "")
+      }
+    }
+    if( StringUtils.trimToEmpty(oldOrder).length() > 0 ){
+      Integer frame = null
+      for(DetalleNotaVentaJava det : notaVentaJava.detalles){
+        if( StringUtils.trimToEmpty(det?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_A) &&
+                StringUtils.trimToEmpty(det?.surte).equalsIgnoreCase(TAG_SURTE_PINO) ){
+          frame = det?.idArticulo
+        }
+      }
+      if( frame != null ){
+        NotaVentaJava originOrder = NotaVentaQuery.busquedaNotaById(oldOrder)
+        for(DetalleNotaVentaJava det1 : originOrder.detalles){
+          if( det1.idArticulo == frame ){
+            cambiarSurte = true
+          }
+        }
+        if( cambiarSurte ){
+          for(DetalleNotaVentaJava det : notaVentaJava.detalles){
+            if( det?.articulo?.idArticulo == frame ){
+              det?.surte = 'S'
+              DetalleNotaVentaQuery.updateDetalleNotaVenta( det )
+            }
+          }
+        }
+      }
+    }
   }
 
 

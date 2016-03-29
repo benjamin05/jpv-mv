@@ -2,11 +2,15 @@ package mx.lux.pos.ui.controller
 
 import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.model.*
+import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.ArticuloService
 import mx.lux.pos.service.InventarioService
 import mx.lux.pos.service.business.Registry
+import mx.lux.pos.ui.model.InvTr
+import mx.lux.pos.ui.model.InvTrSku
 import mx.lux.pos.ui.model.InvTrViewMode
 import mx.lux.pos.ui.model.Item
+import mx.lux.pos.ui.model.User
 import mx.lux.pos.ui.model.adapter.InvTrFilter
 import mx.lux.pos.ui.model.adapter.RequestAdapter
 import mx.lux.pos.ui.resources.ServiceManager
@@ -19,11 +23,14 @@ import mx.lux.pos.ui.view.dialog.ReceiptDialog
 import mx.lux.pos.ui.view.panel.InvTrView
 import mx.lux.pos.util.StringList
 import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import javax.swing.*
+import java.nio.channels.FileChannel
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 
 class InvTrController {
 
@@ -194,6 +201,36 @@ class InvTrController {
         return response
       }
   }
+
+
+  protected void generaAcuseAjusteInventario(File inFile){
+    String[] dataFileName = inFile.name.split(/\./)
+    String newFileName = ""
+    if( dataFileName.length >= 3 ){
+      newFileName = dataFileName[0]+"."+dataFileName[1]+"."+"aja"
+    } else {
+      newFileName = inFile.name
+    }
+    File deleted = new File( SettingsController.instance.processedPath, inFile.name )
+    FileChannel source = null;
+    FileChannel destination = null;
+      source = new FileInputStream(inFile).getChannel();
+      destination = new FileOutputStream(deleted).getChannel();
+      if (destination != null && source != null) {
+          destination.transferFrom(source, 0, source.size());
+      }
+      if (source != null) {
+          source.close();
+      }
+      if (destination != null) {
+          destination.close();
+      }
+
+
+    File moved = new File( Registry.archivePath, newFileName )
+    inFile.renameTo( moved )
+  }
+
 
   protected void dispatchViewModeAdjust( InvTrView pView ) {
     pView.data.clear()
@@ -617,7 +654,7 @@ class InvTrController {
     receiptDialog.show()
     log.debug(receiptDialog.getTxtClave())
     if ( StringUtils.trimToEmpty(receiptDialog.getTxtClave()).length() > 0 ) {
-      String path = Registry.inputFilePath
+      String path = Registry.getInputFilePath()
       File source = new File( path )
       File rem = null
       source.eachFile { file ->
@@ -746,6 +783,9 @@ class InvTrController {
           if (InvTrViewMode.RECEIPT.equals( viewMode ) || InvTrViewMode.INBOUND.equals( viewMode )) {
             String resultado = confirmaEntrada(viewMode, pView)
           }
+          /*if( InvTrViewMode.FILE_ADJUST.equals( viewMode ) ){
+            generaAcuseAjusteInventario(viewMode, pView)
+          }*/
           if( ServiceManager.getInventoryService().isReceiptDuplicate() ){
             dispatchPrintTransaction( viewMode.trType.idTipoTrans, trNbr )
           }
@@ -794,6 +834,197 @@ class InvTrController {
   void requestPrintTransactions( Date fechaTicket ){
     log.debug( "requestPrintTransactions" )
     ServiceManager.ticketService.imprimeTransaccionesInventario( fechaTicket )
+  }
+
+  Integer generatedIssueFile( InvTrView pView ){
+    log.debug( "generatedIssueFile" )
+    InvTrRequest request = RequestAdapter.getRequest( pView.data )
+      return ServiceManager.getInventoryService().generaArchivoSalida(request)
+  }
+
+  Boolean showQueryTransaction( InvTrView pView ){
+      InvTrController controller = this
+      SwingUtilities.invokeLater( new Runnable() {
+          void run( ) {
+              pView.uiDisabled = true
+              controller.dispatchViewModeQuery( pView )
+              InvTrFilter filter = pView.data.qryDataset.filter
+              filter.reset()
+              filter.setDateRange( new Date() )
+              pView.data.qryDataset.requestTransactions()
+              pView.data.txtStatus = pView.panel.MSG_TRANSACTION_POSTED
+              pView.fireRefreshUI()
+              pView.uiDisabled = false
+          }
+      } )
+  }
+
+
+  void readAutIssueFile(){
+    //SimpleDateFormat df = new SimpleDateFormat("HH")
+    Integer maxHour = Registry.getMaximunHourToReadIssueFile()
+    Date topDate = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH )
+    Calendar cal = Calendar.getInstance()
+    cal.setTime(topDate)
+    cal.add(Calendar.HOUR, maxHour)
+    topDate = cal.getTime()
+    Boolean valid = true
+    String term = StringUtils.trimToEmpty(Registry.terminalCaja)
+    String ip = Registry.ipCurrentMachine()
+    if( term.length() > 0 ){
+      if( StringUtils.trimToEmpty(term).length() > 0 && (!term.contains(ip) || ip.length() <= 0) ){
+        valid = false
+          println "IP caja: ${term}"
+        println "IP de maquina: ${ip}"
+        println "IP valida procesa archivos de autorizacion de salida"
+      }
+    }
+    if( new Date().compareTo(topDate) <= 0 && valid ){
+      println "IP caja: ${term}"
+      println "IP de maquina: ${ip}"
+      println "IP valida procesa archivos de autorizacion de salida"
+      ServiceManager.getInventoryService().leerArchivoAutorizacionSalidas( )
+      readDevolutionFile( )
+    }
+  }
+
+
+  void readDevolutionFile(){
+    Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
+    Parametro parametro = RepositoryFactory.registry.findOne( TipoParametro.RUTA_RECIBIDOS.value )
+    String ubicacionSource = ubicacion.valor
+    String ubicacionsDestination = parametro.valor
+    File source = new File( ubicacionSource )
+    File destination = new File( ubicacionsDestination )
+    if ( source.exists() && destination.exists() ) {
+      source.eachFile() { file ->
+        String[] dataName = StringUtils.trimToEmpty(file.getName()).split(/\./)
+        if ( dataName.length >= 5 && dataName[3].equalsIgnoreCase( "DS" ) ) {
+          InvTr data = new InvTr()
+          InvAdjustSheet document = new InvAdjustSheet()
+          String filename = null
+          file.eachLine { String line ->
+            String[] linea = StringUtils.trimToEmpty(line).split(/\|/)
+            if( linea.length == 2 ){
+              document.ref = linea[0]
+            } else if( linea.length >= 6 ){
+              document.trReason = linea[4]
+              InvAdjustLine det = new InvAdjustLine()
+              try{
+                det.sku = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(linea[5])).intValue()
+                det.qty = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(linea[3])).intValue()
+              } catch ( NumberFormatException e ){
+                println e.message
+              }
+              det.partCode = linea[0]
+              det.colorCode = linea[1]
+              det
+              document.lines.add( det )
+            }
+          }
+          filename = file.absolutePath
+          log.debug( String.format( "[Controller] File found: %s", filename ) )
+          data.inFile = new File( filename )
+          data.postRemarks = document.trReason
+          data.postReference = document.ref
+          data.postSiteTo = null
+          data.postTrType = RepositoryFactory.trTypes.findOne("SALIDA")
+          Integer contador = 1
+          for ( InvAdjustLine det in document.lines ) {
+            Articulo part = ServiceManager.partService.obtenerArticulo( det.sku, false )
+            if( part.cantExistencia-det.qty >= 0 ){
+              data.skuList.add( new InvTrSku( data, contador, part, det.qty ) )
+              contador = contador+1
+            } else if( part.cantExistencia > 0 ){
+              det.qty = part.cantExistencia
+              data.skuList.add( new InvTrSku( data, contador, part, det.qty ) )
+              contador = contador+1
+            }
+          }
+          InvTrRequest request = RequestAdapter.getRequest( data )
+          request.remarks = request.remarks.replaceAll("[^a-zA-Z0-9]+"," ");
+          Integer trNbr = null
+          if( validReference(StringUtils.trimToEmpty(data.postTrType.idTipoTrans), StringUtils.trimToEmpty(data.postReference)) ){
+            trNbr = ServiceManager.getInventoryService().solicitarTransaccion( request )
+
+          }
+          if ( trNbr != null ) {
+            List<TransInv> lstTrans = RepositoryFactory.inventoryMaster.findByIdTipoTransAndReferencia( data.postTrType.idTipoTrans, StringUtils.trimToEmpty(data.postReference) )
+            List<TransInvDetalle> lstTransDet = RepositoryFactory.inventoryDetail.findByIdTipoTransAndFolio( data.postTrType.idTipoTrans,
+                    lstTrans.size() > 0 ? lstTrans.first().folio : 0 )
+            ServiceManager.getInventoryService().registraDoctoInv( lstTransDet )
+            dispatchPrintTransaction( data.postTrType.idTipoTrans, trNbr )
+            def newFile = new File( destination, file.name )
+            def moved = file.renameTo( newFile )
+          }
+        }
+      }
+    }
+  }
+
+
+  /*Boolean validReference( String idTipoTrans, String ref ){
+    List<TransInv> lstTrans = RepositoryFactory.inventoryMaster.findByIdTipoTransAndReferencia( idTipoTrans, ref )
+    if( lstTrans.size() > 0 ){
+      return false
+    } else {
+      return true
+    }
+  }*/
+
+
+  void readAdjutFile(){
+    Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
+    Parametro parametro = RepositoryFactory.registry.findOne( TipoParametro.RUTA_RECIBIDOS.value )
+    String ubicacionSource = ubicacion.valor
+    String ubicacionsDestination = parametro.valor
+    File source = new File( ubicacionSource )
+    File destination = new File( ubicacionsDestination )
+    if ( source.exists() && destination.exists() ) {
+      source.eachFile() { file ->
+        if ( file.getName().endsWith( ".ajs" ) ) {
+          InvTr data = new InvTr()
+          InvAdjustSheet document = null
+          String filename = null
+          filename = file.absolutePath
+          log.debug( String.format( "[Controller] File found: %s", filename ) )
+          document = ServiceManager.getInventoryService().leerArchivoAjuste( filename )
+          data.inFile = new File( filename )
+          data.postRemarks = document.trReason
+          data.postReference = document.ref
+          data.postSiteTo = null
+          data.postTrType = RepositoryFactory.trTypes.findOne("AJUSTE")
+          Integer contador = 1
+          for ( InvAdjustLine det in document.lines ) {
+            Articulo part = ServiceManager.partService.obtenerArticulo( det.sku, false )
+            data.skuList.add( new InvTrSku( data, contador, part, det.qty ) )
+            contador = contador+1
+          }
+          InvTrRequest request = RequestAdapter.getRequest( data )
+          request.remarks = request.remarks.replaceAll("[^a-zA-Z0-9]+"," ");
+          Integer trNbr = null
+          if( validReference(StringUtils.trimToEmpty(data.postTrType.idTipoTrans), StringUtils.trimToEmpty(data.postReference)) ){
+            trNbr = ServiceManager.getInventoryService().solicitarTransaccion( request )
+          }
+          if ( trNbr != null ) {
+            //File moved = new File( SettingsController.instance.processedPath, data.inFile.name )
+            //data.inFile.renameTo( moved )
+            generaAcuseAjusteInventario(data.inFile)
+            dispatchPrintTransaction( data.postTrType.idTipoTrans, trNbr )
+          }
+        }
+      }
+    }
+  }
+
+
+  Boolean validReference( String idTipoTrans, String ref ){
+    List<TransInv> lstTrans = RepositoryFactory.inventoryMaster.findByIdTipoTransAndReferencia( idTipoTrans, ref )
+    if( lstTrans.size() > 0 ){
+      return false
+    } else {
+      return true
+    }
   }
 
 }

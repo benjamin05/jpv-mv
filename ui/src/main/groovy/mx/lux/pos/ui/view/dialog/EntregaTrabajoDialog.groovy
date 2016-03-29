@@ -53,6 +53,7 @@ class EntregaTrabajoDialog extends JDialog {
 
 
     private void doSave(){
+      if( OrderController.dayIsOpen() ){
        Boolean registro =  OrderController.validaEntrega(factura.text,sucursal.text,false)
         if(registro == false){
             sb.optionPane(
@@ -62,6 +63,10 @@ class EntregaTrabajoDialog extends JDialog {
                     .show()
         }
         doCancel()
+      } else {
+        sb.optionPane(message: 'No se puede realizar la entrega. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+                .createDialog(new JTextField(), "Dia cerrado").show()
+      }
     }
 
      private void doCancel(){

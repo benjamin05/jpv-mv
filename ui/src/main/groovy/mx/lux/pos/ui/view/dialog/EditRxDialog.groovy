@@ -4,6 +4,7 @@ package mx.lux.pos.ui.view.dialog
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.java.repository.RecetaJava
+import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Rx
@@ -77,6 +78,7 @@ class EditRxDialog extends JDialog{
     private JTextArea txtObservaciones
 
     private JPanel empleadoPanel
+    private JPanel measuresFramePanel
     private final double VALOR_MULTIPLO = 0.25;
     private boolean mostrarParametroSV = true
     private boolean mostrarParametroP = true
@@ -88,6 +90,7 @@ class EditRxDialog extends JDialog{
     private static String itemUso = null
     private static String limpiarAux
     private static String idOrder
+    private Boolean measuresVisible
 
     private static List<Rx> lstRecetasFinal = new ArrayList<>()
 
@@ -115,6 +118,7 @@ class EditRxDialog extends JDialog{
         title = titulo
         this.idOrder = idOrder
         this.obligatory = obligatory
+        measuresVisible = Registry.measuresFrameVisible()
         if (itemUso.trim().equals('M')) {
             mostrarParametroSV = true
             mostrarParametroP = false
@@ -423,7 +427,8 @@ class EditRxDialog extends JDialog{
                         }
                     })
                 }
-                panel(border: titledBorder("Medidas Armazon"), layout: new MigLayout('fill,wrap 6,center', '[fill,grow][fill][fill,grow][fill][fill,grow][fill,grow]')) {
+                measuresFramePanel = panel(border: titledBorder("Medidas Armazon"), constraints: 'hidemode 3', visible: measuresVisible,
+                        layout: new MigLayout('fill,wrap 6,center', '[fill,grow][fill][fill,grow][fill][fill,grow][fill,grow]')) {
                   label(text: '  ')
                   label(text: 'Dh')
                   txtDh = textField()
@@ -997,8 +1002,8 @@ class EditRxDialog extends JDialog{
           dataValid = false
         } else if(StringUtils.trimToEmpty(txtOiCil.text).length() > 0 && StringUtils.trimToEmpty(txtOiEje.text).length() <= 0){
           dataValid = false
-        } else if( StringUtils.trimToEmpty(txtDh.text).length() <= 0 || StringUtils.trimToEmpty(txtDv.text).length() <= 0 ||
-                StringUtils.trimToEmpty(txtPte.text).length() <= 0 || StringUtils.trimToEmpty(txtBase.text).length() <= 0){
+        } else if( measuresFramePanel.visible && (StringUtils.trimToEmpty(txtDh.text).length() <= 0 || StringUtils.trimToEmpty(txtDv.text).length() <= 0 ||
+                StringUtils.trimToEmpty(txtPte.text).length() <= 0 || StringUtils.trimToEmpty(txtBase.text).length() <= 0) ){
           dataValid = false
         }
       }

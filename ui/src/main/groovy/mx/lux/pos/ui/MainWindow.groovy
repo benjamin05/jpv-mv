@@ -7,6 +7,7 @@ import mx.lux.pos.ui.controller.*
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.view.action.ExitAction
 import mx.lux.pos.ui.view.dialog.AdjustSaleDialog
+import mx.lux.pos.ui.view.dialog.AssignSubmanagerDialog
 import mx.lux.pos.ui.view.dialog.AuthorizationDialog
 import mx.lux.pos.ui.view.dialog.AuthorizationIpDialog
 import mx.lux.pos.ui.view.dialog.ChangeIpBoxDialog
@@ -74,7 +75,9 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem invoiceMenuItem
     private JMenuItem sessionMenuItem
     private JMenuItem cancellationReportMenuItem
+    private JMenuItem submanagersReportMenuItem
     private JMenuItem dailyCloseReportMenuItem
+    private JMenuItem assignSubManagerMenuItem
     private JMenuItem incomePerBranchReportMenuItem
     private JMenuItem sellerRevenueReportMenuItem
     private JMenuItem undeliveredJobsReportMenuItem
@@ -86,6 +89,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem cuponMvReportMenuItem
     private JMenuItem inventoryTransactionMenuItem
     private JMenuItem inventoryOhQueryMenuItem
+    private JMenuItem inventoryLcOhQueryMenuItem
     private JMenuItem recalculateMenuItem
     private JMenuItem salesBySellerByBrandMenuItem
     private JMenuItem stockbyBrandMenuItem
@@ -153,10 +157,15 @@ class MainWindow extends JFrame implements KeyListener {
                     ordersMenu = menu( text: 'Ventas', mnemonic: 'V',
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
+                                Boolean isManager = false
+                                if( userLoggedIn ){
+                                  User user = Session.get(SessionItem.USER) as User
+                                  isManager = IOController.getInstance().isManager(user.username)
+                                }
                                 orderMenuItem.visible = userLoggedIn
                                 orderSearchMenuItem.visible = userLoggedIn
                                 dailyCloseMenuItem.visible = userLoggedIn
-                                priceListMenuItem.visible = userLoggedIn
+                                priceListMenuItem.visible = isManager
                                 invoiceMenuItem.visible = userLoggedIn
                                 nationalClientMenuItem.visible = userLoggedIn
                                 // TODO: Benja enable feature cotizacionMenuItem.visible = userLoggedIn
@@ -253,9 +262,10 @@ class MainWindow extends JFrame implements KeyListener {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
                                 inventoryTransactionMenuItem.visible = userLoggedIn
                                 inventoryOhQueryMenuItem.visible = userLoggedIn
+                                inventoryLcOhQueryMenuItem.visible = userLoggedIn
                                 User u = Session.get(SessionItem.USER) as User
-                                recalculateMenuItem.visible = AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password))
-                                adjustSaleMenuItem.visible = AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password))
+                                recalculateMenuItem.visible = userLoggedIn ? AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password)) : false
+                                adjustSaleMenuItem.visible = userLoggedIn ? AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password)) : false
                                 //generateInventoryFile.visible = userLoggedIn
                                 //loadPartsMenuItem.visible = userLoggedIn
                                 //loadPartClassMenuItem.visible = userLoggedIn
@@ -266,8 +276,14 @@ class MainWindow extends JFrame implements KeyListener {
                                 actionPerformed: {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
+                                    /*if ( invTrView == null ) {
+                                        invTrView = new InvTrView()
+                                    }*/
                                     if ( invTrView == null ) {
                                         invTrView = new InvTrView()
+                                    } else {
+                                      invTrView = null
+                                      invTrView = new InvTrView()
                                     }
                                     mainPanel.add( 'invTrPanel', invTrView.panel )
                                     invTrView.activate()
@@ -280,7 +296,7 @@ class MainWindow extends JFrame implements KeyListener {
                                     garbage.gc();
                                     InvQryController.instance.requestInvOhTicket() }
                         )
-                        inventoryOhQueryMenuItem = menuItem( text: "Ticket Existencias LC", visible: true,
+                        inventoryLcOhQueryMenuItem = menuItem( text: "Ticket Existencias LC", visible: true,
                                 actionPerformed: {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
@@ -350,40 +366,46 @@ class MainWindow extends JFrame implements KeyListener {
                     reportsMenu = menu( text: "Reportes", mnemonic: "R",
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
-                                cancellationReportMenuItem.visible = userLoggedIn
+                                Boolean isManager = false
+                                if( userLoggedIn ){
+                                  User user = Session.get(SessionItem.USER) as User
+                                  isManager = IOController.getInstance().isManager(user.username)
+                                }
+                                cancellationReportMenuItem.visible = isManager
+                                submanagersReportMenuItem.visible = isManager
                                 dailyCloseReportMenuItem.visible = userLoggedIn
                                 //incomePerBranchReportMenuItem.visible = userLoggedIn
                                 //sellerRevenueReportMenuItem.visible = userLoggedIn
                                 undeliveredJobsReportMenuItem.visible = userLoggedIn
-                                undeliveredJobsAuditReportMenuItem.visible = userLoggedIn
+                                undeliveredJobsAuditReportMenuItem.visible = isManager
                                 salesReportMenuItem.visible = userLoggedIn
                                 //salesByLineReportMenuItem.visible = userLoggedIn
-                                salesBySellerReportMenuItem.visible = userLoggedIn
+                                salesBySellerReportMenuItem.visible = isManager
                                 //salesByBrandReportMenuItem.visible = userLoggedIn
                                 //salesBySellerByBrandMenuItem.visible = userLoggedIn
-                                stockbyBrandMenuItem.visible = userLoggedIn
-                                stockbyBrandColorMenuItem.visible = userLoggedIn
-                                jobControlMenuItem.visible = userLoggedIn
-                                workSubmittedMenuItem.visible = userLoggedIn
-                                taxBillsMenuItem.visible = userLoggedIn
+                                stockbyBrandMenuItem.visible = isManager
+                                stockbyBrandColorMenuItem.visible = isManager
+                                jobControlMenuItem.visible = isManager
+                                workSubmittedMenuItem.visible = isManager
+                                taxBillsMenuItem.visible = isManager
                                 discountsMenuItem.visible = userLoggedIn
                                 //promotionsMenuItem.visible = userLoggedIn
                                 //promotionsListMenuItem.visible = userLoggedIn
-                                paymentsMenuItem.visible = userLoggedIn
+                                paymentsMenuItem.visible = isManager
                                 quoteMenuItem.visible = userLoggedIn
-                                kardexMenuItem.visible = userLoggedIn
-                                kardexBySkuMenuItem.visible = userLoggedIn
+                                kardexMenuItem.visible = isManager
+                                kardexBySkuMenuItem.visible = isManager
                                 //salesTodayMenuItem.visible = userLoggedIn
                                 //salesByPeriodMenuItem.visible = userLoggedIn
-                                undeliveredJobsReportMenuItem.visible = userLoggedIn
-                                discountsMenuItem.visible = userLoggedIn
-                                optometristSalesMenuItem.visible = userLoggedIn
+                                undeliveredJobsReportMenuItem.visible = isManager
+                                discountsMenuItem.visible = isManager
+                                optometristSalesMenuItem.visible = isManager
                                 //examsMenuItem.visible = userLoggedIn
-                                examsByOptoMenuItem.visible = userLoggedIn
-                                couponMenuItem.visible = userLoggedIn
-                                cellarReportMenuItem.visible = userLoggedIn
+                                examsByOptoMenuItem.visible = isManager
+                                couponMenuItem.visible = isManager
+                                cellarReportMenuItem.visible = isManager
                                 cuponMvReportMenuItem.visible = userLoggedIn
-                                multipaymentMenuItem.visible = userLoggedIn
+                                multipaymentMenuItem.visible = false
                             }
                     ) {
                         salesReportMenuItem = menuItem( text: "Ventas",
@@ -556,6 +578,14 @@ class MainWindow extends JFrame implements KeyListener {
                                     ReportController.fireReport( ReportController.Report.Payments )
                                 }
                         )
+                        submanagersReportMenuItem = menuItem( text: "Subgerentes Asignados",
+                                visible: false,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    ReportController.fireReport( ReportController.Report.Submanager )
+                                }
+                        )
                         /*promotionsMenuItem = menuItem( text: "Promociones en Ventas",
                                 visible: false,
                                 actionPerformed: {
@@ -649,20 +679,32 @@ class MainWindow extends JFrame implements KeyListener {
                     toolsMenu = menu( text: 'Herramientas', mnemonic: 'H',
                             menuSelected: {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
-                                User user = Session.get( SessionItem.USER ) as User
-                                String validUser = StringUtils.trimToEmpty(Registry.idManager)
+                                Boolean isManager = false
+                                if(userLoggedIn){
+                                  User user = Session.get( SessionItem.USER ) as User
+                                  isManager = IOController.getInstance().isManager(user.username)//StringUtils.trimToEmpty(Registry.idManager)
+                                }
                                 sessionMenuItem.visible = userLoggedIn
-                                newSalesDayMenuItem.visible = userLoggedIn
-                                entregaMenuItem.visible = userLoggedIn
-                                changePasswordMenuItem.visible = userLoggedIn
+                                newSalesDayMenuItem.visible = isManager
+                                entregaMenuItem.visible = isManager
+                                changePasswordMenuItem.visible = isManager
                                 disactivateSPItem.visible = userLoggedIn
-                                importEmployeeMenuItem.visible = userLoggedIn
-                                reprintEnsureMenuItem.visible = userLoggedIn
+                                importEmployeeMenuItem.visible = isManager
+                                reprintEnsureMenuItem.visible = isManager
                                 ipBoxMenuItem.visible = userLoggedIn
                                 freedomCouponMenuItem.visible = userLoggedIn
-                                supportMenu.visible = StringUtils.trimToEmpty(user.username).equalsIgnoreCase(validUser)
+                                supportMenu.visible = isManager
+                                assignSubManagerMenuItem.visible = isManager
                             }
                     ) {
+                        assignSubManagerMenuItem = menuItem( text: 'Asigna Subgerente',
+                                visible: true,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    assignSubManager()
+                                }
+                        )
                         entregaMenuItem = menuItem(text: 'Entrega',
                                 visible: true,
                                 actionPerformed: {
@@ -843,6 +885,9 @@ class MainWindow extends JFrame implements KeyListener {
             DailyCloseController.RegistrarPromociones()
             DailyCloseController.RegistrarClavesDescuento()
             IOController.getInstance().autoUpdateEmployeeFile()
+            InvTrController controllerInv = InvTrController.instance
+            controllerInv.readAdjutFile()
+            controllerInv.readAutIssueFile()
             //IOController.getInstance().startAsyncNotifyDispatcher()
         }
     }
@@ -874,6 +919,11 @@ class MainWindow extends JFrame implements KeyListener {
 
     void reprintEnsure( ) {
       ReprintEnsureDialog dialog = new ReprintEnsureDialog()
+      dialog.show()
+    }
+
+    void assignSubManager( ) {
+      AssignSubmanagerDialog dialog = new AssignSubmanagerDialog(this, "")
       dialog.show()
     }
 
@@ -952,6 +1002,11 @@ class MainWindow extends JFrame implements KeyListener {
         mainPanel.remove( lcView.panel )
         orderPanel.finalize()
         lcView.panel = null
+      }
+      if( invTrView != null && !panelSelected.equals(invTrView.panel) ){
+        mainPanel.remove( invTrView.panel )
+        orderPanel.finalize()
+        invTrView.panel = null
       }
       Runtime garbage = Runtime.getRuntime();
       garbage.gc();

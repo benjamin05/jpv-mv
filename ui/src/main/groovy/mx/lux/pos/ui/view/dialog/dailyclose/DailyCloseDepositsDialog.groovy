@@ -4,6 +4,7 @@ import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.controller.DailyCloseController
+import mx.lux.pos.ui.controller.IOController
 import mx.lux.pos.ui.controller.ItemController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.DailyClose
@@ -12,7 +13,10 @@ import mx.lux.pos.ui.model.Dioptra
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.OrderItem
+import mx.lux.pos.ui.model.Session
+import mx.lux.pos.ui.model.SessionItem
 import mx.lux.pos.ui.model.UpperCaseDocument
+import mx.lux.pos.ui.model.User
 import mx.lux.pos.ui.view.dialog.WaitDialog
 import mx.lux.pos.ui.view.panel.OrderPanel
 import mx.lux.pos.ui.view.renderer.DateCellRenderer
@@ -44,6 +48,8 @@ class DailyCloseDepositsDialog extends JDialog {
   private JTextArea observations
   private DefaultTableModel depositsModel
   private List<Deposit> deposits
+  User user = Session.get( SessionItem.USER ) as User
+  Boolean isManager = IOController.getInstance().isManager(user.username)
 
   DailyCloseDepositsDialog( JPanel parent, DailyClose dailyClose ) {
     this.dailyClose = dailyClose
@@ -121,10 +127,10 @@ class DailyCloseDepositsDialog extends JDialog {
       }
 
       panel( border: loweredEtchedBorder(), layout: new MigLayout( 'wrap', '[fill]' ) ) {
-        button( text: 'Resumen diario', enabled: true, actionPerformed: printDailyDigest )
-        button( text: 'Cierres de Term.', enabled: true, actionPerformed: closeTerminalsAction )
-        button( text: 'Corregir Term.', enabled: dailyClose.isOpen(), actionPerformed: fixTerminalsAction )
-        button( text: 'Nuevo Deposito', enabled: dailyClose.isOpen(),
+        button( text: 'Resumen diario', enabled: isManager, actionPerformed: printDailyDigest )
+        button( text: 'Cierres de Term.', enabled: isManager, actionPerformed: closeTerminalsAction )
+        button( text: 'Corregir Term.', enabled: dailyClose.isOpen() && isManager, actionPerformed: fixTerminalsAction )
+        button( text: 'Nuevo Deposito', enabled: dailyClose.isOpen() && isManager,
             actionPerformed: {
               new EditDepositDialog( this, closeDate, null, false ).show()
               fetchDeposits()
@@ -137,7 +143,7 @@ class DailyCloseDepositsDialog extends JDialog {
         observations = textArea( document: new UpperCaseDocument() )
       }
       panel( layout: new MigLayout( 'wrap', '[fill,grow]' ) ) {
-        button( 'Cerrar d\u00eda', enabled: dailyClose.isOpen(), constraints: 'skip', actionPerformed: doCloseDay )
+        button( 'Cerrar d\u00eda', enabled: dailyClose.isOpen() && isManager, constraints: 'skip', actionPerformed: doCloseDay )
       }
     }
   }

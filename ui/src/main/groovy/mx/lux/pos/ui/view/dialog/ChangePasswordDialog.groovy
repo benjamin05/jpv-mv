@@ -2,10 +2,12 @@ package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
 import mx.lux.pos.ui.controller.AccessController
+import mx.lux.pos.ui.controller.IOController
 import mx.lux.pos.ui.model.UpperCaseDocument
 import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.verifier.DateVerifier
 import net.miginfocom.swing.MigLayout
+import org.apache.commons.lang.StringUtils
 
 import javax.swing.*
 import java.awt.*
@@ -41,7 +43,7 @@ class ChangePasswordDialog extends JDialog {
         resizable: true,
         pack: true,
         modal: true,
-        preferredSize: [ 400, 350 ],
+        preferredSize: [ 400, 400 ],
         location: [ 200, 250 ],
     ) {
       panel() {
@@ -49,10 +51,10 @@ class ChangePasswordDialog extends JDialog {
         panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap 2", "20[][grow,fill]60", "20[]10[]" ) ) {
           label( text: "Inserte el Usuario y Password", constraints: "span 2" )
           label( text: " ", constraints: "span 2" )
-          label( text: "Usuario:" )
+          label( text: "Empleado:" )
           txtUsuario = textField( document: new UpperCaseDocument() )
-          label( text: "Password:" )
-          txtPassword = passwordField(  )
+          //label( text: "Password:" )
+          //txtPassword = passwordField(  )
           label( text: "Nuevo Password:" )
           txtNuevoPassword = passwordField(  )
           label( text: "Confirmar:" )
@@ -88,26 +90,28 @@ class ChangePasswordDialog extends JDialog {
 
   protected void onButtonOk( ) {
     usuario = txtUsuario.getText().trim()
-    password = txtPassword.getText().trim()
+    password = StringUtils.trimToEmpty(AccessController.getUser(StringUtils.trimToEmpty(txtUsuario.getText())).password)//txtPassword.getText().trim()
     nuevoPassword = txtNuevoPassword.getText().trim()
     confirmaPassword = txtConfirmaPass.getText().trim()
-    if( usuario.length() > 0 && password.length() > 0 && nuevoPassword.length() > 0 && confirmaPassword.length() > 0 ){
+    if( nuevoPassword.length() >= 8 && nuevoPassword.length() <= 10){
         button = true
-        Boolean existEmpleado = AccessController.validaDatos( usuario, password, nuevoPassword, confirmaPassword )
-        if( existEmpleado ){
-            Boolean actualizo = AccessController.cambiaPassword( usuario, nuevoPassword )
-            if( !actualizo ){
-                println 'error al actualizar'
-            } else {
-                dispose()
-            }
+        String existEmpleado = AccessController.validaDatos( usuario, password, nuevoPassword, confirmaPassword )
+        if( StringUtils.trimToEmpty(existEmpleado).length() <= 0 ){
+          Boolean actualizo = AccessController.cambiaPassword( usuario, nuevoPassword )
+          if( !actualizo ){
+            println 'error al actualizar'
+          } else {
+            dispose()
+          }
         } else {
-            lblWarning.visible = true
-            lblWarning.text = 'Usuario o Password invalidos'
+          lblWarning.visible = true
+          lblWarning.text = StringUtils.trimToEmpty(existEmpleado)
         }
     } else {
         lblWarning.visible = true
-        lblWarning.text = 'Verifique los datos'
+        lblWarning.text = '<html>El password debe tener<br>minimo 8 caracteres y maximo 10<html>'
     }
   }
+
+
 }

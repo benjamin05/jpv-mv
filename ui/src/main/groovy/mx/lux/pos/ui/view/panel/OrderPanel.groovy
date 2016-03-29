@@ -145,9 +145,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         advanceOnlyInventariable = false
         String clientesActivos = OrderController.obtieneTiposClientesActivos()
         for(OperationType customer : lstCustomers){
-            if(clientesActivos.contains(customer.value)){
-               customerTypes.add(customer)
+          if( customer.compareTo(OperationType.PAYING) == 0 ){
+            User user = Session.get( SessionItem.USER ) as User
+            if( IOController.getInstance().isManager(user.username) ){
+              if(clientesActivos.contains(customer.value)){
+                customerTypes.add(customer)
+              }
             }
+          } else {
+            if(clientesActivos.contains(customer.value)){
+              customerTypes.add(customer)
+            }
+          }
         }
         promoAgeActive = Registry.promoAgeActive
         customer = CustomerController.findDefaultCustomer()
@@ -787,7 +796,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if(log.equalsIgnoreCase("actionPerformed")){
           focusItem = true
         }
-        sb.optionPane(message: 'No se pueden realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+        sb.optionPane(message: 'No se puede realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "Dia cerrado").show()
       }
       itemSearch.enabled = true
@@ -1464,6 +1473,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if( discountAgeApplied && promoAgeActive && promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
           promotionDriver.addPromoDiscountAge( order, promoAmount )
         }
+      ItemController.validTransSurtePino( StringUtils.trimToEmpty(order.id) )
+      OrderController.validSPWithoutLens( order )
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
       Order newOrder = OrderController.placeOrder(order, vendedor, false)
       OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )

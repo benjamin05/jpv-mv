@@ -1475,8 +1475,17 @@ class TicketServiceImpl implements TicketService {
     def parts = [ ]
     Integer cantidad = 0
     String referencia = ''
+    Boolean isSalidaIncomp = true
+    for ( TransInvDetalle trDet in pTrans.trDet ) {
+      if( trDet.idTipoTrans.equalsIgnoreCase("SALIDA") ){
+        if( trDet.cantidad > 0 || trDet.cantidad < 0 ){
+          isSalidaIncomp = false
+        }
+      }
+    }
     for ( TransInvDetalle trDet in pTrans.trDet ) {
       Articulo part = ServiceFactory.partMaster.obtenerArticulo( trDet.sku, true)
+
       def tkPart = [
           sku: adapter.getText( trDet, adapter.FLD_TRD_SKU ),
           partNbr: adapter.getText( part, adapter.FLD_PART_CODE ),
@@ -1484,10 +1493,10 @@ class TicketServiceImpl implements TicketService {
           partColor: adapter.getText( part, adapter.FLD_PART_CODE_PLUS_COLOR ) ,
           desc: adapter.getText( part, adapter.FLD_PART_DESC ),
           price: String.format( '%12s', adapter.getText( part, adapter.FLD_PART_PRICE ) ),
-          qty: String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
+          qty: isSalidaIncomp ? String.format( '%5s', trDet.linea ) : String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
       ]
-        cantidad = cantidad+trDet.cantidad
-      parts.add( tkPart )
+        cantidad = isSalidaIncomp ? cantidad+trDet.linea : cantidad+trDet.cantidad
+        parts.add( tkPart )
     }
     String barcode = ""
     AddressAdapter companyAddress = Registry.companyAddress
@@ -1505,8 +1514,24 @@ class TicketServiceImpl implements TicketService {
     }*/
     if ( InventorySearch.esTipoTransaccionSalida( pTrans.idTipoTrans ) ) {
       barcode = StringUtils.trimToEmpty(Registry.currentSite.toString())+StringUtils.trimToEmpty(String.format("%06d",pTrans.folio))
+      String titulo = "   Solicitud de devolucion   en espera de autorizacion".toUpperCase()
+      String pieTicket1 = "Documento no valido".toUpperCase()
+      String pieTicket2 = "para realizar devolucion".toUpperCase()
+      Boolean mostratCodigo = false
+      for(TransInvDetalle det : pTrans.trDet){
+        if( det.cantidad > 0 || det.cantidad < 0 ){
+          titulo = "SALIDA DE MERCANCIA"
+          pieTicket1 = "Devolucion autorizada".toUpperCase()
+          pieTicket2 = "Enviar mercancia antes de 48 hrs.".toUpperCase()
+          mostratCodigo = true
+        }
+      }
       def tkInvTr = [
           nombre_ticket: "ticket-salida-inventario",
+          titulo: titulo,
+          pieTicket1: pieTicket1,
+          pieTicket2: pieTicket2,
+          mostrarCodigo: mostratCodigo,
           effDate: adapter.getText( pTrans, adapter.FLD_TR_EFF_DATE ),
           thisSite: adapter.getText( site ),
           user: adapter.getText( emp ),
@@ -1588,7 +1613,11 @@ class TicketServiceImpl implements TicketService {
                 quantity: cantidad,
                 parts: parts
         ]
-        imprimeTicket( "template/ticket-entrada-inventario.vm", tkInvTr )
+        if( StringUtils.trimToEmpty(pTrans.idTipoTrans).equalsIgnoreCase("ENTRADA") ){
+          imprimeTicket( "template/ticket-entrada-inventario.vm", tkInvTr )
+        } else {
+          imprimeTicket( "template/ticket-entrada-sucursal.vm", tkInvTr )
+        }
     } else if ( InventorySearch.esTipoTransaccionOtraSalida( pTrans.idTipoTrans ) ) {
           def tkInvTr = [
                   nombre_ticket: "ticket-salida-inventario",

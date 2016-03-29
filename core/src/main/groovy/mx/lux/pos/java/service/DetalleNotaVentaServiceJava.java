@@ -20,6 +20,10 @@ import java.util.*;
 public class DetalleNotaVentaServiceJava {
 
   static final Logger log = LoggerFactory.getLogger(DetalleNotaVentaServiceJava.class);
+  private static final String TAG_GENERICO_B = "B";
+  private static final String TAG_GENERICO_A = "A";
+  private static final String TAG_SP = "P";
+  private static final String TAG_TIPO_O = "O";
 
   public Boolean verificaValidacionSP( Integer idArticulo, String idFactura, String respuesta ){
     log.debug( "verificaValidacionSP( )" );
@@ -54,7 +58,7 @@ public class DetalleNotaVentaServiceJava {
 
   public LogSpJava saveLogSP( Integer idArticulo, String idFactura, String respuesta ) throws ParseException {
     log.debug( "saveLogSP( )" );
-    String[] resp = respuesta != null ? respuesta.split("|") : new String[0];
+    String[] resp = respuesta != null ? respuesta.split("\\|") : new String[0];
     Boolean respuestaServ = false;
     Date fechaLlamada = new Date();
     Date fechaRespuesta = null;
@@ -105,4 +109,27 @@ public class DetalleNotaVentaServiceJava {
     }
     return new ArrayList<DetalleNotaVentaJava>();
   }
+
+
+  public void validaSPSinLente( NotaVentaJava notaVentaJava ) throws ParseException {
+    Boolean tieneB = false;
+    Boolean tieneSP = false;
+    DetalleNotaVentaJava detalleNotaVenta = new DetalleNotaVentaJava();
+    for(DetalleNotaVentaJava det : notaVentaJava.getDetalles()){
+      if( StringUtils.trimToEmpty(det.getArticulo().getIdGenerico()).equalsIgnoreCase(TAG_GENERICO_B) ){
+        tieneB = true;
+      } else if( StringUtils.trimToEmpty(det.getSurte()).equalsIgnoreCase(TAG_SP) &&
+              StringUtils.trimToEmpty(det.getArticulo().getIdGenerico()).equalsIgnoreCase(TAG_GENERICO_A) &&
+              StringUtils.trimToEmpty(det.getArticulo().getTipo()).equalsIgnoreCase(TAG_TIPO_O) ){
+        tieneSP = true;
+        detalleNotaVenta = det;
+      }
+    }
+    if( tieneSP && !tieneB ){
+      detalleNotaVenta.setSurte("S");
+      DetalleNotaVentaQuery.updateDetalleNotaVenta( detalleNotaVenta );
+    }
+  }
+
+
 }

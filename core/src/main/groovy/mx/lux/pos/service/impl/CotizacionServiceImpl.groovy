@@ -220,7 +220,7 @@ class CotizacionServiceImpl implements CotizacionService {
               }
               DetalleNotaVenta orderLine = new DetalleNotaVenta(
                       idArticulo: item.id,
-                      cantidadFac: 1,
+                      cantidadFac: quoteItem.cantidad,
                       precioUnitLista: item.precio,
                       precioUnitFinal: item.precio,
                       precioCalcLista: item.precio,

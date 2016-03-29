@@ -1,9 +1,13 @@
 package mx.lux.pos.ui.controller
 
+import mx.lux.pos.model.Empleado
+import mx.lux.pos.model.LogAsignaSubgerente
+import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.ui.model.file.FileFilteredList
 import mx.lux.pos.ui.resources.ServiceManager
 import mx.lux.pos.ui.view.dialog.ImportClasificationArticleDialog
 import mx.lux.pos.ui.view.dialog.ImportPartMasterDialog
+import org.apache.commons.lang.StringUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -103,5 +107,22 @@ class IOController {
     void loadAcusePedidoLc() {
       ServiceManager.orderService.cargaAcusesPedidosLc()
     }
+
+    Boolean isManager( String idEmployee ){
+      Boolean valid = false
+      Empleado emp = ServiceManager.employeeService.obtenerEmpleado( StringUtils.trimToEmpty(idEmployee) )
+      if( emp.idPuesto == 1 || emp.idPuesto == 15 ){
+        valid = true
+      }
+      if( !valid ){
+        LogAsignaSubgerente log = ServiceManager.employeeService.obtenerSubgerenteActual()
+        if( log != null && StringUtils.trimToEmpty(emp.id).equalsIgnoreCase(StringUtils.trimToEmpty(log.empleadoAsignado))){
+          valid = true
+        }
+      }
+      return valid
+    }
+
+
 }
 

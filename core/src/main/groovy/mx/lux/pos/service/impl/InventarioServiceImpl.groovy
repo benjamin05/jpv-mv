@@ -1,5 +1,14 @@
 package mx.lux.pos.service.impl
 
+import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.querys.DoctoInvQuery
+import mx.lux.pos.java.querys.TransInvDetQuery
+import mx.lux.pos.java.querys.TransInvQuery
+import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.DoctoInvJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.TransInvDetJava
+import mx.lux.pos.java.repository.TransInvJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
@@ -7,6 +16,7 @@ import mx.lux.pos.service.ArticuloService
 import mx.lux.pos.service.EmpleadoService
 import mx.lux.pos.service.InventarioService
 import mx.lux.pos.service.SucursalService
+import mx.lux.pos.service.TicketService
 import mx.lux.pos.service.business.*
 import mx.lux.pos.service.io.InventoryAdjustFile
 import mx.lux.pos.service.io.ShippingNoticeFile
@@ -24,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional
 
 import javax.annotation.Resource
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 
 @Service( 'inventarioService' )
 @Transactional( readOnly = true )
@@ -35,6 +46,7 @@ class InventarioServiceImpl implements InventarioService {
   private static final String TR_TYPE_RETURN = "DEVOLUCION"
   private static final String TR_TYPE_RECEIPT_SP = "ENTRADA_SP"
   private static final String TAG_ID_GEN_TIPO_NO_STOCK = 'NC'
+  private static final String TAG_ID_GEN_ARMAZON = 'A'
 
   private Logger log = LoggerFactory.getLogger( this.class )
 
@@ -58,10 +70,16 @@ class InventarioServiceImpl implements InventarioService {
   private ParametroRepository parametroRepository
 
   @Resource
+  private DoctoInvRepository doctoInvRepository
+
+  @Resource
   private ArticuloService articuloService
 
   @Resource
   private EmpleadoService empleadoService
+
+  @Resource
+  private TicketService ticketService
 
   // Services
   List<TipoTransInv> listarTiposTransaccion( ) {
@@ -459,6 +477,212 @@ class InventarioServiceImpl implements InventarioService {
       remesa.fecha_carga = new Date()
       remesasRepository.saveAndFlush( remesa )
     }
+  }
+
+
+  Integer generaArchivoSalida( InvTrRequest pRequest ){
+    Integer folio = 0
+    Boolean applied = true
+    try{
+      for(InvTrDetRequest det : pRequest.skuList){
+        Articulo articulo = articuloRepository.findOne( det.sku )
+        if( !StringUtils.trimToEmpty(articulo.idGenerico).equalsIgnoreCase(TAG_ID_GEN_ARMAZON) ){
+          applied = false
+          break
+        }
+      }
+      if(applied){
+      Integer idSuc = Registry.currentSite
+      TransInv transInv = new TransInv()
+      transInv.idTipoTrans = TR_TYPE_ISSUE
+      transInv.folio = obtenerSiguienteFolio( pRequest.trType )
+      transInv.fecha = new Date()
+      transInv.sucursal = idSuc
+      transInv.sucursalDestino = 0
+      transInv.referencia = ''
+      transInv.observaciones = StringUtils.trimToEmpty(pRequest.remarks)
+      transInv.idEmpleado = StringUtils.trimToEmpty(pRequest.idUser)
+      transInv.fechaMod = new Date()
+      transInv = transInvRepository.saveAndFlush( transInv )
+      if( transInv.numReg != null ){
+        folio = transInv.folio
+        for(InvTrDetRequest det : pRequest.skuList){
+          TransInvDetalle transInvDetalle = new TransInvDetalle()
+          transInvDetalle.idTipoTrans = StringUtils.trimToEmpty(transInv.idTipoTrans)
+          transInvDetalle.folio = transInv.folio
+          transInvDetalle.linea = det.qty
+          transInvDetalle.sku = det.sku
+          transInvDetalle.tipoMov = 'S'
+          transInvDetalle.cantidad = 0
+          transInvDetalleRepository.saveAndFlush( transInvDetalle )
+        }
+        String rutaPorEnviar = Registry.archivePath.trim()
+        Integer contador = 0
+        File file = new File( "${rutaPorEnviar}/${idSuc}_${transInv.folio}.sd" )
+        PrintStream strOut = new PrintStream( file )
+        StringBuffer sb = new StringBuffer()
+        sb.append("${transInv.folio}|${transInv.observaciones}|${pRequest.skuList.size()}|")
+        sb.append( "\n" )
+        for(InvTrDetRequest detalle : pRequest.skuList){
+          contador = contador+1
+          sb.append("${contador}|${detalle.sku}|${detalle.qty}|")
+          sb.append( "\n" )
+        }
+        strOut.println sb.toString()
+        strOut.close()
+        log.debug(file.absolutePath)
+      }
+    }
+    } catch ( Exception e ){
+      applied = false
+      println e.message
+    }
+    return folio
+  }
+
+
+  void leerArchivoAutorizacionSalidas( ){
+    SimpleDateFormat df = new SimpleDateFormat("ddMMyyyy")
+    Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
+    Parametro parametro = parametroRepository.findOne( TipoParametro.RUTA_RECIBIDOS.value )
+    String ubicacionSource = ubicacion.valor
+    String ubicacionsDestination = parametro.valor
+    File source = new File( ubicacionSource )
+    File destination = new File( ubicacionsDestination )
+    if ( source.exists() && destination.exists() ) {
+      source.eachFile() { file ->
+        if ( file.getName().endsWith( ".sda" ) ) {
+          try {
+            Integer folio = 0
+            Integer renglones = 1
+            String[] title = file.getName().split("_")
+            String[] strFolio = StringUtils.trimToEmpty(title[1].toString()).split(/\./)
+            try{
+              folio = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(strFolio[0])).intValue()
+            } catch ( NumberFormatException e ){
+              println e.message
+            }
+            List<TransInv> lstTransInv = transInvRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+            if( lstTransInv.size() > 0 ){
+              List<TransInvDetalle> lstDetallesTmp = transInvDetalleRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+              List<TransInvDetalle> lstDetalles = new ArrayList<>()
+              Boolean valid = true
+              for(TransInvDetalle det : lstDetallesTmp){
+                Articulo articulo = articuloRepository.findOne( det.sku )
+                if( articulo != null ){
+                  if( articulo.cantExistencia >= det.linea ){
+                    lstDetalles.add( det )
+                  } else if( articulo.cantExistencia > 0) {
+                    det.linea = articulo.cantExistencia
+                    lstDetalles.add( det )
+                  }
+                }
+              }
+              if( valid ){
+                Integer cantidadTotal = 0
+                for(TransInvDetalle det : lstDetalles){
+                  Articulo articulo = articuloRepository.findOne( det.sku )
+                  if( articulo != null ){
+                    det.cantidad = det.linea
+                    det.linea = renglones
+                    //det = transInvDetalleRepository.saveAndFlush(det)
+                    TransInvDetJava transInvDetJava = new TransInvDetJava()
+                    transInvDetJava.castToTransInvDetJava(det)
+                    TransInvDetQuery.saveOrUpdateTransInvDet( transInvDetJava )
+                    articulo.cantExistencia = articulo.cantExistencia-det.cantidad
+                    //articuloRepository.saveAndFlush( articulo )
+                    ArticulosJava articulosJava = new ArticulosJava()
+                    articulosJava.castToArticulosJava( articulo )
+                    ArticulosQuery.saveOrUpdateArticulos( articulosJava )
+                    renglones = renglones+1
+                    cantidadTotal = cantidadTotal+det.cantidad
+                  }
+                }
+                List<TransInvDetalle> lstDet = transInvDetalleRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+                lstTransInv.first().trDet.addAll(lstDet)
+                InventoryCommit.exportarTransaccion( lstTransInv.first() )
+                TransInv transInv = lstTransInv.first()
+                transInv.referencia = "AUTORIZADA ${df.format(new Date())}"
+                //transInvRepository.saveAndFlush( transInv )
+                TransInvJava transInvJava = new TransInvJava()
+                transInvJava.castToTransInvJava( transInv )
+                TransInvQuery.saveOrUpdateTransInv( transInvJava )
+                if( transInv.trDet.size() <= 0 ){
+                  transInv.trDet.addAll(lstDetalles)
+                }
+                DoctoInv doctoInv = new DoctoInv()
+                doctoInv.idDocto = StringUtils.trimToEmpty(transInv.folio.toString())
+                doctoInv.idTipoDocto = 'DA'
+                doctoInv.fecha = new Date()
+                doctoInv.usuario = 'EXT'
+                doctoInv.referencia = 'DEVOLUCION APLICADA'
+                doctoInv.idSync = '1'
+                doctoInv.idMod = '0'
+                doctoInv.fechaMod = new Date()
+                doctoInv.idSucursal = Registry.currentSite
+                doctoInv.cantidad = StringUtils.trimToEmpty(cantidadTotal.toString())
+                doctoInv.estado = 'pendiente'
+                //doctoInvRepository.saveAndFlush(doctoInv)
+                DoctoInvJava doctoInvJava = new DoctoInvJava()
+                doctoInvJava.castToDoctoInvJava( doctoInv )
+                DoctoInvQuery.saveDoctoInv( doctoInvJava )
+                ticketService.imprimeTransInv( transInv )
+                def newFile = new File( destination, file.name )
+                def moved = file.renameTo( newFile )
+              }
+            }
+          } catch ( Exception e ){
+            println e.message
+          }
+        } else if ( file.getName().endsWith( ".sdn" ) ) {
+          try {
+            Integer folio = 0
+            Integer renglones = 1
+            String[] title = file.getName().split("_")
+            String[] strFolio = StringUtils.trimToEmpty(title[1].toString()).split(/\./)
+            try{
+              folio = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(strFolio[0])).intValue()
+            } catch ( NumberFormatException e ){
+              println e.message
+            }
+            List<TransInv> lstTransInv = transInvRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+            if( lstTransInv.size() > 0 ){
+              TransInv transInv = lstTransInv.first()
+              transInv.referencia = "NO AUTORIZADA ${df.format(new Date())}"
+              transInvRepository.saveAndFlush( transInv )
+            }
+            def newFile = new File( destination, file.name )
+            def moved = file.renameTo( newFile )
+          } catch ( Exception e ){
+            println e.message
+          }
+        }
+      }
+    }
+  }
+
+
+  void registraDoctoInv( List<TransInvDetalle> lstDetalles ){
+    Integer cantidadTotal = 0
+    for(TransInvDetalle det : lstDetalles){
+      Articulo articulo = articuloRepository.findOne( det.sku )
+      if( articulo != null ){
+        cantidadTotal = cantidadTotal+det.cantidad
+      }
+    }
+    DoctoInv doctoInv = new DoctoInv()
+    doctoInv.idDocto = StringUtils.trimToEmpty(lstDetalles.first().folio.toString())
+    doctoInv.idTipoDocto = 'DA'
+    doctoInv.fecha = new Date()
+    doctoInv.usuario = 'EXT'
+    doctoInv.referencia = 'DEVOLUCION APLICADA'
+    doctoInv.idSync = '1'
+    doctoInv.idMod = '0'
+    doctoInv.fechaMod = new Date()
+    doctoInv.idSucursal = Registry.currentSite
+    doctoInv.cantidad = StringUtils.trimToEmpty(cantidadTotal.toString())
+    doctoInv.estado = 'pendiente'
+    doctoInvRepository.saveAndFlush(doctoInv)
   }
 
 

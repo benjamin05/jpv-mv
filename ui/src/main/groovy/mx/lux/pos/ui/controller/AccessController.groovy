@@ -4,6 +4,7 @@ import groovy.util.logging.Slf4j
 import mx.lux.pos.java.repository.EmpleadoJava
 import mx.lux.pos.java.service.EmpleadoServiceJava
 import mx.lux.pos.model.Empleado
+import mx.lux.pos.model.LogAsignaSubgerente
 import mx.lux.pos.service.EmpleadoService
 import mx.lux.pos.service.ListaPreciosService
 import mx.lux.pos.service.SucursalService
@@ -11,10 +12,16 @@ import mx.lux.pos.ui.model.Branch
 import mx.lux.pos.ui.model.Session
 import mx.lux.pos.ui.model.SessionItem
 import mx.lux.pos.ui.model.User
+import mx.lux.pos.ui.resources.ServiceManager
 import org.apache.commons.lang3.StringUtils
 import mx.lux.pos.service.business.Registry
+import org.apache.commons.lang3.time.DateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.regex.Pattern
 
 @Slf4j
 @Component
@@ -159,16 +166,41 @@ class AccessController {
     return valid
   }
 
-  static boolean validaDatos( String usuario, String password, String nuevoPass, String confirmPass ){
-      log.debug( "Cambiando password de usuario $usuario" )
-      Boolean empleadoValido = false
-      Empleado empleado = empleadoService.obtenerEmpleado( usuario )
-      if( empleado != null && empleado.passwd.trim().equalsIgnoreCase(password.trim()) && nuevoPass.trim().equalsIgnoreCase(confirmPass.trim()) ){
-          empleadoValido = true
-      } else {
-          empleadoValido = false
-      }
-      return empleadoValido
+  static String validaDatos( String usuario, String password, String nuevoPass, String confirmPass ){
+    log.debug( "Cambiando password de usuario $usuario" )
+    String empleadoValido = ""
+    Empleado empleado = empleadoService.obtenerEmpleado( usuario )
+    if( empleado == null ){
+      empleadoValido = "Empleado no existe"
+    } else if( !StringUtils.trimToEmpty(nuevoPass).equals(StringUtils.trimToEmpty(confirmPass)) ){
+      empleadoValido = "El Password no coincide con la cofirmacion"
+    } else if( StringUtils.trimToEmpty(nuevoPass).length() < 8 ){
+      empleadoValido = "El password debe contener al menos 8 caracteres"
+    } else if( StringUtils.trimToEmpty(empleado.passwd).equals(StringUtils.trimToEmpty(nuevoPass)) ){
+      empleadoValido = "El password no debe ser el mismo que el anterior"
+    }
+    Integer contador = 0
+    Pattern capitalPat = Pattern.compile("[A-Z]");
+    Pattern lowerPat = Pattern.compile("[a-z]");
+    Pattern numberPat = Pattern.compile("[0-9]");
+    Pattern specialPat = Pattern.compile ("[!@#"+/\$/+"+%&*()_+=|<>?{}\\[\\]~-]");
+
+    if (capitalPat.matcher(nuevoPass).find()){
+      contador = contador+1
+    }
+    if (lowerPat.matcher(nuevoPass).find()){
+      contador = contador+1
+    }
+    if (numberPat.matcher(nuevoPass).find()){
+      contador = contador+1
+    }
+    if (specialPat.matcher(nuevoPass).find()){
+      contador = contador+1
+    }
+    if( contador < 2 ){
+      empleadoValido = "<html>El password debe contener al menos 2 de las siguientes combinaciones:<br>-Mayusculas<br>-Minusculas<br>-Numeros<br>-Simbolos(#"+/\$/+"%&)<html>"
+    }
+    return empleadoValido
   }
 
 
@@ -221,10 +253,15 @@ class AccessController {
   }
 
 
-  private static boolean isManager( Empleado empleado ) {
+  static boolean isManager( Empleado empleado ) {
     log.info( "verificando si empleado es autorizador: ${empleado?.id}" )
     if ( empleado?.id ) {
-      if ( StringUtils.trimToEmpty( Registry.idManager ).contains( StringUtils.trimToEmpty(empleado.id) ) ) {
+      Boolean isSubManager = false
+      LogAsignaSubgerente logSub = ServiceManager.employeeService.obtenerSubgerenteActual()
+      if( logSub != null && StringUtils.trimToEmpty(empleado.id).equalsIgnoreCase(logSub.empleadoAsignado) ){
+        isSubManager = true
+      }
+      if ( empleado.idPuesto == 1 || empleado.idPuesto == 15 || isSubManager ) {
         log.info( "usuario es autorizador" )
         return true
       } else {
@@ -266,4 +303,79 @@ class AccessController {
   }
 
 
+  static Boolean saveSubManager( String idEmployee, Date initialDate, Date finalDate, Integer hours ) {
+    try{
+      User user = (User)Session.get( SessionItem.USER );
+      empleadoService.insertaSubgerente( idEmployee, user.username, initialDate, finalDate, hours )
+      return true
+    } catch ( Exception e ){
+      println e.message
+      return false
+    }
+  }
+
+
+  static Boolean validTimeSubmanager( Boolean validDays, Date initialDate, Date finalDate, String hours ){
+    Boolean valid = true
+    List<LogAsignaSubgerente> logs = ServiceManager.employeeService.obtenerSubgerentesActualYProgramados( )
+    for(LogAsignaSubgerente log : logs){
+      Date vigencia = null
+      Date vigenciaValidar = null
+      if( log.horas != null && StringUtils.trimToEmpty(hours).length() > 0 ){
+      Integer hoursInt = 0
+        try{
+          hoursInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(hours)).intValue()
+        } catch ( NumberFormatException e ){
+          println e.message
+        }
+          Calendar cal = Calendar.getInstance();
+          cal.setTime(log.fecha);
+          cal.add(Calendar.HOUR_OF_DAY, log.horas);
+          vigencia = cal.getTime();
+          Calendar cal1 = Calendar.getInstance();
+          cal1.setTime(new Date());
+          cal1.add(Calendar.HOUR_OF_DAY, hoursInt);
+          vigenciaValidar = cal1.getTime();
+      }
+      /*if( log.fechaInicial == null && vigenciaValidar.compareTo(vigencia) <= 0 && initialDate.compareTo(vigencia) <= 0){
+          valid = false
+          break
+      }*/
+        if( validDays ){
+          if( log.fechaFinal != null && (initialDate.compareTo(log.fechaFinal) <= 0 && initialDate.compareTo(log.fechaInicial) >= 0) ){
+            valid = false
+            break
+          }
+        } else {
+          if( vigencia != null && vigenciaValidar != null && ((new Date().compareTo(vigencia) <= 0) || (vigenciaValidar.compareTo(vigencia) <= 0)) ){
+            valid = false
+            break
+          }
+        }
+      }
+    //LogAsignaSubgerente log = ServiceManager.employeeService.obtenerSubgerenteActual()
+    return valid
+  }
+
+
+  static Boolean validTimePass( String username ){
+    Boolean valid = true
+    EmpleadoJava emp = empleadoServiceJava.obtenerEmpleado( username )
+    if( emp != null ){
+      Date today = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH );
+      Calendar cal = Calendar.getInstance()
+      cal.setTime(emp.fechaMod)
+      cal.add( Calendar.MONTH, Registry.monthsToChangePass)
+      Date fechaFin = new Date( DateUtils.ceiling( cal.getTime(), Calendar.DAY_OF_MONTH ).getTime() - 1 );
+      if( today.compareTo(fechaFin) > 0 ){
+        valid = false
+      }
+    }
+    return valid
+  }
+
+
+  static Empleado findEmployee( String idEmp ){
+    return empleadoService.obtenerEmpleado( idEmp )
+  }
 }

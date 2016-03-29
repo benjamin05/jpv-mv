@@ -48,8 +48,9 @@ class InvTrQueryDriver extends InvTrDriver {
       pView.panel.txtNbr.setText( pView.adapter.getText( pView.data.qryInvTr,  InvTrAdapter.FLD_TR_NBR ) )
       pView.panel.txtEffDate.setText( pView.adapter.getText( pView.data.qryInvTr,  InvTrAdapter.FLD_TR_EFF_DATE ) )
         if( pView.data.qryInvTr.idTipoTrans.equalsIgnoreCase('ENTRADA_TIENDA') || pView.data.qryInvTr.idTipoTrans.equalsIgnoreCase('ENTRADA') ||
-                pView.data.qryInvTr.idTipoTrans.equalsIgnoreCase('OTRAS_ENTRADAS') ){
-            pView.panel.txtRef.setText( pView.data?.qryInvTr?.referencia != null ? pView.data?.qryInvTr?.referencia.toString() : '' )
+                pView.data.qryInvTr.idTipoTrans.equalsIgnoreCase('OTRAS_ENTRADAS') || pView.data.qryInvTr.idTipoTrans.equalsIgnoreCase('SALIDA') ||
+                pView.data.qryInvTr.idTipoTrans.equalsIgnoreCase('AJUSTE')){
+            pView.panel.txtRef.setText( pView.data?.qryInvTr?.referencia != null ? pView.data?.qryInvTr?.referencia?.toString() : '' )
         } else {
             pView.panel.txtRef.setText( pView.data?.order?.factura ?: '' )
         }

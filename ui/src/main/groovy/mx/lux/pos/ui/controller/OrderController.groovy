@@ -1412,11 +1412,11 @@ class OrderController {
         StringTokenizer st = new StringTokenizer(StringUtils.trimToEmpty(s), ",")
         //Iterator its = st.iterator()
         String[] its = StringUtils.trimToEmpty(s).trim().split(',')
-        for(int i=0;i<its.length;i++){
+        /*for(int i=0;i<its.length;i++){
           if( !surte.equalsIgnoreCase(its[i]) && !its[i].equalsIgnoreCase("P") ){
             surteOption.add(its[i])
           }
-        }
+        }*/
         /*while (its.hasNext()) {
             if (!its.next().toString().trim().equals(surte)) {
                 surteOption.add(its.next().toString())
@@ -1465,7 +1465,7 @@ class OrderController {
 
                 surteSwitch.surte = 'P'
             } else if (condicion.trim().equals('No') && result.size() == 2) {
-                Integer question = JOptionPane.showConfirmDialog(new JDialog(), '¿Desea Continuar con la venta?', 'Almacen Central no Responde o sin Existencias',
+                Integer question = JOptionPane.showConfirmDialog(new JDialog(), '<html>Almacen Central no Responde o sin Existencias<br> <br><center>¿Desea Continuar con la venta?<center><html>', '¡Atencion!',
                         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
                 if (question == 0) {
                     surteSucursal = false
@@ -3908,6 +3908,12 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             }
     }
     return valid
+  }
+
+
+  static void validSPWithoutLens( Order order ){
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
+    detalleNotaVentaServiceJava.validaSPSinLente( notaVenta )
   }
 
 
