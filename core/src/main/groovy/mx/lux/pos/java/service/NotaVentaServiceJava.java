@@ -138,7 +138,7 @@ public class NotaVentaServiceJava {
     List<ModeloLcJava> modelosLc = ModeloLcQuery.buscaTodoModeloLc();
     for(DetalleNotaVentaJava det : nota.getDetalles()){
       if( StringUtils.trimToEmpty(det.getArticulo().getIdGenerico()).equalsIgnoreCase(TAG_GENERICOS_LENTECONTACTO2) ){
-        if( StringUtils.trimToEmpty(det.getArticulo().getIdGenTipo()).equalsIgnoreCase(TAG_GEN_TIPO_C) ){
+        if( StringUtils.trimToEmpty(det.getArticulo().getTipo()).equalsIgnoreCase(TAG_GEN_TIPO_C) ){
           if(StringUtils.trimToEmpty(det.getIdRepVenta()).length() <= 0 ){
             articulo.add(det.getArticulo());
           }
@@ -149,7 +149,7 @@ public class NotaVentaServiceJava {
               articulo.add(det.getArticulo());
             }
           }
-        } else if( StringUtils.trimToEmpty(det.getArticulo().getIdGenTipo()).equalsIgnoreCase(TAG_GEN_TIPO_NC) ){
+        } else if( StringUtils.trimToEmpty(det.getArticulo().getTipo()).equalsIgnoreCase(TAG_GEN_TIPO_NC) ){
           for(ModeloLcJava mod : modelosLc){
             if( StringUtils.trimToEmpty(det.getArticulo().getArticulo()).equalsIgnoreCase(StringUtils.trimToEmpty(mod.getIdModelo())) ){
               PedidoLcJava pedidoLc = PedidoLcQuery.buscaPedidoLcPorId( idFactura );

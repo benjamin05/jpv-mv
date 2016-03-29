@@ -1,5 +1,7 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.model.TransInvDetalle;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
@@ -80,6 +82,17 @@ public class TransInvDetJava {
       this.setCantidad(rs.getInt("cantidad"));
 	  return this;
 	}
-	
-	
+
+
+    public TransInvDetJava castToTransInvDetJava(TransInvDetalle transInvDetalle) throws SQLException{
+        this.setNumReg(transInvDetalle.getNumReg());
+        this.setIdTipoTrans(transInvDetalle.getIdTipoTrans());
+        this.setFolio(transInvDetalle.getFolio());
+        this.setLinea(transInvDetalle.getLinea());
+        this.setSku(transInvDetalle.getSku());
+        this.setTipoMov(transInvDetalle.getTipoMov());
+        this.setCantidad(transInvDetalle.getCantidad());
+        return this;
+    }
+
 }

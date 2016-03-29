@@ -1,6 +1,8 @@
 package mx.lux.pos.model;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -38,6 +40,17 @@ public class LogAsignaSubgerente implements Serializable {
 
     @Column( name = "horas" )
     private Integer horas;
+
+    @ManyToOne
+    @NotFound( action = NotFoundAction.IGNORE )
+    @JoinColumn( name = "empleado_asigno", insertable = false, updatable = false, referencedColumnName = "id_empleado")
+    private Empleado empAsigno;
+
+    @ManyToOne
+    @NotFound( action = NotFoundAction.IGNORE )
+    @JoinColumn( name = "empleado_asignado", insertable = false, updatable = false, referencedColumnName = "id_empleado")
+    private Empleado empAsignado;
+
 
 
 
@@ -95,5 +108,21 @@ public class LogAsignaSubgerente implements Serializable {
 
     public void setHoras(Integer horas) {
         this.horas = horas;
+    }
+
+    public Empleado getEmpAsigno() {
+        return empAsigno;
+    }
+
+    public void setEmpAsigno(Empleado empAsigno) {
+        this.empAsigno = empAsigno;
+    }
+
+    public Empleado getEmpAsignado() {
+        return empAsignado;
+    }
+
+    public void setEmpAsignado(Empleado empAsignado) {
+        this.empAsignado = empAsignado;
     }
 }

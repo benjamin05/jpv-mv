@@ -128,4 +128,6 @@ public interface ReportService {
     String obtenerReporteVentasMultipago( Date dateStart, Date dateEnd );
 
     String obtenerArticuloPorSku( String Sku );
+
+    String obtenerReporteSubgerentesAsignados( Date dateStart, Date dateEnd );
 }

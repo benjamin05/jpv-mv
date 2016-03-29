@@ -1465,7 +1465,7 @@ class OrderController {
 
                 surteSwitch.surte = 'P'
             } else if (condicion.trim().equals('No') && result.size() == 2) {
-                Integer question = JOptionPane.showConfirmDialog(new JDialog(), '¿Desea Continuar con la venta?', 'Almacen Central no Responde o sin Existencias',
+                Integer question = JOptionPane.showConfirmDialog(new JDialog(), '<html>Almacen Central no Responde o sin Existencias<br> <br><center>¿Desea Continuar con la venta?<center><html>', '¡Atencion!',
                         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
                 if (question == 0) {
                     surteSucursal = false
@@ -3924,6 +3924,12 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       receta = RecetaQuery.buscaRecetaPorIdReceta( nota.receta )
     }
     return Rx.toRx(receta)
+  }
+
+
+  static void validSPWithoutLens( Order order ){
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
+    detalleNotaVentaServiceJava.validaSPSinLente( notaVenta )
   }
 
 

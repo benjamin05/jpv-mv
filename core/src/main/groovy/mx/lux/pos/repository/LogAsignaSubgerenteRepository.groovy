@@ -11,5 +11,7 @@ interface LogAsignaSubgerenteRepository extends JpaRepository<LogAsignaSubgerent
   @Query( value = "SELECT * FROM log_asigna_subgerente ORDER BY id_log DESC LIMIT 1", nativeQuery = true)
   LogAsignaSubgerente findLastSubmanager()
 
+  @Query( value = "SELECT * FROM log_asigna_subgerente WHERE (fecha_inicial IS NOT NULL AND fecha_inicial >= CAST(NOW() AS DATE)) OR (fecha_inicial IS NULL AND fecha >= CAST(NOW() AS DATE)) ORDER BY id_log ASC", nativeQuery = true)
+  List<LogAsignaSubgerente> findSubmanagersProgrammed()
 }
 

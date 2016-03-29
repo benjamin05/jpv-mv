@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Subgerentes_Asignados_Det" language="groovy" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="bd926c8b-759d-409b-842b-36fef97193e8">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<field name="empleadoAsigno" class="java.lang.String"/>
+	<field name="empleadoAsignado" class="java.lang.String"/>
+	<field name="fechaInicial" class="java.util.Date"/>
+	<field name="fechaFinal" class="java.util.Date"/>
+	<field name="horas" class="java.lang.String"/>
+	<field name="fecha" class="java.util.Date"/>
+	<field name="empAsigno.nombreCompleto" class="java.lang.String"/>
+	<field name="empAsignado.nombreCompleto" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="22" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="0166862c-9009-4843-8989-ac774f0b9705" x="110" y="0" width="152" height="14"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[Empleado Asigno]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9cd4bd67-6a89-4f22-8273-bfc99d4d8808" x="262" y="0" width="161" height="14"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[Empleado Asignado]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="82adc24c-30b0-4c69-ac8c-5dacafe2c7db" x="423" y="0" width="80" height="14"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[Fecha Inicial]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8bfdb890-8a87-4d5c-b832-8772e94f9a03" x="503" y="0" width="72" height="14"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[Fecha Final]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8bfdb890-8a87-4d5c-b832-8772e94f9a03" x="575" y="0" width="37" height="14"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[Horas]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c937616c-2d91-4a9f-95f9-a43b538f2212" x="0" y="0" width="110" height="14"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[Fecha Asignacion]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField>
+				<reportElement uuid="3a22456f-404b-40ee-ad03-ead845163ed8" x="110" y="0" width="32" height="15"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[[$F{empleadoAsigno}]]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9d0a337b-a7b4-4dde-833f-e9d811f89585" x="262" y="0" width="32" height="15"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[[$F{empleadoAsignado}]]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="ec420672-2246-4c7b-9ddd-61f066b17c34" x="423" y="0" width="80" height="15"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fechaInicial}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="93883400-a567-42b2-97a8-ff5da78875ac" x="503" y="0" width="72" height="15"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{fechaFinal}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="e7ce02c1-532a-41f0-917a-4a96b1c8d2a2" x="575" y="0" width="37" height="15"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{horas}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="17742f58-e6ba-4fdc-972d-100a09249c8b" x="0" y="0" width="110" height="15"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fecha}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="2a83d137-52cf-4158-b229-2307042513ee" x="142" y="0" width="120" height="15"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{empAsigno.nombreCompleto}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="3c8b1611-ebac-4fe3-a417-3819df31c47a" x="294" y="0" width="129" height="15"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{empAsignado.nombreCompleto}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>
