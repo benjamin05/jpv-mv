@@ -42,7 +42,11 @@ DIST INT LEJOS: #altnull(${lente.distIntLejos})${COL_DIST_2}DIST MONOCULAR DER: 
 DIST INT CERCA: #altnull(${lente.distIntCercas})${COL_DIST_2}DIST MONOCULAR IZQ: #altnull(${lente.distMonoI})${CR}
 ALTURA SEGMENTO: #altnull(${lente.alturaSeg})
 #FIN_ESTILO()${LF}
-#ETIQUETA_VALOR("ARMAZON:" "#altnull(${lente.armazon})")
+#ETIQUETA_VALOR("ARMAZON:" "#altnull(${lente.armazon})")${CR}
+#if($mostrarMedidaArm)
+#ETIQUETA_VALOR("MEDIDAS:" "")
+#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)DH-#altnull(${lente.dh}),DV-#altnull(${lente.dv}),PTE-#altnull(${lente.pte}),BASE-#altnull(${lente.base})${CR}
+#FIN_ESTILO()${LF}#end
 #if($lente.surte == "S")#ALINEAR_CENTRO()#INICIO_ESTILO(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)SURTE SUCURSAL#FIN_ESTILO${LF}${LF}#end
 #if($lente.surte == "P")#ALINEAR_CENTRO()#INICIO_ESTILO(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)SURTE PINO#FIN_ESTILO${LF}${LF}#end
 #ETIQUETA_VALOR("TRATAMIENTO:" "#altnull(${lente.tratamiento})")

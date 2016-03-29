@@ -447,6 +447,11 @@ class TicketServiceImpl implements TicketService {
                   distMonoI:rx?.diOi,
                   alturaSeg:rx?.altOblR,
 
+                  dh: rx?.dh,
+                  dv: rx?.dv,
+                  pte: rx?.pte,
+                  base: rx?.base,
+
                   armazon: armazonCli,
                   uso: usoLente,
                   tratamiento: trat,
@@ -489,6 +494,7 @@ class TicketServiceImpl implements TicketService {
               infoTicket: infoGeneral,
               cliente: infoCliente,
               lente: detalleLente,
+              mostrarMedidaArm: Registry.measuresFrameVisible(),
               comentarios: coment,
               externo: false
             ] as Map<String, Object>

@@ -587,10 +587,12 @@ class EditRxDialog extends JDialog{
             txtOiDm.setText(fillDecimals(receta.diOi))
             txtOiAd.setText(fillDecimals(receta.oiAdcR))
             txtAltOblea.setText(fillDecimals(receta.altOblR))
-            txtDh.setText(receta.dh)
-            txtDv.setText(receta.dv)
-            txtPte.setText(receta.pte)
-            txtBase.setText(fillDecimals(receta.base))
+            if(Registry.measuresFrameVisible()){
+              txtDh.setText(receta.dh)
+              txtDv.setText(receta.dv)
+              txtPte.setText(receta.pte)
+              txtBase.setText(fillDecimals(receta.base))
+            }
             txtObservaciones.setText(receta.observacionesR)
             if( editRx ){
               btnTraerReceta.visible = false
