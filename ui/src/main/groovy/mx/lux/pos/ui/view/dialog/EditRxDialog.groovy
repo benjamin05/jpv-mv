@@ -23,6 +23,7 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
 import java.text.NumberFormat
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.List
 
@@ -432,12 +433,60 @@ class EditRxDialog extends JDialog{
                   label(text: '  ')
                   label(text: 'Dh')
                   txtDh = textField()
+                  txtDh.addFocusListener( new FocusListener() {
+                      @Override
+                      void focusGained(FocusEvent e) {
+                          //To change body of implemented methods use File | Settings | File Templates.
+                      }
+
+                      @Override
+                      void focusLost(FocusEvent e) {
+                        try{
+                          Double valor = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtDh.text))
+                        } catch ( ParseException ex ){
+                          println ex
+                          txtDh.text = ''
+                        }
+                      }
+                  })
                   label(text: 'Pte')
                   txtPte = textField()
+                  txtPte.addFocusListener(new FocusListener() {
+                      @Override
+                      void focusGained(FocusEvent e) {
+                          //To change body of implemented methods use File | Settings | File Templates.
+                      }
+
+                      @Override
+                      void focusLost(FocusEvent e) {
+                        try{
+                          Double valor = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPte.text))
+                        } catch ( ParseException ex ){
+                          println ex
+                          txtPte.text = ''
+                        }
+                      }
+                  })
                   label(text: '  ')
                   label(text: '  ')
                   label(text: 'Dv')
                   txtDv = textField()
+                  txtDv.addFocusListener(new FocusListener() {
+                      @Override
+                      void focusGained(FocusEvent e) {
+                          //To change body of implemented methods use File | Settings | File Templates.
+                      }
+
+                      @Override
+                      void focusLost(FocusEvent e) {
+                        try{
+                          Double valor = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtDv.text))
+                        } catch ( ParseException ex ){
+                          println ex
+                          txtDv.text = ''
+                        }
+                      }
+                  })
                   label(text: 'Base')
                   txtBase = textField()
                   txtBase.addFocusListener(new FocusListener() {
