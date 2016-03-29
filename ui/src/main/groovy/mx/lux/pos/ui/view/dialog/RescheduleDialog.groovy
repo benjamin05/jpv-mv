@@ -17,10 +17,14 @@ import javax.swing.*
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
 import java.awt.*
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.text.DateFormat
+import java.text.NumberFormat
+import java.text.ParseException
 import java.text.SimpleDateFormat
 
-class RescheduleDialog extends JDialog implements ChangeListener {
+class RescheduleDialog extends JDialog {
 
   private DateFormat df = new SimpleDateFormat( "dd/MM/yyyy" )
   private DateVerifier dv = DateVerifier.instance
@@ -71,9 +75,55 @@ class RescheduleDialog extends JDialog implements ChangeListener {
           date = spinner( model: spinnerDateModel() )
           date.editor = new JSpinner.DateEditor( date as JSpinner, 'dd-MM-yyyy' )
           date.value = DateUtils.addDays( new Date(), Registry.callAgain )
-          date.addChangeListener(this)
+          date.addChangeListener(new ChangeListener() {
+              @Override
+              void stateChanged(ChangeEvent e) {
+                  Date fechainicial = new Date()
+                  Date fechafinal = date.value as Date
+                  DateFormat df = DateFormat.getDateInstance(DateFormat.MEDIUM);
+                  String fechainiciostring = df.format(fechainicial);
+                  try {
+                      fechainicial = df.parse(fechainiciostring);
+                  }
+                  catch (ParseException ex) {
+                  }
+
+                  String fechafinalstring = df.format(fechafinal);
+                  try {
+                      fechafinal = df.parse(fechafinalstring);
+                  }
+                  catch (ParseException ex) {
+                  }
+
+                  long fechainicialms = fechainicial.getTime();
+                  long fechafinalms = fechafinal.getTime();
+                  long diferencia = fechafinalms - fechainicialms;
+                  double dias = Math.floor(diferencia / 86400000L);// 3600*24*1000
+                  txtDays.text = StringUtils.trimToEmpty(dias.intValue().toString());
+              }
+          })
           label( text: "o" )
           txtDays = textField( StringUtils.trimToEmpty(Registry.callAgain.toString()), preferredSize: [ 60, 21 ] )
+          txtDays.addFocusListener(new FocusListener() {
+              @Override
+              void focusGained(FocusEvent e) {
+                  //To change body of implemented methods use File | Settings | File Templates.
+              }
+
+              @Override
+              void focusLost(FocusEvent e) {
+                Integer days = 0
+                try{
+                  days = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtDays.text))
+                } catch ( ParseException ex ){
+                  println ex
+                }
+                Calendar cal = Calendar.getInstance()
+                cal.setTime(new Date())
+                cal.add(Calendar.DAY_OF_MONTH, days)
+                date.value = cal.getTime()
+              }
+          })
         }
         panel( constraints: BorderLayout.PAGE_END ) {
           borderLayout()
@@ -139,8 +189,6 @@ class RescheduleDialog extends JDialog implements ChangeListener {
     dispose()
   }
 
-    @Override
-    void stateChanged(ChangeEvent e) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+
+
 }
