@@ -57,16 +57,16 @@ public class PopUpMenu {
 	    itemInfoPino = new JMenuItem("Info Laboratorio");
         itemCustomerData = new JMenuItem("Datos Cliente");
         itemReschedule = new JMenuItem("Reprogramar");
-        itemRetener = new JMenuItem("Retener");
-        itemDesretener = new JMenuItem("Desretener");
+        //itemRetener = new JMenuItem("Retener");
+        //itemDesretener = new JMenuItem("Desretener");
 
         pMenu.add(itemRxData);
         pMenu.add(itemConsultaTrabajo);
         pMenu.add(itemInfoPino);
         pMenu.add(itemCustomerData);
         pMenu.add(itemReschedule);
-        pMenu.add( itemRetener );
-        pMenu.add(itemDesretener);
+        //pMenu.add( itemRetener );
+        //pMenu.add(itemDesretener);
 
 	    pMenu.show(component, x, y);
         //pMenu.setLocation(x,y);
@@ -135,7 +135,7 @@ public class PopUpMenu {
         });
 
 
-        itemRetener.addActionListener(new ActionListener() {
+        /*itemRetener.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 RetenidosDialog d = new RetenidosDialog(rx);
@@ -153,7 +153,7 @@ public class PopUpMenu {
                     ConsultaPanel.buscar();
                 }
             }
-        });
+        });*/
 	}
 
     private JMenuItem getItemRetener(String rx) {
@@ -210,7 +210,7 @@ public class PopUpMenu {
         if ( jb == null )
             return;
 
-        itemRetener.setEnabled(false);
+        /*itemRetener.setEnabled(false);
         itemDesretener.setEnabled(false);
 
         if ( ! (jb.getEstado().equals("TE") || jb.getEstado().equals("CN") || jb.getEstado().equals("RTN")) ) {
@@ -219,6 +219,6 @@ public class PopUpMenu {
 
         if ( jb.getEstado().equals("RTN") ) {
             itemDesretener.setEnabled(true);
-        }
+        }*/
     }
 }

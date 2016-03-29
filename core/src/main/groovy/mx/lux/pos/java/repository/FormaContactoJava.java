@@ -1,8 +1,15 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.querys.OrdenPromDetQuery;
+import mx.lux.pos.java.querys.TipoContactoQuery;
+import org.apache.commons.lang.StringUtils;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class FormaContactoJava {
 
@@ -79,15 +86,20 @@ public class FormaContactoJava {
         this.tipoContacto = tipoContacto;
     }
 
-    public FormaContactoJava mapeoFormaContacto(ResultSet rs) throws SQLException{
+    public FormaContactoJava mapeoFormaContacto(ResultSet rs) throws SQLException, ParseException {
 	  this.setRx(rs.getString("rx"));
 	  this.setIdTipoContacto(rs.getInt("id_tipo_contacto"));
 	  this.setContacto(rs.getString("contacto"));
       this.setObservaciones(rs.getString("observaciones"));
       this.setFechaMod(rs.getDate("fecha_mod"));
       this.setIdSucursal(rs.getInt("id_sucursal"));
+      this.setTipoContacto(tipoContactoJava());
 	  return this;
 	}
-	
-	
+
+
+    private TipoContactoJava tipoContactoJava( ) throws ParseException {
+      TipoContactoJava tipoContactoJava = TipoContactoQuery.buscaTipoContactoPorIdTipoContacto(this.idTipoContacto);
+      return tipoContactoJava;
+    }
 }

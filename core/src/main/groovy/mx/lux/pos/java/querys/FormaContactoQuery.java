@@ -36,8 +36,10 @@ public class FormaContactoQuery {
         }
       } catch (SQLException err) {
         System.out.println( err );
+      } catch (ParseException e) {
+          e.printStackTrace();
       }
-	  return lstFormasContacto;
+        return lstFormasContacto;
 	}
 
 
@@ -55,8 +57,10 @@ public class FormaContactoQuery {
         }
       } catch (SQLException err) {
         System.out.println( err );
+      } catch (ParseException e) {
+          e.printStackTrace();
       }
-      return formaContactoJava;
+        return formaContactoJava;
     }
 
 
