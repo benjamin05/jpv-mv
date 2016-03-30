@@ -442,8 +442,9 @@ class EditRxDialog extends JDialog{
                       @Override
                       void focusLost(FocusEvent e) {
                         try{
-                          Double valor = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtDh.text))
-                        } catch ( ParseException ex ){
+                          Integer i = Double.parseDouble(StringUtils.trimToEmpty(txtDh.text)).intValue()
+                          println i
+                        } catch ( NumberFormatException ex ){
                           println ex
                           txtDh.text = ''
                         }
@@ -460,8 +461,9 @@ class EditRxDialog extends JDialog{
                       @Override
                       void focusLost(FocusEvent e) {
                         try{
-                          Double valor = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPte.text))
-                        } catch ( ParseException ex ){
+                          Integer i = Double.parseDouble(StringUtils.trimToEmpty(txtPte.text))
+                          println i
+                        } catch ( NumberFormatException ex ){
                           println ex
                           txtPte.text = ''
                         }
@@ -480,8 +482,9 @@ class EditRxDialog extends JDialog{
                       @Override
                       void focusLost(FocusEvent e) {
                         try{
-                          Double valor = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtDv.text))
-                        } catch ( ParseException ex ){
+                          Integer i = Double.parseDouble(StringUtils.trimToEmpty(txtDv.text))
+                          println i
+                        } catch ( NumberFormatException ex ){
                           println ex
                           txtDv.text = ''
                         }
