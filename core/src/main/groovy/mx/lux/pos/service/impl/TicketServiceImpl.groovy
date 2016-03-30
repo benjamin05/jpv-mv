@@ -1481,6 +1481,8 @@ class TicketServiceImpl implements TicketService {
         if( trDet.cantidad > 0 || trDet.cantidad < 0 ){
           isSalidaIncomp = false
         }
+      } else {
+        isSalidaIncomp = false
       }
     }
     for ( TransInvDetalle trDet in pTrans.trDet ) {
@@ -1532,6 +1534,7 @@ class TicketServiceImpl implements TicketService {
           pieTicket1: pieTicket1,
           pieTicket2: pieTicket2,
           mostrarCodigo: mostratCodigo,
+          mostrarFirma: mostratCodigo,
           effDate: adapter.getText( pTrans, adapter.FLD_TR_EFF_DATE ),
           thisSite: adapter.getText( site ),
           user: adapter.getText( emp ),
@@ -1621,6 +1624,7 @@ class TicketServiceImpl implements TicketService {
     } else if ( InventorySearch.esTipoTransaccionOtraSalida( pTrans.idTipoTrans ) ) {
           def tkInvTr = [
                   nombre_ticket: "ticket-salida-inventario",
+                  titulo: "SALIDA DE MERCANCIA",
                   effDate: adapter.getText( pTrans, adapter.FLD_TR_EFF_DATE ),
                   thisSite: adapter.getText( site ),
                   user: adapter.getText( emp ),
@@ -1630,7 +1634,11 @@ class TicketServiceImpl implements TicketService {
                   remarks_1: ( remarks.size() > 0 ? remarks.get( 0 ) : "" ),
                   remarks_2: ( remarks.size() > 1 ? remarks.get( 1 ) : "" ),
                   quantity: cantidad,
-                  parts: parts
+                  parts: parts,
+                  pieTicket1: "",
+                  pieTicket2: "",
+                  mostrarCodigo: false,
+                  mostrarFirma: true,
           ]
           imprimeTicket( "template/ticket-salida-inventario.vm", tkInvTr )
       }
