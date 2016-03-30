@@ -894,8 +894,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     private void reviewForTransfers(String newOrderId) {
       if (CancellationController.orderHasTransfers(newOrderId)) {
+        InvTrController controllerInv = InvTrController.instance
         List<Order> lstOrders = CancellationController.findOrderToResetValues(newOrderId)
         for (Order order : lstOrders) {
+          if( ItemController.hasSameFrame(order.id, newOrderId) ){
+            controllerInv.automaticIssue( StringUtils.trimToEmpty(order.id), true )
+          }
           CancellationController.resetValuesofCancellationJava(order.id)
         }
         List<String> sources = CancellationController.findSourceOrdersWithCredit(newOrderId)

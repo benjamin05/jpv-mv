@@ -580,5 +580,28 @@ class ItemController {
     }
   }
 
+  static Boolean hasSameFrame( String oldOrder, String newOrder ){
+    Boolean hasSameFrame = false
+    NotaVentaJava oldNota = NotaVentaQuery.busquedaNotaById(oldOrder)
+    NotaVentaJava newNota = NotaVentaQuery.busquedaNotaById(newOrder)
+    if( oldNota != null && newNota != null ){
+      String oldFrames = ""
+      String newFrames = ""
+      for(DetalleNotaVentaJava det : oldNota.detalles){
+        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("A") ){
+          oldFrames = oldFrames+","+StringUtils.trimToEmpty(det.idArticulo.toString())
+        }
+      }
+      for(DetalleNotaVentaJava det : newNota.detalles){
+        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("A") ){
+          if(oldFrames.contains(StringUtils.trimToEmpty(det.idArticulo.toString()))){
+            hasSameFrame = true
+          }
+        }
+      }
+    }
+    return hasSameFrame
+  }
+
 
 }

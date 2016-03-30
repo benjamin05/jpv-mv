@@ -97,6 +97,8 @@ class CancellationController {
       if ( modificacion?.id ) {
         if( cancelacionService.cancMismoDia( StringUtils.trimToEmpty(orderId) ) ){
           //cancelacionService.actualizaJbCancelado( StringUtils.trimToEmpty(modificacion.idFactura), StringUtils.trimToEmpty(user.username) )
+          InvTrController controllerInv = InvTrController.instance
+          controllerInv.automaticIssue( StringUtils.trimToEmpty(orderId), false )
           updateJb( StringUtils.trimToEmpty(orderId) )
         }
         cancelacionService.cancelarCupones( orderId )
