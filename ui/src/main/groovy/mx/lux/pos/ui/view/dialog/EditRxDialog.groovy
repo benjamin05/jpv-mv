@@ -431,7 +431,7 @@ class EditRxDialog extends JDialog{
                 measuresFramePanel = panel(border: titledBorder("Medidas Armazon"), constraints: 'hidemode 3', visible: measuresVisible,
                         layout: new MigLayout('fill,wrap 6,center', '[fill,grow][fill][fill,grow][fill][fill,grow][fill,grow]')) {
                   label(text: '  ')
-                  label(text: 'Dh')
+                  label(text: 'DH')
                   txtDh = textField()
                   txtDh.addFocusListener( new FocusListener() {
                       @Override
@@ -449,7 +449,7 @@ class EditRxDialog extends JDialog{
                         }
                       }
                   })
-                  label(text: 'Pte')
+                  label(text: 'PTE')
                   txtPte = textField()
                   txtPte.addFocusListener(new FocusListener() {
                       @Override
@@ -469,7 +469,7 @@ class EditRxDialog extends JDialog{
                   })
                   label(text: '  ')
                   label(text: '  ')
-                  label(text: 'Dv')
+                  label(text: 'DV')
                   txtDv = textField()
                   txtDv.addFocusListener(new FocusListener() {
                       @Override
@@ -636,7 +636,7 @@ class EditRxDialog extends JDialog{
             txtOiDm.setText(fillDecimals(receta.diOi))
             txtOiAd.setText(fillDecimals(receta.oiAdcR))
             txtAltOblea.setText(fillDecimals(receta.altOblR))
-            if(Registry.measuresFrameVisible()){
+            if(measuresVisible){
               txtDh.setText(receta.dh)
               txtDv.setText(receta.dv)
               txtPte.setText(receta.pte)

@@ -4,6 +4,7 @@ import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.model.Receta
+import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.IOController
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.controller.CustomerController
@@ -21,7 +22,11 @@ import org.apache.commons.lang.StringUtils
 
 import javax.swing.*
 import java.awt.*
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
+import java.text.NumberFormat
+import java.text.ParseException
 import java.util.List
 
 class RXPanel extends JPanel {
@@ -63,17 +68,24 @@ class RXPanel extends JPanel {
     private JTextField txtAltOblea
     private JTextField txtDILejos
 
+    private JTextField txtDh
+    private JTextField txtDv
+    private JTextField txtPte
+    private JTextField txtBase
+
     private JTextField txtObservaciones
 
     private JPanel empleadoPanel
     private JPanel usoRxPanel1
     private JPanel usoRxPanel2
+    private JPanel measuresFramePanel
 
     private DefaultTableModel rxModel
     private List<Rx> lstRecetas
     private Rx receta
     private Integer idCliente
     private Integer idSucursal
+    private Boolean measuresVisible
 
 
     private final String EDITAR = 'Editar Receta'
@@ -88,6 +100,7 @@ class RXPanel extends JPanel {
         lstRecetas.addAll( CustomerController.findAllPrescriptions( idCliente ) )
         this.idCliente = idCliente
         this.idSucursal = CustomerController.findCurrentSucursal()
+        measuresVisible = Registry.measuresFrameVisible()
         buildUI()
     }
 
@@ -180,6 +193,18 @@ class RXPanel extends JPanel {
                         toolTipText: 'Altura Oblea',
                         horizontalAlignment: JTextField.RIGHT
                 )
+                label( "" )
+                measuresFramePanel = panel(border: titledBorder("Medidas Armazon"), constraints: 'span,hidemode 3', visible: measuresVisible,
+                        layout: new MigLayout('fill,wrap 8,center', '[fill][fill,grow][fill][fill,grow][fill][fill,grow][fill][fill,grow]')) {
+                    label(text: 'DH')
+                    txtDh = textField( editable: false )
+                    label(text: 'PTE')
+                    txtPte = textField( editable: false )
+                    label(text: 'DV')
+                    txtDv = textField( editable: false )
+                    label(text: 'Base')
+                    txtBase = textField( editable: false )
+                }
             }
             panel( constraints: BorderLayout.PAGE_END, border: BorderFactory.createEmptyBorder( 5, 0, 0, 0 ) ) {
                 borderLayout()
@@ -221,6 +246,13 @@ class RXPanel extends JPanel {
             bean( txtDICerca, text: bind( source: receta, sourceProperty: 'diCercaR' ) )
             bean( txtAltOblea, text: bind( source: receta, sourceProperty: 'altOblR' ) )
             bean( txtObservaciones, text: bind( source: receta, sourceProperty: 'observacionesR' ) )
+
+            if(measuresVisible){
+              txtDh.setText(receta.dh)
+              txtDv.setText(receta.dv)
+              txtPte.setText(receta.pte)
+              txtBase.setText(receta.base)
+            }
         }
     }
 
