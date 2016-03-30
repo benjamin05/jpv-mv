@@ -325,6 +325,29 @@ public class JbQuery {
     }
 
 
+    public static JbJava updateJb(JbJava jbJava) throws ParseException {
+      Connections db = new Connections();
+      String sql = "";
+      String formatDate = "yyyy-MM-dd";
+      String formatTime = "HH:mm:ss.SSS";
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      JbJava jb = null;
+      sql = String.format("UPDATE jb SET estado = '%s',id_viaje = '%s',caja = '%s',id_cliente = '%s',roto = %d,emp_atendio = '%s',num_llamada = %d," +
+            "material = '%s',surte = '%s',saldo = %s,jb_tipo = '%s',volver_llamar = %s,fecha_promesa = %s,cliente = '%s',obs_ext = '%s',ret_auto = '%s'," +
+            "tipo_venta = '%s',fecha_venta = %s,id_grupo = %s,no_enviar = %s,externo = '%s' WHERE rx = '%s';",
+            jbJava.getEstado(), jbJava.getIdViaje(), jbJava.getCaja(), jbJava.getIdCliente(),jbJava.getRoto(), jbJava.getEmpAtendio(),
+            jbJava.getNumLlamada(), jbJava.getMaterial(), jbJava.getSurte(), Utilities.toMoney(jbJava.getSaldo()), jbJava.getJbTipo(),
+            Utilities.toString(jbJava.getVolverLlamar(), formatTimeStamp), Utilities.toString(jbJava.getFechaPromesa(), formatDate),
+            jbJava.getCliente(), jbJava.getObsExt(), jbJava.getRetAuto(), jbJava.getTipoVenta(), Utilities.toString(jbJava.getFechaVenta(),
+            formatTimeStamp), Utilities.toStringNull(jbJava.getIdGrupo()), Utilities.toBoolean(jbJava.getNoEnviar()),jbJava.getExterno(), jbJava.getRx());
+        db.insertQuery(sql);
+        db.close();
+        jb = buscarPorRx( jbJava.getRx() );
+
+        return jb;
+    }
+
+
     public static List<JbJava> buscarJbPorEstado( String estado ){
       List<JbJava> lstJb = new ArrayList<JbJava>();
       try {

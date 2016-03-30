@@ -3933,4 +3933,14 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+
+  static void reschedule( String rx, Date date ){
+    JbJava jb = JbQuery.buscarPorRx( rx )
+    if( jb != null ){
+      jb.volverLlamar = date
+      JbQuery.updateJb( jb )
+    }
+  }
+
+
 }

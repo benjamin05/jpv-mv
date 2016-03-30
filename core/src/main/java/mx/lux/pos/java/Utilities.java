@@ -36,11 +36,16 @@ public class Utilities {
   public static Integer toInteger(String strValue){
     Integer valueTmp = 0;
     try{
-      valueTmp = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(strValue)).intValue();
+      if( isNumeric(StringUtils.trimToEmpty(strValue)) ){
+        valueTmp = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(strValue)).intValue();
+      } else {
+        valueTmp = null;
+      }
     } catch (NumberFormatException e) {
       e.printStackTrace();
     } catch (ParseException e) {
       e.printStackTrace();
+      valueTmp = null;
     }
     return valueTmp;
   }
@@ -89,4 +94,16 @@ public class Utilities {
     }
     return  result;
   }
+
+
+  private static boolean isNumeric(String cadena){
+    try {
+      Integer.parseInt(cadena);
+      return true;
+    } catch (NumberFormatException nfe){
+      return false;
+    }
+  }
+
+
 }

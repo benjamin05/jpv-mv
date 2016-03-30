@@ -194,7 +194,7 @@ public class JbJava {
 		this.setIdViaje(rs.getString("id_viaje"));
 		this.setCaja(rs.getString("caja"));
 		this.setIdCliente(rs.getString("id_cliente"));
-		this.setRoto(rs.getInt("roto"));
+        this.setRoto(Utilities.toInteger(rs.getString("roto")));
 		this.setEmpAtendio(rs.getString("emp_atendio"));
 		this.setNumLlamada(rs.getInt("num_llamada"));
 		this.setMaterial(rs.getString("material"));
@@ -211,7 +211,7 @@ public class JbJava {
 		this.setNoLlamar(Utilities.toBoolean(rs.getBoolean("no_llamar")));
 		this.setTipoVenta(rs.getString("tipo_venta"));
 		this.setFechaVenta(rs.getDate("fecha_venta"));
-		this.setIdGrupo(rs.getString("id_grupo"));
+		this.setIdGrupo(StringUtils.trimToEmpty(rs.getString("id_grupo")));
 		this.setNoEnviar(Utilities.toBoolean(rs.getBoolean("no_enviar")));
         this.setExterno(rs.getString("externo"));
 		

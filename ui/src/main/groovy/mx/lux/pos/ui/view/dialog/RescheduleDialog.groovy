@@ -186,6 +186,7 @@ class RescheduleDialog extends JDialog {
   }
 
   protected void onButtonOk( ) {
+    OrderController.reschedule( bill, date.value as Date )
     dispose()
   }
 
