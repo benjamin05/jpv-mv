@@ -3,9 +3,11 @@ package mx.lux.pos.service.impl
 import com.ibm.icu.text.RuleBasedNumberFormat
 import com.mysema.query.BooleanBuilder
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.DoctoInvQuery
 import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.repository.CuponMvJava
 import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.DoctoInvJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.model.*
@@ -1507,6 +1509,7 @@ class TicketServiceImpl implements TicketService {
         parts.add( tkPart )
     }
     String barcode = ""
+    String barcodeEnvelope = ""
     AddressAdapter companyAddress = Registry.companyAddress
     Sucursal site = sucursalRepository.findOne( pTrans.sucursal )
     Sucursal siteTo = null
@@ -1521,6 +1524,10 @@ class TicketServiceImpl implements TicketService {
       mgr = empleadoRepository.findById( site.idGerente )
     }*/
     if ( InventorySearch.esTipoTransaccionSalida( pTrans.idTipoTrans ) ) {
+      DoctoInvJava doctoInv = DoctoInvQuery.buscaDoctoInvDaPorIdDocto(StringUtils.trimToEmpty(pTrans.folio.toString()))
+      if( doctoInv != null && StringUtils.trimToEmpty(doctoInv.notas).length() > 0 ){
+        barcodeEnvelope = StringUtils.trimToEmpty(doctoInv.notas)
+      }
       barcode = StringUtils.trimToEmpty(Registry.currentSite.toString())+StringUtils.trimToEmpty(String.format("%06d",pTrans.folio))
       String titulo = "   Solicitud de devolucion   en espera de autorizacion".toUpperCase()
       String pieTicket1 = "Documento no valido".toUpperCase()
@@ -1541,6 +1548,8 @@ class TicketServiceImpl implements TicketService {
           pieTicket2: pieTicket2,
           mostrarCodigo: mostratCodigo,
           mostrarFirma: mostratCodigo,
+          barcodeEnvelope: doctoInv != null ? StringUtils.trimToEmpty(doctoInv.notas) : "",
+          mostrarBarcodeEnvelope: doctoInv != null ? StringUtils.trimToEmpty(doctoInv.notas).length() > 0 : false,
           effDate: adapter.getText( pTrans, adapter.FLD_TR_EFF_DATE ),
           thisSite: adapter.getText( site ),
           user: adapter.getText( emp ),
@@ -1645,6 +1654,8 @@ class TicketServiceImpl implements TicketService {
                   pieTicket2: "",
                   mostrarCodigo: false,
                   mostrarFirma: true,
+                  barcodeEnvelope: "",
+                  mostrarBarcodeEnvelope: false,
           ]
           imprimeTicket( "template/ticket-salida-inventario.vm", tkInvTr )
       }

@@ -144,6 +144,23 @@ public class DoctoInvJava {
       this.setSistema(doctoInv.getSistema());
 	  return this;
 	}
-	
-	
+
+
+    public DoctoInvJava mapeoDoctoInv(ResultSet rs) throws SQLException{
+      this.setIdDocto(rs.getString("id_docto"));
+      this.setIdTipoDocto(rs.getString("id_tipo_docto"));
+      this.setFecha(rs.getDate("fecha"));
+      this.setUsuario(rs.getString("usuario"));
+      this.setReferencia(rs.getString("referencia"));
+      this.setIdSync(rs.getString("id_sync"));
+      this.setIdMod(rs.getString("id_mod"));
+      this.setFechaMod(rs.getDate("fecha_mod"));
+      this.setIdSucursal(rs.getInt("id_sucursal"));
+      this.setNotas(rs.getString("notas"));
+      this.setCantidad(rs.getString("cantidad"));
+      this.setEstado(rs.getString("estado"));
+      this.setSistema(rs.getString("sistema"));
+      return this;
+    }
+
 }

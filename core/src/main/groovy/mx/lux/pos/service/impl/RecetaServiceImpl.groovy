@@ -5,6 +5,7 @@ import mx.lux.pos.repository.*
 import mx.lux.pos.service.NotaVentaService
 import mx.lux.pos.service.RecetaService
 import mx.lux.pos.service.business.Registry
+import org.apache.commons.lang.StringUtils
 import org.hibernate.service.spi.ServiceException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -128,6 +129,10 @@ class RecetaServiceImpl implements RecetaService {
         contenido = contenido+'|esfera_dVal='+rx?.odEsfR
         contenido = contenido+'|codigoVal='+ notaVenta.codigo_lente
         contenido = contenido+'|eje_iVal='+ rx?.oiEjeR
+        contenido = contenido+'|dhVal='+ StringUtils.trimToEmpty(rx?.dh)
+        contenido = contenido+'|dvVal='+ StringUtils.trimToEmpty(rx?.dv)
+        contenido = contenido+'|pteVal='+ StringUtils.trimToEmpty(rx?.pte)
+        contenido = contenido+'|baseVal='+ StringUtils.trimToEmpty(rx?.base)
         contenido = contenido+'|'
         String cont = contenido
         contenido= ''
