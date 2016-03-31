@@ -1097,6 +1097,7 @@ class InvTrController {
           doctoInv.idMod = '0'
           doctoInv.fechaMod = new Date()
           doctoInv.idSucursal = Registry.currentSite
+          doctoInv.notas = StringUtils.trimToEmpty(String.format("P%010d", JbQuery.nextFolioJbSobre()))
           doctoInv.cantidad = StringUtils.trimToEmpty(quantity.toString())
           doctoInv.estado = 'pendiente'
           DoctoInvJava doctoInvJava = new DoctoInvJava()
