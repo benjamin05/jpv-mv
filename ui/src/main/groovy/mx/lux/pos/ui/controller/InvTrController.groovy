@@ -1076,8 +1076,8 @@ class InvTrController {
       }
       if( hasFrame && hasLen & estatusValid ){
         InvTr data = new InvTr()
-        data.postRemarks = "SALIDA POR CANCELACION"
-        data.postReference = ""
+        data.postRemarks = "CANCELACION DE OFTALMICO FACTURA ${StringUtils.trimToEmpty(notaVenta.factura)}"
+        data.postReference = StringUtils.trimToEmpty(notaVenta.factura)
         data.postSiteTo = null
         data.postTrType = RepositoryFactory.trTypes.findOne("SALIDA")
         Articulo part = ServiceManager.partService.obtenerArticulo( idFrame, false )
