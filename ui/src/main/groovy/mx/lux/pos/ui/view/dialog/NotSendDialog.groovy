@@ -88,7 +88,6 @@ class NotSendDialog extends JDialog {
   protected void onButtonOk( ) {
     if( StringUtils.trimToEmpty(txtReason.text).length() > 0 ){
       OrderController.notSend( rx, StringUtils.trimToEmpty(txtReason.text) )
-      println component.dump()
       dispose()
     } else {
       lblWarning.visible = true

@@ -1,6 +1,7 @@
 package mx.lux.pos.ui.view.dialog
 
-import mx.lux.pos.ui.model.Customer;
+import mx.lux.pos.ui.model.Customer
+import mx.lux.pos.ui.view.panel.EnvioPanel;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -49,6 +50,7 @@ public class PopUpMenu {
     private JMenuItem itemRetener;
     private JMenuItem itemStopCall;
     private JMenuItem itemNotSend;
+    private JMenuItem itemSend;
     private JMenuItem itemDesretener;
     private JPanel jPanel;
 
@@ -65,6 +67,7 @@ public class PopUpMenu {
         itemReschedule = new JMenuItem("Reprogramar");
         itemStopCall = new JMenuItem("No Contactar");
         itemNotSend = new JMenuItem("No Enviar");
+        itemSend = new JMenuItem("Enviar");
         //itemInfoPino = new JMenuItem("Info Laboratorio");
         //itemRetener = new JMenuItem("Retener");
         //itemDesretener = new JMenuItem("Desretener");
@@ -75,13 +78,20 @@ public class PopUpMenu {
         pMenu.add(itemReschedule);
         pMenu.add(itemStopCall);
         pMenu.add(itemNotSend);
+        pMenu.add(itemSend);
         //pMenu.add(itemInfoPino);
         //pMenu.add( itemRetener );
         //pMenu.add(itemDesretener);
-
-        if( StringUtils.trimToEmpty(panel).equalsIgnoreCase(TAG_PANEL_CONSULTA) ){
+        String[] data = StringUtils.trimToEmpty(panel).split(",")
+        if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_CONSULTA) ){
           itemNotSend.visible = false
-        } else if( StringUtils.trimToEmpty(panel).equalsIgnoreCase(TAG_PANEL_ENVIO) ){
+          itemSend.visible = false
+        } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_ENVIO) ){
+          if( StringUtils.trimToEmpty(data[1]).equalsIgnoreCase("send") ){
+            itemSend.visible = false
+          } else if( StringUtils.trimToEmpty(data[1]).equalsIgnoreCase("notsend") ){
+            itemNotSend.visible = false
+          }
           itemReschedule.visible = false
           itemStopCall.visible = false
         }
@@ -166,11 +176,19 @@ public class PopUpMenu {
             public void actionPerformed(ActionEvent e) {
               NotSendDialog dialog = new NotSendDialog( component, rx )
               dialog.show()
-              jPanel.limpiaPantalla()
+              jPanel = jPanel as EnvioPanel
+              //jPanel.limpiaPantalla()
             }
         });
 
-
+        itemSend.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                OrderController.send( rx, "" )
+                jPanel = jPanel as EnvioPanel
+                //jPanel.limpiaPantalla()
+            }
+        });
         /*itemRetener.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

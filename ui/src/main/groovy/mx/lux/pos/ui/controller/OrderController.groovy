@@ -4002,4 +4002,26 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       JbQuery.updateJb(jb)
     }
   }
+
+
+  static void send( String rx, String observations ){
+    User user = Session.get( SessionItem.USER ) as User
+    JbJava jb = JbQuery.buscarPorRx( rx )
+    if( jb != null ){
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+      jbTrack.rx = rx
+      jbTrack.estado = "PE"
+      jbTrack.obs = observations
+      jbTrack.emp = user.username
+      jbTrack.idViaje = ''
+      jbTrack.fecha = new Date()
+      jbTrack.idMod = '0'
+      JbQuery.saveJbTrack( jbTrack )
+
+      jb.estado = "PE"
+      JbQuery.updateJb(jb)
+    }
+  }
+
+
 }

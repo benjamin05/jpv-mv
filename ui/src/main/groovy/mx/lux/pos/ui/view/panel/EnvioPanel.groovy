@@ -112,7 +112,7 @@ class EnvioPanel extends JPanel {
           txtFolio = textField( )
       }
 
-      panel( layout: new MigLayout( 'wrap 3', '[fill,200!,center]110[fill,200!,center]110[fill,200!,center]', '[270!]' ) ) {
+      panel( layout: new MigLayout( 'wrap 2', '[fill,200!,center]110[fill,200!,center]110[fill,200!,center]', '[270!]' ) ) {
         /*scrollPane( ) {
           table(selectionMode: ListSelectionModel.SINGLE_SELECTION) {
             devModel = tableModel(list: new ArrayList<String>()) {
@@ -121,16 +121,26 @@ class EnvioPanel extends JPanel {
           }
         }*/
         scrollPane( ) {
-          table(selectionMode: ListSelectionModel.SINGLE_SELECTION) {
+          table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doShowItemClickNotSend) {
             noSendModel = tableModel(list: lstNotSend) {
-              propertyColumn(header: "No Enviar", propertyName: "rx", editable: false)
+              closureColumn(
+                header: 'No Enviar',
+                read: { JbJava tmp -> tmp?.rx },
+                minWidth: 200,
+                maxWidth: 200
+              )
             } as DefaultTableModel
           }
         }
         scrollPane( ) {
-          table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doShowItemClick) {
+          table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doShowItemClickSend) {
             bySendModel = tableModel(list: lstBySend) {
-              propertyColumn(header: "Por Enviar", propertyName: "rx", editable: false)
+              closureColumn(
+                header: 'Enviar',
+                read: { JbJava tmp -> tmp?.rx },
+                minWidth: 200,
+                maxWidth: 200
+              )
             } as DefaultTableModel
           }
         }
@@ -147,44 +157,13 @@ class EnvioPanel extends JPanel {
 
   private doBindings( ) {
     sb.build {
-      bean( lblCliente, text: bind {order?.customer?.fullName ?: ''} )
-      bean( lblFolio, text: bind {order?.id ?: ''} )
-      bean( lblFecha, text: bind {order?.date?.format( DATE_TIME_FORMAT ) ?: ''} )
-      bean( rfcInput, text: bind( source: invoice, sourceProperty: 'rfc', mutual: true ) )
-      bean( rfcInput, enabled: bind {editable && !cbExtranjero.selected} )
-      bean( cbExtranjero,
-          selected: bind( source: invoice, sourceProperty: 'invoiceType',
-              converter: {'I'.equalsIgnoreCase( it )},
-              reverseConverter: {it ? 'I' : 'N'},
-              mutual: true
-          )
-      )
-      bean( cbExtranjero, enabled: bind {editable} )
-      bean( txtRazonSocial, text: bind( source: invoice, sourceProperty: 'bizName', mutual: true ) )
-      bean( txtRazonSocial, enabled: bind {editable} )
-      bean( txtCallNum, text: bind( source: invoice, sourceProperty: 'primary', mutual: true ) )
-      bean( txtCallNum, enabled: bind {editable} )
-      bean( txtCol, text: bind( source: invoice, sourceProperty: 'location', mutual: true ) )
-      bean( txtCol, enabled: bind {editable} )
-      bean( txtDelMun, text: bind( source: invoice, sourceProperty: 'city', mutual: true ) )
-      bean( txtDelMun, enabled: bind {editable} )
-      bean( cbEstado, selectedItem: bind( source: invoice, sourceProperty: 'state', mutual: true ) )
-      bean( cbEstado, enabled: bind {editable} )
-      bean( txtPais, text: bind( source: invoice, sourceProperty: 'country', mutual: true ) )
-      bean( txtPais, enabled: bind {editable} )
-      bean( txtCP, text: bind( source: invoice, sourceProperty: 'zipcode', mutual: true ) )
-      bean( txtCP, enabled: bind {editable} )
-      bean( txtCorreo, enabled: bind {editable} )
-      bean( cbCorreo, enabled: bind {editable} )
-      bean( editButton, visible: bind {invoiced} )
-      bean( printInvoiceButton, visible: bind {invoiced && !editable} )
-      bean( printReferenceButton, visible: bind {invoiced && !editable} )
-      bean( displayButton, visible: bind {invoiced && !editable} )
-      bean( requestButton, visible: bind {editable} )
-      bean( txtTicket, text: bind( target: invoice, targetProperty: 'ticket' ) )
-      bean( invoice, orderId: bind {order.id} )
-      bean( invoice, email: bind {"${txtCorreo.text}@${cbCorreo.selectedItem}"} )
+      lstBySend = OrderController.jbBySend()
+      lstNotSend = OrderController.jbNotSend()
+      travel = OrderController.findCurrentTravel()
+      bySendModel.fireTableDataChanged()
+      noSendModel.fireTableDataChanged()
     }
+
   }
 
   private void fillEmailFields( String email ) {
@@ -458,14 +437,23 @@ class EnvioPanel extends JPanel {
   }
 
 
-  private def doShowItemClick = { MouseEvent ev ->
+  private def doShowItemClickSend = { MouseEvent ev ->
     if (SwingUtilities.isRightMouseButton(ev)) {
       JbJava selectedData = ev.source.selectedElement as JbJava
       if( selectedData != null ){
-        PopUpMenu menu = new PopUpMenu( ev.component, ev.component.getX(), ev.component.getY(), StringUtils.trimToEmpty(selectedData.rx), "envio", this );
+        PopUpMenu menu = new PopUpMenu( ev.component, ev.component.getX(), ev.component.getY(), StringUtils.trimToEmpty(selectedData.rx), "envio,send", this );
+        doBindings()
       }
     }
   }
 
-
+  private def doShowItemClickNotSend = { MouseEvent ev ->
+    if (SwingUtilities.isRightMouseButton(ev)) {
+      JbJava selectedData = ev.source.selectedElement as JbJava
+      if( selectedData != null ){
+        PopUpMenu menu = new PopUpMenu( ev.component, ev.component.getX(), ev.component.getY(), StringUtils.trimToEmpty(selectedData.rx), "envio,notsend", this );
+        doBindings()
+      }
+    }
+  }
 }
