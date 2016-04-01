@@ -47,6 +47,7 @@ public class PopUpMenu {
     private JMenuItem itemCustomerData;
     private JMenuItem itemReschedule;
     private JMenuItem itemRetener;
+    private JMenuItem itemStopCall;
     private JMenuItem itemDesretener;
 	
 	public PopUpMenu( Component component, Integer x, Integer y, final String rx ){
@@ -57,6 +58,7 @@ public class PopUpMenu {
 	    itemInfoPino = new JMenuItem("Info Laboratorio");
         itemCustomerData = new JMenuItem("Datos Cliente");
         itemReschedule = new JMenuItem("Reprogramar");
+        itemStopCall = new JMenuItem("No Contactar");
         //itemRetener = new JMenuItem("Retener");
         //itemDesretener = new JMenuItem("Desretener");
 
@@ -65,6 +67,7 @@ public class PopUpMenu {
         pMenu.add(itemInfoPino);
         pMenu.add(itemCustomerData);
         pMenu.add(itemReschedule);
+        pMenu.add(itemStopCall);
         //pMenu.add( itemRetener );
         //pMenu.add(itemDesretener);
 
@@ -134,6 +137,14 @@ public class PopUpMenu {
             }
         });
 
+
+        itemStopCall.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              StopContactDialog dialog = new StopContactDialog( rx )
+              dialog.show()
+            }
+        });
 
         /*itemRetener.addActionListener(new ActionListener() {
             @Override

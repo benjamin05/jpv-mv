@@ -25,6 +25,7 @@ import mx.lux.pos.java.repository.EmpleadoJava
 import mx.lux.pos.java.repository.ExamenJava
 import mx.lux.pos.java.repository.FormaContactoJava
 import mx.lux.pos.java.repository.JbJava
+import mx.lux.pos.java.repository.JbLlamadaJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.Parametros
@@ -3943,4 +3944,24 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static void stopContact( String rx, String observations ){
+    User user = Session.get( SessionItem.USER ) as User
+    JbJava jb = JbQuery.buscarPorRx( rx )
+    if( jb != null ){
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+      jbTrack.rx = rx
+      jbTrack.estado = "NT"
+      jbTrack.obs = observations
+      jbTrack.emp = user.username
+      jbTrack.idViaje = ''
+      jbTrack.fecha = new Date()
+      jbTrack.idMod = '0'
+      JbQuery.saveJbTrack( jbTrack )
+
+      JbQuery.eliminaJbLLamada( rx )
+
+      jb.noLlamar = true
+      JbQuery.updateJb(jb)
+    }
+  }
 }
