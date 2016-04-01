@@ -67,4 +67,6 @@ interface TicketService {
   void imprimeResumenCuponCan( String idFactura, List<String> porDev )
 
   NotaVentaJava imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure )
+
+  void imprimePackingPrevio( String idEmp )
 }

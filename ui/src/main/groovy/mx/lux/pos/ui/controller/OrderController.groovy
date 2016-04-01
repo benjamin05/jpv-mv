@@ -4024,4 +4024,10 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static void printPreviousPacking( ){
+    User user = (User)Session.get( SessionItem.USER );
+    ticketService.imprimePackingPrevio( StringUtils.trimToEmpty(user.username) )
+  }
+
+
 }

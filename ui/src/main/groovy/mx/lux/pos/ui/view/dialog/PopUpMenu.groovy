@@ -177,16 +177,18 @@ public class PopUpMenu {
               NotSendDialog dialog = new NotSendDialog( component, rx )
               dialog.show()
               jPanel = jPanel as EnvioPanel
-              //jPanel.limpiaPantalla()
+              jPanel.updateData()
+              jPanel.doBindings()
             }
         });
 
         itemSend.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                OrderController.send( rx, "" )
-                jPanel = jPanel as EnvioPanel
-                //jPanel.limpiaPantalla()
+              OrderController.send( rx, "" )
+              jPanel = jPanel as EnvioPanel
+              jPanel.updateData()
+              jPanel.doBindings()
             }
         });
         /*itemRetener.addActionListener(new ActionListener() {

@@ -3,9 +3,14 @@ package mx.lux.pos.service.impl
 import com.ibm.icu.text.RuleBasedNumberFormat
 import com.mysema.query.BooleanBuilder
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.EmpleadoQuery
+import mx.lux.pos.java.querys.JbQuery
 import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.repository.CuponMvJava
 import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.EmpleadoJava
+import mx.lux.pos.java.repository.JbJava
+import mx.lux.pos.java.repository.JbViaje
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.model.*
@@ -2892,6 +2897,34 @@ class TicketServiceImpl implements TicketService {
         return null
       }
     }
+
+
+  @Override
+  void imprimePackingPrevio( String idEmp ){
+    log.debug( "imprimePackingPrevio( )" )
+    List<JbJava> lstJb = JbQuery.buscarJbPorEstado("PE")
+    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
+    if( lstJb.size() > 0 ){
+      String currentTravel = ""
+      List<JbViaje> lstJbViajes = JbQuery.buscarJbViajesHoy()
+      if( lstJbViajes.size() <= 0 ){
+        currentTravel = "1"
+      } else {
+        currentTravel = StringUtils.trimToEmpty((lstJbViajes.size()+1).toString());
+      }
+      EmpleadoJava empleado = EmpleadoQuery.buscaEmpPorIdEmpleado( idEmp )
+      Sucursal sucursal = sucursalRepository.findOne( Registry.currentSite )
+      def datos = [
+        fecha: df.format(new Date()),
+        sucursal: "[${StringUtils.trimToEmpty(sucursal.id.toString())}] ${StringUtils.trimToEmpty(sucursal.nombre)}",
+        viaje: currentTravel,
+        emp: empleado != null ? "[${empleado.idEmpleado.trim()}] ${empleado.nombreEmpleado}" : "",
+      ]
+      this.imprimeTicket( 'template/ticket-packing.vm', datos )
+    } else {
+      log.debug( String.format( 'No existen trabajos por enviar' ) )
+    }
+  }
 
 
 }
