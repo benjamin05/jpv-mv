@@ -684,6 +684,7 @@ class InventarioServiceImpl implements InventarioService {
     doctoInv.idSucursal = Registry.currentSite
     doctoInv.cantidad = StringUtils.trimToEmpty(cantidadTotal.toString())
     doctoInv.estado = 'pendiente'
+    doctoInv.notas = StringUtils.trimToEmpty(String.format("P%010d", JbQuery.nextFolioJbSobre()))
     doctoInvRepository.saveAndFlush(doctoInv)
   }
 
