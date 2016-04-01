@@ -62,7 +62,7 @@ class InvTrViewMode {
       ISSUE_ACCESORIES = new InvTrViewMode( inventory.obtenerTipoTransaccionSalida() )
       ISSUE_ACCESORIES.text = "[SALIDA_ACCESORIOS] SALIDA TOTAL ACCESORIOS"
       //list.addAll( [QUERY, ISSUE, RECEIPT, ADJUST, RETURN, OUTBOUND,INBOUND, FILE_ADJUST] )
-      if( IOController.getInstance().isManager(user.username) ){
+      if( user != null && IOController.getInstance().isManager(user.username) ){
         list.addAll( [QUERY, RECEIPT, ISSUE, ADJUST, INBOUND, OUTBOUND, OTHER_RECEIPT, OTHER_ISSUE] )
       } else {
         list.addAll( [QUERY] )
