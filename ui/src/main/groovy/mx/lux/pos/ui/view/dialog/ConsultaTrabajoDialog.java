@@ -164,7 +164,7 @@ public class ConsultaTrabajoDialog extends JDialog {
 		setLayout(new GroupLayout());
 		add(getJPanel0(), new Constraints(new Leading(10, 600, 12, 12), new Leading(12, 100, 12, 12)));
 		add(getJScrollPane0(), new Constraints(new Leading(11, 600, 12, 12), new Leading(120, 200, 10, 10)));
-		add(getBtnCerrar(), new Constraints(new Trailing(13, 12, 12), new Leading(329, 10, 10)));
+		add(getBtnCerrar(), new Constraints(new Trailing(18, 12, 12), new Leading(329, 10, 10)));
 		setSize(620, 380);
 	}
 

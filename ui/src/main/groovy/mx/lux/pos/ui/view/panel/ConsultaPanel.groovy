@@ -131,7 +131,7 @@ public class ConsultaPanel extends JPanel {
                         Integer selectedRow = tblBusqueda.getSelectedRow();
                         String selectedData = (String) tblBusqueda.getValueAt(selectedRow, 0);
 
-                        PopUpMenu menu = new PopUpMenu( me.getComponent(), me.getX(), me.getY(), selectedData );
+                        PopUpMenu menu = new PopUpMenu( me.getComponent(), me.getX(), me.getY(), selectedData, "consulta", this );
 
 		            }
 		          }

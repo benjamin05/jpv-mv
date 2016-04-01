@@ -9,6 +9,7 @@ import mx.lux.pos.ui.controller.InvoiceController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.controller.TaxpayerController
 import mx.lux.pos.ui.model.*
+import mx.lux.pos.ui.view.dialog.PopUpMenu
 import mx.lux.pos.ui.view.dialog.SuggestedTaxpayersDialog
 import mx.lux.pos.ui.view.renderer.MoneyCellRenderer
 import net.miginfocom.swing.MigLayout
@@ -61,6 +62,7 @@ class EnvioPanel extends JPanel {
   private Branch branch
   private String estadoDefault
   private List<JbJava> lstBySend
+  private List<JbJava> lstNotSend
   private List<String> dominios
   private Order order
   private Invoice invoice
@@ -68,12 +70,15 @@ class EnvioPanel extends JPanel {
   private DefaultTableModel devModel
   private DefaultTableModel noSendModel
   private DefaultTableModel bySendModel
+  private String travel
 
   private static final String TAG_CANCELADO = 'T'
 
-    EnvioPanel( ) {
+  EnvioPanel( ) {
     sb = new SwingBuilder()
     lstBySend = OrderController.jbBySend()
+    lstNotSend = OrderController.jbNotSend()
+    travel = OrderController.findCurrentTravel()
     /*invoiced = false
     editable = false
     branch = Session.get( SessionItem.BRANCH ) as Branch
@@ -102,28 +107,28 @@ class EnvioPanel extends JPanel {
               }
           } )
           label( 'Viaje' )
-          txtViaje = textField( text: "1", enabled: false )
+          txtViaje = textField( text: travel, enabled: false )
           label( 'Folio' )
           txtFolio = textField( )
       }
 
       panel( layout: new MigLayout( 'wrap 3', '[fill,200!,center]110[fill,200!,center]110[fill,200!,center]', '[270!]' ) ) {
-        scrollPane( ) {
+        /*scrollPane( ) {
           table(selectionMode: ListSelectionModel.SINGLE_SELECTION) {
             devModel = tableModel(list: new ArrayList<String>()) {
               propertyColumn(header: "Devoluciones SP", propertyName: "", editable: false)
             } as DefaultTableModel
           }
-        }
+        }*/
         scrollPane( ) {
           table(selectionMode: ListSelectionModel.SINGLE_SELECTION) {
-            noSendModel = tableModel(list: new ArrayList<String>()) {
-              propertyColumn(header: "No Enviar", propertyName: "", editable: false)
+            noSendModel = tableModel(list: lstNotSend) {
+              propertyColumn(header: "No Enviar", propertyName: "rx", editable: false)
             } as DefaultTableModel
           }
         }
         scrollPane( ) {
-          table(selectionMode: ListSelectionModel.SINGLE_SELECTION) {
+          table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doShowItemClick) {
             bySendModel = tableModel(list: lstBySend) {
               propertyColumn(header: "Por Enviar", propertyName: "rx", editable: false)
             } as DefaultTableModel
@@ -396,6 +401,16 @@ class EnvioPanel extends JPanel {
     }
   }
 
+
+  public void limpiaPantalla(){
+    lstBySend = OrderController.jbBySend()
+    lstNotSend = OrderController.jbNotSend()
+    travel = OrderController.findCurrentTravel()
+    bySendModel.fireTableDataChanged()
+    noSendModel.fireTableDataChanged()
+  }
+
+
   private def doPrintInvoice = { ActionEvent ev ->
     JButton source = ev.source as JButton
     source.enabled = false
@@ -442,12 +457,15 @@ class EnvioPanel extends JPanel {
     source.enabled = true
   }
 
-  private def doClear = { ActionEvent ev ->
-    JButton source = ev.source as JButton
-    source.enabled = false
-    txtTicket.enabled = true
-    txtTicket.text = "${branch?.costCenter}-"
-    clearFields()
-    source.enabled = true
+
+  private def doShowItemClick = { MouseEvent ev ->
+    if (SwingUtilities.isRightMouseButton(ev)) {
+      JbJava selectedData = ev.source.selectedElement as JbJava
+      if( selectedData != null ){
+        PopUpMenu menu = new PopUpMenu( ev.component, ev.component.getX(), ev.component.getY(), StringUtils.trimToEmpty(selectedData.rx), "envio", this );
+      }
+    }
   }
+
+
 }

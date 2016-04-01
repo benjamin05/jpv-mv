@@ -48,29 +48,43 @@ public class PopUpMenu {
     private JMenuItem itemReschedule;
     private JMenuItem itemRetener;
     private JMenuItem itemStopCall;
+    private JMenuItem itemNotSend;
     private JMenuItem itemDesretener;
+    private JPanel jPanel;
+
+    private static final String TAG_PANEL_CONSULTA = "consulta"
+    private static final String TAG_PANEL_ENVIO = "envio"
 	
-	public PopUpMenu( Component component, Integer x, Integer y, final String rx ){
+	public PopUpMenu( Component component, Integer x, Integer y, final String rx, String panel, JPanel jPanel ){
 	    pMenu = new JPopupMenu();
+        this.jPanel = jPanel
 
 	    itemConsultaTrabajo = new JMenuItem("Consultar Trabajo");
         itemRxData = new JMenuItem("Datos Receta");
-	    itemInfoPino = new JMenuItem("Info Laboratorio");
         itemCustomerData = new JMenuItem("Datos Cliente");
         itemReschedule = new JMenuItem("Reprogramar");
         itemStopCall = new JMenuItem("No Contactar");
+        itemNotSend = new JMenuItem("No Enviar");
+        //itemInfoPino = new JMenuItem("Info Laboratorio");
         //itemRetener = new JMenuItem("Retener");
         //itemDesretener = new JMenuItem("Desretener");
 
         pMenu.add(itemRxData);
         pMenu.add(itemConsultaTrabajo);
-        pMenu.add(itemInfoPino);
         pMenu.add(itemCustomerData);
         pMenu.add(itemReschedule);
         pMenu.add(itemStopCall);
+        pMenu.add(itemNotSend);
+        //pMenu.add(itemInfoPino);
         //pMenu.add( itemRetener );
         //pMenu.add(itemDesretener);
 
+        if( StringUtils.trimToEmpty(panel).equalsIgnoreCase(TAG_PANEL_CONSULTA) ){
+          itemNotSend.visible = false
+        } else if( StringUtils.trimToEmpty(panel).equalsIgnoreCase(TAG_PANEL_ENVIO) ){
+          itemReschedule.visible = false
+          itemStopCall.visible = false
+        }
 	    pMenu.show(component, x, y);
         //pMenu.setLocation(x,y);
 
@@ -95,7 +109,7 @@ public class PopUpMenu {
             }
         });
 
-	    itemInfoPino.addActionListener(new ActionListener() {			
+	    /*itemInfoPino.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
@@ -114,7 +128,7 @@ public class PopUpMenu {
 
 				InfoLaboratorioDialog dialogo = new InfoLaboratorioDialog(lstDatos, rx);
 			}
-		});
+		});*/
 
 
         itemCustomerData.addActionListener(new ActionListener() {
@@ -145,6 +159,17 @@ public class PopUpMenu {
               dialog.show()
             }
         });
+
+
+        itemNotSend.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              NotSendDialog dialog = new NotSendDialog( component, rx )
+              dialog.show()
+              jPanel.limpiaPantalla()
+            }
+        });
+
 
         /*itemRetener.addActionListener(new ActionListener() {
             @Override

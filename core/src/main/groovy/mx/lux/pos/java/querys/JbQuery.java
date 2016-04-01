@@ -367,4 +367,25 @@ public class JbQuery {
       }
       return lstJb;
     }
+
+
+    public static List<JbViaje> buscarJbViajesHoy( ){
+      List<JbViaje> lstJbViaje = new ArrayList<JbViaje>();
+      String formatDate = "yyyy-MM-dd";
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from jb_viaje where fecha = %s", Utilities.toString(new Date(), formatDate));
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          JbViaje jbViaje = new JbViaje();
+          jbViaje = jbViaje.setValores(rs);
+          lstJbViaje.add(jbViaje);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJbViaje;
+    }
 }

@@ -684,7 +684,7 @@ class MainWindow extends JFrame implements KeyListener {
                                           envioPanel = new EnvioPanel();
                                           mainPanel.add( 'envioPanel', envioPanel )
                                       }
-                                      //envioPanel.limpiaPantalla()
+                                      envioPanel.limpiaPantalla()
                                       mainPanel.layout.show( mainPanel, 'envioPanel' )
                                 }
                         )
@@ -1020,6 +1020,16 @@ class MainWindow extends JFrame implements KeyListener {
         mainPanel.remove( invTrView.panel )
         orderPanel.finalize()
         invTrView.panel = null
+      }
+      if( !panelSelected.equals(consultaPanel) ){
+        mainPanel.remove( consultaPanel )
+        consultaPanel.finalize()
+        consultaPanel = null
+      }
+      if( !panelSelected.equals(envioPanel) ){
+        mainPanel.remove( envioPanel )
+        envioPanel.finalize()
+        envioPanel = null
       }
       Runtime garbage = Runtime.getRuntime();
       garbage.gc();

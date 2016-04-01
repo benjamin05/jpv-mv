@@ -26,6 +26,7 @@ import mx.lux.pos.java.repository.ExamenJava
 import mx.lux.pos.java.repository.FormaContactoJava
 import mx.lux.pos.java.repository.JbJava
 import mx.lux.pos.java.repository.JbLlamadaJava
+import mx.lux.pos.java.repository.JbViaje
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.Parametros
@@ -3918,6 +3919,12 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static List<JbJava> jbNotSend( ) {
+    List<JbJava> lstJb = JbQuery.buscarJbPorEstado( "NE" )
+    return lstJb
+  }
+
+
   static Rx findRxByBill(String bill) {
     NotaVentaJava nota = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(bill) )
     RecetaJava receta = null
@@ -3961,6 +3968,37 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       JbQuery.eliminaJbLLamada( rx )
 
       jb.noLlamar = true
+      JbQuery.updateJb(jb)
+    }
+  }
+
+  static String findCurrentTravel( ) {
+    String currentTravel = ""
+    List<JbViaje> lstJbViajes = JbQuery.buscarJbViajesHoy()
+    if( lstJbViajes.size() <= 0 ){
+      currentTravel = "1"
+    } else {
+      currentTravel = StringUtils.trimToEmpty((lstJbViajes.size()+1).toString());
+    }
+    return currentTravel
+  }
+
+
+  static void notSend( String rx, String observations ){
+    User user = Session.get( SessionItem.USER ) as User
+    JbJava jb = JbQuery.buscarPorRx( rx )
+    if( jb != null ){
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+      jbTrack.rx = rx
+      jbTrack.estado = "NE"
+      jbTrack.obs = observations
+      jbTrack.emp = user.username
+      jbTrack.idViaje = ''
+      jbTrack.fecha = new Date()
+      jbTrack.idMod = '0'
+      JbQuery.saveJbTrack( jbTrack )
+
+      jb.estado = "NE"
       JbQuery.updateJb(jb)
     }
   }
