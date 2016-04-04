@@ -6,7 +6,9 @@ import mx.lux.pos.java.repository.JbJava
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Invoice
 import mx.lux.pos.ui.model.Order
+import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.dialog.PopUpMenu
+import mx.lux.pos.ui.view.dialog.ReceiveDialog
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang3.StringUtils
 
@@ -19,10 +21,11 @@ import java.awt.event.MouseEvent
 class RecepcionPanel extends JPanel{
 
   private static final String DATE_TIME_FORMAT = 'dd-MM-yyyy HH:mm'
+  private static final String TAG_ESTADO_EP = 'EP'
 
   private SwingBuilder sb
+  private JTextField txtRx
   private JTextField txtViaje
-  private JTextField txtFolio
   private JSpinner dateEnd
   private List<JbJava> lstBySend = new ArrayList<>()
   private List<JbJava> lstNotSend = new ArrayList<>()
@@ -30,12 +33,7 @@ class RecepcionPanel extends JPanel{
   private Order order
   private Invoice invoice
   private Date today = new Date()
-  private DefaultTableModel devModel
-  public DefaultTableModel noSendModel
-  public DefaultTableModel bySendModel
-  private String travel
-  private JTable sendTable
-  private JTable notSendTable
+  public DefaultTableModel receiveModel
 
   private static final String TAG_CANCELADO = 'T'
 
@@ -46,110 +44,55 @@ class RecepcionPanel extends JPanel{
   }
 
   private void buildUI( ) {
-    sb.panel( this, layout: new MigLayout('wrap', '[fill,grow]', '[fill,grow]') ) {
-      panel( layout: new MigLayout( 'center,wrap 2', '[fill][fill,grow]' ) ) {
-          label( 'Fecha' )
-          dateEnd = spinner( model: spinnerDateModel(), enabled: false )
-          dateEnd.editor = new JSpinner.DateEditor( dateEnd as JSpinner, 'dd/MM/yyyy' )
-          dateEnd.value = today
-          dateEnd.addChangeListener( new ChangeListener() {
-              @Override
-              void stateChanged( ChangeEvent e ) {
-                  /*if ( dateEnd.value < dateStart.value ) {
-                      dateStart.value = DateUtils.addDays( dateEnd.value as Date, -10 )
-                  }*/
-              }
-          } )
+    sb.panel( this, layout: new MigLayout('wrap ', '[fill,grow]', '[fill]') ) {
+      panel( border: titledBorder(title: 'Busqueda'), layout: new MigLayout( 'center,wrap 2', '[fill][fill,grow]' ), maximumSize: [250,220] ) {
+          label( 'Rx' )
+          txtRx = textField( )
           label( 'Viaje' )
-          txtViaje = textField( text: travel, enabled: false )
-          label( 'Folio' )
-          txtFolio = textField( )
+          txtViaje = textField( )
+          button( 'Buscar', actionPerformed: doSearchRx, maximumSize: UI_Standards.BUTTON_SIZE, constraints: 'span2' )
       }
-
-      panel( layout: new MigLayout( 'wrap 2', '150[fill,200!,center]100[fill,200!,center]150', '[270!]' ) ) {
-        /*scrollPane( ) {
-          table(selectionMode: ListSelectionModel.SINGLE_SELECTION) {
-            devModel = tableModel(list: new ArrayList<String>()) {
-              propertyColumn(header: "Devoluciones SP", propertyName: "", editable: false)
-            } as DefaultTableModel
-          }
-        }*/
+      panel( layout: new MigLayout( 'wrap ', '[fill,grow]', '[]' ) ) {
         scrollPane( ) {
-          notSendTable = table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doShowItemClickNotSend) {
-            noSendModel = tableModel(list: lstNotSend) {
-              closureColumn( header: 'No Enviar', read: {JbJava tmp -> tmp?.rx}, preferredWidth: 200)
+          table(selectionMode: ListSelectionModel.SINGLE_SELECTION){//, mouseClicked: doShowItemClickNotSend) {
+            receiveModel = tableModel(list: new ArrayList<String>()) {
+              closureColumn( header: 'Hora', read: {String tmp -> tmp}, preferredWidth: 60)
+              closureColumn( header: 'Rx', read: {String tmp -> tmp}, preferredWidth: 50)
+              closureColumn( header: 'Estado', read: {String tmp -> tmp}, preferredWidth: 100)
+              closureColumn( header: 'Cliente', read: {String tmp -> tmp}, preferredWidth: 180)
+              closureColumn( header: 'Material', read: {String tmp -> tmp}, preferredWidth: 180)
             } as DefaultTableModel
           }
         }
-        scrollPane( ) {
-          sendTable = table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doShowItemClickSend) {
-            bySendModel = tableModel(list: lstBySend) {
-              closureColumn( header: 'Enviar', read: {JbJava tmp -> tmp?.rx}, preferredWidth: 200)
-            } as DefaultTableModel
-          }
-        }
-      }
-
-      panel( layout: new MigLayout( 'center', '80[fill,100!]80' ) ) {
-        button( 'Cerrar Via'  )//actionPerformed: doPrintInvoice )
-        button( 'Reimpresion' )//actionPerformed: doPrintReference )
-        button( 'Previo', actionPerformed: doPrintPreviousPacking )//actionPerformed: doShowInvoice )
-        button( 'Actualizar' )//actionPerformed: doRequest )
       }
     }
   }
 
   public void doBindings( ) {
-    bySendModel.rowsModel.setValue(lstBySend);
-    noSendModel.rowsModel.setValue(lstNotSend);
-    noSendModel.fireTableDataChanged()
-    bySendModel.fireTableDataChanged();
-  }
-
-  public void updateData(){
-    lstBySend.clear()
-    lstNotSend.clear()
-    lstBySend = OrderController.jbBySend()
-    lstNotSend = OrderController.jbNotSend()
-    travel = OrderController.findCurrentTravel()
-  }
-
-  private void clearFields( ) {
 
   }
 
-  public void limpiaPantalla(){
-    lstBySend = OrderController.jbBySend()
-    lstNotSend = OrderController.jbNotSend()
-    travel = OrderController.findCurrentTravel()
-    bySendModel.fireTableDataChanged()
-    noSendModel.fireTableDataChanged()
-  }
 
-
-  private def doShowItemClickSend = { MouseEvent ev ->
-    if (SwingUtilities.isRightMouseButton(ev)) {
-      JbJava selectedData = ev.source.selectedElement as JbJava
-      if( selectedData != null ){
-        PopUpMenu menu = new PopUpMenu( ev.component, ev.component.getX(), ev.component.getY(), StringUtils.trimToEmpty(selectedData.rx), "envio,send", this );
-      }
-    }
-  }
-
-  private def doShowItemClickNotSend = { MouseEvent ev ->
-    if (SwingUtilities.isRightMouseButton(ev)) {
-      JbJava selectedData = ev.source.selectedElement as JbJava
-      if( selectedData != null ){
-        PopUpMenu menu = new PopUpMenu( ev.component, ev.component.getX(), ev.component.getY(), StringUtils.trimToEmpty(selectedData.rx), "envio,notsend", this );
-      }
-    }
-  }
-
-
-  private def doPrintPreviousPacking = { ActionEvent ev ->
+  private def doSearchRx = { ActionEvent ev ->
     JButton source = ev.source as JButton
     source.enabled = false
-    OrderController.printPreviousPacking()
+    if( StringUtils.trimToEmpty(txtRx.text).length() > 0 ){
+      if( StringUtils.trimToEmpty(txtViaje.text).length() > 0 ){
+        JbJava jb = OrderController.findJbByRx( StringUtils.trimToEmpty(txtRx.text) )
+        if( jb != null ){
+          if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase(TAG_ESTADO_EP) ){
+            ReceiveDialog dialog = new ReceiveDialog( jb )
+            dialog.show()
+          }
+        }
+      } else {
+        sb.optionPane( message: 'Viaje no valido',messageType: JOptionPane.ERROR_MESSAGE)
+              .createDialog(this, 'Error').show()
+      }
+    } else {
+      sb.optionPane( message: 'La Rx no existe',messageType: JOptionPane.ERROR_MESSAGE)
+              .createDialog(this, 'Error').show()
+    }
     source.enabled = true
   }
 

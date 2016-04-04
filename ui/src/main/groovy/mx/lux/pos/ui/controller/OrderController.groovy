@@ -4030,4 +4030,15 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static JbJava findJbByRx( String rx ){
+    return JbQuery.buscarPorRx( rx )
+  }
+
+
+  static NotaVentaJava findOrderJavaByBill(String bill) {
+    NotaVentaJava result = NotaVentaQuery.busquedaNotaByFactura( bill )
+    return result
+  }
+
+
 }

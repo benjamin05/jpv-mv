@@ -54,6 +54,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JPanel dailyClosePanel
     private JPanel consultaPanel
     private JPanel envioPanel
+    private JPanel recepcionPanel
     private JPanel priceListPanel
     private JPanel invoicePanel
     private JToolBar infoBar
@@ -130,6 +131,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem cellarReportMenuItem
     private JMenuItem consultaMenuItem
     private JMenuItem envioMenuItem
+    private JMenuItem recepcionMenuItem
     private PromotionService promotionService
 
 
@@ -662,6 +664,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 boolean userLoggedIn = Session.contains( SessionItem.USER )
                                 consultaMenuItem.visible = userLoggedIn
                                 envioMenuItem.visible = userLoggedIn
+                                recepcionMenuItem.visible = userLoggedIn
                             }
                     ) {
                         consultaMenuItem = menuItem( text: 'Consulta Trabajos',
@@ -694,6 +697,21 @@ class MainWindow extends JFrame implements KeyListener {
                                       }
                                       envioPanel.limpiaPantalla()
                                       mainPanel.layout.show( mainPanel, 'envioPanel' )
+                                }
+                        )
+                        recepcionMenuItem = menuItem( text: 'Recepcion Trabajos',
+                                visible: true,
+                                actionPerformed: {
+                                    clean( recepcionPanel )
+                                    if( recepcionPanel == null ){
+                                        mainPanel.remove( recepcionPanel )
+                                        recepcionPanel = null
+                                        recepcionPanel = new RecepcionPanel()
+                                        clean( recepcionPanel )
+                                        mainPanel.add( 'recepcionPanel', recepcionPanel )
+                                        mainPanel.layout.show( mainPanel, 'recepcionPanel' )
+                                    }
+                                    mainPanel.layout.show( mainPanel, 'recepcionPanel' )
                                 }
                         )
                     }
