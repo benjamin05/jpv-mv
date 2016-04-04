@@ -43,9 +43,7 @@ public class JbQuery {
 	}
 	
 	public static List<JbJava> busquedaJb(String rx, String cliente, String estado, String atendio) throws ParseException{
-
         List<JbJava> lstJbs = new ArrayList<JbJava>();
-
         try {
             Connection con = Connections.doConnect();
             stmt = con.createStatement();
@@ -86,13 +84,13 @@ public class JbQuery {
             con.close();
             while (rs.next()) {
             	JbJava jb = new JbJava();
-            	Double saldo = 0.00;
+            	/*Double saldo = 0.00;
             	String saldoTmp = rs.getString("saldo");
             	saldoTmp = saldoTmp != null ? saldoTmp.replace("$", "") : "0.00";
             	saldoTmp = saldoTmp != null ? saldoTmp.replace(",", "") : "0.00";
             	try{
             		saldo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(saldoTmp)).doubleValue();
-            	} catch ( NumberFormatException e ){ System.out.println( e );}
+            	} catch ( NumberFormatException e ){ System.out.println( e );}*/
             	jb.setValores(rs);
             	lstJbs.add(jb);
             }
