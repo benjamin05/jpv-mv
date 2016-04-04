@@ -3,6 +3,7 @@ package mx.lux.pos.java.querys;
 import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.repository.AcusesJava;
 import mx.lux.pos.java.repository.DoctoInvJava;
+import mx.lux.pos.java.repository.JbJava;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
@@ -10,6 +11,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DoctoInvQuery {
 
@@ -36,5 +39,26 @@ public class DoctoInvQuery {
       db.close();
       return doctoInvJava;
     }
-	
+
+
+    public static List<DoctoInvJava> buscarDoctoInvPorIdTipoDoctoYEstado( String idTipoDocto, String estado ){
+      List<DoctoInvJava> lstDoctoInv = new ArrayList<DoctoInvJava>();
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("select * from docto_inv where id_tipo_docto = '%s' AND estado = '%s';",
+                StringUtils.trimToEmpty(idTipoDocto), StringUtils.trimToEmpty(estado));
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          DoctoInvJava doctoInv = new DoctoInvJava();
+          doctoInv = doctoInv.mapeoDoctoInvJava(rs);
+          lstDoctoInv.add(doctoInv);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstDoctoInv;
+    }
+
 }

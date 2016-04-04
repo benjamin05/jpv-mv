@@ -669,8 +669,12 @@ class MainWindow extends JFrame implements KeyListener {
                                 actionPerformed: {
                                       clean( consultaPanel )
                                       if( consultaPanel == null ){
-                                          consultaPanel = new ConsultaPanel();
+                                          mainPanel.remove( consultaPanel )
+                                          consultaPanel = null
+                                          consultaPanel = new ConsultaPanel()
+                                          clean( consultaPanel )
                                           mainPanel.add( 'consultaPanel', consultaPanel )
+                                          mainPanel.layout.show( mainPanel, 'consultaPanel' )
                                       }
                                       consultaPanel.limpiaPantalla()
                                       mainPanel.layout.show( mainPanel, 'consultaPanel' )
@@ -681,8 +685,12 @@ class MainWindow extends JFrame implements KeyListener {
                                 actionPerformed: {
                                       clean( envioPanel )
                                       if( envioPanel == null ){
-                                          envioPanel = new EnvioPanel();
+                                          mainPanel.remove( envioPanel )
+                                          envioPanel = null
+                                          envioPanel = new EnvioPanel()
+                                          clean( envioPanel )
                                           mainPanel.add( 'envioPanel', envioPanel )
+                                          mainPanel.layout.show( mainPanel, 'envioPanel' )
                                       }
                                       envioPanel.limpiaPantalla()
                                       mainPanel.layout.show( mainPanel, 'envioPanel' )
@@ -1021,11 +1029,11 @@ class MainWindow extends JFrame implements KeyListener {
         orderPanel.finalize()
         invTrView.panel = null
       }
-      if( !panelSelected.equals(consultaPanel) ){
+      /*if( !panelSelected.equals(consultaPanel) ){
         mainPanel.remove( consultaPanel )
         consultaPanel.finalize()
         consultaPanel = null
-      }
+      }*/
       if( !panelSelected.equals(envioPanel) ){
         mainPanel.remove( envioPanel )
         envioPanel.finalize()

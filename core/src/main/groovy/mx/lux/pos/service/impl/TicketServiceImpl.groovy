@@ -3,13 +3,17 @@ package mx.lux.pos.service.impl
 import com.ibm.icu.text.RuleBasedNumberFormat
 import com.mysema.query.BooleanBuilder
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.DoctoInvQuery
 import mx.lux.pos.java.querys.EmpleadoQuery
 import mx.lux.pos.java.querys.JbQuery
 import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.repository.CuponMvJava
 import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.DoctoInvJava
 import mx.lux.pos.java.repository.EmpleadoJava
+import mx.lux.pos.java.repository.JbDev
 import mx.lux.pos.java.repository.JbJava
+import mx.lux.pos.java.repository.JbSobres
 import mx.lux.pos.java.repository.JbViaje
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
@@ -37,6 +41,7 @@ import javax.annotation.Resource
 import java.text.DateFormat
 import java.text.DecimalFormat
 import java.text.NumberFormat
+import java.text.ParseException
 import java.text.SimpleDateFormat
 
 @Slf4j
@@ -2902,28 +2907,95 @@ class TicketServiceImpl implements TicketService {
   @Override
   void imprimePackingPrevio( String idEmp ){
     log.debug( "imprimePackingPrevio( )" )
-    List<JbJava> lstJb = JbQuery.buscarJbPorEstado("PE")
-    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
-    if( lstJb.size() > 0 ){
-      String currentTravel = ""
-      List<JbViaje> lstJbViajes = JbQuery.buscarJbViajesHoy()
-      if( lstJbViajes.size() <= 0 ){
-        currentTravel = "1"
-      } else {
-        currentTravel = StringUtils.trimToEmpty((lstJbViajes.size()+1).toString());
+    List<JbJava> lstJbTmp = JbQuery.buscarJbPorEstados("PE", "RPE")
+    List<JbJava> lstJb = new ArrayList<>()
+    List<JbJava> lstJbRotExt = new ArrayList<>()
+    List<JbJava> lstJbRef = new ArrayList<>()
+    List<JbJava> lstJbGar = new ArrayList<>()
+    List<JbJava> lstJbOrdServ = new ArrayList<>()
+    List<JbJava> lstJbExt = JbQuery.buscarJbPorEstado("X1")
+    List<DoctoInvJava> lstDev = DoctoInvQuery.buscarDoctoInvPorIdTipoDoctoYEstado("DA", "pendiente")
+    List<JbSobres> lstSobres = JbQuery.buscaJbSobresPorFechaEnvioNullYRxNull()
+    List<JbSobres> lstSobresRxTmp = JbQuery.buscaJbSobresPorFechaEnvioNullYRxNotNull()
+    List<JbDev> lstJbDev = JbQuery.buscaJbDevPorFechaEnvioNull()
+    for(JbJava jb : lstJbTmp){
+      if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("LAB") ){
+        lstJb.add(jb)
+      } else if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("EXT") ){
+        lstJbRotExt.add(jb)
+      } else if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("REF") ){
+        lstJbRef.add(jb)
+      } else if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("GAR") ){
+        lstJbGar.add(jb)
+      } else if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("OS") ){
+        lstJbOrdServ.add(jb)
       }
-      EmpleadoJava empleado = EmpleadoQuery.buscaEmpPorIdEmpleado( idEmp )
-      Sucursal sucursal = sucursalRepository.findOne( Registry.currentSite )
-      def datos = [
+    }
+    def devs = []
+    for(DoctoInvJava doctoInv : lstDev){
+      String folioStr = StringUtils.trimToEmpty( doctoInv.notas ).length() > 0 ? StringUtils.trimToEmpty( doctoInv.notas ).substring(1) : "0"
+      Integer folio = 0
+      try{
+        folio = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(folioStr)).intValue()
+      } catch ( ParseException ex ){
+        println ex
+      }
+      def tmp = [
+          idDocto: doctoInv.idDocto,
+          cantidad: doctoInv.cantidad,
+          folio: folio > 0 ? StringUtils.trimToEmpty(folio.toString()): ""
+      ]
+      devs.add(tmp)
+    }
+    def lstSobresRx = []
+    for(JbSobres jbSobres : lstSobresRxTmp){
+      JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(jbSobres.rx))
+      def tmp = [
+          rx: (jb != null && jb.roto > 0) ? "R"+StringUtils.trimToEmpty(jbSobres.rx) : StringUtils.trimToEmpty(jbSobres.rx),
+          dest: StringUtils.trimToEmpty(jbSobres.dest),
+          folioSobre: StringUtils.trimToEmpty(jbSobres.folioSobre),
+          area: StringUtils.trimToEmpty(jbSobres.area),
+          contenido: StringUtils.trimToEmpty(jbSobres.contenido)
+      ]
+      lstSobresRx.add(tmp)
+    }
+    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
+    String currentTravel = ""
+    List<JbViaje> lstJbViajes = JbQuery.buscarJbViajesHoy()
+    if( lstJbViajes.size() <= 0 ){
+      currentTravel = "1"
+    } else {
+      currentTravel = StringUtils.trimToEmpty((lstJbViajes.size()+1).toString());
+    }
+    EmpleadoJava empleado = EmpleadoQuery.buscaEmpPorIdEmpleado( idEmp )
+    Sucursal sucursal = sucursalRepository.findOne( Registry.currentSite )
+    def datos = [
         fecha: df.format(new Date()),
         sucursal: "[${StringUtils.trimToEmpty(sucursal.id.toString())}] ${StringUtils.trimToEmpty(sucursal.nombre)}",
         viaje: currentTravel,
         emp: empleado != null ? "[${empleado.idEmpleado.trim()}] ${empleado.nombreEmpleado}" : "",
-      ]
-      this.imprimeTicket( 'template/ticket-packing.vm', datos )
-    } else {
-      log.debug( String.format( 'No existen trabajos por enviar' ) )
-    }
+        trabajos: lstJb,
+        verTrabajos: lstJb.size() > 0,
+        rotosExt: lstJbRotExt,
+        verRotExt: lstJbRotExt.size() > 0,
+        refacciones: lstJbRef,
+        verRefacciones: lstJbRef.size() > 0,
+        garantias: lstJbGar,
+        verGarantias: lstJbGar.size() > 0,
+        ordenesServ: lstJbOrdServ,
+        verOrdenesServ: lstJbOrdServ.size() > 0,
+        trabajosExt: lstJbExt,
+        verTrabajosExt: lstJbExt.size() > 0,
+        trabajosDev: devs,
+        verTrabajosDev: devs.size() > 0,
+        sobres: lstSobres,
+        verSobres: lstSobres.size() > 0,
+        sobresRx: lstSobresRx,
+        verSobresRx: lstSobresRx.size() > 0,
+        jbDev: lstJbDev,
+        verJbDev: lstJbDev.size() > 0,
+    ]
+    this.imprimeTicket( 'template/ticket-packing.vm', datos )
   }
 
 

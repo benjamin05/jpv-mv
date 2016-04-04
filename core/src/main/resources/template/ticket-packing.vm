@@ -2,21 +2,89 @@
 #parse("template/macros.vm")
 #define($COLUMNAS)${GS}P${writer.write(32)}${writer.write(32)}#end
 #define($COL_DET_0)${ESC}${writer.write(36)}${writer.write(0)}${writer.write(0)}#end
-#define($COL_DET_0_5)${ESC}${writer.write(36)}${writer.write(15)}${writer.write(0)}#end
+#define($COL_DET_0_5)${ESC}${writer.write(36)}${writer.write(17)}${writer.write(0)}#end
 #define($COL_DET_1)${ESC}${writer.write(36)}${writer.write(25)}${writer.write(0)}#end
 #define($COL_DET_1_5)${ESC}${writer.write(36)}${writer.write(40)}${writer.write(0)}#end
 #define($COL_DET_2)${ESC}${writer.write(36)}${writer.write(60)}${writer.write(0)}#end
 ## Inicia ticket
 #LINEA_SEPARACION_SIMPLE()
-#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)PACKING PREVIO${LF}
+#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)PACKING PREVIO
 #LINEA_SEPARACION_SIMPLE()
 ${COLUMNAS}
 #ALINEAR_DERECHA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)${fecha}
-#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)Sucursal: ${sucursal}
-#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)Viaje: ${viaje}
-#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)Empleado: ${emp}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)Sucursal: #SET_STYLE(${FUENTE_B} 0 0 0 0)${sucursal}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)Viaje: #SET_STYLE(${FUENTE_B} 0 0 0 0)${viaje}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)Empleado: #SET_STYLE(${FUENTE_B} 0 0 0 0)${emp}
 
-#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)                   FOLIO:___________________________
+#if( $verTrabajos )#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})TRABAJOS
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})RX${COL_DET_0_5}CODIGO${COL_DET_2}SURTE
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $trabajo in $trabajos )${trabajo.rx}${COL_DET_0_5}${trabajo.material}${COL_DET_2}${trabajo.surte}
+#end
+#end
+
+#if( $verRotExt )#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})ROTOS EXTERNOS
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})RX${COL_DET_0_5}CODIGO
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $trabajo in $trabajosExt )${trabajo.rx}${COL_DET_0_5}${trabajo.material}
+#end
+#end
+
+#if( $verRefacciones )#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})REFACCIONES/REPARACIONES/SP
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})RX${COL_DET_0_5}CODIGO
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $trabajo in $refacciones )${trabajo.rx}${COL_DET_0_5}${trabajo.material}
+#end
+#end
+
+#if( $verGarantias )#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})GARANTIAS
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})RX${COL_DET_0_5}CODIGO
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $trabajo in $garantias )${trabajo.rx}${COL_DET_0_5}${trabajo.material}
+#end
+#end
+
+#if( $verOrdenesServ )#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})ORDEN DE SERVICIO
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})RX${COL_DET_0_5}CODIGO
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $trabajo in $ordenesServ )${trabajo.rx}${COL_DET_0_5}${trabajo.material}
+#end
+#end
+
+#if( $verTrabajosExt )#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})TRABAJOS EXTERNOS
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})RX${COL_DET_1}CODIGO
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $trabajo in $trabajosExt )${trabajo.rx}${COL_DET_1}${trabajo.material}
+#end
+#end
+
+#if( $verTrabajosDev )#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})DEVOLUCIONES
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})DOCUMENTO${COL_DET_0_5}CODIGO${COL_DET_1_5}FOLIOP
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $trabajo in $trabajosDev )${trabajo.idDocto}${COL_DET_0_5}${trabajo.cantidad}${COL_DET_1_5}${trabajo.folio}
+#end
+#end
+
+#if( $verSobres )#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})SOBRES
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $sobre in $sobres )
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)PARA: #SET_STYLE(${FUENTE_B} 0 0 0 0)${sobre.dest}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)NO. SOBRE: #SET_STYLE(${FUENTE_B} 0 0 0 0)${sobre.folioSobre}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)AREA: #SET_STYLE(${FUENTE_B} 0 0 0 0)${sobre.area}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)CONTENIDO: #SET_STYLE(${FUENTE_B} 0 0 0 0)${sobre.contenido}${LF}
+#end
+#end
+
+#if( $verSobresRx )#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})RX SOBRES
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $sobre in $sobresRx )
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)RX: #SET_STYLE(${FUENTE_B} 0 0 0 0)${sobre.rx}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)PARA: #SET_STYLE(${FUENTE_B} 0 0 0 0)${sobre.dest}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)NO. SOBRE: #SET_STYLE(${FUENTE_B} 0 0 0 0)${sobre.folioSobre}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)AREA: #SET_STYLE(${FUENTE_B} 0 0 0 0)${sobre.area}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)CONTENIDO: #SET_STYLE(${FUENTE_B} 0 0 0 0)${sobre.contenido}${LF}
+#end
+#end
+
+#if( $verJbDev )#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} 0 0 ${SUBRAYADO})DEV ARMAZONES SP
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $dev in $jbDev )
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)DOCTO: #SET_STYLE(${FUENTE_B} 0 0 0 0)${dev.documento}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)SUCURSAL QUE SOLICITA: #SET_STYLE(${FUENTE_B} 0 0 0 0)${dev.sucursales.nombre}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 0)APARTADO: #SET_STYLE(${FUENTE_B} 0 0 0 0)${dev.apartado}${LF}
+#end
+#end
+
 #FIN_ESTILO()
 #AVANZAR_LINEAS(5)
 #CORTE()

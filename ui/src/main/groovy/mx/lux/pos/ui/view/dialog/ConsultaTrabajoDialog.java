@@ -171,10 +171,11 @@ public class ConsultaTrabajoDialog extends JDialog {
 	private JButton getBtnCerrar() {
 		if (btnCerrar == null) {
 			btnCerrar = new JButton();
-			btnCerrar.setText("Cerrar");
+			btnCerrar.setText("Cerrar   ");
             //new ImageIcon(getClass().getResource("img/close_icon.png"))
-			btnCerrar.setIcon(new ImageIcon("img/close_icon.png"));
+			//btnCerrar.setIcon(new ImageIcon("img/close_icon.png"));
 			btnCerrar.setText("Cerrar");
+            btnCerrar.setSize(60,20);
 			btnCerrar.addActionListener(new ActionListener() {
 	
 				public void actionPerformed(ActionEvent event) {

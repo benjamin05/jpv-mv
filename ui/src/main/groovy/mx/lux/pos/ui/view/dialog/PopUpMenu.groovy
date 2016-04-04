@@ -1,8 +1,11 @@
 package mx.lux.pos.ui.view.dialog
 
 import mx.lux.pos.ui.model.Customer
-import mx.lux.pos.ui.view.panel.EnvioPanel;
+import mx.lux.pos.ui.view.panel.EnvioPanel
 
+import javax.swing.event.TableModelEvent
+import javax.swing.event.TableModelListener
+import javax.swing.table.DefaultTableModel;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,7 +42,7 @@ import static org.jfree.util.Log.info;
 import static org.jfree.util.Log.log;
 
 
-public class PopUpMenu {
+public class PopUpMenu implements TableModelListener {
 
 	private JPopupMenu pMenu;
     private JMenuItem itemRxData;
@@ -52,16 +55,14 @@ public class PopUpMenu {
     private JMenuItem itemNotSend;
     private JMenuItem itemSend;
     private JMenuItem itemDesretener;
-    private JPanel jPanel;
+    private EnvioPanel sendPanel;
 
     private static final String TAG_PANEL_CONSULTA = "consulta"
     private static final String TAG_PANEL_ENVIO = "envio"
 	
 	public PopUpMenu( Component component, Integer x, Integer y, final String rx, String panel, JPanel jPanel ){
 	    pMenu = new JPopupMenu();
-        this.jPanel = jPanel
-
-	    itemConsultaTrabajo = new JMenuItem("Consultar Trabajo");
+        itemConsultaTrabajo = new JMenuItem("Consultar Trabajo");
         itemRxData = new JMenuItem("Datos Receta");
         itemCustomerData = new JMenuItem("Datos Cliente");
         itemReschedule = new JMenuItem("Reprogramar");
@@ -87,6 +88,7 @@ public class PopUpMenu {
           itemNotSend.visible = false
           itemSend.visible = false
         } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_ENVIO) ){
+          this.sendPanel = jPanel as EnvioPanel
           if( StringUtils.trimToEmpty(data[1]).equalsIgnoreCase("send") ){
             itemSend.visible = false
           } else if( StringUtils.trimToEmpty(data[1]).equalsIgnoreCase("notsend") ){
@@ -176,9 +178,9 @@ public class PopUpMenu {
             public void actionPerformed(ActionEvent e) {
               NotSendDialog dialog = new NotSendDialog( component, rx )
               dialog.show()
-              jPanel = jPanel as EnvioPanel
-              jPanel.updateData()
-              jPanel.doBindings()
+              sendPanel.updateData()
+              sendPanel.noSendModel.fireTableDataChanged()
+              sendPanel.bySendModel.fireTableDataChanged()
             }
         });
 
@@ -186,9 +188,9 @@ public class PopUpMenu {
             @Override
             public void actionPerformed(ActionEvent e) {
               OrderController.send( rx, "" )
-              jPanel = jPanel as EnvioPanel
-              jPanel.updateData()
-              jPanel.doBindings()
+              sendPanel.updateData()
+              sendPanel.noSendModel.fireTableDataChanged()
+              sendPanel.bySendModel.fireTableDataChanged()
             }
         });
         /*itemRetener.addActionListener(new ActionListener() {
@@ -276,5 +278,11 @@ public class PopUpMenu {
         if ( jb.getEstado().equals("RTN") ) {
             itemDesretener.setEnabled(true);
         }*/
+    }
+
+    @Override
+    void tableChanged(TableModelEvent e) {
+      sendPanel.noSendModel.fireTableDataChanged()
+      sendPanel.bySendModel.fireTableDataChanged()
     }
 }

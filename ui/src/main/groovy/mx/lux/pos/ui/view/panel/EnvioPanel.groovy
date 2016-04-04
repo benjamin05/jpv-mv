@@ -26,6 +26,8 @@ import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.MouseEvent
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 import java.util.List
 
 class EnvioPanel extends JPanel{
@@ -36,15 +38,15 @@ class EnvioPanel extends JPanel{
   private JTextField txtViaje
   private JTextField txtFolio
   private JSpinner dateEnd
-  private List<JbJava> lstBySend
-  private List<JbJava> lstNotSend
+  private List<JbJava> lstBySend = new ArrayList<>()
+  private List<JbJava> lstNotSend = new ArrayList<>()
   private List<String> dominios
   private Order order
   private Invoice invoice
   private Date today = new Date()
   private DefaultTableModel devModel
-  private DefaultTableModel noSendModel
-  private DefaultTableModel bySendModel
+  public DefaultTableModel noSendModel
+  public DefaultTableModel bySendModel
   private String travel
   private JTable sendTable
   private JTable notSendTable
@@ -90,24 +92,14 @@ class EnvioPanel extends JPanel{
         scrollPane( ) {
           notSendTable = table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doShowItemClickNotSend) {
             noSendModel = tableModel(list: lstNotSend) {
-              closureColumn(
-                header: 'No Enviar',
-                read: { JbJava tmp -> tmp?.rx },
-                minWidth: 200,
-                maxWidth: 200
-              )
+              closureColumn( header: 'No Enviar', read: {JbJava tmp -> tmp?.rx}, preferredWidth: 200)
             } as DefaultTableModel
           }
         }
         scrollPane( ) {
           sendTable = table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doShowItemClickSend) {
             bySendModel = tableModel(list: lstBySend) {
-              closureColumn(
-                header: 'Enviar',
-                read: { JbJava tmp -> tmp?.rx },
-                minWidth: 200,
-                maxWidth: 200
-              )
+              closureColumn( header: 'Enviar', read: {JbJava tmp -> tmp?.rx}, preferredWidth: 200)
             } as DefaultTableModel
           }
         }
@@ -123,15 +115,13 @@ class EnvioPanel extends JPanel{
   }
 
   public void doBindings( ) {
-    sb.build {
-      noSendModel.fireTableDataChanged()
-      bySendModel.fireTableDataChanged();
-    }
     noSendModel.fireTableDataChanged()
     bySendModel.fireTableDataChanged();
   }
 
   public void updateData(){
+    lstBySend.clear()
+    lstNotSend.clear()
     lstBySend = OrderController.jbBySend()
     lstNotSend = OrderController.jbNotSend()
     travel = OrderController.findCurrentTravel()
@@ -139,6 +129,15 @@ class EnvioPanel extends JPanel{
 
   private void clearFields( ) {
 
+  }
+
+
+  DefaultTableModel getBySendModel() {
+    return this.bySendModel
+  }
+
+  DefaultTableModel getNotSendModel() {
+    return this.notSendModel
   }
 
 
@@ -174,6 +173,7 @@ class EnvioPanel extends JPanel{
     JButton source = ev.source as JButton
     source.enabled = false
     OrderController.printPreviousPacking()
+    source.enabled = true
   }
 
 

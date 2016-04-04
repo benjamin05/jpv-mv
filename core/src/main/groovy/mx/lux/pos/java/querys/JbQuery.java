@@ -388,4 +388,106 @@ public class JbQuery {
       }
       return lstJbViaje;
     }
+
+
+    public static List<JbJava> buscarJbPorTipo( String tipo ){
+      List<JbJava> lstJb = new ArrayList<JbJava>();
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "select * from jb where jb_tipo = '"+StringUtils.trimToEmpty(tipo)+"';";
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          JbJava jb = new JbJava();
+          jb = jb.setValores(rs);
+          lstJb.add(jb);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJb;
+    }
+
+    public static List<JbJava> buscarJbPorEstados( String estado, String estado1 ){
+      List<JbJava> lstJb = new ArrayList<JbJava>();
+      try {
+            Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "select * from jb where estado = '"+StringUtils.trimToEmpty(estado)+"' or estado = '"+StringUtils.trimToEmpty(estado1)+"';";
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          JbJava jb = new JbJava();
+          jb = jb.setValores(rs);
+          lstJb.add(jb);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJb;
+    }
+
+
+    public static List<JbSobres> buscaJbSobresPorFechaEnvioNullYRxNull( ){
+      List<JbSobres> lstJb = new ArrayList<JbSobres>();
+      JbSobres jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb_sobres where fecha_envio IS NULL AND (rx IS null OR rx = '');");
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          jbJava = new JbSobres();
+          jbJava = jbJava.mapeoJbSobres( rs );
+          lstJb.add(jbJava);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJb;
+    }
+
+
+    public static List<JbSobres> buscaJbSobresPorFechaEnvioNullYRxNotNull( ){
+      List<JbSobres> lstJb = new ArrayList<JbSobres>();
+      JbSobres jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb_sobres where fecha_envio IS NULL AND (rx IS NOT null AND rx != '');");
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          jbJava = new JbSobres();
+          jbJava = jbJava.mapeoJbSobres( rs );
+          lstJb.add(jbJava);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJb;
+    }
+
+
+    public static List<JbDev> buscaJbDevPorFechaEnvioNull( ){
+      List<JbDev> lstJb = new ArrayList<JbDev>();
+      JbDev jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb_dev where fecha_envio IS NULL;");
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          jbJava = new JbDev();
+          jbJava = jbJava.mapeoJbDev( rs );
+          lstJb.add(jbJava);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJb;
+    }
 }
