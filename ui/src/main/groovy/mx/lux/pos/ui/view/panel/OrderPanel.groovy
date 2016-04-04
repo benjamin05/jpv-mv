@@ -897,7 +897,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         InvTrController controllerInv = InvTrController.instance
         List<Order> lstOrders = CancellationController.findOrderToResetValues(newOrderId)
         for (Order order : lstOrders) {
-          if( ItemController.hasSameFrame(order.id, newOrderId) ){
+          if( !ItemController.hasSameFrame(order.id, newOrderId) ){
             controllerInv.automaticIssue( StringUtils.trimToEmpty(order.id), true )
           }
           CancellationController.resetValuesofCancellationJava(order.id)
