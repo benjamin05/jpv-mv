@@ -179,8 +179,7 @@ public class PopUpMenu implements TableModelListener {
               NotSendDialog dialog = new NotSendDialog( component, rx )
               dialog.show()
               sendPanel.updateData()
-              sendPanel.noSendModel.fireTableDataChanged()
-              sendPanel.bySendModel.fireTableDataChanged()
+              sendPanel.doBindings()
             }
         });
 
@@ -189,8 +188,7 @@ public class PopUpMenu implements TableModelListener {
             public void actionPerformed(ActionEvent e) {
               OrderController.send( rx, "" )
               sendPanel.updateData()
-              sendPanel.noSendModel.fireTableDataChanged()
-              sendPanel.bySendModel.fireTableDataChanged()
+              sendPanel.doBindings()
             }
         });
         /*itemRetener.addActionListener(new ActionListener() {

@@ -115,6 +115,8 @@ class EnvioPanel extends JPanel{
   }
 
   public void doBindings( ) {
+    bySendModel.rowsModel.setValue(lstBySend);
+    noSendModel.rowsModel.setValue(lstNotSend);
     noSendModel.fireTableDataChanged()
     bySendModel.fireTableDataChanged();
   }
@@ -130,16 +132,6 @@ class EnvioPanel extends JPanel{
   private void clearFields( ) {
 
   }
-
-
-  DefaultTableModel getBySendModel() {
-    return this.bySendModel
-  }
-
-  DefaultTableModel getNotSendModel() {
-    return this.notSendModel
-  }
-
 
   public void limpiaPantalla(){
     lstBySend = OrderController.jbBySend()
