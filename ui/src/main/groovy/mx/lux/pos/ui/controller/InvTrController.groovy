@@ -1049,10 +1049,11 @@ class InvTrController {
               return o2.fecha.compareTo(o1.fecha)
             }
           })
-          mx.lux.pos.java.repository.JbTrack jbTrack = lstJbTrack.get(1)
-          if( jbTrack != null && (StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("RS") ||
-                  StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("TE"))){
-            estatusValid = true
+          for(mx.lux.pos.java.repository.JbTrack jbTrack : lstJbTrack){
+            if( jbTrack != null && (StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("RS") ||
+                    StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("TE"))){
+              estatusValid = true
+            }
           }
         }
       } else {
