@@ -488,4 +488,40 @@ public class JbQuery {
       }
       return lstJb;
     }
+
+
+    public static List<JbTrack> buscarJbTrackPorEstadoYFecha( String estado, Date fechaIni, Date fechaFin ){
+      List<JbTrack> lstTracks = new ArrayList<JbTrack>();
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb_track WHERE estado = '%s' AND fecha between %s AND %s;",
+                StringUtils.trimToEmpty(estado), Utilities.toString(fechaIni,formatTimeStamp), Utilities.toString(fechaFin,formatTimeStamp));
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          JbTrack jbTrack = new JbTrack();
+          jbTrack = jbTrack.mapeoJbTrack( rs );
+          lstTracks.add(jbTrack);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstTracks;
+    }
+
+
+    public static void saveJbLLamada (JbLlamadaJava jbLlamada) {
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      String sql = String.format("INSERT INTO jb_llamada (num_llamada,rx,fecha,estado,emp_atendio,tipo,id_mod)" +
+              "VALUES(%d,'%s',%s,'%s','%s','%s','%s');",jbLlamada.getNumLlamada(), jbLlamada.getRx(),
+              Utilities.toString(jbLlamada.getFecha(), formatTimeStamp), jbLlamada.getEstado(),jbLlamada.getEmpAtendio(),
+              jbLlamada.getTipo(),jbLlamada.getIdMod());
+      Connections db = new Connections();
+      db.updateQuery(sql);
+      db.close();
+    }
+
+
 }

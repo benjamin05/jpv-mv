@@ -37,11 +37,13 @@ class ReceiveDialog extends JDialog {
   private JbJava jb
   private NotaVentaJava nota
   private Rx receta
+  private String viaje
 
   public boolean button = false
 
-  ReceiveDialog( JbJava jb ) {
+  ReceiveDialog( JbJava jb, String viaje ) {
     this.jb = jb
+    this.viaje = viaje
     nota = OrderController.findOrderJavaByBill( StringUtils.trimToEmpty(jb.rx) )
     receta = OrderController.findRxByBill( StringUtils.trimToEmpty(jb.rx) )
     buildUI()
@@ -82,12 +84,12 @@ class ReceiveDialog extends JDialog {
           borderLayout()
           panel( constraints: BorderLayout.LINE_END ) {
             button( text: "Satisfactorio", preferredSize: UI_Standards.BUTTON_SIZE,
-                //actionPerformed: { onButtonOk() }
+                actionPerformed: { onButtonOk() }
             )
-            button( text: "No Satisfactorio", preferredSize: UI_Standards.BUTTON_SIZE,
-                //actionPerformed: { onButtonCancel() }
+            button( text: "No Satisfactorio", preferredSize: [140,35],
+                actionPerformed: { onButtonNotOk() }
             )
-            button( text: "No Satisfactorio", preferredSize: UI_Standards.BUTTON_SIZE,
+            button( text: "Cerrar", preferredSize: UI_Standards.BUTTON_SIZE,
                     actionPerformed: { onButtonCancel() }
             )
           }
@@ -132,6 +134,14 @@ class ReceiveDialog extends JDialog {
   }
 
   protected void onButtonOk( ) {
-
+    OrderController.receivedJb( jb.rx, viaje, "ENTREGAR" )
+    dispose()
   }
+
+  protected void onButtonNotOk( ) {
+    OrderController.receivedJb( jb.rx, viaje, "RETRASADO" )
+    dispose()
+  }
+
+
 }

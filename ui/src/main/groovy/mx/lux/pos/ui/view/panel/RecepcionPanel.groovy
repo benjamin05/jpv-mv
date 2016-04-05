@@ -3,6 +3,7 @@ package mx.lux.pos.ui.view.panel
 import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.java.repository.JbJava
+import mx.lux.pos.java.repository.JbTrack
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Invoice
 import mx.lux.pos.ui.model.Order
@@ -17,6 +18,7 @@ import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
 import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
+import java.text.SimpleDateFormat
 
 class RecepcionPanel extends JPanel{
 
@@ -27,18 +29,19 @@ class RecepcionPanel extends JPanel{
   private JTextField txtRx
   private JTextField txtViaje
   private JSpinner dateEnd
-  private List<JbJava> lstBySend = new ArrayList<>()
-  private List<JbJava> lstNotSend = new ArrayList<>()
-  private List<String> dominios
+  private List<JbTrack> lstReceived = new ArrayList<>()
   private Order order
   private Invoice invoice
   private Date today = new Date()
   public DefaultTableModel receiveModel
 
+  public SimpleDateFormat df = new SimpleDateFormat("HH:mm")
+
   private static final String TAG_CANCELADO = 'T'
 
   RecepcionPanel( ) {
     sb = new SwingBuilder()
+    lstReceived = OrderController.findJbReveivedToday()
     buildUI()
     doBindings()
   }
@@ -55,12 +58,12 @@ class RecepcionPanel extends JPanel{
       panel( layout: new MigLayout( 'wrap ', '[fill,grow]', '[]' ) ) {
         scrollPane( ) {
           table(selectionMode: ListSelectionModel.SINGLE_SELECTION){//, mouseClicked: doShowItemClickNotSend) {
-            receiveModel = tableModel(list: new ArrayList<String>()) {
-              closureColumn( header: 'Hora', read: {String tmp -> tmp}, preferredWidth: 60)
-              closureColumn( header: 'Rx', read: {String tmp -> tmp}, preferredWidth: 50)
-              closureColumn( header: 'Estado', read: {String tmp -> tmp}, preferredWidth: 100)
-              closureColumn( header: 'Cliente', read: {String tmp -> tmp}, preferredWidth: 180)
-              closureColumn( header: 'Material', read: {String tmp -> tmp}, preferredWidth: 180)
+            receiveModel = tableModel(list: lstReceived) {
+              closureColumn( header: 'Hora', read: {JbTrack tmp -> df.format(tmp.fecha)}, preferredWidth: 40)
+              closureColumn( header: 'Rx', read: {JbTrack tmp -> tmp.rx}, preferredWidth: 50)
+              closureColumn( header: 'Estado', read: {JbTrack tmp -> tmp.estado}, preferredWidth: 40)
+              closureColumn( header: 'Cliente', read: {JbTrack tmp -> tmp.jb.cliente}, preferredWidth: 250)
+              closureColumn( header: 'Material', read: {JbTrack tmp -> tmp.jb.material}, preferredWidth: 250)
             } as DefaultTableModel
           }
         }
@@ -69,7 +72,7 @@ class RecepcionPanel extends JPanel{
   }
 
   public void doBindings( ) {
-
+    receiveModel.fireTableDataChanged()
   }
 
 
@@ -77,12 +80,14 @@ class RecepcionPanel extends JPanel{
     JButton source = ev.source as JButton
     source.enabled = false
     if( StringUtils.trimToEmpty(txtRx.text).length() > 0 ){
-      if( StringUtils.trimToEmpty(txtViaje.text).length() > 0 ){
+      if( StringUtils.trimToEmpty(txtViaje.text).length() > 0 || !StringUtils.trimToEmpty(txtViaje.text).isNumber() ){
         JbJava jb = OrderController.findJbByRx( StringUtils.trimToEmpty(txtRx.text) )
         if( jb != null ){
           if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase(TAG_ESTADO_EP) ){
-            ReceiveDialog dialog = new ReceiveDialog( jb )
+            ReceiveDialog dialog = new ReceiveDialog( jb, StringUtils.trimToEmpty(txtViaje.text) )
             dialog.show()
+            lstReceived = OrderController.findJbReveivedToday()
+            doBindings()
           }
         }
       } else {

@@ -1047,11 +1047,11 @@ class MainWindow extends JFrame implements KeyListener {
         orderPanel.finalize()
         invTrView.panel = null
       }
-      /*if( !panelSelected.equals(consultaPanel) ){
-        mainPanel.remove( consultaPanel )
-        consultaPanel.finalize()
-        consultaPanel = null
-      }*/
+      if( !panelSelected.equals(recepcionPanel) ){
+        mainPanel.remove( recepcionPanel )
+        recepcionPanel.finalize()
+        recepcionPanel = null
+      }
       if( !panelSelected.equals(envioPanel) ){
         mainPanel.remove( envioPanel )
         envioPanel.finalize()

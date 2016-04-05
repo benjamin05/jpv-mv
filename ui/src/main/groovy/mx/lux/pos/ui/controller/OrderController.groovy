@@ -4041,4 +4041,40 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static List<mx.lux.pos.java.repository.JbTrack> findJbReveivedToday( ){
+    Date fechaInicio = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH );
+    Date fechaFin = new Date( DateUtils.ceiling( new Date(), Calendar.DAY_OF_MONTH ).getTime() - 1 );
+    List<mx.lux.pos.java.repository.JbTrack> lstJbTmp = JbQuery.buscarJbTrackPorEstadoYFecha( "RS", fechaInicio, fechaFin )
+    return lstJbTmp
+  }
+
+
+  static void receivedJb( String rx, String viaje, String tipoLlamada ){
+    JbJava jb = JbQuery.buscarPorRx( rx )
+    if( jb != null ){
+      User user = Session.get(SessionItem.USER) as User
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+      jbTrack.rx = StringUtils.trimToEmpty(jb.rx)
+      jbTrack.estado = 'RS'
+      jbTrack.obs = "Viaje "+StringUtils.trimToEmpty(viaje)
+      jbTrack.emp = StringUtils.trimToEmpty(user.username)
+      jbTrack.fecha = new Date()
+      JbQuery.saveJbTrack( jbTrack )
+
+      JbLlamadaJava jbLlamada = new JbLlamadaJava()
+      jbLlamada.numLlamada = 0
+      jbLlamada.rx = StringUtils.trimToEmpty(jb.rx)
+      jbLlamada.fecha = new Date()
+      jbLlamada.estado = 'PN'
+      jbLlamada.empAtendio = StringUtils.trimToEmpty(jb.empAtendio)
+      jbLlamada.tipo = tipoLlamada
+      jbLlamada.idMod = StringUtils.trimToEmpty(user.username)
+      JbQuery.saveJbLLamada(jbLlamada)
+
+      jb.estado = 'RS'
+      JbQuery.updateJb( jb )
+    }
+  }
+
+
 }

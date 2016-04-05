@@ -1,7 +1,11 @@
 package mx.lux.pos.java.repository;
 
+import mx.lux.pos.java.querys.EmpleadoQuery;
+import mx.lux.pos.java.querys.JbQuery;
 import org.apache.commons.lang.StringUtils;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 
 public class JbTrack {
@@ -14,6 +18,7 @@ public class JbTrack {
 	Date fecha;
 	String idMod;
 	String idJbTrack;
+    JbJava jb;
 	
 	
 	public String getRx() {
@@ -69,17 +74,48 @@ public class JbTrack {
         this.idMod = idMod;
     }
 
-    public static JbTrack setValores( String rx, String estado, String obs, String emp,
-			String idViaje, Date fecha, String idMod, String idJbTrack ){
-		JbTrack jbTrack = new JbTrack();
-		jbTrack.setRx(rx);
-		jbTrack.setEstado(estado);
-		jbTrack.setObs(obs);
-		jbTrack.setEmp(emp);
-		jbTrack.setIdViaje(idViaje);
-		jbTrack.setFecha(fecha);
-		jbTrack.setIdModM(idMod);
-		jbTrack.setIdJbTrack(idJbTrack);
-		return jbTrack;
+    public JbJava getJb() {
+        return jb;
+    }
+
+    public void setJb(JbJava jb) {
+        this.jb = jb;
+    }
+
+    public JbTrack setValores(String rx, String estado, String obs, String emp,
+                              String idViaje, Date fecha, String idMod, String idJbTrack){
+		this.setRx(rx);
+        this.setEstado(estado);
+        this.setObs(obs);
+        this.setEmp(emp);
+        this.setIdViaje(idViaje);
+        this.setFecha(fecha);
+        this.setIdModM(idMod);
+        this.setIdJbTrack(idJbTrack);
+        this.setJb( jbJava() );
+		return this;
 	}
+
+
+    public JbJava jbJava(){
+      JbJava jbJava = new JbJava();
+      jbJava = JbQuery.buscarPorRx(this.rx);
+      return jbJava;
+    }
+
+
+    public JbTrack mapeoJbTrack( ResultSet rs ) throws SQLException {
+        this.setRx(rs.getString("rx"));
+        this.setEstado(rs.getString("estado"));
+        this.setObs(rs.getString("obs"));
+        this.setEmp(rs.getString("emp"));
+        this.setIdViaje(rs.getString("id_viaje"));
+        this.setFecha(rs.getDate("fecha"));
+        this.setIdModM(rs.getString("id_mod"));
+        this.setIdJbTrack(rs.getString("id_jbtrack"));
+        this.setJb( jbJava() );
+        return this;
+    }
+
+
 }
