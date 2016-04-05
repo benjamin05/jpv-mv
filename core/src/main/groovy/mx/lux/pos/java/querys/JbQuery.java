@@ -106,7 +106,7 @@ public class JbQuery {
 	try {
         Connection con = Connections.doConnect();
         stmt = con.createStatement();
-        String sql = "select * from jb where rx = '"+rx+"';";
+        String sql = "select * from jb where rx = '"+StringUtils.trimToEmpty(rx)+"';";
         rs = stmt.executeQuery(sql);
         con.close();
         while (rs.next()) {
@@ -161,8 +161,10 @@ public class JbQuery {
             }
         } catch (SQLException err) {
             System.out.println( err );
+        } catch (ParseException e) {
+            System.out.println(e);
         }
-		return lstTracks;
+        return lstTracks;
 	}
 
     public static void updateEstadoJbRx (String rx, String estado) {
@@ -496,7 +498,7 @@ public class JbQuery {
       try {
         Connection con = Connections.doConnect();
         stmt = con.createStatement();
-        String sql = String.format("SELECT * FROM jb_track WHERE estado = '%s' AND fecha between %s AND %s;",
+        String sql = String.format("SELECT * FROM jb_track WHERE estado = '%s' AND fecha BETWEEN %s AND %s;",
                 StringUtils.trimToEmpty(estado), Utilities.toString(fechaIni,formatTimeStamp), Utilities.toString(fechaFin,formatTimeStamp));
         rs = stmt.executeQuery(sql);
         con.close();
@@ -505,10 +507,19 @@ public class JbQuery {
           jbTrack = jbTrack.mapeoJbTrack( rs );
           lstTracks.add(jbTrack);
         }
+        for(JbTrack jbTrack : lstTracks){
+          System.out.println( jbTrack.getFecha() );
+          JbJava jb = buscarPorRx(jbTrack.getRx());
+          if( jb != null ){
+            jbTrack.setJb( jb );
+          }
+        }
       } catch (SQLException err) {
         System.out.println( err );
+      } catch (ParseException e) {
+        System.out.println( e );
       }
-      return lstTracks;
+        return lstTracks;
     }
 
 

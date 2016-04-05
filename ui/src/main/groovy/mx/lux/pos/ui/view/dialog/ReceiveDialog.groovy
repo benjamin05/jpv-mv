@@ -75,20 +75,20 @@ class ReceiveDialog extends JDialog {
           txtObservationsRx = textField( editable: false )
           label( text: "Observaciones Factura" )
           txtObservationsBill = textField( editable: false )
-          label( text: "Externo" )
+          /*label( text: "Externo" )
           cbExternal = checkBox( enabled: false )
           label( text: "Sucursal Destino" )
-          txtdestinationSite = textField( editable: false )
+          txtdestinationSite = textField( editable: false )*/
         }
         panel( constraints: BorderLayout.PAGE_END ) {
           borderLayout()
           panel( constraints: BorderLayout.LINE_END ) {
-            button( text: "Satisfactorio", preferredSize: UI_Standards.BUTTON_SIZE,
+            button( text: "Aceptar", preferredSize: UI_Standards.BUTTON_SIZE,
                 actionPerformed: { onButtonOk() }
             )
-            button( text: "No Satisfactorio", preferredSize: [140,35],
+            /*button( text: "No Satisfactorio", preferredSize: [140,35],
                 actionPerformed: { onButtonNotOk() }
-            )
+            )*/
             button( text: "Cerrar", preferredSize: UI_Standards.BUTTON_SIZE,
                     actionPerformed: { onButtonCancel() }
             )
@@ -117,7 +117,7 @@ class ReceiveDialog extends JDialog {
     txtPromiseDate.text = df.format(jb.fechaPromesa)
     txtObservationsBill.text = nota != null ? nota.observacionesNv : ""
     txtObservationsRx.text = receta != null ? receta.observacionesR : ""
-    txtdestinationSite.text = ""
+    //txtdestinationSite.text = ""
   }
 
 

@@ -667,7 +667,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 recepcionMenuItem.visible = userLoggedIn
                             }
                     ) {
-                        consultaMenuItem = menuItem( text: 'Consulta Trabajos',
+                        consultaMenuItem = menuItem( text: 'Consulta',
                                 visible: true,
                                 actionPerformed: {
                                       clean( consultaPanel )
@@ -683,7 +683,7 @@ class MainWindow extends JFrame implements KeyListener {
                                       mainPanel.layout.show( mainPanel, 'consultaPanel' )
                                 }
                         )
-                        envioMenuItem = menuItem( text: 'Envio Trabajos',
+                        envioMenuItem = menuItem( text: 'Envio',
                                 visible: true,
                                 actionPerformed: {
                                       clean( envioPanel )
@@ -699,7 +699,7 @@ class MainWindow extends JFrame implements KeyListener {
                                       mainPanel.layout.show( mainPanel, 'envioPanel' )
                                 }
                         )
-                        recepcionMenuItem = menuItem( text: 'Recepcion Trabajos',
+                        recepcionMenuItem = menuItem( text: 'Recepcion',
                                 visible: true,
                                 actionPerformed: {
                                     clean( recepcionPanel )

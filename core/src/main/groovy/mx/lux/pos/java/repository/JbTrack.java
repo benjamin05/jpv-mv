@@ -6,6 +6,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.Date;
 
 public class JbTrack {
@@ -83,7 +84,7 @@ public class JbTrack {
     }
 
     public JbTrack setValores(String rx, String estado, String obs, String emp,
-                              String idViaje, Date fecha, String idMod, String idJbTrack){
+                              String idViaje, Date fecha, String idMod, String idJbTrack) throws ParseException {
 		this.setRx(rx);
         this.setEstado(estado);
         this.setObs(obs);
@@ -92,28 +93,28 @@ public class JbTrack {
         this.setFecha(fecha);
         this.setIdModM(idMod);
         this.setIdJbTrack(idJbTrack);
-        this.setJb( jbJava() );
+        //this.setJb( jbJava() );
 		return this;
 	}
 
 
-    public JbJava jbJava(){
+    public JbJava jbJava() throws ParseException {
       JbJava jbJava = new JbJava();
       jbJava = JbQuery.buscarPorRx(this.rx);
       return jbJava;
     }
 
 
-    public JbTrack mapeoJbTrack( ResultSet rs ) throws SQLException {
+    public JbTrack mapeoJbTrack( ResultSet rs ) throws SQLException, ParseException {
         this.setRx(rs.getString("rx"));
         this.setEstado(rs.getString("estado"));
         this.setObs(rs.getString("obs"));
         this.setEmp(rs.getString("emp"));
         this.setIdViaje(rs.getString("id_viaje"));
-        this.setFecha(rs.getDate("fecha"));
+        this.setFecha(rs.getTimestamp("fecha"));
         this.setIdModM(rs.getString("id_mod"));
         this.setIdJbTrack(rs.getString("id_jbtrack"));
-        this.setJb( jbJava() );
+        //this.setJb( jbJava() );
         return this;
     }
 

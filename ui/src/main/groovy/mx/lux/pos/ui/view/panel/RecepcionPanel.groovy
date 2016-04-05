@@ -24,6 +24,11 @@ class RecepcionPanel extends JPanel{
 
   private static final String DATE_TIME_FORMAT = 'dd-MM-yyyy HH:mm'
   private static final String TAG_ESTADO_EP = 'EP'
+  private static final String TAG_ESTADO_REP = 'REP'
+  private static final String TAG_ESTADO_RS = 'RS'
+  private static final String TAG_ESTADO_TE = 'TE'
+  private static final String TAG_ESTADO_CN = 'CN'
+  private static final String TAG_ESTADO_PE = 'PE'
 
   private SwingBuilder sb
   private JTextField txtRx
@@ -72,6 +77,9 @@ class RecepcionPanel extends JPanel{
   }
 
   public void doBindings( ) {
+    txtViaje.text = ''
+    txtRx.text = ''
+    receiveModel.rowsModel.setValue(lstReceived)
     receiveModel.fireTableDataChanged()
   }
 
@@ -83,11 +91,30 @@ class RecepcionPanel extends JPanel{
       if( StringUtils.trimToEmpty(txtViaje.text).length() > 0 || !StringUtils.trimToEmpty(txtViaje.text).isNumber() ){
         JbJava jb = OrderController.findJbByRx( StringUtils.trimToEmpty(txtRx.text) )
         if( jb != null ){
-          if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase(TAG_ESTADO_EP) ){
+          if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase(TAG_ESTADO_EP) ||
+                  StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase(TAG_ESTADO_REP) ){
             ReceiveDialog dialog = new ReceiveDialog( jb, StringUtils.trimToEmpty(txtViaje.text) )
             dialog.show()
             lstReceived = OrderController.findJbReveivedToday()
             doBindings()
+          } else if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase(TAG_ESTADO_PE) ){
+            Integer question = JOptionPane.showConfirmDialog(new JDialog(), "El trabajo no ha sido enviado ¿Desea recibirlo?",
+                    "Trabajo no enviado", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
+            if( question == 0 ){
+              ReceiveDialog dialog = new ReceiveDialog( jb, StringUtils.trimToEmpty(txtViaje.text) )
+              dialog.show()
+              lstReceived = OrderController.findJbReveivedToday()
+              doBindings()
+            }
+          } else if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase(TAG_ESTADO_RS) ){
+            sb.optionPane( message: 'El trabajo ya fue recibido',messageType: JOptionPane.ERROR_MESSAGE)
+                  .createDialog(this, 'Error').show()
+          } else if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase(TAG_ESTADO_TE) ){
+            sb.optionPane( message: 'No se puede recibir un trabajo Entregado',messageType: JOptionPane.ERROR_MESSAGE)
+                  .createDialog(this, 'Error').show()
+          } else if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase(TAG_ESTADO_CN) ){
+            sb.optionPane( message: 'No se puede recibir un trabajo Cancelado',messageType: JOptionPane.ERROR_MESSAGE)
+                  .createDialog(this, 'Error').show()
           }
         }
       } else {
