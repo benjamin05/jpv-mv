@@ -66,5 +66,6 @@ ALTURA SEGMENTO: #altnull(${lente.alturaSeg})
 - Tipo de Bisel.
 - Armazon del Cte. Especial.
 - Armazon del Cte. Maltratado.
+${ESC}@
 #AVANZAR_LINEAS(5)
 #CORTE()
