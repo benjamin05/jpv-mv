@@ -62,7 +62,7 @@ class RecepcionPanel extends JPanel{
       }
       panel( layout: new MigLayout( 'wrap ', '[fill,grow]', '[]' ) ) {
         scrollPane( ) {
-          table(selectionMode: ListSelectionModel.SINGLE_SELECTION){//, mouseClicked: doShowItemClickNotSend) {
+          table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doShowItemClickSend){
             receiveModel = tableModel(list: lstReceived) {
               closureColumn( header: 'Hora', read: {JbTrack tmp -> df.format(tmp.fecha)}, preferredWidth: 40)
               closureColumn( header: 'Rx', read: {JbTrack tmp -> tmp.rx}, preferredWidth: 50)
@@ -126,6 +126,17 @@ class RecepcionPanel extends JPanel{
               .createDialog(this, 'Error').show()
     }
     source.enabled = true
+  }
+
+
+
+  private def doShowItemClickSend = { MouseEvent ev ->
+    if (SwingUtilities.isRightMouseButton(ev)) {
+      JbTrack selectedData = ev.source.selectedElement as JbTrack
+      if( selectedData != null ){
+        PopUpMenu menu = new PopUpMenu( ev.component, ev.component.getX(), ev.component.getY(), StringUtils.trimToEmpty(selectedData.rx), "recepcion", this );
+      }
+    }
   }
 
 

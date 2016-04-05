@@ -59,6 +59,8 @@ public class PopUpMenu implements TableModelListener {
 
     private static final String TAG_PANEL_CONSULTA = "consulta"
     private static final String TAG_PANEL_ENVIO = "envio"
+    private static final String TAG_PANEL_RECEPCION = "recepcion"
+    private static final String TAG_PANEL_CONTACTOS = "contactos"
 	
 	public PopUpMenu( Component component, Integer x, Integer y, final String rx, String panel, JPanel jPanel ){
 	    pMenu = new JPopupMenu();
@@ -96,6 +98,12 @@ public class PopUpMenu implements TableModelListener {
           }
           itemReschedule.visible = false
           itemStopCall.visible = false
+        } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_RECEPCION) ){
+          itemNotSend.visible = false
+          itemSend.visible = false
+        } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_CONTACTOS) ){
+          itemNotSend.visible = false
+          itemSend.visible = false
         }
 	    pMenu.show(component, x, y);
         //pMenu.setLocation(x,y);

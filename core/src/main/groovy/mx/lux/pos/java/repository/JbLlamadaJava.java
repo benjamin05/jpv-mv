@@ -1,10 +1,15 @@
 package mx.lux.pos.java.repository;
 
 import mx.lux.pos.java.Utilities;
+import mx.lux.pos.java.querys.FormaContactoQuery;
+import mx.lux.pos.java.querys.JbQuery;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class JbLlamadaJava {
 
@@ -19,6 +24,8 @@ public class JbLlamadaJava {
     String obs;
     Boolean grupo;
     String idMod;
+    JbJava jb;
+    FormaContactoJava formaContacto;
 
     public Integer getNumLlamada() {
         return numLlamada;
@@ -108,7 +115,23 @@ public class JbLlamadaJava {
         this.idMod = idMod;
     }
 
-    public JbLlamadaJava mapeoParametro(ResultSet rs) throws SQLException{
+    public JbJava getJb() {
+        return jb;
+    }
+
+    public void setJb(JbJava jb) {
+        this.jb = jb;
+    }
+
+    public FormaContactoJava getFormaContacto() {
+        return formaContacto;
+    }
+
+    public void setFormaContacto(FormaContactoJava formaContacto) {
+        this.formaContacto = formaContacto;
+    }
+
+    public JbLlamadaJava mapeoParametro(ResultSet rs) throws SQLException, ParseException {
 	  this.setNumLlamada(rs.getInt("num_llamada"));
 	  this.setRx(rs.getString("rx"));
 	  this.setFecha(rs.getDate("fecha"));
@@ -120,8 +143,28 @@ public class JbLlamadaJava {
       this.setObs(rs.getString("obs"));
       this.setGrupo(Utilities.toBoolean(rs.getBoolean("grupo")));
       this.setIdMod(rs.getString("id_mod"));
+      //this.setJb( jbJava() );
+      //this.setFormaContacto( formaContacto() );
 	  return this;
 	}
-	
-	
+
+
+    public JbJava jbJava() throws ParseException {
+      JbJava jbJava = new JbJava();
+      jbJava = JbQuery.buscarPorRx(this.rx);
+      return jbJava;
+    }
+
+
+    public List<FormaContactoJava> formaContacto() throws ParseException {
+      List<FormaContactoJava> lstFormasContacto = new ArrayList<FormaContactoJava>();
+      FormaContactoJava formaContacto = new FormaContactoJava();
+      formaContacto = FormaContactoQuery.buscaFormaContactoPorRx( this.rx );
+      if( formaContacto != null ){
+        lstFormasContacto.add( formaContacto );
+      }
+      return lstFormasContacto;
+    }
+
+
 }

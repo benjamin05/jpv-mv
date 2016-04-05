@@ -4077,4 +4077,10 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static List<JbLlamadaJava> findJbPendingCalls( String empAtendio ){
+    List<JbLlamadaJava> lstJbLlamadas = JbQuery.buscaJbLlamadasPendientes( empAtendio )
+    return lstJbLlamadas
+  }
+
+
 }

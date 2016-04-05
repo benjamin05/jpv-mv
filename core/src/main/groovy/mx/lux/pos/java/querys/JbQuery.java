@@ -288,8 +288,10 @@ public class JbQuery {
         }
       } catch (SQLException err) {
         System.out.println( err );
+      } catch (ParseException e) {
+        System.out.println(e);
       }
-      return jbLlamadaJava;
+        return jbLlamadaJava;
     }
 
 
@@ -532,6 +534,38 @@ public class JbQuery {
       Connections db = new Connections();
       db.updateQuery(sql);
       db.close();
+    }
+
+
+    public static List<JbLlamadaJava> buscaJbLlamadasPendientes( String empAtendio ){
+      List<JbLlamadaJava> lstJb = new ArrayList<JbLlamadaJava>();
+      JbLlamadaJava jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "";
+        if( StringUtils.trimToEmpty(empAtendio).length() <= 0 ){
+          sql = String.format("SELECT * FROM jb_llamada;");
+        } else {
+          sql = String.format("SELECT * FROM jb_llamada WHERE emp_atendio = '%s';", StringUtils.trimToEmpty(empAtendio) );
+        }
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          jbJava = new JbLlamadaJava();
+          jbJava = jbJava.mapeoParametro( rs );
+          lstJb.add(jbJava);
+        }
+        for(JbLlamadaJava jbLlamada : lstJb){
+          jbLlamada.setJb( buscarPorRx(jbLlamada.getRx()));
+          jbLlamada.setFormaContacto(FormaContactoQuery.buscaFormaContactoPorRx(jbLlamada.getRx()));
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      } catch (ParseException e) {
+        System.out.println( e );
+      }
+      return lstJb;
     }
 
 

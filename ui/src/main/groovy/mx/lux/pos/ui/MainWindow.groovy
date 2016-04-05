@@ -55,6 +55,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JPanel consultaPanel
     private JPanel envioPanel
     private JPanel recepcionPanel
+    private JPanel contactosPanel
     private JPanel priceListPanel
     private JPanel invoicePanel
     private JToolBar infoBar
@@ -132,6 +133,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem consultaMenuItem
     private JMenuItem envioMenuItem
     private JMenuItem recepcionMenuItem
+    private JMenuItem contactosMenuItem
     private PromotionService promotionService
 
 
@@ -665,6 +667,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 consultaMenuItem.visible = userLoggedIn
                                 envioMenuItem.visible = userLoggedIn
                                 recepcionMenuItem.visible = userLoggedIn
+                                contactosMenuItem.visible = userLoggedIn
                             }
                     ) {
                         consultaMenuItem = menuItem( text: 'Consulta',
@@ -712,6 +715,21 @@ class MainWindow extends JFrame implements KeyListener {
                                         mainPanel.layout.show( mainPanel, 'recepcionPanel' )
                                     }
                                     mainPanel.layout.show( mainPanel, 'recepcionPanel' )
+                                }
+                        )
+                        contactosMenuItem = menuItem( text: 'Contactos',
+                                visible: true,
+                                actionPerformed: {
+                                    clean( contactosPanel )
+                                    if( contactosPanel == null ){
+                                        mainPanel.remove( contactosPanel )
+                                        contactosPanel = null
+                                        contactosPanel = new ContactosPanel()
+                                        clean( contactosPanel )
+                                        mainPanel.add( 'contactosPanel', contactosPanel )
+                                        mainPanel.layout.show( mainPanel, 'contactosPanel' )
+                                    }
+                                    mainPanel.layout.show( mainPanel, 'contactosPanel' )
                                 }
                         )
                     }
@@ -1056,6 +1074,11 @@ class MainWindow extends JFrame implements KeyListener {
         mainPanel.remove( envioPanel )
         envioPanel.finalize()
         envioPanel = null
+      }
+      if( !panelSelected.equals(contactosPanel) ){
+        mainPanel.remove( contactosPanel )
+        contactosPanel.finalize()
+        contactosPanel = null
       }
       Runtime garbage = Runtime.getRuntime();
       garbage.gc();
