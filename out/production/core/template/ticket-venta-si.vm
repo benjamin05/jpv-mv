@@ -75,5 +75,6 @@ ${LF}
 #SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})www.opticasmasvision.com.mx${LF}
 #end
 #SET_STYLE(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)#altnull(${sucursal.centroCostos})-#altnull(${nota_venta.factura})${LF}
+${ESC}@
 #AVANZAR_LINEAS(4)
 #CORTE()

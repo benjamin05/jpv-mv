@@ -569,4 +569,16 @@ public class JbQuery {
     }
 
 
+
+    public static void updateJbLLamada (JbLlamadaJava jbLlamada) {
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      String sql = String.format("UPDATE jb_llamada SET num_llamada = %d, fecha = %s, estado = '%s', emp_atendio = '%s'," +
+              "tipo = '%s',id_mod = '%s' WHERE rx = '%s';",jbLlamada.getNumLlamada(), Utilities.toString(jbLlamada.getFecha(), formatTimeStamp),
+              jbLlamada.getEstado(),jbLlamada.getEmpAtendio(), jbLlamada.getTipo(),jbLlamada.getIdMod(), jbLlamada.getRx());
+      Connections db = new Connections();
+      db.updateQuery(sql);
+      db.close();
+    }
+
+
 }

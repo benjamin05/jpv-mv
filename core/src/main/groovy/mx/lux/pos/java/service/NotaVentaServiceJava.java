@@ -916,4 +916,43 @@ public class NotaVentaServiceJava {
   }
 
 
+  public void guardarLlamada( String rx, String obs, Date fechaLLamar, String idUser ) throws ParseException {
+    JbJava jb = JbQuery.buscarPorRx( rx );
+    if( jb != null ){
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack();
+      jbTrack.setRx( rx );
+      jbTrack.setEstado("AE");
+      jbTrack.setObs( StringUtils.trimToEmpty(obs) );
+      jbTrack.setEmp( StringUtils.trimToEmpty(idUser) );
+      jbTrack.setFecha(new Date());
+      jbTrack.setIdMod("0");
+      JbQuery.saveJbTrack( jbTrack );
+
+      JbQuery.eliminaJbLLamada( StringUtils.trimToEmpty(rx) );
+
+      jb.setVolverLlamar( fechaLLamar );
+      JbQuery.updateJb( jb );
+    }
+  }
+
+  public void guardarLlamadaNoRealizada( String rx, String obs, String idUser ){
+    //Crea track estdo = "NC"   Cambia estado de jbLLamada a NC
+    JbJava jb = JbQuery.buscarPorRx( rx );
+    if( jb != null ){
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack();
+      jbTrack.setRx( rx );
+      jbTrack.setEstado("NC");
+      jbTrack.setObs( StringUtils.trimToEmpty(obs) );
+      jbTrack.setEmp( StringUtils.trimToEmpty(idUser) );
+      jbTrack.setFecha(new Date());
+      jbTrack.setIdMod("0");
+      JbQuery.saveJbTrack( jbTrack );
+
+      JbLlamadaJava jbLlamada = JbQuery.buscaJbLlamadaPorIdGrupo( StringUtils.trimToEmpty(rx) );
+      if( jbLlamada != null ){
+        jbLlamada.setEstado("NC");
+        JbQuery.updateJbLLamada( jbLlamada );
+      }
+    }
+  }
 }

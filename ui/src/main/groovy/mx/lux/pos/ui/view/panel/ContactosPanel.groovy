@@ -9,6 +9,7 @@ import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Invoice
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.resources.UI_Standards
+import mx.lux.pos.ui.view.dialog.ContactosDialog
 import mx.lux.pos.ui.view.dialog.PopUpMenu
 import mx.lux.pos.ui.view.dialog.ReceiveDialog
 import net.miginfocom.swing.MigLayout
@@ -69,7 +70,7 @@ class ContactosPanel extends JPanel{
               closureColumn( header: 'Atendio', read: {JbLlamadaJava tmp -> tmp.empAtendio}, preferredWidth: 50)
               closureColumn( header: 'Tipo Con.', read: {JbLlamadaJava tmp -> tmp.tipo}, preferredWidth: 90)
               closureColumn( header: 'Contacto', read: {JbLlamadaJava tmp -> tmp.formaContacto?.tipoContacto?.descripcion}, preferredWidth: 65)
-              closureColumn( header: 'Estado Con.', read: {JbLlamadaJava tmp -> StringUtils.trimToEmpty(tmp.estado).equalsIgnoreCase("PN") ? "Pendiente" : ""},
+              closureColumn( header: 'Estado Con.', read: {JbLlamadaJava tmp -> getEstadoCon(StringUtils.trimToEmpty(tmp.estado))},
                       preferredWidth: 80)
               closureColumn( header: 'Promesa', read: {JbLlamadaJava tmp -> df.format(tmp.jb.fechaPromesa)}, preferredWidth: 75)
             } as DefaultTableModel
@@ -107,14 +108,29 @@ class ContactosPanel extends JPanel{
 
 
   private def doShowItemClickSend = { MouseEvent ev ->
+    JbLlamadaJava selectedData = ev.source.selectedElement as JbLlamadaJava
     if (SwingUtilities.isRightMouseButton(ev)) {
-      JbLlamadaJava selectedData = ev.source.selectedElement as JbLlamadaJava
       if( selectedData != null ){
         PopUpMenu menu = new PopUpMenu( ev.component, ev.component.getX(), ev.component.getY(), StringUtils.trimToEmpty(selectedData.rx), "contactos", this );
       }
     } else if (ev.clickCount == 2) {
-
+      if( selectedData != null ){
+        ContactosDialog dialog = new ContactosDialog( StringUtils.trimToEmpty(selectedData.rx) )
+        dialog.show()
+        loadData( StringUtils.trimToEmpty(txtAtendio.text) )
+        doBindings()
+      }
     }
+  }
+
+  private static String getEstadoCon( String estado ){
+    String estadoDesc = ""
+    if(estado.equalsIgnoreCase("PN")){
+      estadoDesc = "Pendiente"
+    } else if( estado.equalsIgnoreCase("NC") ){
+      estadoDesc = "No Contesto"
+    }
+    return estadoDesc
   }
 
 

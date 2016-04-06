@@ -12,6 +12,7 @@ import mx.lux.pos.java.querys.ParametrosQuery
 import mx.lux.pos.java.querys.PedidoLcQuery
 import mx.lux.pos.java.querys.PreciosQuery
 import mx.lux.pos.java.querys.PromocionQuery
+import mx.lux.pos.java.querys.TipoContactoQuery
 import mx.lux.pos.java.repository.AcusesJava
 import mx.lux.pos.java.repository.AcusesTipoJava
 import mx.lux.pos.java.repository.ArticulosJava
@@ -34,6 +35,7 @@ import mx.lux.pos.java.repository.PedidoLcJava
 import mx.lux.pos.java.repository.PreciosJava
 import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.java.repository.RecetaJava
+import mx.lux.pos.java.repository.TipoContactoJava
 import mx.lux.pos.java.repository.TmpServiciosJava
 import mx.lux.pos.java.service.ArticulosServiceJava
 import mx.lux.pos.java.service.CancelacionServiceJava
@@ -4083,4 +4085,18 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static FormaContactoJava findWayContactByBill( String bill ){
+    return FormaContactoQuery.buscaFormaContactoPorRx( bill )
+  }
+
+
+  static void saveCall( String rx, String obs, Date dateCallAgain ){
+    User user = Session.get(SessionItem.USER) as User
+    notaVentaServiceJava.guardarLlamada( StringUtils.trimToEmpty(rx), StringUtils.trimToEmpty(obs), dateCallAgain, user.username)
+  }
+
+  static void saveCallNotDone( String rx, String obs ){
+    User user = Session.get(SessionItem.USER) as User
+    notaVentaServiceJava.guardarLlamadaNoRealizada( StringUtils.trimToEmpty(rx), StringUtils.trimToEmpty(obs), user.username)
+  }
 }
