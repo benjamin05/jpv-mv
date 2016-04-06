@@ -2905,7 +2905,7 @@ class TicketServiceImpl implements TicketService {
 
 
   @Override
-  void imprimePackingPrevio( String idEmp ){
+  void imprimePackingPrevio( String idEmp, String estatus ){
     log.debug( "imprimePackingPrevio( )" )
     List<JbJava> lstJbTmp = JbQuery.buscarJbPorEstados("PE", "RPE")
     List<JbJava> lstJb = new ArrayList<>()
@@ -2919,9 +2919,7 @@ class TicketServiceImpl implements TicketService {
     List<JbSobres> lstSobresRxTmp = JbQuery.buscaJbSobresPorFechaEnvioNullYRxNotNull()
     List<JbDev> lstJbDev = JbQuery.buscaJbDevPorFechaEnvioNull()
     for(JbJava jb : lstJbTmp){
-      if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("LAB") ){
-        lstJb.add(jb)
-      } else if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("EXT") ){
+      if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("EXT") ){
         lstJbRotExt.add(jb)
       } else if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("REF") ){
         lstJbRef.add(jb)
@@ -2929,6 +2927,8 @@ class TicketServiceImpl implements TicketService {
         lstJbGar.add(jb)
       } else if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("OS") ){
         lstJbOrdServ.add(jb)
+      } else {
+        lstJb.add(jb)
       }
     }
     def devs = []
@@ -2960,6 +2960,7 @@ class TicketServiceImpl implements TicketService {
       lstSobresRx.add(tmp)
     }
     SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
+    SimpleDateFormat df1 = new SimpleDateFormat("ddMM")
     String currentTravel = ""
     List<JbViaje> lstJbViajes = JbQuery.buscarJbViajesHoy()
     if( lstJbViajes.size() <= 0 ){
@@ -2967,9 +2968,22 @@ class TicketServiceImpl implements TicketService {
     } else {
       currentTravel = StringUtils.trimToEmpty((lstJbViajes.size()+1).toString());
     }
+    Boolean mostrarCodigoBarras = false
+    String viajeCodigo = StringUtils.trimToEmpty(currentTravel)
+    if(StringUtils.trimToEmpty(currentTravel).length() == 1){
+      viajeCodigo = "0"+StringUtils.trimToEmpty(currentTravel)
+    }
+    String codigoBarras1 = viajeCodigo+StringUtils.trimToEmpty(df1.format(new Date()))+StringUtils.trimToEmpty(Registry.currentSite.toString())
+    String codigoBarras2 = "100001"
     EmpleadoJava empleado = EmpleadoQuery.buscaEmpPorIdEmpleado( idEmp )
     Sucursal sucursal = sucursalRepository.findOne( Registry.currentSite )
+    String title = "PACKING PREVIO"
+    if( estatus.equalsIgnoreCase("cerrado") ){
+      title = "PACKING CERRADO"
+      mostrarCodigoBarras = true
+    }
     def datos = [
+        title: title,
         fecha: df.format(new Date()),
         sucursal: "[${StringUtils.trimToEmpty(sucursal.id.toString())}] ${StringUtils.trimToEmpty(sucursal.nombre)}",
         viaje: currentTravel,
@@ -2994,8 +3008,14 @@ class TicketServiceImpl implements TicketService {
         verSobresRx: lstSobresRx.size() > 0,
         jbDev: lstJbDev,
         verJbDev: lstJbDev.size() > 0,
+        mostrarCodigoBarras: mostrarCodigoBarras,
+        codigoBarras1: codigoBarras1,
+        codigoBarras2: codigoBarras2,
     ]
     this.imprimeTicket( 'template/ticket-packing.vm', datos )
+    if( estatus.equalsIgnoreCase("cerrado") ){
+      this.imprimeTicket( 'template/ticket-packing.vm', datos )
+    }
   }
 
 

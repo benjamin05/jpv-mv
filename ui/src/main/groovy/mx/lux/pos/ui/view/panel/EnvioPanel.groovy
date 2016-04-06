@@ -106,10 +106,10 @@ class EnvioPanel extends JPanel{
       }
 
       panel( layout: new MigLayout( 'center', '80[fill,100!]80' ) ) {
-        button( 'Cerrar Via'  )//actionPerformed: doPrintInvoice )
+        button( 'Cerrar Viaje', actionPerformed: doClosePacking )
         button( 'Reimpresion' )//actionPerformed: doPrintReference )
         button( 'Previo', actionPerformed: doPrintPreviousPacking )//actionPerformed: doShowInvoice )
-        button( 'Actualizar' )//actionPerformed: doRequest )
+        button( 'Actualizar', actionPerformed: doUpdateData )
       }
     }
   }
@@ -164,8 +164,36 @@ class EnvioPanel extends JPanel{
   private def doPrintPreviousPacking = { ActionEvent ev ->
     JButton source = ev.source as JButton
     source.enabled = false
-    OrderController.printPreviousPacking()
+    OrderController.printPacking( "previo" )
     source.enabled = true
+  }
+
+
+  private def doUpdateData = { ActionEvent ev ->
+    updateData()
+    doBindings()
+  }
+
+
+  private def doClosePacking = { ActionEvent ev ->
+    if(StringUtils.trimToEmpty(txtFolio.text).length() > 0){
+      if(StringUtils.trimToEmpty(txtFolio.text).length() <= 20 ){
+        Integer question = JOptionPane.showConfirmDialog(new JDialog(), "¿Seguro desea cerrar el viaje?", "Cerrar Viaje",
+                JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
+        if (question == 0) {
+          OrderController.printPacking( "cerrado" )
+          OrderController.closeTrip( lstBySend, StringUtils.trimToEmpty(txtFolio.text) )
+          updateData()
+          doBindings()
+        }
+      } else {
+        sb.optionPane(message: 'El folio no puede ser mayor a 20 caracteres',messageType: JOptionPane.ERROR_MESSAGE)
+                .createDialog(this, 'Cerrar Viaje').show()
+      }
+    } else {
+      sb.optionPane(message: 'El campo folio esta vacio',messageType: JOptionPane.ERROR_MESSAGE)
+              .createDialog(this, 'Cerrar Viaje').show()
+    }
   }
 
 

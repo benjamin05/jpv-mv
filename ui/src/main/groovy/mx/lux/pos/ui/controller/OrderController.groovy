@@ -4026,9 +4026,9 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
-  static void printPreviousPacking( ){
+  static void printPacking(String estatus ){
     User user = (User)Session.get( SessionItem.USER );
-    ticketService.imprimePackingPrevio( StringUtils.trimToEmpty(user.username) )
+    ticketService.imprimePackingPrevio( StringUtils.trimToEmpty(user.username), estatus )
   }
 
 
@@ -4098,5 +4098,11 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   static void saveCallNotDone( String rx, String obs ){
     User user = Session.get(SessionItem.USER) as User
     notaVentaServiceJava.guardarLlamadaNoRealizada( StringUtils.trimToEmpty(rx), StringUtils.trimToEmpty(obs), user.username)
+  }
+
+
+  static void closeTrip( List<JbJava> lstJbs, String folio ){
+    User user = Session.get(SessionItem.USER) as User
+    notaVentaServiceJava.cerrarViaje( lstJbs, folio, StringUtils.trimToEmpty(user.username) )
   }
 }

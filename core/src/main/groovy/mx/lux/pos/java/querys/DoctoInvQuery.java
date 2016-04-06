@@ -23,8 +23,6 @@ public class DoctoInvQuery {
     public static DoctoInvJava saveDoctoInv(DoctoInvJava doctoInvJava) {
       Connections db = new Connections();
       String sql = "";
-      String formatDate = "yyyy-MM-dd";
-      String formatTime = "HH:mm:ss.SSS";
       String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
       sql = String.format("INSERT INTO docto_inv (id_docto,id_tipo_docto,fecha,usuario,referencia,id_sync,id_mod,fecha_mod," +
               "id_sucursal,notas,cantidad,estado,sistema)" +
@@ -60,5 +58,26 @@ public class DoctoInvQuery {
       }
       return lstDoctoInv;
     }
+
+
+    public static DoctoInvJava updateDoctoInv(DoctoInvJava doctoInvJava) {
+      Connections db = new Connections();
+      String sql = "";
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      sql = String.format("UPDATE docto_inv SET id_tipo_docto = '%s', fecha = %s, usuario = '%s', referencia = '%s', id_sync = '%s'," +
+              " id_mod = '%s',fecha_mod = %s, id_sucursal = %d, notas = '%s', cantidad = '%s', estado = '%s', sistema = '%s'" +
+              " WHERE id_docto = '%s';",
+              StringUtils.trimToEmpty(doctoInvJava.getIdTipoDocto()),Utilities.toString(doctoInvJava.getFecha(), formatTimeStamp),
+              StringUtils.trimToEmpty(doctoInvJava.getUsuario()),StringUtils.trimToEmpty(doctoInvJava.getReferencia()),
+              StringUtils.trimToEmpty(doctoInvJava.getIdSync()),StringUtils.trimToEmpty(doctoInvJava.getIdMod()),
+              Utilities.toString(doctoInvJava.getFechaMod(), formatTimeStamp),doctoInvJava.getIdSucursal(),
+              StringUtils.trimToEmpty(doctoInvJava.getNotas()), StringUtils.trimToEmpty(doctoInvJava.getCantidad()),
+              StringUtils.trimToEmpty(doctoInvJava.getEstado()), StringUtils.trimToEmpty(doctoInvJava.getSistema()),
+              StringUtils.trimToEmpty(doctoInvJava.getIdDocto()));
+      db.insertQuery( sql );
+      db.close();
+      return doctoInvJava;
+    }
+
 
 }

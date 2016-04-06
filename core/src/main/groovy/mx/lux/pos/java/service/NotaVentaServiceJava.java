@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class NotaVentaServiceJava {
@@ -951,8 +952,131 @@ public class NotaVentaServiceJava {
       JbLlamadaJava jbLlamada = JbQuery.buscaJbLlamadaPorIdGrupo( StringUtils.trimToEmpty(rx) );
       if( jbLlamada != null ){
         jbLlamada.setEstado("NC");
-        JbQuery.updateJbLLamada( jbLlamada );
+        JbQuery.updateJbLLamada(jbLlamada);
       }
     }
   }
+
+
+  public void cerrarViaje( List<JbJava> lstJb, String folio, String idEmp ) throws ParseException {
+    SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+    SimpleDateFormat hf = new SimpleDateFormat("HH:mm");
+    List<JbViaje> lstJbViajes = JbQuery.buscarJbViajesHoy();
+    String viaje = String.valueOf(lstJbViajes.size()+1);
+    JbViaje jbViaje = new JbViaje();
+    jbViaje.setIdViaje( viaje );
+    jbViaje.setFolio( StringUtils.trimToEmpty(folio) );
+    jbViaje.setFecha(new Date());
+    jbViaje.setHora(new Date());
+    jbViaje.setAbierto(false);
+    jbViaje.setEmp(idEmp);
+    JbQuery.saveJbViaje( jbViaje );
+
+    List<JbJava> lstJbExt = JbQuery.buscarJbPorEstado("X1");
+    List<DoctoInvJava> lstDev = DoctoInvQuery.buscarDoctoInvPorIdTipoDoctoYEstado("DA", "pendiente");
+    List<JbSobres> lstSobres = JbQuery.buscaJbSobresPorFechaEnvioNullYRxNull();
+    List<JbSobres> lstSobresRxTmp = JbQuery.buscaJbSobresPorFechaEnvioNullYRxNotNull();
+    List<JbDev> lstJbDev = JbQuery.buscaJbDevPorFechaEnvioNull();
+
+    String rxVal = "";
+
+    for(JbJava jb : lstJb){
+      String estado = "";
+      rxVal = StringUtils.trimToEmpty(rxVal).length() > 0 ? rxVal+", " : "";
+      if( StringUtils.trimToEmpty(jb.getEstado()).equalsIgnoreCase("PE") ){
+        estado = "EP";
+      } else if( StringUtils.trimToEmpty(jb.getEstado()).equalsIgnoreCase("RPE") ){
+        estado = "REP";
+      }
+      jb.setEstado(estado);
+      jb.setIdViaje(viaje);
+      JbQuery.updateJb( jb );
+
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack();
+      JbSobres jbSobre = JbQuery.buscaJbSobrePorRx( jb.getRx() );
+      jbTrack.setEstado(estado);
+      jbTrack.setRx( jb.getRx() );
+      jbTrack.setIdViaje( viaje );
+      jbTrack.setObs( "Viaje "+StringUtils.trimToEmpty(viaje)+(jbSobre != null ? " Rx Sobre" : "") );
+      jbTrack.setEmp( idEmp );
+      JbQuery.saveJbTrack( jbTrack );
+
+      rxVal = rxVal+StringUtils.trimToEmpty(jb.getRx());
+    }
+
+    for(JbSobres jbSobres : lstSobres){
+      jbSobres.setFechaEnvio( new Date() );
+      jbSobres.setIdViaje( viaje );
+      JbQuery.updateJbSobre( jbSobres );
+    }
+
+    for(JbSobres jbSobres : lstSobresRxTmp){
+      jbSobres.setFechaEnvio( new Date() );
+      jbSobres.setIdViaje( viaje );
+      JbQuery.updateJbSobre( jbSobres );
+    }
+
+    for(JbDev jbDev : lstJbDev){
+      jbDev.setFechaEnvio( new Date() );
+      jbDev.setIdViaje( viaje );
+      JbQuery.updateJbDev( jbDev );
+    }
+
+    for(JbJava jbExt : lstJbExt){
+      rxVal = StringUtils.trimToEmpty(rxVal).length() > 0 ? rxVal+", " : "";
+      jbExt.setEstado("X2");
+      JbQuery.updateJb( jbExt );
+
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack();
+      JbSobres jbSobre = JbQuery.buscaJbSobrePorRx( jbExt.getRx() );
+      jbTrack.setEstado("X2");
+      jbTrack.setRx( jbExt.getRx() );
+      jbTrack.setIdViaje( viaje );
+      jbTrack.setObs( "Viaje "+StringUtils.trimToEmpty(viaje)+(jbSobre != null ? " Rx Sobre" : "") );
+      jbTrack.setEmp( idEmp );
+      JbQuery.saveJbTrack( jbTrack );
+      rxVal = rxVal+StringUtils.trimToEmpty(jbExt.getRx());
+    }
+
+    for(DoctoInvJava doctoInv : lstDev){
+      rxVal = StringUtils.trimToEmpty(rxVal).length() > 0 ? rxVal+", " : "";
+      doctoInv.setEstado("enviado");
+      DoctoInvQuery.updateDoctoInv(doctoInv);
+      if(StringUtils.trimToEmpty(doctoInv.getNotas()).length() > 0){
+        String data = StringUtils.trimToEmpty(doctoInv.getNotas()).substring(1);
+        Integer idSobre = 0;
+        try{
+          idSobre = NumberFormat.getInstance().parse(data).intValue();
+        } catch ( ParseException ex ){
+          System.out.println( ex );
+        }
+        rxVal = rxVal+"P"+StringUtils.trimToEmpty(String.valueOf(idSobre));
+      }
+    }
+
+    List<JbJava> lstJbsNE = JbQuery.buscarJbPorEstados("NE", "RNE");
+    for(JbJava jbNe : lstJbsNE){
+      String estado = "";
+      if( StringUtils.trimToEmpty(jbNe.getEstado()).equalsIgnoreCase("NE") ){
+        estado = "PE";
+      } else if( StringUtils.trimToEmpty(jbNe.getEstado()).equalsIgnoreCase("RNE") ){
+        estado = "RPE";
+      }
+      jbNe.setEstado(estado);
+      JbQuery.updateJb( jbNe );
+    }
+
+    AcusesJava acuse = new AcusesJava();
+    acuse.setFechaCarga(new Date());
+    acuse.setIdTipo("ENV");
+    acuse = AcusesQuery.saveAcuses(acuse);
+    String contenidoAcuse = "rxVal="+rxVal+"|id_sucVal="+StringUtils.trimToEmpty(String.valueOf(Registry.getCurrentSite()))+
+            "|fechaVal="+StringUtils.trimToEmpty(df.format(new Date()))+"|horaVal="+StringUtils.trimToEmpty(hf.format(new Date()))+
+            "|id_acuseVal="+StringUtils.trimToEmpty(String.valueOf(acuse.getIdAcuse()))+"|envioVal="+StringUtils.trimToEmpty(viaje)+"|";
+    acuse.setContenido(contenidoAcuse);
+    AcusesQuery.saveAcuses(acuse);
+  }
+
+
+
 }

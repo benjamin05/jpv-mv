@@ -581,4 +581,61 @@ public class JbQuery {
     }
 
 
+    public static void saveJbViaje (JbViaje jbViaje) {
+      String formatDate = "yyyy-MM-dd";
+      String formatTime = "HH:mm:ss.SSS";
+      String sql = String.format("INSERT INTO jb_viaje VALUES('%s','%s',%s,%s,%s,'%s');",jbViaje.getIdViaje(), jbViaje.getFolio(),
+              Utilities.toString(jbViaje.getFecha(), formatDate), Utilities.toString(jbViaje.getHora(), formatTime),
+              Utilities.toBoolean(jbViaje.getAbierto()), jbViaje.getEmp() );
+        Connections db = new Connections();
+        db.updateQuery(sql);
+        db.close();
+    }
+
+
+    public static void updateJbSobre (JbSobres jbSobres) {
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      String formatData = "yyyy-MM-dd";
+      String sql = String.format("UPDATE jb_sobres SET folio_sobre = '%s', dest = '%s', emp = '%s', area = '%s', contenido = '%s'," +
+              "id_viaje = '%s', fecha_envio = %s, fecha = %s, id_mod = '%s', rx = '%s' WHERE id = %d;",jbSobres.getFolioSobre(),
+              jbSobres.getDest(), jbSobres.getEmp(), jbSobres.getArea(), jbSobres.getContenido(), jbSobres.getIdViaje(),
+              Utilities.toString(jbSobres.getFechaEnvio(), formatData), Utilities.toString(jbSobres.getFecha(), formatTimeStamp),
+              jbSobres.getIdMod(), jbSobres.getRx(), jbSobres.getId());
+      Connections db = new Connections();
+      db.updateQuery(sql);
+      db.close();
+    }
+
+
+    public static void updateJbDev (JbDev jbDev) {
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      String formatData = "yyyy-MM-dd";
+      String sql = String.format("UPDATE jb_dev SET factura = '%s', sucursal = '%s', apartado = '%s', id_viaje = '%s', documento = '%s'," +
+              "arm = '%s', col = '%s', fecha_envio = %s, fecha = %s, id_mod = '%s', rx = '%s', id_sobre = %d WHERE id_dev = %d;",
+              jbDev.getFactura(), jbDev.getSucursal(), jbDev.getApartado(), jbDev.getIdViaje(), jbDev.getDocumento(),
+              jbDev.getArm(), jbDev.getCol(), Utilities.toString(jbDev.getFechaEnvio(), formatData),
+              Utilities.toString(jbDev.getFecha(), formatTimeStamp), jbDev.getIdMod(), jbDev.getRx(), jbDev.getIdSobre(), jbDev.getIdDev());
+      Connections db = new Connections();
+      db.updateQuery(sql);
+      db.close();
+    }
+
+
+    public static JbSobres buscaJbSobrePorRx( String rx ){
+      JbSobres jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb_sobres where rx = '%s');", StringUtils.trimToEmpty(rx) );
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          jbJava = new JbSobres();
+          jbJava = jbJava.mapeoJbSobres( rs );
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return jbJava;
+    }
 }
