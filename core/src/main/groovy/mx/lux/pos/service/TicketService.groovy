@@ -69,4 +69,6 @@ interface TicketService {
   NotaVentaJava imprimeGarantia( BigDecimal montoGarantia, String idArticulo, String tipoSeguro, String idFactura, Boolean doubleEnsure )
 
   void imprimePackingPrevio( String idEmp, String estatus )
+
+  void reimprimePacking( String viaje, Date fecha )
 }

@@ -10,6 +10,7 @@ import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.controller.TaxpayerController
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.view.dialog.PopUpMenu
+import mx.lux.pos.ui.view.dialog.ReprintTripDialog
 import mx.lux.pos.ui.view.dialog.SuggestedTaxpayersDialog
 import mx.lux.pos.ui.view.renderer.MoneyCellRenderer
 import net.miginfocom.swing.MigLayout
@@ -107,7 +108,7 @@ class EnvioPanel extends JPanel{
 
       panel( layout: new MigLayout( 'center', '80[fill,100!]80' ) ) {
         button( 'Cerrar Viaje', actionPerformed: doClosePacking )
-        button( 'Reimpresion' )//actionPerformed: doPrintReference )
+        button( 'Reimpresion', actionPerformed: doReprint )
         button( 'Previo', actionPerformed: doPrintPreviousPacking )//actionPerformed: doShowInvoice )
         button( 'Actualizar', actionPerformed: doUpdateData )
       }
@@ -194,6 +195,12 @@ class EnvioPanel extends JPanel{
       sb.optionPane(message: 'El campo folio esta vacio',messageType: JOptionPane.ERROR_MESSAGE)
               .createDialog(this, 'Cerrar Viaje').show()
     }
+  }
+
+
+  private def doReprint = { ActionEvent ev ->
+    ReprintTripDialog dialog = new ReprintTripDialog()
+    dialog.show()
   }
 
 

@@ -4105,4 +4105,11 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     User user = Session.get(SessionItem.USER) as User
     notaVentaServiceJava.cerrarViaje( lstJbs, folio, StringUtils.trimToEmpty(user.username) )
   }
+
+
+  static void reprintPacking(String trip, Date date){
+    ticketService.reimprimePacking( trip, date )
+  }
+
+
 }

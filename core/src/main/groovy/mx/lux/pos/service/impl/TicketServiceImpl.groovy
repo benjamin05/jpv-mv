@@ -3019,4 +3019,128 @@ class TicketServiceImpl implements TicketService {
   }
 
 
+
+  @Override
+  void reimprimePacking( String viaje, Date fecha ){
+      log.debug( "imprimePackingPrevio( )" )
+      Date fechaInicio = DateUtils.truncate( fecha, Calendar.DAY_OF_MONTH );
+      Date fechaFin = new Date( DateUtils.ceiling( fecha, Calendar.DAY_OF_MONTH ).getTime() - 1 );
+      String idEmp = ""
+      List<JbJava> lstJbTmp = new ArrayList<>()
+      List<mx.lux.pos.java.repository.JbTrack> lstTracks = JbQuery.buscarJbTrackPorEstadoYFecha("EP", fechaInicio, fechaFin)
+      for(mx.lux.pos.java.repository.JbTrack track : lstTracks){
+        lstJbTmp.add(JbQuery.buscarPorRx( track.rx ))
+        idEmp = track.emp
+      }
+      List<JbJava> lstJb = new ArrayList<>()
+      List<JbJava> lstJbRotExt = new ArrayList<>()
+      List<JbJava> lstJbRef = new ArrayList<>()
+      List<JbJava> lstJbGar = new ArrayList<>()
+      List<JbJava> lstJbOrdServ = new ArrayList<>()
+      List<JbJava> lstJbExt = new ArrayList<>()//JbQuery.buscarJbPorEstado("X1")
+      List<DoctoInvJava> lstDev = new ArrayList<>()//DoctoInvQuery.buscarDoctoInvPorIdTipoDoctoYEstado("DA", "pendiente")
+      List<JbSobres> lstSobres = new ArrayList<>()//JbQuery.buscaJbSobresPorFechaEnvioNullYRxNull()
+      List<JbSobres> lstSobresRxTmp = new ArrayList<>()//JbQuery.buscaJbSobresPorFechaEnvioNullYRxNotNull()
+      List<JbDev> lstJbDev = new ArrayList<>()//JbQuery.buscaJbDevPorFechaEnvioNull()
+      for(JbJava jb : lstJbTmp){
+          if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("EXT") ){
+              lstJbRotExt.add(jb)
+          } else if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("REF") ){
+              lstJbRef.add(jb)
+          } else if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("GAR") ){
+              lstJbGar.add(jb)
+          } else if( StringUtils.trimToEmpty(jb.jbTipo).equalsIgnoreCase("OS") ){
+              lstJbOrdServ.add(jb)
+          } else {
+              lstJb.add(jb)
+          }
+      }
+      def devs = []
+      for(DoctoInvJava doctoInv : lstDev){
+          String folioStr = StringUtils.trimToEmpty( doctoInv.notas ).length() > 0 ? StringUtils.trimToEmpty( doctoInv.notas ).substring(1) : "0"
+          Integer folio = 0
+          try{
+              folio = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(folioStr)).intValue()
+          } catch ( ParseException ex ){
+              println ex
+          }
+          def tmp = [
+                  idDocto: doctoInv.idDocto,
+                  cantidad: doctoInv.cantidad,
+                  folio: folio > 0 ? StringUtils.trimToEmpty(folio.toString()): ""
+          ]
+          devs.add(tmp)
+      }
+      def lstSobresRx = []
+      for(JbSobres jbSobres : lstSobresRxTmp){
+          JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(jbSobres.rx))
+          def tmp = [
+                  rx: (jb != null && jb.roto > 0) ? "R"+StringUtils.trimToEmpty(jbSobres.rx) : StringUtils.trimToEmpty(jbSobres.rx),
+                  dest: StringUtils.trimToEmpty(jbSobres.dest),
+                  folioSobre: StringUtils.trimToEmpty(jbSobres.folioSobre),
+                  area: StringUtils.trimToEmpty(jbSobres.area),
+                  contenido: StringUtils.trimToEmpty(jbSobres.contenido)
+          ]
+          lstSobresRx.add(tmp)
+      }
+      SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
+      SimpleDateFormat df1 = new SimpleDateFormat("ddMM")
+      String currentTravel = ""
+      List<JbViaje> lstJbViajes = JbQuery.buscarJbViajesHoy()
+      if( lstJbViajes.size() <= 0 ){
+          currentTravel = "1"
+      } else {
+          currentTravel = StringUtils.trimToEmpty((lstJbViajes.size()+1).toString());
+      }
+      Boolean mostrarCodigoBarras = false
+      String viajeCodigo = StringUtils.trimToEmpty(currentTravel)
+      if(StringUtils.trimToEmpty(currentTravel).length() == 1){
+          viajeCodigo = "0"+StringUtils.trimToEmpty(currentTravel)
+      }
+      String codigoBarras1 = viajeCodigo+StringUtils.trimToEmpty(df1.format(new Date()))+StringUtils.trimToEmpty(Registry.currentSite.toString())
+      String codigoBarras2 = "100001"
+      EmpleadoJava empleado = EmpleadoQuery.buscaEmpPorIdEmpleado( idEmp )
+      Sucursal sucursal = sucursalRepository.findOne( Registry.currentSite )
+      String title = "PACKING PREVIO"
+      if( true ){
+          title = "PACKING CERRADO"
+          mostrarCodigoBarras = true
+      }
+      def datos = [
+              title: title,
+              fecha: df.format(new Date()),
+              sucursal: "[${StringUtils.trimToEmpty(sucursal.id.toString())}] ${StringUtils.trimToEmpty(sucursal.nombre)}",
+              viaje: currentTravel,
+              emp: empleado != null ? "[${empleado.idEmpleado.trim()}] ${empleado.nombreEmpleado}" : "",
+              trabajos: lstJb,
+              verTrabajos: lstJb.size() > 0,
+              rotosExt: lstJbRotExt,
+              verRotExt: lstJbRotExt.size() > 0,
+              refacciones: lstJbRef,
+              verRefacciones: lstJbRef.size() > 0,
+              garantias: lstJbGar,
+              verGarantias: lstJbGar.size() > 0,
+              ordenesServ: lstJbOrdServ,
+              verOrdenesServ: lstJbOrdServ.size() > 0,
+              trabajosExt: lstJbExt,
+              verTrabajosExt: lstJbExt.size() > 0,
+              trabajosDev: devs,
+              verTrabajosDev: devs.size() > 0,
+              sobres: lstSobres,
+              verSobres: lstSobres.size() > 0,
+              sobresRx: lstSobresRx,
+              verSobresRx: lstSobresRx.size() > 0,
+              jbDev: lstJbDev,
+              verJbDev: lstJbDev.size() > 0,
+              mostrarCodigoBarras: false,
+              codigoBarras1: codigoBarras1,
+              codigoBarras2: codigoBarras2,
+      ]
+      this.imprimeTicket( 'template/ticket-packing.vm', datos )
+      if( false ){
+          this.imprimeTicket( 'template/ticket-packing.vm', datos )
+      }
+  }
+
+
 }
