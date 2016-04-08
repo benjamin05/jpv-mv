@@ -3,14 +3,17 @@ package mx.lux.pos.service.impl
 import groovy.util.logging.Slf4j
 import mx.lux.pos.model.AcusesTipo
 import mx.lux.pos.model.Empleado
+import mx.lux.pos.model.LogAsignaSubgerente
 import mx.lux.pos.model.Parametro
 import mx.lux.pos.model.TipoParametro
 import mx.lux.pos.repository.AcusesTipoRepository
 import mx.lux.pos.repository.EmpleadoRepository
+import mx.lux.pos.repository.LogAsignaSubgerenteRepository
 import mx.lux.pos.repository.ParametroRepository
 import mx.lux.pos.service.EmpleadoService
 import mx.lux.pos.service.business.Registry
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.time.DateUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -31,6 +34,9 @@ class EmpleadoServiceImpl implements EmpleadoService {
 
   @Resource
   private ParametroRepository parametroRepository
+
+  @Resource
+  private LogAsignaSubgerenteRepository logAsignaSubgerenteRepository
 
   @Resource
   private AcusesTipoRepository acusesTipoRepository
@@ -131,6 +137,73 @@ class EmpleadoServiceImpl implements EmpleadoService {
       }
     }
     return newEmpleado
+  }
+
+
+  @Transactional
+  @Override
+  void insertaSubgerente( String idEmpleado, String idEmpleadoAsigno, Date fechaInicial, Date fechaFinal, Integer horas ){
+    log.debug( "insertaSubgerente( )" )
+    LogAsignaSubgerente log = new LogAsignaSubgerente()
+    log.fecha = new Date()
+    log.empleadoAsigno = StringUtils.trimToEmpty( idEmpleadoAsigno )
+    log.empleadoAsignado = StringUtils.trimToEmpty( idEmpleado )
+    log.fechaInicial = fechaInicial
+    log.fechaFinal = fechaFinal
+    log.horas = horas
+    logAsignaSubgerenteRepository.saveAndFlush( log )
+  }
+
+
+  @Override
+  LogAsignaSubgerente obtenerSubgerenteActual(  ){
+    List<LogAsignaSubgerente> logs = logAsignaSubgerenteRepository.findSubmanagersProgrammed()
+    LogAsignaSubgerente log = null
+    for(LogAsignaSubgerente logTmp : logs){
+      if( logTmp.fechaInicial == null ){
+        Date fecha = DateUtils.truncate( logTmp.fecha, Calendar.DAY_OF_MONTH )
+        Date hoy = DateUtils.truncate( new Date(), Calendar.DAY_OF_MONTH )
+        if( fecha.compareTo(hoy) == 0 ){
+          Calendar cal = Calendar.getInstance();
+          cal.setTime(logTmp.fecha);
+          cal.add(Calendar.HOUR_OF_DAY, logTmp.horas);
+          Date vigencia = cal.getTime();
+          if( vigencia.compareTo(new Date()) >= 0){
+            log = logTmp
+          }
+        }
+      } else {
+        if( logTmp.fechaInicial.compareTo(new Date()) <= 0 && logTmp.fechaFinal.compareTo(new Date()) >= 0 ){
+          log= logTmp
+        }
+      }
+    }
+    if( log != null && log.id == null ){
+      log = null
+    }
+    return log
+  }
+
+
+
+  @Override
+  List<LogAsignaSubgerente> obtenerSubgerentesActualYProgramados( ){
+    List<LogAsignaSubgerente> log = new ArrayList<>()
+    List<LogAsignaSubgerente> logTmp = logAsignaSubgerenteRepository.findSubmanagersProgrammed()
+    for(LogAsignaSubgerente logData : logTmp){
+      if( logData.horas != null ){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(logData.fecha);
+        cal.add(Calendar.HOUR_OF_DAY, logData.horas);
+        Date vigencia = cal.getTime();
+        if( vigencia.compareTo(new Date()) > 0 ){
+          log.add( logData )
+        }
+      } else {
+        log.add( logData )
+      }
+    }
+    return log
   }
 
 

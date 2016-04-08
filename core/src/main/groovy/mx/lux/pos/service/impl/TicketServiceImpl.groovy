@@ -3,9 +3,11 @@ package mx.lux.pos.service.impl
 import com.ibm.icu.text.RuleBasedNumberFormat
 import com.mysema.query.BooleanBuilder
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.DoctoInvQuery
 import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.repository.CuponMvJava
 import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.DoctoInvJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.model.*
@@ -1475,8 +1477,19 @@ class TicketServiceImpl implements TicketService {
     def parts = [ ]
     Integer cantidad = 0
     String referencia = ''
+    Boolean isSalidaIncomp = true
+    for ( TransInvDetalle trDet in pTrans.trDet ) {
+      if( trDet.idTipoTrans.equalsIgnoreCase("SALIDA") ){
+        if( trDet.cantidad > 0 || trDet.cantidad < 0 ){
+          isSalidaIncomp = false
+        }
+      } else {
+        isSalidaIncomp = false
+      }
+    }
     for ( TransInvDetalle trDet in pTrans.trDet ) {
       Articulo part = ServiceFactory.partMaster.obtenerArticulo( trDet.sku, true)
+
       def tkPart = [
           sku: adapter.getText( trDet, adapter.FLD_TRD_SKU ),
           partNbr: adapter.getText( part, adapter.FLD_PART_CODE ),
@@ -1484,12 +1497,13 @@ class TicketServiceImpl implements TicketService {
           partColor: adapter.getText( part, adapter.FLD_PART_CODE_PLUS_COLOR ) ,
           desc: adapter.getText( part, adapter.FLD_PART_DESC ),
           price: String.format( '%12s', adapter.getText( part, adapter.FLD_PART_PRICE ) ),
-          qty: String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
+          qty: isSalidaIncomp ? String.format( '%5s', trDet.linea ) : String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
       ]
-        cantidad = cantidad+trDet.cantidad
-      parts.add( tkPart )
+        cantidad = isSalidaIncomp ? cantidad+trDet.linea : cantidad+trDet.cantidad
+        parts.add( tkPart )
     }
     String barcode = ""
+    String barcodeEnvelope = ""
     AddressAdapter companyAddress = Registry.companyAddress
     Sucursal site = sucursalRepository.findOne( pTrans.sucursal )
     Sucursal siteTo = null
@@ -1504,9 +1518,32 @@ class TicketServiceImpl implements TicketService {
       mgr = empleadoRepository.findById( site.idGerente )
     }*/
     if ( InventorySearch.esTipoTransaccionSalida( pTrans.idTipoTrans ) ) {
+      DoctoInvJava doctoInv = DoctoInvQuery.buscaDoctoInvDaPorIdDocto(StringUtils.trimToEmpty(pTrans.folio.toString()))
+      if( doctoInv != null && StringUtils.trimToEmpty(doctoInv.notas).length() > 0 ){
+        barcodeEnvelope = StringUtils.trimToEmpty(doctoInv.notas)
+      }
       barcode = StringUtils.trimToEmpty(Registry.currentSite.toString())+StringUtils.trimToEmpty(String.format("%06d",pTrans.folio))
+      String titulo = "   Solicitud de devolucion   en espera de autorizacion".toUpperCase()
+      String pieTicket1 = "Documento no valido".toUpperCase()
+      String pieTicket2 = "para realizar devolucion".toUpperCase()
+      Boolean mostratCodigo = false
+      for(TransInvDetalle det : pTrans.trDet){
+        if( det.cantidad > 0 || det.cantidad < 0 ){
+          titulo = "SALIDA DE MERCANCIA"
+          pieTicket1 = "Devolucion autorizada".toUpperCase()
+          pieTicket2 = "Enviar mercancia antes de 48 hrs.".toUpperCase()
+          mostratCodigo = true
+        }
+      }
       def tkInvTr = [
           nombre_ticket: "ticket-salida-inventario",
+          titulo: titulo,
+          pieTicket1: pieTicket1,
+          pieTicket2: pieTicket2,
+          mostrarCodigo: mostratCodigo,
+          mostrarFirma: mostratCodigo,
+          barcodeEnvelope: doctoInv != null ? StringUtils.trimToEmpty(doctoInv.notas) : "",
+          mostrarBarcodeEnvelope: doctoInv != null ? StringUtils.trimToEmpty(doctoInv.notas).length() > 0 : false,
           effDate: adapter.getText( pTrans, adapter.FLD_TR_EFF_DATE ),
           thisSite: adapter.getText( site ),
           user: adapter.getText( emp ),
@@ -1588,10 +1625,15 @@ class TicketServiceImpl implements TicketService {
                 quantity: cantidad,
                 parts: parts
         ]
-        imprimeTicket( "template/ticket-entrada-inventario.vm", tkInvTr )
+        if( StringUtils.trimToEmpty(pTrans.idTipoTrans).equalsIgnoreCase("ENTRADA") ){
+          imprimeTicket( "template/ticket-entrada-inventario.vm", tkInvTr )
+        } else {
+          imprimeTicket( "template/ticket-entrada-sucursal.vm", tkInvTr )
+        }
     } else if ( InventorySearch.esTipoTransaccionOtraSalida( pTrans.idTipoTrans ) ) {
           def tkInvTr = [
                   nombre_ticket: "ticket-salida-inventario",
+                  titulo: "SALIDA DE MERCANCIA",
                   effDate: adapter.getText( pTrans, adapter.FLD_TR_EFF_DATE ),
                   thisSite: adapter.getText( site ),
                   user: adapter.getText( emp ),
@@ -1601,7 +1643,13 @@ class TicketServiceImpl implements TicketService {
                   remarks_1: ( remarks.size() > 0 ? remarks.get( 0 ) : "" ),
                   remarks_2: ( remarks.size() > 1 ? remarks.get( 1 ) : "" ),
                   quantity: cantidad,
-                  parts: parts
+                  parts: parts,
+                  pieTicket1: "",
+                  pieTicket2: "",
+                  mostrarCodigo: false,
+                  mostrarFirma: true,
+                  barcodeEnvelope: "",
+                  mostrarBarcodeEnvelope: false,
           ]
           imprimeTicket( "template/ticket-salida-inventario.vm", tkInvTr )
       }
@@ -2276,10 +2324,12 @@ class TicketServiceImpl implements TicketService {
         }
         if(precioO.id != null && precioO.precio != null && precioO.precio.compareTo(BigDecimal.ZERO) > 0){
           precio = precioO
-        } else if(precioL.id != null && precioL.precio != null && precioL.precio.compareTo(BigDecimal.ZERO) > 0){
+        } else if(precioL.id != null && precioL.precio != null ){
           precio = precioL
         } else if(precios.size() <= 0){
-          precio = part
+          precio = new Precio()
+          precio.precio = part.precio
+          precio.articulo = det.articulo
         }
         String cantidad = ( det.cantidad != 1 ? String.format( '(%d@%,.2f)', det.cantidad, part.precio ) : '' )
         String price = String.format( '$%,.2f', det.cantidad * precio?.precio )

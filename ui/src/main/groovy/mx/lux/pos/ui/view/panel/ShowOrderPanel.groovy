@@ -12,6 +12,7 @@ import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.controller.AccessController
 import mx.lux.pos.ui.controller.CancellationController
 import mx.lux.pos.ui.controller.DailyCloseController
+import mx.lux.pos.ui.controller.IOController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.CuponMvView
 import mx.lux.pos.ui.model.IPromotion
@@ -20,6 +21,9 @@ import mx.lux.pos.ui.model.OperationType
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.OrderItem
 import mx.lux.pos.ui.model.Payment
+import mx.lux.pos.ui.model.Session
+import mx.lux.pos.ui.model.SessionItem
+import mx.lux.pos.ui.model.User
 import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.dialog.AuthorizationDialog
 import mx.lux.pos.ui.view.dialog.CancellationDialog
@@ -222,7 +226,7 @@ class ShowOrderPanel extends JPanel {
                 printRxButton = button( 'Imprimir Rx', actionPerformed: doPrintRx, constraints: 'hidemode 3' )
                 returnButton = button( 'Devoluci\u00f3n', actionPerformed: doRefund, constraints: 'hidemode 3' )
                 printReturnButton = button( '<html><p align="center">Imprimir<br>Cancelaci\u00f3n</p></html>', actionPerformed: doPrintRefund, constraints: 'hidemode 3' )
-                ppButton = button( 'Pagar', actionPerformed: doSwitchPP  )
+                ppButton = button( 'Pagar', actionPerformed: doSwitchPP, constraints: 'hidemode 3'  )
                 println "boton imprimir visible: ${ppButton.getText().equals('Pagar')}"
                 printButton = button( 'Imprimir', actionPerformed: {doPrint()}, constraints: 'hidemode 3' )
 
@@ -233,7 +237,7 @@ class ShowOrderPanel extends JPanel {
   }
 
   private void doBindings( ) {
-
+    User user = Session.get( SessionItem.USER ) as User
     sb.build {
       bean( customerName, text: bind {order.customer?.fullName} )
       //bean( folio, text: bind {order.id} )
@@ -262,9 +266,11 @@ class ShowOrderPanel extends JPanel {
       dealsModel.fireTableDataChanged()
       bean( comments, text: bind( source: order, sourceProperty: 'comments', mutual: true ) )
       //bean( cancelButton, visible: bind {!'T'.equalsIgnoreCase( order.status )} )
-        bean( cancelTotalButton, visible: bind {!'T'.equalsIgnoreCase( order.status )} )
-        bean( cancelTransfButton, visible: bind {!'T'.equalsIgnoreCase( order.status )} )
-        bean( printRxButton, visible: bind {(order.rx != null)} )
+        bean( cancelTotalButton, visible: bind {!'T'.equalsIgnoreCase( order.status ) && IOController.getInstance().isManager(user.username)} )
+        bean( cancelTransfButton, visible: bind {!'T'.equalsIgnoreCase( order.status ) && IOController.getInstance().isManager(user.username)} )
+        println ppButton.getText().equals('Pagar')
+        bean( ppButton, visible: bind {IOController.getInstance().isManager(user.username)} )
+        bean( printRxButton, visible: bind {(order.rx != null) && IOController.getInstance().isManager(user.username)} )
       sumaPagos = BigDecimal.ZERO
       for ( Payment payment : order.payments ) {
         println(payment?.amount)
@@ -274,18 +280,19 @@ class ShowOrderPanel extends JPanel {
           sumaPagos=sumaPagos
       }
       }
-      bean( returnButton, visible: bind {( 'T'.equalsIgnoreCase( order.status ) ) && ( sumaPagos.compareTo( montoCentavos ) > 0 ) } )
-      bean( printReturnButton, visible: bind {( 'T'.equalsIgnoreCase( order.status ) ) } )
+      bean( returnButton, visible: bind {( 'T'.equalsIgnoreCase( order.status ) ) && ( sumaPagos.compareTo( montoCentavos ) > 0 ) && IOController.getInstance().isManager(user.username) } )
+      bean( printReturnButton, visible: bind {( 'T'.equalsIgnoreCase( order.status ) && IOController.getInstance().isManager(user.username)) } )
     }
     itemsModel.fireTableDataChanged()
     paymentsModel.fireTableDataChanged()
-    if((order?.total - order?.paid) == 0 || 'T'.equalsIgnoreCase( order.status )){
+    if((order?.total - order?.paid) == 0 || 'T'.equalsIgnoreCase( order.status ) ||
+            !IOController.getInstance().isManager(user.username)){
         ppButton?.setText('Imprimir')
-    } else{
+    } else {
         ppButton?.setText('Pagar')
     }
     sb.build {
-      bean( printButton, visible: bind {( ppButton.getText().equals('Pagar') )} )
+      bean( printButton, visible: bind { ppButton.getText().equals('Pagar') || !ppButton.visible } )
     }
   }
 
@@ -300,21 +307,25 @@ class ShowOrderPanel extends JPanel {
   private def doCancel = { ActionEvent ev ->
     JButton source = ev.source as JButton
     source.enabled = false
-    if ( 'T'.equalsIgnoreCase( order.status ) ) {
+    if( OrderController.dayIsOpen() ){
+      if ( 'T'.equalsIgnoreCase( order.status ) ) {
         sb.optionPane( message: "La venta ya ha sido cancelada, estado: ${order?.status}", optionType: JOptionPane.DEFAULT_OPTION )
-          .createDialog( this, "No se puede cancelar" )
-          .show()
-    } else {
-      String fechaVenta = order.date.format( 'dd/MM/yyyy' )
-      String hoy = new Date().format( 'dd/MM/yyyy' )
-      if( hoy.equalsIgnoreCase(fechaVenta) ){
-        cancelToday()
-        //CancellationController.freeCoupon( order.id )
+                .createDialog( this, "No se puede cancelar" )
+                .show()
       } else {
-        new CancellationDialog( this, order.id, false ).show()
-        CancellationController.refreshOrder( order )
-        doBindings()
+        String fechaVenta = order.date.format( 'dd/MM/yyyy' )
+        String hoy = new Date().format( 'dd/MM/yyyy' )
+        if( hoy.equalsIgnoreCase(fechaVenta) ){
+          cancelToday()
+        } else {
+          new CancellationDialog( this, order.id, false ).show()
+          CancellationController.refreshOrder( order )
+          doBindings()
+        }
       }
+    } else {
+      sb.optionPane(message: 'No se puede realizar la cancelacion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+                .createDialog(new JTextField(), "Dia cerrado").show()
     }
     source.enabled = true
   }
@@ -322,22 +333,26 @@ class ShowOrderPanel extends JPanel {
   private def doCancelTotal = { ActionEvent ev ->
     JButton source = ev.source as JButton
     source.enabled = false
-    if ( 'T'.equalsIgnoreCase( order.status ) ) {
-      sb.optionPane( message: "La venta ya ha sido cancelada, estado: ${order?.status}", optionType: JOptionPane.DEFAULT_OPTION )
-                    .createDialog( this, "No se puede cancelar" )
-                    .show()
+    if( OrderController.dayIsOpen() ){
+      if ( 'T'.equalsIgnoreCase( order.status ) ) {
+        sb.optionPane( message: "La venta ya ha sido cancelada, estado: ${order?.status}", optionType: JOptionPane.DEFAULT_OPTION )
+                .createDialog( this, "No se puede cancelar" )
+                .show()
       } else {
         String fechaVenta = order.date.format( 'dd/MM/yyyy' )
         String hoy = new Date().format( 'dd/MM/yyyy' )
         if( hoy.equalsIgnoreCase(fechaVenta) ){
           cancelToday()
         } else {
-          //new CancellationDialog( this, order.id, true ).show()
           new TotalCancellationDialog( this, order.id, false, true ).show()
           CancellationController.refreshOrder( order )
           doBindings()
         }
       }
+    } else {
+      sb.optionPane(message: 'No se puede realizar la cancelacion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+              .createDialog(new JTextField(), "Dia cerrado").show()
+    }
     source.enabled = true
   }
 
@@ -394,7 +409,8 @@ class ShowOrderPanel extends JPanel {
         if ( SwingUtilities.isRightMouseButton( ev ) && ev.source.selectedElement != null ) {
           Payment payment = ev.source.selectedElement as Payment
           if( order.fechaEntrega == null && !StringUtils.trimToEmpty(order.status).equalsIgnoreCase('T') ){
-            if( DailyCloseController.isPaymentDayOpen( payment.date ) ){
+            User user = Session.get( SessionItem.USER ) as User
+            if( DailyCloseController.isPaymentDayOpen( payment.date ) && IOController.getInstance().isManager(user.username) ){
                 sb.popupMenu {
                     menuItem( text: 'Editar',
                             actionPerformed: {
@@ -428,12 +444,17 @@ class ShowOrderPanel extends JPanel {
     JButton source = ev.source as JButton
     source.enabled = false
     if(ppButton.getText().equals('Pagar')){
-      if( validIp ){
-        doShowPayment()
+      if( OrderController.dayIsOpen() ){
+        if( validIp ){
+          doShowPayment()
+        } else {
+          sb.optionPane(message: 'Los pagos solo se pueden registrar en caja.',
+                  messageType: JOptionPane.ERROR_MESSAGE
+          ).createDialog(this, 'Pago en caja').show()
+        }
       } else {
-        sb.optionPane(message: 'Los pagos solo se pueden registrar en caja.',
-                      messageType: JOptionPane.ERROR_MESSAGE
-        ).createDialog(this, 'Pago en caja').show()
+        sb.optionPane(message: 'No se puede realizar el pago. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+                .createDialog(new JTextField(), "Dia cerrado").show()
       }
     } else{
       doPrint()

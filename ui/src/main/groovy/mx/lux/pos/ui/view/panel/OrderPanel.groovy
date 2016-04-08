@@ -145,9 +145,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         advanceOnlyInventariable = false
         String clientesActivos = OrderController.obtieneTiposClientesActivos()
         for(OperationType customer : lstCustomers){
-            if(clientesActivos.contains(customer.value)){
-               customerTypes.add(customer)
+          if( customer.compareTo(OperationType.PAYING) == 0 ){
+            User user = Session.get( SessionItem.USER ) as User
+            if( IOController.getInstance().isManager(user.username) ){
+              if(clientesActivos.contains(customer.value)){
+                customerTypes.add(customer)
+              }
             }
+          } else {
+            if(clientesActivos.contains(customer.value)){
+              customerTypes.add(customer)
+            }
+          }
         }
         promoAgeActive = Registry.promoAgeActive
         customer = CustomerController.findDefaultCustomer()
@@ -335,6 +344,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
     }
 
+
+    //Mapea los elementos de la pantalla con los datos de la BD
     private void doBindings() {
       if(promoAgeActive){
         calculatedPromoAge()
@@ -403,6 +414,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
     }
 
+    //Busca y actualiza la nota actual para mostrar los datos correspondientes
     void updateOrder(String pOrderId) {
       String comments = ''
       if( order.comments != null && order.comments != '' ){
@@ -426,6 +438,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         NumberFormat.getCurrencyInstance(Locale.US).format(it ?: 0)
     }
 
+
+    //Busca y despliega el dialogo con los datos dorrespondientes al cliente seleccionado
     private def doCustomerSearch = { ActionEvent ev ->
         JButton source = ev.source as JButton
         source.enabled = false
@@ -454,6 +468,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         source.enabled = true
     }
 
+
+    //Muestra el dialogo correspondiente a los diferentes tipos de clientes GENERAL, NUEVO, PROCESO, CAJA, COTIZA y EDITA CLIENTE CAJA.
     private def operationTypeChanged = { ItemEvent ev ->
         if (ev.stateChange == ItemEvent.SELECTED && this.uiEnabled) {
             switch (ev.item) {
@@ -583,7 +599,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
     }
 
-
+   //Busca y valida el articulo que se inserta en la caja de texto.
     private def doItemSearch( Boolean holdPromo, String log ) {
       Registry.getSolicitaGarbageColector()
       println "holdPromo: "+holdPromo
@@ -599,17 +615,41 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       if( OrderController.dayIsOpen() ){
         if (StringUtils.isNotBlank(input)) {
           //sb.doOutside {
+          List<Item> results = new ArrayList<>()
+            if(input.trim().contains("!")){
+              String[] inputTmp = input.split("!")
+              input = StringUtils.trimToEmpty(inputTmp[0])
+              Integer id = 0
+              try{
+                id = NumberFormat.getInstance().parse( StringUtils.trimToEmpty(input) )
+              } catch ( NumberFormatException e ){
+                println e.message
+              }
+              Item item = ItemController.findItem( id )
+              if( item != null ){
+                results.add( item )
+              }
+            }
+            Boolean oneSign = false
             if( input.contains(/$/) ){
               String[] inputTmp = input.split(/\$/)
               if( input.trim().contains(/$$/) ) {
                 article = inputTmp[0]
               } else {
                 article = inputTmp[0] + ',' + inputTmp[1].substring(0,3)
+                oneSign = true
               }
             } else {
               article = input.trim()
             }
-            List<Item> results = ItemController.findItemsByQuery(article)
+            if( results.size() <= 0 ){
+              results = ItemController.findItemsByQuery(article)
+            }
+            if( !results?.any() && oneSign ){
+              String[] inputTmp = input.split(/\$/)
+              article = StringUtils.trimToEmpty(inputTmp[0])+"*"
+              results = ItemController.findItemsByQuery(article)
+            }
             if (results?.any()) {
               Item item = new Item()
               if (results.size() == 1) {
@@ -657,7 +697,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 if(log.equalsIgnoreCase("actionPerformed")){
                   focusItem = true
                 }
-                SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, results)
+                List<Item> resultsTmp = new ArrayList<>()
+                for(Item i : results){
+                  if( StringUtils.trimToEmpty(i.color).length() > 0 ){
+                    resultsTmp.add(i)
+                  }
+                }
+                SuggestedItemsDialog dialog = new SuggestedItemsDialog(itemSearch, input, resultsTmp.size() > 0 ? resultsTmp : results, false)
                 dialog.show()
                 item = dialog.item
                 if (item?.id) {
@@ -712,7 +758,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   updateOrder( StringUtils.trimToEmpty(order.id) )
                 }
                 Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, false)
+                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, false, order.id)
                 editRx.show()
                 OrderController.saveRxOrder(order?.id, this.rec.idReceta)
               } else {
@@ -750,7 +796,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if(log.equalsIgnoreCase("actionPerformed")){
           focusItem = true
         }
-        sb.optionPane(message: 'No se pueden realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+        sb.optionPane(message: 'No se puede realizar la venta. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
                 .createDialog(new JTextField(), "Dia cerrado").show()
       }
       itemSearch.enabled = true
@@ -848,8 +894,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     private void reviewForTransfers(String newOrderId) {
       if (CancellationController.orderHasTransfers(newOrderId)) {
+        InvTrController controllerInv = InvTrController.instance
         List<Order> lstOrders = CancellationController.findOrderToResetValues(newOrderId)
         for (Order order : lstOrders) {
+          if( ItemController.hasSameFrame(order.id, newOrderId) ){
+            controllerInv.automaticIssue( StringUtils.trimToEmpty(order.id), true )
+          }
           CancellationController.resetValuesofCancellationJava(order.id)
         }
         List<String> sources = CancellationController.findSourceOrdersWithCredit(newOrderId)
@@ -885,7 +935,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           /*if( artString.equalsIgnoreCase('L') ){
             uso = 'BIFOCAL'
           }*/
-          EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', uso, false, false)
+          EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', uso, false, false, order.id)
           editRx.show()
 
           this.disableUI()
@@ -1133,7 +1183,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             rec = OrderController.findRx(order, customer)
             if( hasLc && (rec == null || rec.idReceta == null) ){
               Branch branch = Session.get(SessionItem.BRANCH) as Branch
-              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
+              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true, order.id)
               editRx.show()
               try {
                 if( rec != null ){
@@ -1175,7 +1225,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                             Order armOrder = OrderController.getOrder(order?.id)
                             if (rec.idReceta == null) {   //Receta Nueva
                                 Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, true)
+                                EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, true, order.id)
                                 editRx.show()
                                 try {
                                     OrderController.saveRxOrder(order?.id, rec.idReceta)
@@ -1427,6 +1477,8 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         if( discountAgeApplied && promoAgeActive && promoAmount.compareTo(BigDecimal.ZERO) > 0 ){
           promotionDriver.addPromoDiscountAge( order, promoAmount )
         }
+      ItemController.validTransSurtePino( StringUtils.trimToEmpty(order.id) )
+      OrderController.validSPWithoutLens( order )
         //CuponMvView cuponMvView = OrderController.cuponValid( customer.id )
       Order newOrder = OrderController.placeOrder(order, vendedor, false)
       OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
@@ -1933,7 +1985,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           Boolean continueSave = true
           if( hasLc && (rec == null || rec.idReceta == null) ){
             Branch branch = Session.get(SessionItem.BRANCH) as Branch
-            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true, order.id)
             editRx.show()
             try {
               if( rec != null ){
@@ -1974,7 +2026,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           Order armOrder = OrderController.getOrder(order?.id)
                           if (rec.idReceta == null) {   //Receta Nueva
                               Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false)
+                              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false, order.id)
                               editRx.show()
                               try {
                                   OrderController.saveRxOrder(order?.id, rec.idReceta)
@@ -2135,7 +2187,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           rec = OrderController.findRx(order, customer)
           if( hasLc && (rec == null || rec.idReceta == null) ){
             Branch branch = Session.get(SessionItem.BRANCH) as Branch
-            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true)
+            EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', "M", false, true, order.id)
             editRx.show()
             try {
               if( rec != null ){
@@ -2174,7 +2226,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           Order armOrder = OrderController.getOrder(order?.id)
                           if (rec.idReceta == null) {   //Receta Nueva
                               Branch branch = Session.get(SessionItem.BRANCH) as Branch
-                              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false)
+                              EditRxDialog editRx = new EditRxDialog(this, new Rx(), customer?.id, branch?.id, 'Nueva Receta', tipoArt, false, false, order.id)
                               editRx.show()
                               try {
                                   OrderController.saveRxOrder(order?.id, rec.idReceta)

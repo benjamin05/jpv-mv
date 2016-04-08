@@ -2,12 +2,15 @@ package mx.lux.pos.ui.view.panel
 
 import mx.lux.pos.model.InvAdjustSheet
 import mx.lux.pos.model.Shipment
+import mx.lux.pos.model.TransInvDetalle
 import mx.lux.pos.ui.controller.InvTrController
+import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.model.adapter.InvTrAdapter
 import mx.lux.pos.ui.view.component.NavigationBar.Command
 import mx.lux.pos.ui.view.component.NavigationBarListener
 import mx.lux.pos.ui.view.driver.*
+import org.apache.commons.lang.StringUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -179,12 +182,52 @@ class InvTrView implements NavigationBarListener {
     if ( driver.assign( this ) ) {
       if (driver.doBeforeSave( this )) {
         if ( InvTrViewMode.QUERY.equals(data.viewMode) ) {
-          controller.requestPrint( data.qryInvTr.idTipoTrans, data.qryInvTr.folio )
+          if( InvTrViewMode.ISSUE.trType.idTipoTrans.equals(StringUtils.trimToEmpty(data.qryInvTr.idTipoTrans)) ){
+            Boolean approved = false
+            for(TransInvDetalle det : data.qryInvTr.trDet){
+              if( det.cantidad > 0 || det.cantidad < 0 ){
+                approved = true
+              }
+            }
+            if( approved ){
+              controller.requestPrint( data.qryInvTr.idTipoTrans, data.qryInvTr.folio )
+            } else {
+              JOptionPane.showMessageDialog( this.panel, "Esperar autorizacion, para realizar devolucion",
+                    "Autorizacion", JOptionPane.INFORMATION_MESSAGE )
+            }
+          } else {
+            controller.requestPrint( data.qryInvTr.idTipoTrans, data.qryInvTr.folio )
+          }
         } else {
-          controller.requestSaveAndPrint( this )
+          Boolean onlyFrames = true
+          for(InvTrSku part : data.skuList){
+            if(!StringUtils.trimToEmpty(part.part.idGenerico).equalsIgnoreCase("A")){
+              onlyFrames = false
+              break
+            }
+          }
+          if( OrderController.dayIsOpen() ){
+            if ( InvTrViewMode.ISSUE.equals(data.viewMode) && onlyFrames ) {
+              Integer folio = controller.generatedIssueFile( this )
+              if( folio != null && folio > 0 ){
+                controller.requestPrint( InvTrViewMode.ISSUE.trType.idTipoTrans, folio )
+                JOptionPane.showMessageDialog( this.panel, "Autorizacion de Devolucion Enviada",
+                        "Autorizacion", JOptionPane.INFORMATION_MESSAGE )
+                controller.showQueryTransaction( this )
+              } else {
+                JOptionPane.showMessageDialog( this.panel, "Error al enviar Autorizacion de Devolucion",
+                      "Error", JOptionPane.ERROR_MESSAGE )
+              }
+            } else {
+              controller.requestSaveAndPrint( this )
+            }
+          } else {
+            panel.sb.optionPane(message: 'No se puede realizar la transaccion. El dia esta cerrado', optionType: JOptionPane.DEFAULT_OPTION)
+                .createDialog(new JTextField(), "Dia cerrado").show()
+          }
         }
       }
-    } else {
+    }else {
       logger.debug( "[View] Input not valid" )
       this.fireRefreshUI()
     }

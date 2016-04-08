@@ -4,6 +4,7 @@ import groovy.model.DefaultTableModel
 import groovy.swing.SwingBuilder
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.model.Receta
+import mx.lux.pos.ui.controller.IOController
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.OrderController
@@ -11,6 +12,7 @@ import mx.lux.pos.ui.model.Branch
 import mx.lux.pos.ui.model.Rx
 import mx.lux.pos.ui.model.Session
 import mx.lux.pos.ui.model.SessionItem
+import mx.lux.pos.ui.model.User
 import mx.lux.pos.ui.view.dialog.EditRxDialog
 import mx.lux.pos.ui.view.dialog.NoSaleDialog
 import mx.lux.pos.ui.view.renderer.DateCellRenderer
@@ -234,6 +236,7 @@ class RXPanel extends JPanel {
         if ( SwingUtilities.isRightMouseButton( ev ) && ev.source.selectedElement != null ) {
             Rx selection = ev.source.selectedElement as Rx
             if ( selection.id ) {
+                User user = Session.get( SessionItem.USER ) as User
                 sb.popupMenu {
                     menuItem( text: 'Nueva Receta',
                             actionPerformed: {
@@ -245,9 +248,10 @@ class RXPanel extends JPanel {
                                 rxModel.fireTableDataChanged()
                             }
                     )
-                    menuItem( text: 'Editar', visible: selection?.order?.deliveryDate == null,
+                    menuItem( text: 'Editar', visible: (selection?.order?.deliveryDate == null && IOController.getInstance().isManager(user.username)),
                             actionPerformed: {
-                                EditRxDialog editRx = new EditRxDialog( this, selection, selection.idClient, selection.idStore, selection.clientName, selection.tipoEditRx, true, false )
+                                EditRxDialog editRx = new EditRxDialog( this, selection, selection.idClient, selection.idStore, selection.clientName, selection.tipoEditRx, true, false,
+                                        selection?.order?.id)
                                 editRx.show()
                                 lstRecetas.clear()
                                 lstRecetas.addAll( CustomerController.findAllPrescriptions( idCliente ) )
@@ -256,6 +260,7 @@ class RXPanel extends JPanel {
                             }
                     )
                     menuItem( text: 'Reimprimir',
+                            visible: IOController.getInstance().isManager(user.username),
                             actionPerformed: {
                                println( 'RxID: ' + selection.id)
                                 Order orderTmp = OrderController.notaVentaxRx(selection.id)

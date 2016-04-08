@@ -7,8 +7,9 @@
 #define($COL_DET_2)${ESC}${writer.write(36)}${writer.write(55)}${writer.write(0)}#end
 #define($COL_DET_3)${ESC}${writer.write(36)}${writer.write(64)}${writer.write(0)}#end
 ## Inicia ticket
+#if( $mostrarBarcodeEnvelope )#ALINEAR_CENTRO()#CODIGO_BARRAS(${barcodeEnvelope}, 2, 1)#end
 ${COLUMNAS}#ALINEAR_CENTRO()#SEPARACION()${LF}
-#TITULO_TICKET()SALIDA DE MERCANCIA
+#TITULO_TICKET()${titulo}
 #RESET_TEXTO()#DO()#SEPARACION()${LF}
 #ALINEAR_DERECHA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)Fecha: ${effDate}      #FIN_ESTILO()${LF}
 #ALINEAR_IZQUIERDA()
@@ -27,10 +28,13 @@ ${COLUMNAS}#ALINEAR_CENTRO()#SEPARACION()${LF}
 #end
 ##${LF}#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)   Articulos: #altnull(${parts.size()})#FIN_ESTILO()${LF}
 #AVANZAR_LINEAS(2)
-#ALINEAR_CENTRO()#SIN_NEGRITA()#DO()#LINEA_FIRMA()${CR}
+#if( $mostrarFirma )#ALINEAR_CENTRO()#SIN_NEGRITA()#DO()#LINEA_FIRMA()${CR}
 #INICIO_ESTILO(${FUENTE_B} ${NEGRITA} 0 0 0)${mgr}#FIN_ESTILO()${CR}
-#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)AUTORIZA GERENTE#FIN_ESTILO()${CR}
+#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)AUTORIZA GERENTE#FIN_ESTILO()${CR}#end
 
-#CODIGO_BARRAS(${barcode}, 2, 1)
+#if( $mostrarCodigo )#CODIGO_BARRAS(${barcode}, 2, 1)#end
+
+#ALINEAR_CENTRO()#INICIO_ESTILO(2 ${NEGRITA} 0 0 0)${pieTicket1}#FIN_ESTILO()${CR}
+#ALINEAR_CENTRO()#INICIO_ESTILO(2 ${NEGRITA} 0 0 0)${pieTicket2}#FIN_ESTILO()${CR}
 #AVANZAR_LINEAS(5)
 #CORTE()

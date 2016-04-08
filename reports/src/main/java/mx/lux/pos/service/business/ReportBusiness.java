@@ -86,6 +86,9 @@ public class ReportBusiness {
     private NotaVentaRepository notaVentaRepository;
 
     @Resource
+    private LogAsignaSubgerenteRepository logAsignaSubgerenteRepository;
+
+    @Resource
     private ModificacionRepository modificacionRepository;
 
     @Resource
@@ -1653,12 +1656,14 @@ public class ReportBusiness {
                 } else {
                     saldoFin = saldoInicio;
                 }
-                saldoInicio = saldoFin-movimiento.getCantidad();
+                saldoInicio = (saldoFin != null ? saldoFin : 0) - (movimiento.getCantidad() != null ? movimiento.getCantidad() : 0);
                 kardexArticulo.setEntrada( movimiento.getCantidad() );
             }
             kardexArticulo.setSaldoInicio( saldoInicio );
             kardexArticulo.setSaldoFinal( saldoFin );
-            lstKardezSku.add( kardexArticulo );
+            if( kardexArticulo.getEntrada() != 0 || kardexArticulo.getSalida() != 0){
+              lstKardezSku.add( kardexArticulo );
+            }
         }
         return lstKardezSku;
     }
@@ -2473,5 +2478,13 @@ public class ReportBusiness {
             lstBodegas.add( found );
         }
         return found;
+    }
+
+
+    public List<LogAsignaSubgerente> obtenersubgerentesAsignadosPorFecha( Date dateStart, Date dateEnd ) {
+      List<LogAsignaSubgerente> lstLogSubgerente = new ArrayList<LogAsignaSubgerente>();
+      QLogAsignaSubgerente qLog = QLogAsignaSubgerente.logAsignaSubgerente;
+      List<LogAsignaSubgerente> lstLogs= (List<LogAsignaSubgerente>) logAsignaSubgerenteRepository.findAll(qLog.fecha.between(dateStart,dateEnd));
+      return lstLogs;
     }
 }

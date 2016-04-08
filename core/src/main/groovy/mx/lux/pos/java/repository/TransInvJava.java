@@ -1,6 +1,7 @@
 package mx.lux.pos.java.repository;
 
 import mx.lux.pos.java.querys.TransInvDetQuery;
+import mx.lux.pos.model.TransInv;
 import mx.lux.pos.model.TransInvDetalle;
 import org.apache.commons.lang.StringUtils;
 
@@ -139,5 +140,20 @@ public class TransInvJava {
       pTrDet.setIdTipoTrans(this.idTipoTrans);
       pTrDet.setFolio(this.folio);
       this.trDet.add( pTrDet );
+    }
+
+    public TransInvJava castToTransInvJava(TransInv transInv) throws SQLException{
+        this.setNumReg(transInv.getNumReg());
+        this.setIdTipoTrans(transInv.getIdTipoTrans());
+        this.setFolio(transInv.getFolio());
+        this.setFecha(transInv.getFecha());
+        this.setIdSucursal(transInv.getSucursal());
+        this.setIdSucursalDestino(transInv.getSucursalDestino());
+        this.setReferencia(transInv.getReferencia());
+        this.setObservaciones(transInv.getObservaciones());
+        this.setIdEmpleado(transInv.getIdEmpleado());
+        this.setFechaMod(transInv.getFechaMod());
+        this.setTrDet( detalles() );
+        return this;
     }
 }

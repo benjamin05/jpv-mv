@@ -19,6 +19,8 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -59,6 +61,8 @@ public class ReportServiceImpl implements ReportService {
     private static String CANCELACIONES_RESUMIDO = "reports/Cancelaciones.jrxml";
 
     private static String MULTIPAGO = "reports/Multipago.jrxml";
+
+    private static String SUBGERENTES_ASIGNADOS = "reports/Subgerentes_Asignados.jrxml";
 
     private static String CANCELACIONES_COMPLETO = "reports/Cancelaciones_Completo.jrxml";
     
@@ -1943,5 +1947,54 @@ public class ReportServiceImpl implements ReportService {
         return false;
       }
       return true;
+    }
+
+
+
+    public String obtenerArticuloPorSku( String sku ){
+      log.debug( "obtenerArticuloPorSku( "+StringUtils.trimToEmpty(sku)+" )" );
+      String articulo = "";
+      Integer idArticulo = 0;
+      try{
+        idArticulo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(sku)).intValue();
+      } catch ( NumberFormatException e ) {
+        System.out.println( e.getMessage() );
+      } catch ( ParseException e ) {
+        System.out.println( e.getMessage() );
+      }
+      Articulo articuloRow = articuloRepository.findbyId( idArticulo);
+      if( articuloRow != null ){
+        articulo = StringUtils.trimToEmpty(articuloRow.getArticulo())+(StringUtils.trimToEmpty(articuloRow.getCodigoColor()).length() > 0 ? ","+StringUtils.trimToEmpty(articuloRow.getCodigoColor()) : "");
+      }
+      return articulo;
+    }
+
+
+
+    public String obtenerReporteSubgerentesAsignados( Date dateStart, Date dateEnd ){
+      log.info( "obtenerReporteSubgerentesAsignados()" );
+
+        Random random = new Random();
+        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Subgerentes-Asignados%s.txt",random.nextInt()) );
+        org.springframework.core.io.Resource template = new ClassPathResource( SUBGERENTES_ASIGNADOS );
+        log.info( "Ruta:{}", report.getAbsolutePath() );
+        dateStart = DateUtils.truncate( dateStart, Calendar.DAY_OF_MONTH );
+        dateEnd = new Date( DateUtils.ceiling( dateEnd, Calendar.DAY_OF_MONTH ).getTime() - 1 );
+
+        Sucursal sucursal = sucursalService.obtenSucursalActual();
+        List<LogAsignaSubgerente> lstLog = reportBusiness.obtenersubgerentesAsignadosPorFecha( dateStart, dateEnd );
+        log.info( "tamañoLista:{}", lstLog.size() );
+
+        Map<String, Object> parametros = new HashMap<String, Object>();
+        parametros.put( "fechaActual", new SimpleDateFormat( "hh:mm" ).format( new Date() ) );
+        parametros.put( "fechaInicio", new SimpleDateFormat( "dd/MM/yyyy" ).format( dateStart ) );
+        parametros.put( "fechaFin", new SimpleDateFormat( "dd/MM/yyyy" ).format( dateEnd ) );
+        parametros.put( "sucursal", sucursal.getNombre() );
+        parametros.put( "lstLog", lstLog );
+
+        String reporte = reportBusiness.CompilayGeneraReporte( template, parametros, report );
+        log.info( "reporte:{}", reporte );
+
+        return null;
     }
 }

@@ -2,13 +2,19 @@ package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
 import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.querys.DetalleNotaVentaQuery
 import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.querys.PedidoLcQuery
+import mx.lux.pos.java.querys.TransInvQuery
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.java.repository.ModeloLcJava
 import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.PagoJava
 import mx.lux.pos.java.repository.PedidoLcDetJava
 import mx.lux.pos.java.repository.PedidoLcJava
+import mx.lux.pos.java.repository.TransInvJava
 import mx.lux.pos.java.service.NotaVentaServiceJava
+import mx.lux.pos.java.service.TransInvServiceJava
 import mx.lux.pos.model.Articulo
 import mx.lux.pos.model.Generico
 import mx.lux.pos.model.ModeloLc
@@ -28,12 +34,15 @@ import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.model.Item
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.ModelLc
+import mx.lux.pos.ui.model.User
+import mx.lux.pos.ui.model.OrderItem
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.swing.*
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 
 @Slf4j
 @Component
@@ -43,20 +52,25 @@ class ItemController {
   private static final String TXT_ARCHIVO_GENERADO = 'Archivo de Inventario'
   private static final String MSJ_ARCHIVO_NO_GENERADO = 'No se genero correctamente el archivo de inventario'
   private static final String TAG_GENERICO_H = 'H'
+  private static final String TAG_GENERICO_A = 'A'
   private static final String TAG_GEN_TIPO_C = 'C'
+  private static final String TAG_SURTE_PINO = 'P'
+  private static final String TAG_TIPO_PAGO_TRANSFERENCIA = 'TR'
   private static ArticuloService articuloService
   private static ArticulosServiceJava articulosServiceJava
   private static TicketService ticketService
   private static NotaVentaService notaVentaService
   private static NotaVentaServiceJava notaVentaServiceJava
+  private static TransInvServiceJava transInvServiceJava
 
   @Autowired
   public ItemController( ArticuloService articuloService, TicketService ticketService, NotaVentaService notaVentaService ) {
     this.articuloService = articuloService
     this.ticketService = ticketService
     this.notaVentaService = notaVentaService
-    this.articulosServiceJava = new ArticulosServiceJava()
+    articulosServiceJava = new ArticulosServiceJava()
     notaVentaServiceJava = new NotaVentaServiceJava()
+    transInvServiceJava = new TransInvServiceJava()
   }
 
   static Item findItem( Integer id ) {
@@ -489,5 +503,105 @@ class ItemController {
   static MontoGarantia findWarranty( BigDecimal warrantyAmount ){
     return articuloService.obtenerMontoGarantia( warrantyAmount )
   }
+
+
+
+  static Integer calculateStock( Integer sku ){
+    return articulosServiceJava.calculaExistencia( sku )
+  }
+
+
+  static Boolean updateStock( Integer idArticulo, Integer stock, User user ){
+    Boolean update = false
+    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId( idArticulo )
+    TransInvJava trans = transInvServiceJava.obtieneUltimaTransaccionPorIdArticulo( idArticulo )
+    if( articulo != null ){
+      articulo.existencia = stock
+      ArticulosQuery.saveOrUpdateArticulos( articulo )
+      if( trans != null ){
+        trans.observaciones = StringUtils.trimToEmpty(trans.observaciones)+"|${StringUtils.trimToEmpty(idArticulo.toString())}|" +
+                  "${StringUtils.trimToEmpty(user.username)}|${df.format(new Date())}|rec"
+        TransInvQuery.saveOrUpdateTransInv( trans )
+      }
+      update = true
+    }
+    return update
+  }
+
+
+  static Item findFrameWithoutColor( Order order ) {
+    log.debug( "findFrameWithoutColor" )
+    Item item = null
+    for(OrderItem i : order.items){
+      if( TAG_GENERICO_A.equalsIgnoreCase(StringUtils.trimToEmpty(i.item.type)) &&
+              StringUtils.trimToEmpty(i.item.color).length() <= 0 ){
+        item = i.item
+      }
+    }
+    return item
+  }
+
+
+  static void validTransSurtePino( String idOrder ){
+    NotaVentaJava notaVentaJava = NotaVentaQuery.busquedaNotaById( idOrder )
+    String oldOrder = ""
+    Boolean cambiarSurte = false
+    for(PagoJava pagoJava : notaVentaJava.pagos){
+      if( StringUtils.trimToEmpty(pagoJava.idFPago).equalsIgnoreCase(TAG_TIPO_PAGO_TRANSFERENCIA) ){
+        String[] data = StringUtils.trimToEmpty(pagoJava.refClave).split(":")
+        oldOrder = StringUtils.trimToEmpty(data[0].length() > 0 ? data[0] : "")
+      }
+    }
+    if( StringUtils.trimToEmpty(oldOrder).length() > 0 ){
+      Integer frame = null
+      for(DetalleNotaVentaJava det : notaVentaJava.detalles){
+        if( StringUtils.trimToEmpty(det?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_A) &&
+                StringUtils.trimToEmpty(det?.surte).equalsIgnoreCase(TAG_SURTE_PINO) ){
+          frame = det?.idArticulo
+        }
+      }
+      if( frame != null ){
+        NotaVentaJava originOrder = NotaVentaQuery.busquedaNotaById(oldOrder)
+        for(DetalleNotaVentaJava det1 : originOrder.detalles){
+          if( det1.idArticulo == frame ){
+            cambiarSurte = true
+          }
+        }
+        if( cambiarSurte ){
+          for(DetalleNotaVentaJava det : notaVentaJava.detalles){
+            if( det?.articulo?.idArticulo == frame ){
+              det?.surte = 'S'
+              DetalleNotaVentaQuery.updateDetalleNotaVenta( det )
+            }
+          }
+        }
+      }
+    }
+  }
+
+  static Boolean hasSameFrame( String oldOrder, String newOrder ){
+    Boolean hasSameFrame = false
+    NotaVentaJava oldNota = NotaVentaQuery.busquedaNotaById(oldOrder)
+    NotaVentaJava newNota = NotaVentaQuery.busquedaNotaById(newOrder)
+    if( oldNota != null && newNota != null ){
+      String oldFrames = ""
+      String newFrames = ""
+      for(DetalleNotaVentaJava det : oldNota.detalles){
+        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("A") ){
+          oldFrames = oldFrames+","+StringUtils.trimToEmpty(det.idArticulo.toString())
+        }
+      }
+      for(DetalleNotaVentaJava det : newNota.detalles){
+        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("A") ){
+          if(oldFrames.contains(StringUtils.trimToEmpty(det.idArticulo.toString()))){
+            hasSameFrame = true
+          }
+        }
+      }
+    }
+    return hasSameFrame
+  }
+
 
 }

@@ -3,6 +3,7 @@ package mx.lux.pos.ui.view.dialog
 import groovy.swing.SwingBuilder
 import mx.lux.pos.ui.controller.AccessController
 import mx.lux.pos.ui.controller.CancellationController
+import mx.lux.pos.ui.controller.InvTrController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.controller.PaymentController
 import mx.lux.pos.ui.model.Item
@@ -208,6 +209,8 @@ class AuthorizationCanDialog extends JDialog {
             if( !StringUtils.trimToEmpty(reasonField.selectedItem.toString()).equalsIgnoreCase(TAG_RAZON_CAMBIO_FORMA_PAGO) ){
               CancellationController.outputContactLens( order.id )
             }
+            InvTrController controllerInv = InvTrController.instance
+            controllerInv.automaticIssue( StringUtils.trimToEmpty(order.id), false )
             CancellationController.updateJb( order.id )
             CancellationController.generatedAcuses( order.id )
             //CancellationController.printCancellationPlan( order.id )

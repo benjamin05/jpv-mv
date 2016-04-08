@@ -22,6 +22,8 @@ public class ArticulosServiceJava {
 
   private static final String TAG_GENERICO_H = "H";
   private static final String TAG_GENERICO_B = "B";
+  private static final String TAG_TRANSACCION_ENTRADA = "E";
+  private static final String TAG_TRANSACCION_SALIDA = "S";
 
   public ArticulosJava obtenerArticulo(Integer id) throws ParseException {
     return obtenerArticulo( id, true );
@@ -191,6 +193,18 @@ public class ArticulosServiceJava {
   public ArticulosJava listarArticulosPorSku( Integer idArticulo, boolean incluyePrecio ) throws ParseException {
     log.info( "listando articulos con sku: "+idArticulo );
     ArticulosJava resultados = ArticulosQuery.busquedaArticuloPorId(idArticulo);
+    if( resultados != null ){
+      List<ArticulosJava> lstArt = ArticulosQuery.busquedaArticuloPorArticulo(StringUtils.trimToEmpty(resultados.getArticulo()));
+      if( lstArt.size() > 1 ){
+        for(ArticulosJava a : lstArt){
+          if(resultados != null && a.getIdArticulo().equals(resultados.getIdArticulo())){
+            if(StringUtils.trimToEmpty(resultados.getColorCode()).length() <= 0){
+              resultados = null;
+            }
+          }
+        }
+      }
+    }
     if ( incluyePrecio && resultados != null ) {
       return establecerPrecio( resultados );
     }
@@ -202,7 +216,7 @@ public class ArticulosServiceJava {
     List<ArticulosJava> lstArticulos = new ArrayList<ArticulosJava>();
     List<ArticulosJava> resultados = ArticulosQuery.busquedaArticuloPorIdGenerico(idGenerico);
     for(ArticulosJava art : resultados){
-      establecerPrecio( art );
+      lstArticulos.add(establecerPrecio( art ));
     }
     return lstArticulos;
   }
@@ -302,6 +316,21 @@ public class ArticulosServiceJava {
         PedidoLcQuery.updatePedidoLcDet( pedidoDet );
       }
     }
+  }
+
+
+
+  public Integer calculaExistencia( Integer idArticulo ) throws ParseException {
+    Integer existencia = 0;
+    List<TransInvDetJava> lstTrans = TransInvDetQuery.buscaTransInvDetPorSku( idArticulo );
+    for(TransInvDetJava det : lstTrans){
+      if( StringUtils.trimToEmpty(det.getTipoMov()).equalsIgnoreCase(TAG_TRANSACCION_ENTRADA) ){
+        existencia = existencia+det.getCantidad();
+      } else if( StringUtils.trimToEmpty(det.getTipoMov()).equalsIgnoreCase(TAG_TRANSACCION_SALIDA) ) {
+        existencia = existencia-det.getCantidad();
+      }
+    }
+    return existencia;
   }
 
 

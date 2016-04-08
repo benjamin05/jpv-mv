@@ -102,4 +102,10 @@ interface InventarioService {
   void insertarRegistroRemesa( NotaVenta pNotaVenta )
 
   void solicitarTransaccionDevolucionSP( NotaVenta pNotaVenta )
+
+  Integer generaArchivoSalida( InvTrRequest pRequest )
+
+  void leerArchivoAutorizacionSalidas(  )
+
+  void registraDoctoInv( List<TransInvDetalle> lstTransDet )
 }
