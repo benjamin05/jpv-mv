@@ -1049,10 +1049,11 @@ class InvTrController {
               return o2.fecha.compareTo(o1.fecha)
             }
           })
-          mx.lux.pos.java.repository.JbTrack jbTrack = lstJbTrack.get(1)
-          if( jbTrack != null && (StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("RS") ||
-                  StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("TE"))){
-            estatusValid = true
+          for(mx.lux.pos.java.repository.JbTrack jbTrack : lstJbTrack){
+            if( jbTrack != null && (StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("RS") ||
+                    StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("TE"))){
+              estatusValid = true
+            }
           }
         }
       } else {
@@ -1076,8 +1077,8 @@ class InvTrController {
       }
       if( hasFrame && hasLen & estatusValid ){
         InvTr data = new InvTr()
-        data.postRemarks = "SALIDA POR CANCELACION"
-        data.postReference = ""
+        data.postRemarks = "CANCELACION DE OFTALMICO FACTURA ${StringUtils.trimToEmpty(notaVenta.factura)}"
+        data.postReference = StringUtils.trimToEmpty(notaVenta.factura)
         data.postSiteTo = null
         data.postTrType = RepositoryFactory.trTypes.findOne("SALIDA")
         Articulo part = ServiceManager.partService.obtenerArticulo( idFrame, false )

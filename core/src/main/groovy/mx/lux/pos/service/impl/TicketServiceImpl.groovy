@@ -34,6 +34,7 @@ import javax.annotation.Resource
 import java.text.DateFormat
 import java.text.DecimalFormat
 import java.text.NumberFormat
+import java.text.ParseException
 import java.text.SimpleDateFormat
 
 @Slf4j
@@ -449,6 +450,11 @@ class TicketServiceImpl implements TicketService {
                   distMonoI:rx?.diOi,
                   alturaSeg:rx?.altOblR,
 
+                  dh: rx?.dh,
+                  dv: rx?.dv,
+                  pte: rx?.pte,
+                  base: rx?.base,
+
                   armazon: armazonCli,
                   uso: usoLente,
                   tratamiento: trat,
@@ -491,6 +497,7 @@ class TicketServiceImpl implements TicketService {
               infoTicket: infoGeneral,
               cliente: infoCliente,
               lente: detalleLente,
+              mostrarMedidaArm: Registry.measuresFrameVisible(),
               comentarios: coment,
               externo: false
             ] as Map<String, Object>
@@ -1520,9 +1527,29 @@ class TicketServiceImpl implements TicketService {
     if ( InventorySearch.esTipoTransaccionSalida( pTrans.idTipoTrans ) ) {
       DoctoInvJava doctoInv = DoctoInvQuery.buscaDoctoInvDaPorIdDocto(StringUtils.trimToEmpty(pTrans.folio.toString()))
       if( doctoInv != null && StringUtils.trimToEmpty(doctoInv.notas).length() > 0 ){
-        barcodeEnvelope = StringUtils.trimToEmpty(doctoInv.notas)
+        String idSuc = StringUtils.trimToEmpty(Registry.currentSite.toString())
+        String folioP = StringUtils.trimToEmpty(doctoInv.notas).substring(1)
+        Integer folio = 0
+        try{
+          folio = NumberFormat.getInstance().parse(folioP).intValue()
+        } catch ( ParseException ex ){
+          println ex
+        }
+        Integer diff = 10-(StringUtils.trimToEmpty(folio.toString()).length()+idSuc.length())
+        barcodeEnvelope = idSuc
+        for(int i=1;i<=diff;i++){
+          barcodeEnvelope = barcodeEnvelope+"0"
+        }
+        barcodeEnvelope = "P"+barcodeEnvelope+StringUtils.trimToEmpty(folio.toString())
       }
       barcode = StringUtils.trimToEmpty(Registry.currentSite.toString())+StringUtils.trimToEmpty(String.format("%06d",pTrans.folio))
+      Boolean imprimePie = true
+      if( StringUtils.trimToEmpty(pTrans.observaciones).contains("CANCELACION DE OFTALMICO FACTURA") ){
+        NotaVentaJava n = NotaVentaQuery.busquedaNotaByFactura(StringUtils.trimToEmpty(pTrans.referencia))
+        if( n != null ){
+          imprimePie = false
+        }
+      }
       String titulo = "   Solicitud de devolucion   en espera de autorizacion".toUpperCase()
       String pieTicket1 = "Documento no valido".toUpperCase()
       String pieTicket2 = "para realizar devolucion".toUpperCase()
@@ -1530,8 +1557,8 @@ class TicketServiceImpl implements TicketService {
       for(TransInvDetalle det : pTrans.trDet){
         if( det.cantidad > 0 || det.cantidad < 0 ){
           titulo = "SALIDA DE MERCANCIA"
-          pieTicket1 = "Devolucion autorizada".toUpperCase()
-          pieTicket2 = "Enviar mercancia antes de 48 hrs.".toUpperCase()
+          pieTicket1 = imprimePie ? "Devolucion autorizada".toUpperCase() : ""
+          pieTicket2 = imprimePie ? "Enviar mercancia antes de 48 hrs.".toUpperCase() : ""
           mostratCodigo = true
         }
       }
@@ -1542,7 +1569,7 @@ class TicketServiceImpl implements TicketService {
           pieTicket2: pieTicket2,
           mostrarCodigo: mostratCodigo,
           mostrarFirma: mostratCodigo,
-          barcodeEnvelope: doctoInv != null ? StringUtils.trimToEmpty(doctoInv.notas) : "",
+          barcodeEnvelope: barcodeEnvelope,
           mostrarBarcodeEnvelope: doctoInv != null ? StringUtils.trimToEmpty(doctoInv.notas).length() > 0 : false,
           effDate: adapter.getText( pTrans, adapter.FLD_TR_EFF_DATE ),
           thisSite: adapter.getText( site ),

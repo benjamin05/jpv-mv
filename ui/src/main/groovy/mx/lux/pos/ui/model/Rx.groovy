@@ -56,6 +56,10 @@ class Rx {
   String udf5
   String udf6
   String idRxOri
+  String dh
+  String dv
+  String pte
+  String base
   Order order
 
 
@@ -184,6 +188,10 @@ class Rx {
           udf6: receta.udf6,
           idRxOri: receta.idRxOri,
           folio: receta.folio,
+          dh: receta.dh,
+          dv: receta.dv,
+          pte: receta.pte,
+          base: receta.base,
           order: Order.toOrder(receta?.notaVenta != null ? receta?.notaVenta : new NotaVenta())
       )
       return prescription
@@ -237,6 +245,10 @@ class Rx {
             udf6: receta.udf6,
             idRxOri: receta.idRxOri,
             folio: receta.folio,
+            dh: receta.dh,
+            dv: receta.dv,
+            pte: receta.pte,
+            base: receta.base,
             order: Order.toOrder(receta?.notaVenta != null ? receta?.notaVenta : new NotaVentaJava())
       )
       return prescription

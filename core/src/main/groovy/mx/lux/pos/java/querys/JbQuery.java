@@ -330,7 +330,7 @@ public class JbQuery {
       try {
         Connection con = Connections.doConnect();
         stmt = con.createStatement();
-        String sql = String.format("SELECT nextval('jb_sobres_id_sobre_seq')");
+        String sql = String.format("SELECT nextval('jb_sobres_id_seq')");
         rs = stmt.executeQuery(sql);
         con.close();
         while (rs.next()) {

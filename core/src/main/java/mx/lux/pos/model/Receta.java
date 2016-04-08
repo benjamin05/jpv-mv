@@ -138,6 +138,18 @@ public class    Receta implements Serializable {
     @Column( name = "folio" )
     private String folio;
 
+    @Column( name = "dh" )
+    private String dh;
+
+    @Column( name = "dv" )
+    private String dv;
+
+    @Column( name = "pte" )
+    private String pte;
+
+    @Column( name = "base" )
+    private String base;
+
 
     @ManyToOne
     @NotFound( action = NotFoundAction.IGNORE )
@@ -498,5 +510,37 @@ public class    Receta implements Serializable {
 
     public void setNotaVenta(NotaVenta notaVenta) {
         this.notaVenta = notaVenta;
+    }
+
+    public String getDh() {
+        return dh;
+    }
+
+    public void setDh(String dh) {
+        this.dh = dh;
+    }
+
+    public String getDv() {
+        return dv;
+    }
+
+    public void setDv(String dv) {
+        this.dv = dv;
+    }
+
+    public String getPte() {
+        return pte;
+    }
+
+    public void setPte(String pte) {
+        this.pte = pte;
+    }
+
+    public String getBase() {
+        return base;
+    }
+
+    public void setBase(String base) {
+        this.base = base;
     }
 }

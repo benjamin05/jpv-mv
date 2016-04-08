@@ -66,6 +66,7 @@ enum TipoParametro {
   LIMITE_GRADUACION( 'limite_graduacion', 'C:6:6,P:8:12,H:10:16' ),
   MAX_DISCOUNT_STORE( 'tope_descto_tienda', '10.0' ),
   MAX_LONG_DESC_FACTURA( 'max_long_desc_efactura', '50' ),
+  MEDIDAS_ARMAZON_VISIBLE('medidas_armazon_visible','si'),
   METODO_BUSQUEDA_ARTICULOS( 'metodo_busqueda_articulos', 'RB*,Letras especificadas|RB*+A,Letras especificadas+generico|D+BIOMED,D+Descripcion|+Q,Generico' ),
   MESES_VIGENCIA_PASSWORD('meses_vigencia_password','3'),
   MOSTRAR_NO_STOCK_TICKET_LC( 'mostrar_no_stock_ticket_lc', 'no' ),
