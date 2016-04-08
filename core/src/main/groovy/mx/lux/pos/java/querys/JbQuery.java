@@ -147,17 +147,15 @@ public class JbQuery {
 	public static List<JbTrack> buscarJbTrackPorRx( String rx ){
 		List<JbTrack> lstTracks = new ArrayList<JbTrack>();
 		try {
-			JbTrack jbTrack = new JbTrack();
             Connection con = Connections.doConnect();
             stmt = con.createStatement();
             String sql = "select * from jb_track where rx = '"+rx+"';";
             rs = stmt.executeQuery(sql);
             con.close();
             while (rs.next()) {
-            	System.out.println(rs.getTimestamp("fecha"));
-            	jbTrack = jbTrack.setValores(rs.getString("rx"), rs.getString("estado"), rs.getString("obs"), rs.getString("emp"), 
-            			rs.getString("id_viaje"), rs.getTimestamp("fecha"), rs.getString("id_mod"), rs.getString("id_jbtrack"));
-            	lstTracks.add(jbTrack);
+              JbTrack jbTrack = new JbTrack();
+              jbTrack = jbTrack.mapeoJbTrack(rs);
+              lstTracks.add(jbTrack);
             }
         } catch (SQLException err) {
             System.out.println( err );

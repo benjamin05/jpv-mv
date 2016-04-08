@@ -120,6 +120,7 @@ class EnvioPanel extends JPanel{
     noSendModel.rowsModel.setValue(lstNotSend);
     noSendModel.fireTableDataChanged()
     bySendModel.fireTableDataChanged();
+    txtViaje.text = travel
   }
 
   public void updateData(){
