@@ -638,4 +638,47 @@ public class JbQuery {
       }
       return jbJava;
     }
+
+
+    public static JbSobres buscaUltimoSobre( ){
+      JbSobres jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb_sobres WHERE id = (SELECT last_value FROM jb_sobres_id_seq);" );
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          jbJava = new JbSobres();
+          jbJava = jbJava.mapeoJbSobres( rs );
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return jbJava;
+    }
+
+
+
+
+    public static JbSobres saveJbSobres (JbSobres jbSobres) {
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      String formatDate = "yyyy-MM-dd";
+      String sql = String.format("INSERT INTO jb_sobres (folio_sobre,dest,emp,area,contenido,id_viaje,fecha_envio,fecha,rx) " +
+              "VALUES('%s','%s','%s','%s','%s','%s',%s,%s,'%s');", jbSobres.getFolioSobre(),jbSobres.getDest(),jbSobres.getEmp(),
+              jbSobres.getArea(),jbSobres.getContenido(),jbSobres.getIdViaje(),Utilities.toString(jbSobres.getFechaEnvio(),formatDate),
+              Utilities.toString(jbSobres.getFecha(), formatTimeStamp),jbSobres.getRx());
+      Connections db = new Connections();
+      db.updateQuery(sql);
+      db.close();
+      return buscaUltimoSobre();
+    }
+
+
+    public static void deleteJbSobres (Integer idJbSobre) {
+      String sql = String.format("DELETE FROM jb_sobres WHERE id = %d;", idJbSobre);
+      Connections db = new Connections();
+      db.updateQuery(sql);
+      db.close();
+    }
 }

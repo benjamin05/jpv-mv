@@ -3143,4 +3143,34 @@ class TicketServiceImpl implements TicketService {
   }
 
 
+
+  void imprimeSobre( JbSobres jbSobre ){
+    log.debug( "imprimeSobre( )" )
+    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
+    Sucursal sucursal = sucursalRepository.findOne(Registry.currentSite)
+    String suc = StringUtils.trimToEmpty(sucursal.id.toString())
+    String folio = StringUtils.trimToEmpty(jbSobre.id.toString())
+    String ceros = ""
+    Integer cerosAgregar = 10-(suc.length()+folio.length())
+    for(int i=0;i<cerosAgregar;i++){
+      ceros = ceros+"0"
+    }
+    String barcode = "P${suc}${ceros}${folio}"
+    if( jbSobre != null ){
+      def datos = [
+          barcode: barcode,
+          fecha: df.format(new Date()),
+          sobre:StringUtils.trimToEmpty(jbSobre.folioSobre),
+          sucursal: StringUtils.trimToEmpty(sucursal?.nombre),
+          dest: StringUtils.trimToEmpty(jbSobre.dest),
+          area: StringUtils.trimToEmpty(jbSobre.area),
+          contenido: StringUtils.trimToEmpty(jbSobre.contenido),
+      ]
+      this.imprimeTicket( 'template/ticket-sobres.vm', datos )
+    } else {
+      log.debug( "no se encuentra el sobre" )
+    }
+  }
+
+
 }

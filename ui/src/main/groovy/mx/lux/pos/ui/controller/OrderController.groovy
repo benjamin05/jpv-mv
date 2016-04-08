@@ -27,6 +27,7 @@ import mx.lux.pos.java.repository.ExamenJava
 import mx.lux.pos.java.repository.FormaContactoJava
 import mx.lux.pos.java.repository.JbJava
 import mx.lux.pos.java.repository.JbLlamadaJava
+import mx.lux.pos.java.repository.JbSobres
 import mx.lux.pos.java.repository.JbViaje
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
@@ -4109,6 +4110,37 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
   static void reprintPacking(String trip, Date date){
     ticketService.reimprimePacking( trip, date )
+  }
+
+
+  static List<JbSobres> findPendingEnvelopes( ){
+    List<JbSobres>lstSobres = new ArrayList<>()
+    lstSobres.addAll(JbQuery.buscaJbSobresPorFechaEnvioNullYRxNotNull())
+    lstSobres.addAll(JbQuery.buscaJbSobresPorFechaEnvioNullYRxNull())
+    return lstSobres
+  }
+
+
+
+  static void saveEnvelope( String envelope, String dest, String area, String content ){
+    User user = Session.get(SessionItem.USER) as User
+    JbSobres jbSobres = new JbSobres()
+    jbSobres.folioSobre = StringUtils.trimToEmpty(envelope)
+    jbSobres.dest = StringUtils.trimToEmpty(dest)
+    jbSobres.emp = StringUtils.trimToEmpty(user.username)
+    jbSobres.area = StringUtils.trimToEmpty(area)
+    jbSobres.contenido = StringUtils.trimToEmpty(content)
+    jbSobres.fecha = new Date()
+    jbSobres.idViaje = ''
+    jbSobres.rx = ''
+    jbSobres = JbQuery.saveJbSobres( jbSobres )
+    ticketService.imprimeSobre( jbSobres )
+  }
+
+
+
+  static void deleteEnvelope( Integer idJbSobre ){
+    JbQuery.deleteJbSobres( idJbSobre )
   }
 
 

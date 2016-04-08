@@ -1,6 +1,7 @@
 package mx.lux.pos.service
 
 import mx.lux.pos.java.repository.CuponMvJava
+import mx.lux.pos.java.repository.JbSobres
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.model.*
 
@@ -71,4 +72,6 @@ interface TicketService {
   void imprimePackingPrevio( String idEmp, String estatus )
 
   void reimprimePacking( String viaje, Date fecha )
+
+  void imprimeSobre( JbSobres jbSobre )
 }

@@ -14,6 +14,7 @@ import mx.lux.pos.ui.view.dialog.ChangeIpBoxDialog
 import mx.lux.pos.ui.view.dialog.ChangePasswordDialog
 import mx.lux.pos.ui.view.dialog.CustomerSearchDialog
 import mx.lux.pos.ui.view.dialog.EntregaTrabajoDialog
+import mx.lux.pos.ui.view.dialog.EnvelopesDialog
 import mx.lux.pos.ui.view.dialog.FreedomCouponDialog
 import mx.lux.pos.ui.view.dialog.ImportEmployeeDialog
 import mx.lux.pos.ui.view.dialog.RecalculateDialog
@@ -77,6 +78,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem priceListMenuItem
     private JMenuItem invoiceMenuItem
     private JMenuItem sessionMenuItem
+    private JMenuItem sobresMenuItem
     private JMenuItem cancellationReportMenuItem
     private JMenuItem submanagersReportMenuItem
     private JMenuItem dailyCloseReportMenuItem
@@ -668,6 +670,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 envioMenuItem.visible = userLoggedIn
                                 recepcionMenuItem.visible = userLoggedIn
                                 contactosMenuItem.visible = userLoggedIn
+                                sobresMenuItem.visible = userLoggedIn
                             }
                     ) {
                         consultaMenuItem = menuItem( text: 'Consulta',
@@ -730,6 +733,15 @@ class MainWindow extends JFrame implements KeyListener {
                                         mainPanel.layout.show( mainPanel, 'contactosPanel' )
                                     }
                                     mainPanel.layout.show( mainPanel, 'contactosPanel' )
+                                }
+                        )
+                        sobresMenuItem = menuItem( text: 'Sobres',
+                                visible: true,
+                                actionPerformed: {
+                                  Runtime garbage = Runtime.getRuntime();
+                                  garbage.gc();
+                                  EnvelopesDialog dialog = new EnvelopesDialog()
+                                  dialog.show()
                                 }
                         )
                     }
