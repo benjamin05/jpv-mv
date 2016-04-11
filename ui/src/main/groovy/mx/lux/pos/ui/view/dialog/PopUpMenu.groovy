@@ -1,5 +1,6 @@
 package mx.lux.pos.ui.view.dialog
 
+import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.model.Customer
 import mx.lux.pos.ui.view.panel.EnvioPanel
 
@@ -42,7 +43,7 @@ import static org.jfree.util.Log.info;
 import static org.jfree.util.Log.log;
 
 
-public class PopUpMenu implements TableModelListener {
+public class PopUpMenu extends JFrame implements TableModelListener {
 
 	private JPopupMenu pMenu;
     private JMenuItem itemRxData;
@@ -124,7 +125,7 @@ public class PopUpMenu implements TableModelListener {
         itemConsultaTrabajo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ConsultaTrabajoDialog consulta = new ConsultaTrabajoDialog( rx );
+                ConsultaTrabajoDialog consulta = new ConsultaTrabajoDialog( MainWindow.instance, rx );
                 consulta.show();
             }
         });

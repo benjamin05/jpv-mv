@@ -12,16 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Vector;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
@@ -43,7 +34,7 @@ public class ConsultaTrabajoDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
 	private JPanel jPanel0;
 	private JLabel jLabel0;
-	private static String rx;
+	private String rx;
 	private JLabel jLabel1;
 	private JLabel jLabel2;
 	private JTextField txtRx;
@@ -96,15 +87,18 @@ public class ConsultaTrabajoDialog extends JDialog {
 		initComponents();
 	}
 
-	public ConsultaTrabajoDialog(Frame parent, String title) {
+	/*public ConsultaTrabajoDialog(Frame parent, String title) {
 		super(parent, title);
 		initComponents();
-	}
+	}*/
 
-	public ConsultaTrabajoDialog( String rx ) {		
+	public ConsultaTrabajoDialog( JFrame parent, String rx ) {
+        //this.setModalityType(ModalityType.APPLICATION_MODAL);
+        setAlwaysOnTop(true);
 		initComponents();
 		this.rx = rx;
-		this.setDefaultCloseOperation(ConsultaTrabajoDialog.DISPOSE_ON_CLOSE);		
+        this.setLocationRelativeTo(parent);
+		this.setDefaultCloseOperation(ConsultaTrabajoDialog.DISPOSE_ON_CLOSE);
 		this.setTitle("Rx:");
 		this.setLocation(70, 35);
 		this.getContentPane().setPreferredSize(this.getSize());
@@ -365,7 +359,7 @@ public class ConsultaTrabajoDialog extends JDialog {
 	}	
 
 	private void btnCerrarActionActionPerformed(ActionEvent event) {
-		this.dispose();
+	  this.dispose();
 	}
 	
 	private void setData( ){

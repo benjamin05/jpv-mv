@@ -1,4 +1,6 @@
-package mx.lux.pos.ui.view.panel;
+package mx.lux.pos.ui.view.panel
+
+import mx.lux.pos.ui.MainWindow;
 
 import java.awt.Component;
 import java.awt.Font;
@@ -123,7 +125,7 @@ public class ConsultaPanel extends JPanel {
 				        if( tblBusqueda.getRowCount() > 0 ){
 				        	rxSelected = (String) tblBusqueda.getValueAt(selectedRow, 0);			            					        
 				        }
-		            	new ConsultaTrabajoDialog( rxSelected );
+		            	new ConsultaTrabajoDialog( MainWindow.instance, rxSelected );
 		            }
 		        }
 		    	public void mouseReleased(MouseEvent me){
