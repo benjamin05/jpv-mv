@@ -28,6 +28,7 @@ enum TipoParametro {
   CUPON_FF_ACTIVADO( 'cupon_ff', 'si' ),
   CUPON_FF_OTHER_DISCOUNT( 'cupon_ff_otro_descuento', 'no' ),
   DATOS_CLIENTE( 'datos_cliente', '' ),
+  DEF_CAN_OFT( 'dev_can_oft', 'si' ),
   DESCRIPCION_CORTA( 'descripcion_corta', 'si' ),
   DESPLIEGA_USD( 'despliega_dolares', 'no' ),
   DIA_BODEGA('dia_bodega','1'),

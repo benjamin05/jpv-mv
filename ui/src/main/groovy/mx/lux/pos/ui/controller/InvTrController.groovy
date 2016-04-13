@@ -1037,7 +1037,8 @@ class InvTrController {
 
   void automaticIssue( String idOrder, Boolean isTransfer ){
     NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(idOrder)
-    if( notaVenta != null ){
+    Boolean doProcess = Registry.activeDevCanOft()
+    if( notaVenta != null && doProcess ){
       JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(notaVenta.factura) )
       Boolean estatusValid = false
       if( isTransfer ){
