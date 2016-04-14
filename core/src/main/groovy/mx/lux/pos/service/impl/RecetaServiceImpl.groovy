@@ -100,6 +100,10 @@ class RecetaServiceImpl implements RecetaService {
         if(primerTicket != 0){
             pTicket = primerTicket.toString()
         }
+      String sku = '000000'
+      if(artArmazon != null && artArmazon.id != null){
+        sku = StringUtils.trimToEmpty(artArmazon.idArticulo.toString())
+      }
 
       String contenido = 'eje_dVal='+rx?.odEjeR
         contenido = contenido+'|cilindro_iVal='+rx?.oiCilR
@@ -133,6 +137,7 @@ class RecetaServiceImpl implements RecetaService {
         contenido = contenido+'|dvVal='+ StringUtils.trimToEmpty(rx?.dv)
         contenido = contenido+'|pteVal='+ StringUtils.trimToEmpty(rx?.pte)
         contenido = contenido+'|baseVal='+ StringUtils.trimToEmpty(rx?.base)
+        contenido = contenido+'|skuVal='+ sku
         contenido = contenido+'|'
         String cont = contenido
         contenido= ''
@@ -181,6 +186,7 @@ class RecetaServiceImpl implements RecetaService {
         contenido2 = contenido2+'|'+ rx?.dv
         contenido2 = contenido2+'|'+ rx?.pte
         contenido2 = contenido2+'|'+ rx?.base
+        contenido2 = contenido2+'|'+ sku
         contenido2 = contenido2+'|'
         String cont2 = contenido2
         contenido2= ''
