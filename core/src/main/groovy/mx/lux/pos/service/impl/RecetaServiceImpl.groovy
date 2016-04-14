@@ -5,6 +5,7 @@ import mx.lux.pos.repository.*
 import mx.lux.pos.service.NotaVentaService
 import mx.lux.pos.service.RecetaService
 import mx.lux.pos.service.business.Registry
+import org.apache.commons.lang.StringUtils
 import org.hibernate.service.spi.ServiceException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -99,6 +100,10 @@ class RecetaServiceImpl implements RecetaService {
         if(primerTicket != 0){
             pTicket = primerTicket.toString()
         }
+      String sku = '000000'
+      if(artArmazon != null && artArmazon.id != null){
+        sku = StringUtils.trimToEmpty(artArmazon.idArticulo.toString())
+      }
 
       String contenido = 'eje_dVal='+rx?.odEjeR
         contenido = contenido+'|cilindro_iVal='+rx?.oiCilR
@@ -128,6 +133,11 @@ class RecetaServiceImpl implements RecetaService {
         contenido = contenido+'|esfera_dVal='+rx?.odEsfR
         contenido = contenido+'|codigoVal='+ notaVenta.codigo_lente
         contenido = contenido+'|eje_iVal='+ rx?.oiEjeR
+        contenido = contenido+'|dhVal='+ StringUtils.trimToEmpty(rx?.dh)
+        contenido = contenido+'|dvVal='+ StringUtils.trimToEmpty(rx?.dv)
+        contenido = contenido+'|pteVal='+ StringUtils.trimToEmpty(rx?.pte)
+        contenido = contenido+'|baseVal='+ StringUtils.trimToEmpty(rx?.base)
+        contenido = contenido+'|skuVal='+ sku
         contenido = contenido+'|'
         String cont = contenido
         contenido= ''
@@ -172,6 +182,11 @@ class RecetaServiceImpl implements RecetaService {
         contenido2 = contenido2+'|'+artArmazon?.articulo?.articulo
         contenido2 = contenido2+'|'+ rx?.odPrismaV
         contenido2 = contenido2+'|'+ rx?.oiPrismaV
+        contenido2 = contenido2+'|'+ rx?.dh
+        contenido2 = contenido2+'|'+ rx?.dv
+        contenido2 = contenido2+'|'+ rx?.pte
+        contenido2 = contenido2+'|'+ rx?.base
+        contenido2 = contenido2+'|'+ sku
         contenido2 = contenido2+'|'
         String cont2 = contenido2
         contenido2= ''

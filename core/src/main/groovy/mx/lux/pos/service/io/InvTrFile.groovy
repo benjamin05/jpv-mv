@@ -22,7 +22,7 @@ class InvTrFile {
     Sku, Qty
   }
   private static enum DetFldIssue {
-      Sku, Color, ModSend, Qty, Remarks, MovType
+      Article, Color, ModSend, Qty, MovType, Remarks, Sku
   }
   private static enum HdrFld {
     Site, TrType, TrNbr, TrDate, SiteTo, Ref, Folio, LineNum, Remarks
@@ -83,9 +83,10 @@ class InvTrFile {
       for ( DetFldIssue fld : DetFldIssue.values() ) {
           switch ( fld ) {
               case DetFldIssue.Color: det.add( articulo.codigoColor.trim() != '' ? articulo.codigoColor : '0000' ); break
-              case DetFldIssue.Remarks: det.add( StringUtils.trimToEmpty(pInvTr.referencia).startsWith("F") ? StringUtils.trimToEmpty(pInvTr.referencia) : StringUtils.trimToEmpty(pInvTr.observaciones) ); break
+              case DetFldIssue.Remarks: det.add( pInvTr.observaciones.trim() != '' ? pInvTr.observaciones : '' ); break
+              case DetFldIssue.Sku: det.add( articulo.id ); break
               case DetFldIssue.ModSend: det.add( 'ENTERO' ); break
-              case DetFldIssue.Sku: det.add( articulo.articulo ); break
+              case DetFldIssue.Article: det.add( articulo.articulo ); break
               case DetFldIssue.MovType: det.add( pTrDet.tipoMov ); break
               case DetFldIssue.Qty: det.addInteger( pTrDet.cantidad ); break
           }

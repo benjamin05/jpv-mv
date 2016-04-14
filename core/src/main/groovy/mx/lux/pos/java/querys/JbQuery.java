@@ -679,4 +679,21 @@ public class JbQuery {
       db.updateQuery(sql);
       db.close();
     }
+
+    public static Integer nextFolioJbSobre( ){
+      Integer folio = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT nextval('jb_sobres_id_seq')");
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          folio = rs.getInt("nextval");
+        }
+      } catch (SQLException err) {
+            System.out.println( err );
+      }
+      return folio;
+    }
 }

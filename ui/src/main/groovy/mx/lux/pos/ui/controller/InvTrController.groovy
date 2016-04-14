@@ -1,6 +1,13 @@
 package mx.lux.pos.ui.controller
 
+import mx.lux.pos.java.querys.DoctoInvQuery
+import mx.lux.pos.java.querys.JbQuery
+import mx.lux.pos.java.querys.NotaVentaQuery
 import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.DoctoInvJava
+import mx.lux.pos.java.repository.JbJava
+import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.ArticuloService
@@ -1026,5 +1033,84 @@ class InvTrController {
       return true
     }
   }
+
+
+  void automaticIssue( String idOrder, Boolean isTransfer ){
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(idOrder)
+    Boolean doProcess = Registry.activeDevCanOft()
+    if( notaVenta != null && doProcess ){
+      JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(notaVenta.factura) )
+      Boolean estatusValid = false
+      if( isTransfer ){
+        List<mx.lux.pos.java.repository.JbTrack> lstJbTrack = JbQuery.buscarJbTrackPorRx(notaVenta.factura)
+        if(lstJbTrack.size() > 1){
+          Collections.sort(lstJbTrack, new Comparator<mx.lux.pos.java.repository.JbTrack>() {
+            @Override
+            int compare(mx.lux.pos.java.repository.JbTrack o1, mx.lux.pos.java.repository.JbTrack o2) {
+              return o2.fecha.compareTo(o1.fecha)
+            }
+          })
+          for(mx.lux.pos.java.repository.JbTrack jbTrack : lstJbTrack){
+            if( jbTrack != null && (StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("RS") ||
+                    StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("TE"))){
+              estatusValid = true
+            }
+          }
+        }
+      } else {
+        if( jb != null && (StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("RS") ||
+                StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("TE"))){
+          estatusValid = true
+        }
+      }
+      Boolean hasLen = false
+      Boolean hasFrame = false
+      Integer idFrame = 0
+      Integer quantity = 0
+      for(DetalleNotaVentaJava det : notaVenta.detalles){
+        if(StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("A")){
+          hasFrame = true
+          idFrame = det.idArticulo
+          quantity = quantity+det.cantidadFac.intValue()
+        } else if(StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("B")){
+          hasLen = true
+        }
+      }
+      if( hasFrame && hasLen & estatusValid ){
+        InvTr data = new InvTr()
+        data.postRemarks = "CANCELACION DE OFTALMICO FACTURA ${StringUtils.trimToEmpty(notaVenta.factura)}"
+        data.postReference = StringUtils.trimToEmpty(notaVenta.factura)
+        data.postSiteTo = null
+        data.postTrType = RepositoryFactory.trTypes.findOne("SALIDA")
+        Articulo part = ServiceManager.partService.obtenerArticulo( idFrame, false )
+        data.skuList.add( new InvTrSku( data, 1, part, quantity ) )
+        InvTrRequest request = RequestAdapter.getRequest( data )
+        request.remarks = request.remarks.replaceAll("[^a-zA-Z0-9]+"," ");
+        Integer trNbr = null
+        trNbr = ServiceManager.getInventoryService().solicitarTransaccion( request )
+        if ( trNbr != null ) {
+          DoctoInv doctoInv = new DoctoInv()
+          doctoInv.idDocto = StringUtils.trimToEmpty(trNbr.toString())
+          doctoInv.idTipoDocto = 'DA'
+          doctoInv.fecha = new Date()
+          doctoInv.usuario = 'EXT'
+          doctoInv.referencia = 'DEVOLUCION APLICADA'
+          doctoInv.idSync = '1'
+          doctoInv.idMod = '0'
+          doctoInv.fechaMod = new Date()
+          doctoInv.idSucursal = Registry.currentSite
+          doctoInv.notas = StringUtils.trimToEmpty(String.format("P%010d", JbQuery.nextFolioJbSobre()))
+          doctoInv.cantidad = StringUtils.trimToEmpty(quantity.toString())
+          doctoInv.estado = 'pendiente'
+          DoctoInvJava doctoInvJava = new DoctoInvJava()
+          doctoInvJava.castToDoctoInvJava( doctoInv )
+          DoctoInvQuery.saveDoctoInv( doctoInvJava )
+          dispatchPrintTransaction( data.postTrType.idTipoTrans, trNbr )
+        }
+      }
+    }
+
+  }
+
 
 }

@@ -3917,13 +3917,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
 
   static List<JbJava> jbBySend( ) {
-    List<JbJava> lstJb = JbQuery.buscarJbPorEstado( "PE" )
+    List<JbJava> lstJb = JbQuery.buscarJbPorEstados( "PE", "RPE" )
     return lstJb
   }
 
 
   static List<JbJava> jbNotSend( ) {
-    List<JbJava> lstJb = JbQuery.buscarJbPorEstado( "NE" )
+    List<JbJava> lstJb = JbQuery.buscarJbPorEstados( "NE", "RNE" )
     return lstJb
   }
 

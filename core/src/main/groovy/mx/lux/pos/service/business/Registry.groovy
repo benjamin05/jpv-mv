@@ -710,6 +710,14 @@ class Registry {
     return isTrue( TipoParametro.IMPORTAR_CLIENTE_ACTIVO )
   }
 
+  static Boolean activeDevCanOft() {
+    return isTrue( TipoParametro.DEF_CAN_OFT )
+  }
+
+  static Boolean measuresFrameVisible() {
+    return isTrue( TipoParametro.MEDIDAS_ARMAZON_VISIBLE )
+  }
+
   static Boolean isAckDebugEnabled() {
     return isTrue( TipoParametro.ACUSE_LOG_DETALLE )
   }

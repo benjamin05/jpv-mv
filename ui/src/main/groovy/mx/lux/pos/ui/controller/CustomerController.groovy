@@ -511,6 +511,10 @@ class CustomerController {
             rec.setDiCercaR(receta.diCercaR)
             rec.setAltOblR(receta.altOblR.trim())
             rec.setObservacionesR(receta.observacionesR)
+            rec.setDh(receta.dh)
+            rec.setDv(receta.dv)
+            rec.setPte(receta.pte)
+            rec.setBase(receta.base)
             //rec = recetaService.guardarReceta(rec)
         rec = RecetaQuery.saveOrUpdateRx( rec )
       } else {
@@ -566,6 +570,10 @@ class CustomerController {
             rec.setDiCercaR(receta.diCercaR)
             rec.setAltOblR(receta.altOblR.trim())
             rec.setObservacionesR(receta.observacionesR)
+            rec.setDh(receta.dh)
+            rec.setDv(receta.dv)
+            rec.setPte(receta.pte)
+            rec.setBase(receta.base)
             //rec = recetaService.guardarReceta(rec)
           rec = RecetaQuery.saveOrUpdateRx( rec )
       }

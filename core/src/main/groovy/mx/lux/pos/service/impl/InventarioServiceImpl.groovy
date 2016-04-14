@@ -2,6 +2,7 @@ package mx.lux.pos.service.impl
 
 import mx.lux.pos.java.querys.ArticulosQuery
 import mx.lux.pos.java.querys.DoctoInvQuery
+import mx.lux.pos.java.querys.JbQuery
 import mx.lux.pos.java.querys.TransInvDetQuery
 import mx.lux.pos.java.querys.TransInvQuery
 import mx.lux.pos.java.repository.ArticulosJava
@@ -622,6 +623,7 @@ class InventarioServiceImpl implements InventarioService {
                 doctoInv.idSucursal = Registry.currentSite
                 doctoInv.cantidad = StringUtils.trimToEmpty(cantidadTotal.toString())
                 doctoInv.estado = 'pendiente'
+                doctoInv.notas = StringUtils.trimToEmpty(String.format("P%010d", JbQuery.nextFolioJbSobre()))
                 //doctoInvRepository.saveAndFlush(doctoInv)
                 DoctoInvJava doctoInvJava = new DoctoInvJava()
                 doctoInvJava.castToDoctoInvJava( doctoInv )
@@ -682,6 +684,7 @@ class InventarioServiceImpl implements InventarioService {
     doctoInv.idSucursal = Registry.currentSite
     doctoInv.cantidad = StringUtils.trimToEmpty(cantidadTotal.toString())
     doctoInv.estado = 'pendiente'
+    doctoInv.notas = StringUtils.trimToEmpty(String.format("P%010d", JbQuery.nextFolioJbSobre()))
     doctoInvRepository.saveAndFlush(doctoInv)
   }
 

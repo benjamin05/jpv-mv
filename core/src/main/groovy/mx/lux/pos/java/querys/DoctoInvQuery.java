@@ -4,6 +4,7 @@ import mx.lux.pos.java.Utilities;
 import mx.lux.pos.java.repository.AcusesJava;
 import mx.lux.pos.java.repository.DoctoInvJava;
 import mx.lux.pos.java.repository.JbJava;
+import mx.lux.pos.java.repository.JbLlamadaJava;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
@@ -79,5 +80,23 @@ public class DoctoInvQuery {
       return doctoInvJava;
     }
 
+
+    public static DoctoInvJava buscaDoctoInvDaPorIdDocto( String idDocto ){
+      DoctoInvJava doctoInvJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM docto_inv where id_tipo_docto = 'DA' AND id_docto = '%s';", StringUtils.trimToEmpty(idDocto));
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          doctoInvJava = new DoctoInvJava();
+          doctoInvJava = doctoInvJava.mapeoDoctoInvJava(rs);
+        }
+      } catch (SQLException err) {
+            System.out.println( err );
+      }
+      return doctoInvJava;
+    }
 
 }
