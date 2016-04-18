@@ -376,6 +376,10 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
             break
         }
       }
+      String sku = "?"
+      if(StringUtils.trimToEmpty(detalleNotaVenta?.articulo?.idGenerico).equalsIgnoreCase("A")){
+        sku = StringUtils.trimToEmpty(detalleNotaVenta?.idArticulo?.toString())
+      }
       [
           id_factura: detalleNotaVenta.idFactura,
           sku: detalleNotaVenta.idArticulo,
@@ -388,7 +392,8 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
           descuento: detalleNotaVenta.notaVenta.montoDescuento ? detalleNotaVenta.notaVenta.montoDescuento : '',
           codigo_color: StringUtils.isNotBlank( detalleNotaVenta.articulo?.codigoColor ) ? detalleNotaVenta.articulo.codigoColor : '',
           factura: StringUtils.trimToEmpty( detalleNotaVenta.notaVenta?.factura ),
-          lote: StringUtils.trimToEmpty( detalleNotaVenta?.idRepVenta )
+          lote: StringUtils.trimToEmpty( detalleNotaVenta?.idRepVenta ),
+          skuArm: sku
       ]
     }
 
