@@ -3532,7 +3532,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("SV") ){
             hasSV = true
           } else if( StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("B") ||
-                  StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("P") ){
+                  StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("P") ||
+                  StringUtils.trimToEmpty(det.articulo.articulo).equalsIgnoreCase("L") ){
             hasMF = true
           }
         }
