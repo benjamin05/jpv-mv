@@ -47,6 +47,8 @@ interface InventarioService {
 
   TipoTransInv obtenerTipoTransaccionEntrada( )
 
+  TipoTransInv obtenerTipoTransaccionEntradaMasiva( )
+
   TipoTransInv obtenerTipoTransaccionSalida( )
 
   TipoTransInv obtenerTipoTransaccionOtraSalida( )

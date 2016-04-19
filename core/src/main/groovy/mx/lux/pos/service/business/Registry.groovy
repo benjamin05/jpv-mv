@@ -484,6 +484,10 @@ class Registry {
     return asTipoTransInv( TipoParametro.TRANS_INV_TIPO_RECIBE_REMISION )
   }
 
+  static TipoTransInv getInvTrTypeMassiveReceipt( ) {
+    return asTipoTransInv( TipoParametro.TRANS_INV_TIPO_RECIBE_REMISION_MASIVA )
+  }
+
   static TipoTransInv getInvTrTypeReturn( ) {
     return asTipoTransInv( TipoParametro.TRANS_INV_TIPO_CANCELACION )
   }
@@ -712,6 +716,10 @@ class Registry {
 
   static Boolean activeDevCanOft() {
     return isTrue( TipoParametro.DEF_CAN_OFT )
+  }
+
+  static Boolean activeMassiveReceipt() {
+    return isTrue( TipoParametro.ACTIVA_TRANSACCION_MASIVA )
   }
 
   static Boolean measuresFrameVisible() {
