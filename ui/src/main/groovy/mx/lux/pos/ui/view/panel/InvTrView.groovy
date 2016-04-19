@@ -31,6 +31,7 @@ class InvTrView implements NavigationBarListener {
   InvTrDriver driver
   InvTrDriver queryDriver = new InvTrQueryDriver()
   InvTrDriver receiptDriver = new InvTrReceiptDriver()
+  InvTrDriver massiveReceiptDriver = new InvTrMassiveReceiptDriver()
   InvTrDriver issueDriver = new InvTrIssueDriver()
   InvTrDriver otherIssueDriver = new InvTrOtherIssueDriver()
   InvTrDriver otherReceiptDriver = new InvTrOtherReceiptDriver()
@@ -143,7 +144,9 @@ class InvTrView implements NavigationBarListener {
         driver = issueDriver
     } else if ( InvTrViewMode.ISSUE_ACCESORIES.equals( pViewMode ) ) {
         driver = issueDriver
-    } else {
+    }  else if ( InvTrViewMode.MASSIVE_RECEIPT.equals( pViewMode ) ) {
+      driver = massiveReceiptDriver
+    }  else {
       panel.lblStatus.text = panel.TXT_UNDER_CONSTRUCTION_TEXT
       driver = doNothingDriver
     }

@@ -262,6 +262,14 @@ class InvTrController {
     pView.fireDisplay()
   }
 
+  protected void dispatchViewModeMassiveReceipt( InvTrView pView ) {
+    pView.data.clear()
+    pView.fireResetUI()
+    pView.notifyViewMode( InvTrViewMode.MASSIVE_RECEIPT )
+    pView.data.postSiteTo = null
+    pView.fireDisplay()
+  }
+
   protected void dispatchViewModeIssueFrames( InvTrView pView ) {
     pView.data.clear()
     pView.fireResetUI()
@@ -373,6 +381,8 @@ class InvTrController {
           dispatchViewModeIssue( pView )
         } else if ( pNewMode.equals( InvTrViewMode.RECEIPT ) ) {
           dispatchViewModeReceipt( pView )
+        } else if ( pNewMode.equals( InvTrViewMode.MASSIVE_RECEIPT ) ) {
+          dispatchViewModeMassiveReceipt( pView )
         } else if ( pNewMode.equals( InvTrViewMode.QUERY ) ) {
           dispatchViewModeQuery( pView )
         } else if ( pNewMode.equals( InvTrViewMode.ADJUST ) ) {
@@ -751,7 +761,7 @@ class InvTrController {
         request.remarks = request.remarks.replaceAll("[^a-zA-Z0-9]+"," ");
       Integer trNbr = ServiceManager.getInventoryService().solicitarTransaccion( request )
       if ( trNbr != null ) {
-        if(request.trType.equalsIgnoreCase(TAG_REMESA)){
+        if(request.trType.equalsIgnoreCase(TAG_REMESA) && pView.controller.dlgFile != null){
           String receivedPath = Registry.processedFilesPath
           String[] filename = pView.controller.dlgFile.selectedFile.path.split("/")
           String[] filePathTmp = pView.controller.dlgFile.selectedFile.path.split("/")
@@ -785,7 +795,7 @@ class InvTrController {
             || InvTrViewMode.RECEIPT.equals( viewMode ) || InvTrViewMode.OUTBOUND.equals( viewMode )
             || InvTrViewMode.INBOUND.equals( viewMode ) || InvTrViewMode.OTHER_ISSUE.equals( viewMode )
             || InvTrViewMode.OTHER_RECEIPT.equals( viewMode ) || InvTrViewMode.ISSUE_ACCESORIES.equals( viewMode )
-            || InvTrViewMode.ISSUE_FRAMES.equals( viewMode )) {
+            || InvTrViewMode.ISSUE_FRAMES.equals( viewMode ) || InvTrViewMode.MASSIVE_RECEIPT.equals( viewMode )) {
           dispatchPrintTransaction( viewMode.trType.idTipoTrans, trNbr )
           if (InvTrViewMode.RECEIPT.equals( viewMode ) || InvTrViewMode.INBOUND.equals( viewMode )) {
             String resultado = confirmaEntrada(viewMode, pView)

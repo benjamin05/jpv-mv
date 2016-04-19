@@ -274,6 +274,8 @@ class InvTr {
       postTrType = viewMode.getTrType()
     } else if ( viewMode.equals( InvTrViewMode.RECEIPT ) ) {
       postTrType = viewMode.getTrType()
+    } else if ( viewMode.equals( InvTrViewMode.MASSIVE_RECEIPT ) ) {
+      postTrType = viewMode.getTrType()
     } else if ( viewMode.equals( InvTrViewMode.ADJUST ) ) {
       postTrType = viewMode.getTrType()
     } else if ( viewMode.equals( InvTrViewMode.FILE_ADJUST ) ) {

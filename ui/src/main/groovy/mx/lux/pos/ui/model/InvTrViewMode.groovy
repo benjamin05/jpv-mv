@@ -13,6 +13,7 @@ class InvTrViewMode {
   def static InvTrViewMode OTHER_ISSUE
   def static InvTrViewMode QUERY
   def static InvTrViewMode RECEIPT
+  def static InvTrViewMode MASSIVE_RECEIPT
   def static InvTrViewMode OTHER_RECEIPT
   def static InvTrViewMode RETURN
   def static InvTrViewMode ADJUST
@@ -45,6 +46,8 @@ class InvTrViewMode {
       InventarioService inventory = ServiceManager.getInventoryService()
       ISSUE = new InvTrViewMode( inventory.obtenerTipoTransaccionSalida() )
       RECEIPT = new InvTrViewMode( inventory.obtenerTipoTransaccionEntrada() )
+      MASSIVE_RECEIPT = new InvTrViewMode( inventory.obtenerTipoTransaccionEntrada() )
+      MASSIVE_RECEIPT.text = '[ENTRADA] ENTRADA_MASIVA'
       QUERY = new InvTrViewMode( "Consulta" )
       ADJUST = new InvTrViewMode( inventory.obtenerTipoTransaccionAjuste() )
       RETURN = new InvTrViewMode( inventory.obtenerTipoTransaccionDevolucionExtraordinaria() )
@@ -64,6 +67,9 @@ class InvTrViewMode {
       //list.addAll( [QUERY, ISSUE, RECEIPT, ADJUST, RETURN, OUTBOUND,INBOUND, FILE_ADJUST] )
       if( user != null && IOController.getInstance().isManager(user.username) ){
         list.addAll( [QUERY, RECEIPT, ISSUE, ADJUST, INBOUND, OUTBOUND, OTHER_RECEIPT, OTHER_ISSUE] )
+        if( Registry.activeMassiveReceipt() ){
+          list.add(MASSIVE_RECEIPT)
+        }
       } else {
         list.addAll( [QUERY] )
       }

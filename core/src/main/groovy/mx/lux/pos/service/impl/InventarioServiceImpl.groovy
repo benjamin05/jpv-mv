@@ -268,6 +268,10 @@ class InventarioServiceImpl implements InventarioService {
     return Registry.invTrTypeReceipt
   }
 
+  TipoTransInv obtenerTipoTransaccionEntradaMasiva( ) {
+    return Registry.invTrTypeMassiveReceipt
+  }
+
   TipoTransInv obtenerTipoTransaccionSalida( ) {
     return Registry.invTrTypeIssue
   }
