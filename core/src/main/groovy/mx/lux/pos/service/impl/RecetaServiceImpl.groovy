@@ -182,6 +182,13 @@ class RecetaServiceImpl implements RecetaService {
         contenido2 = contenido2+'|'+artArmazon?.articulo?.articulo
         contenido2 = contenido2+'|'+ rx?.odPrismaV
         contenido2 = contenido2+'|'+ rx?.oiPrismaV
+        contenido2 = contenido2+'|'+ ""
+        contenido2 = contenido2+'|'+ ""
+        contenido2 = contenido2+'|'+ ""
+        contenido2 = contenido2+'|'+ ""
+        contenido2 = contenido2+'|'+ ""
+        contenido2 = contenido2+'|'+ ""
+        contenido2 = contenido2+'|'+ ""
         contenido2 = contenido2+'|'+ rx?.dh
         contenido2 = contenido2+'|'+ rx?.dv
         contenido2 = contenido2+'|'+ rx?.pte
