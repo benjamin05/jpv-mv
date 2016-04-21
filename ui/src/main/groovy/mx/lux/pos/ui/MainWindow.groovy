@@ -106,6 +106,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem generateInventoryFile
     private JMenuItem newSalesDayMenuItem
     private JMenuItem adjustSaleMenuItem
+    private JMenuItem reprintIssueTransAuthMenuItem
     private JMenuItem reprintEnsureMenuItem
     private JMenuItem ipBoxMenuItem
     private JMenuItem freedomCouponMenuItem
@@ -266,6 +267,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 User u = Session.get(SessionItem.USER) as User
                                 recalculateMenuItem.visible = userLoggedIn ? AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password)) : false
                                 adjustSaleMenuItem.visible = userLoggedIn ? AccessController.validPassAudit(StringUtils.trimToEmpty(u.username), StringUtils.trimToEmpty(u.password)) : false
+                                reprintIssueTransAuthMenuItem.visible = false
                                 //generateInventoryFile.visible = userLoggedIn
                                 //loadPartsMenuItem.visible = userLoggedIn
                                 //loadPartClassMenuItem.visible = userLoggedIn
@@ -289,6 +291,13 @@ class MainWindow extends JFrame implements KeyListener {
                                     invTrView.activate()
                                     mainPanel.layout.show( mainPanel, 'invTrPanel' )
                                 }
+                        )
+                        reprintIssueTransAuthMenuItem = menuItem( text: "Reimprimir Devolucion Aut.", visible: true,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    InvTrController controllerInv = InvTrController.instance
+                                    controllerInv.reprintAutIssue() }
                         )
                         inventoryOhQueryMenuItem = menuItem( text: "Ticket Existencias", visible: true,
                                 actionPerformed: {
