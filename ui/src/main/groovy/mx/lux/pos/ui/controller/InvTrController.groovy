@@ -905,6 +905,10 @@ class InvTrController {
     }
   }
 
+  void reprintAutIssue(){
+    ServiceManager.getInventoryService().leerArchivoAutorizacionSalidas( )
+  }
+
 
   void readDevolutionFile(){
     Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )

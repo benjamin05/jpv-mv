@@ -47,7 +47,7 @@ class InvTrViewMode {
       ISSUE = new InvTrViewMode( inventory.obtenerTipoTransaccionSalida() )
       RECEIPT = new InvTrViewMode( inventory.obtenerTipoTransaccionEntrada() )
       MASSIVE_RECEIPT = new InvTrViewMode( inventory.obtenerTipoTransaccionEntrada() )
-      MASSIVE_RECEIPT.text = '[ENTRADA] ENTRADA_MASIVA'
+      MASSIVE_RECEIPT.text = '[ENTRADA] CARGA INICIAL'
       QUERY = new InvTrViewMode( "Consulta" )
       ADJUST = new InvTrViewMode( inventory.obtenerTipoTransaccionAjuste() )
       RETURN = new InvTrViewMode( inventory.obtenerTipoTransaccionDevolucionExtraordinaria() )

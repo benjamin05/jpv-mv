@@ -17,6 +17,8 @@ import org.apache.commons.lang3.StringUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import javax.swing.JOptionPane
+
 class InvTrMassiveReceiptDriver extends InvTrDriver {
 
     Logger logger = LoggerFactory.getLogger( InvTrDriver.class )
@@ -223,4 +225,17 @@ class InvTrMassiveReceiptDriver extends InvTrDriver {
     }
 
 
+  void onSkuDoubleClicked( InvTrView pView ) {
+    logger.debug( "[Driver] Double clicked on sku table" )
+    if ( pView.panel.tBrowser.selectedRow >= 0 ) {
+      InvTrSku line = pView.data.skuList[ pView.panel.tBrowser.selectedRow ]
+      String msg = String.format( pView.panel.MSG_CONFIRM_REMOVE_ISSUE, line.sku, line.description )
+      Integer selection = JOptionPane.showConfirmDialog( pView.panel, msg, pView.panel.TXT_CONFIRM_TITLE,
+              JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE )
+      if ( selection.equals( JOptionPane.OK_OPTION ) ) {
+        pView.data.skuList.remove( line )
+        pView.fireRefreshUI( )
+      }
+    }
+  }
 }

@@ -3128,13 +3128,13 @@ class TicketServiceImpl implements TicketService {
       }
       SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
       SimpleDateFormat df1 = new SimpleDateFormat("ddMM")
-      String currentTravel = ""
-      List<JbViaje> lstJbViajes = JbQuery.buscarJbViajesHoy()
+      String currentTravel = StringUtils.trimToEmpty(viaje)
+      /*List<JbViaje> lstJbViajes = JbQuery.buscarJbViajesHoy()
       if( lstJbViajes.size() <= 0 ){
           currentTravel = "1"
       } else {
           currentTravel = StringUtils.trimToEmpty((lstJbViajes.size()+1).toString());
-      }
+      }*/
       Boolean mostrarCodigoBarras = false
       String viajeCodigo = StringUtils.trimToEmpty(currentTravel)
       if(StringUtils.trimToEmpty(currentTravel).length() == 1){
@@ -3149,6 +3149,8 @@ class TicketServiceImpl implements TicketService {
           title = "PACKING CERRADO"
           mostrarCodigoBarras = true
       }
+    if(lstJb.size() > 0 || lstJbRotExt.size() > 0 || lstJbRef.size() > 0 || lstJbGar.size() > 0 || lstJbOrdServ.size() > 0 ||
+            lstJbExt.size() > 0 || devs.size() > 0 || lstSobres.size() > 0 || lstSobresRx.size() > 0 || lstJbDev.size() > 0 ){
       def datos = [
               title: title,
               fecha: df.format(new Date()),
@@ -3181,8 +3183,9 @@ class TicketServiceImpl implements TicketService {
       ]
       this.imprimeTicket( 'template/ticket-packing.vm', datos )
       if( false ){
-          this.imprimeTicket( 'template/ticket-packing.vm', datos )
+        this.imprimeTicket( 'template/ticket-packing.vm', datos )
       }
+    }
   }
 
 
