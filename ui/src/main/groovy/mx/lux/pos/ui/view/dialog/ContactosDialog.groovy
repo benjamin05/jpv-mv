@@ -60,7 +60,7 @@ class ContactosDialog extends JDialog {
         resizable: true,
         pack: true,
         modal: true,
-        preferredSize: [ 700, 500 ],
+        preferredSize: [ 550, 450 ],
         location: [ 200, 150 ],
     ) {
       panel() {
@@ -81,7 +81,7 @@ class ContactosDialog extends JDialog {
           label( text: "Observaciones" )
           txtContactType = textField( text: jb.obsExt, editable: false )
         }
-        panel( border: titledBorder(title: ''), constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap 4", "[][grow,fill]", "" ) ) {
+        panel( border: titledBorder(title: ''), constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap 4", "[center][grow,fill,center]", "" ) ) {
           label( text: "Info." )
           txtInfo = textField( constraints: "span 3", enabled: false )
           label( text: "Volver a Contactar" )
@@ -139,11 +139,13 @@ class ContactosDialog extends JDialog {
                 }
           })
           label( " " )
-          button( text: "Enviar", preferredSize: UI_Standards.BUTTON_SIZE,
-                  actionPerformed: { onButtonSend() }
+          button( text: "Enviar", maximumSize: UI_Standards.BUTTON_SIZE,
+                  actionPerformed: { onButtonSend() }, alignmentX: CENTER_ALIGNMENT,
+                  alignmentY: CENTER_ALIGNMENT
           )
-          button( text: "No Realizado", preferredSize: UI_Standards.BUTTON_SIZE,
-                  actionPerformed: { onButtonNotSend() }, constraints: "span 2"
+          button( text: "No Realizado", maximumSize: UI_Standards.BUTTON_SIZE,
+                  actionPerformed: { onButtonNotSend() }, constraints: "span 2",
+                  alignmentX: CENTER_ALIGNMENT, alignmentY: CENTER_ALIGNMENT
           )
         }
         panel( constraints: BorderLayout.PAGE_END ) {

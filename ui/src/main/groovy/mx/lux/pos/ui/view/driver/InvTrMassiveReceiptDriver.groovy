@@ -229,7 +229,7 @@ class InvTrMassiveReceiptDriver extends InvTrDriver {
     logger.debug( "[Driver] Double clicked on sku table" )
     if ( pView.panel.tBrowser.selectedRow >= 0 ) {
       InvTrSku line = pView.data.skuList[ pView.panel.tBrowser.selectedRow ]
-      String msg = String.format( pView.panel.MSG_CONFIRM_REMOVE_ISSUE, line.sku, line.description )
+      String msg = String.format( "Desea eliminar del ticket de entrada el artículo:\n\n  [%d] %s\n \n ", line.sku, line.description )
       Integer selection = JOptionPane.showConfirmDialog( pView.panel, msg, pView.panel.TXT_CONFIRM_TITLE,
               JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE )
       if ( selection.equals( JOptionPane.OK_OPTION ) ) {

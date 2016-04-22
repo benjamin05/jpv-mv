@@ -57,7 +57,7 @@ class ReceiveDialog extends JDialog {
         resizable: true,
         pack: true,
         modal: true,
-        preferredSize: [ 500, 450 ],
+        preferredSize: [ 500, 400 ],
         location: [ 100, 150 ],
     ) {
       panel() {
@@ -71,7 +71,7 @@ class ReceiveDialog extends JDialog {
           txtSellDate = textField( editable: false )
           label( text: "Fecha Promesa" )
           txtPromiseDate = textField( editable: false )
-          label( text: "Observasiones Rx" )
+          label( text: "Observaciones Rx" )
           txtObservationsRx = textField( editable: false )
           label( text: "Observaciones Factura" )
           txtObservationsBill = textField( editable: false )
