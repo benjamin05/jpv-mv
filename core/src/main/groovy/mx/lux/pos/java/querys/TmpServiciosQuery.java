@@ -30,7 +30,7 @@ public class TmpServiciosQuery {
 
 
     public static TmpServiciosJava buscaTmpServiciosPorIdFactura( String idFactura ){
-      TmpServiciosJava tmpServiciosJava = new TmpServiciosJava();
+      TmpServiciosJava tmpServiciosJava = null;
       try {
         Connection con = Connections.doConnect();
         stmt = con.createStatement();

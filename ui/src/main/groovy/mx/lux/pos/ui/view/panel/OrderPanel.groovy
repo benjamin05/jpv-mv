@@ -403,6 +403,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       } else {
         itemSearch.enabled = true
       }
+      if( currentOperationType.equals(OperationType.EDIT_PAYING) ){
+        customerName.enabled = false
+        operationType.enabled = false
+      } else {
+        customerName.enabled = true
+        operationType.enabled = true
+      }
       this.printButton.setVisible(!this.isPaymentListEmpty() ||
               this.promotionDriver.model?.orderDiscount?.discountPercent == 1.0 ||
               ( order.due.compareTo(BigDecimal.ZERO) <= 0 && this.promotionDriver.model?.isAnyApplied()) )
