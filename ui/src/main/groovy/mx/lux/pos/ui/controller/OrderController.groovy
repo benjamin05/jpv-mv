@@ -1518,13 +1518,20 @@ class OrderController {
         }
       }
       if (insertarAcuse) {
+        String sku = ""
+        for(OrderItem oi : order?.items){
+          if(StringUtils.trimToEmpty(oi.item.type).equals(TAG_GENERICO_A)){
+            sku = StringUtils.trimToEmpty(oi.item.id.toString())
+          }
+        }
         String contenidoAPAR = "parteVal=" + parte
         contenidoAPAR = contenidoAPAR + "|facturaVal=" + order?.bill
         contenidoAPAR = contenidoAPAR + "|rxVal=" + rx
         contenidoAPAR = contenidoAPAR + "|id_colVal=" + item?.color
         contenidoAPAR = contenidoAPAR + "|id_sucVal=" + branch?.id
         contenidoAPAR = contenidoAPAR + "|id_artVal=" + item?.name
-        contenidoAPAR = contenidoAPAR + "|id_acuseVal=" + (acuseRepository?.nextIdAcuse() +1).toString() + '|'
+        contenidoAPAR = contenidoAPAR + "|id_acuseVal=" + (acuseRepository?.nextIdAcuse() +1).toString()
+        contenidoAPAR = contenidoAPAR + "|skuVal=" + sku + '|'
         AcusesJava acuseAPAR = new AcusesJava()
         acuseAPAR?.contenido = contenidoAPAR
         acuseAPAR?.idTipo = 'APAR'
@@ -1703,7 +1710,7 @@ class OrderController {
     static Boolean revisaTmpservicios(String idNotaVenta) {
       Boolean existe = false
       TmpServiciosJava tmpServicio = TmpServiciosQuery.buscaTmpServiciosPorIdFactura(idNotaVenta)
-      if (tmpServicio != null) {
+      if (tmpServicio != null && tmpServicio.idServ != null) {
         existe = true
       }
       return existe
