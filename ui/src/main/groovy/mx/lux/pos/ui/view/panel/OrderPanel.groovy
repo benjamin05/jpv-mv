@@ -1490,6 +1490,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       Order newOrder = OrderController.placeOrder(order, vendedor, false)
       OrderController.genreatedEntranceSP( StringUtils.trimToEmpty(newOrder.id) )
       if( newOrder.rx != null ){
+        OrderController.sendFax( newOrder )
         OrderController.updateExam( newOrder )
         OrderController.updateRx( newOrder )
       }

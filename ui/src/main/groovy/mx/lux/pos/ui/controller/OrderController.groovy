@@ -69,6 +69,7 @@ import mx.lux.pos.ui.view.dialog.AseguraNotaDialog
 import mx.lux.pos.ui.view.dialog.ContactClientDialog
 import mx.lux.pos.ui.view.dialog.ContactDialog
 import mx.lux.pos.ui.view.dialog.ManualPriceDialog
+import mx.lux.pos.ui.view.dialog.SendFaxDialog
 import mx.lux.pos.ui.view.dialog.WarrantySelectionDialog
 import mx.lux.pos.ui.view.panel.OrderPanel
 import org.apache.commons.lang.NumberUtils
@@ -3946,6 +3947,13 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static Rx findRxByIdRx(Integer idRx) {
+    RecetaJava receta = RecetaQuery.buscaRecetaPorIdReceta( idRx )
+    return Rx.toRx(receta)
+  }
+
+
+
   static void validSPWithoutLens( Order order ){
     NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(order.id)
     detalleNotaVentaServiceJava.validaSPSinLente( notaVenta )
@@ -4149,6 +4157,57 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
   static void deleteEnvelope( Integer idJbSobre ){
     JbQuery.deleteJbSobres( idJbSobre )
+  }
+
+
+  static void sendFax( Order order ){
+    Boolean sendFax = false
+    for(OrderItem oi : order.items){
+      if(StringUtils.trimToEmpty(oi.delivers).equals("P")){
+        sendFax = true
+      }
+    }
+    if(sendFax && Registry.automaticFax()){
+      Rx rx = findRxByIdRx( order.rx )
+      SendFaxDialog dialog = new SendFaxDialog(new JTextField(), rx, order.customer.id, order.branch.id, order.customer.fullName, rx.tipoEditRx, true, true, order.id )
+      dialog.show()
+    }
+  }
+
+
+  static void saveJbTrackFax(String idOrder) {
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById(StringUtils.trimToEmpty(idOrder))
+    if( notaVenta != null && StringUtils.trimToEmpty(notaVenta.factura).length() > 0 ){
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+      jbTrack.rx = StringUtils.trimToEmpty(notaVenta.factura)
+      jbTrack.estado = "FAX"
+      jbTrack.obs = "SE MANDÓ POR FAX"
+      jbTrack.emp = StringUtils.trimToEmpty(notaVenta.idEmpleado)
+      jbTrack.fecha = new Date()
+      jbTrack.idMod = StringUtils.trimToEmpty(notaVenta.idEmpleado)
+      JbQuery.saveJbTrack(jbTrack)
+    }
+  }
+
+
+  static void saveAcuseFax(String idOrder) {
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( StringUtils.trimToEmpty(idOrder) )
+    if(NotaVenta != null){
+      for(DetalleNotaVentaJava det : notaVenta.detalles){
+        if( StringUtils.trimToEmpty(det.articulo.idGenerico).equals("A") && StringUtils.trimToEmpty(det.surte).equals("P") ){
+          AcusesJava acuse = new AcusesJava();
+          acuse.setFechaCarga(new Date());
+          acuse.setIdTipo("FAX");
+          acuse = AcusesQuery.saveAcuses(acuse);
+          String contenidoAcuse = "id_articuloVal="+StringUtils.trimToEmpty(det?.articulo?.articulo)+"|id_sucVal="+StringUtils.trimToEmpty(String.valueOf(Registry.getCurrentSite()))+
+                    "|rxVal="+StringUtils.trimToEmpty(notaVenta.receta.toString())+"|id_colorVal="+StringUtils.trimToEmpty(det.articulo.colorCode)+
+                    "|id_acuseVal="+StringUtils.trimToEmpty(acuse.getIdAcuse().toString())+"|skuVal="+StringUtils.trimToEmpty(det.idArticulo.toString())+"|";
+          acuse.setContenido(contenidoAcuse);
+          AcusesQuery.saveAcuses(acuse);
+          break
+        }
+      }
+    }
   }
 
 

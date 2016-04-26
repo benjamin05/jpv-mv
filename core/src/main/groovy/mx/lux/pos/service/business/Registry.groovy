@@ -718,6 +718,14 @@ class Registry {
     return isTrue( TipoParametro.DEF_CAN_OFT )
   }
 
+  static Boolean automaticFax() {
+    return isTrue( TipoParametro.FAX_AUTOMATICO )
+  }
+
+  static Boolean showJobsControl() {
+    return isTrue( TipoParametro.MOSTRAR_CONTROL_TRABAJOS )
+  }
+
   static Boolean activeMassiveReceipt() {
     return isTrue( TipoParametro.ACTIVA_TRANSACCION_MASIVA )
   }

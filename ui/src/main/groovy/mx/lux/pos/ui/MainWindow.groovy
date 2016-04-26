@@ -680,7 +680,8 @@ class MainWindow extends JFrame implements KeyListener {
                                 recepcionMenuItem.visible = userLoggedIn
                                 contactosMenuItem.visible = userLoggedIn
                                 sobresMenuItem.visible = userLoggedIn
-                            }
+                            },
+                            visible: Registry.showJobsControl()
                     ) {
                         consultaMenuItem = menuItem( text: 'Consulta',
                                 visible: true,
