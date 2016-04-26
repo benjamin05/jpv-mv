@@ -403,11 +403,18 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       } else {
         itemSearch.enabled = true
       }
-      if( currentOperationType.equals(OperationType.EDIT_PAYING) ){
+      if( currentOperationType.equals(OperationType.DEFAULT) ){
+        customerName.enabled = false
+      } else {
+        customerName.enabled = true
+      }
+      if( currentOperationType.equals(OperationType.EDIT_PAYING) && order.items.size() > 0 ){
         customerName.enabled = false
         operationType.enabled = false
       } else {
-        customerName.enabled = true
+        if( !currentOperationType.equals(OperationType.DEFAULT) ){
+          customerName.enabled = true
+        }
         operationType.enabled = true
       }
       this.printButton.setVisible(!this.isPaymentListEmpty() ||
