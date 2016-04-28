@@ -815,12 +815,19 @@ class Registry {
         else
             fileProperties = "linux.properties"
 
+        Parametro p = RepositoryFactory.getRegistry().findOne( StringUtils.trimToEmpty(key) )
+        if( p == null ){
+          Properties properties = new Properties();
+          Resource resource = new ClassPathResource(fileProperties)
+          properties = PropertiesLoaderUtils.loadProperties(resource)
+          return properties.getProperty( key )
+        } else {
+          return StringUtils.trimToEmpty(p != null ? StringUtils.trimToEmpty(p.valor) : "")
+        }
         /*Properties properties = new Properties();
         Resource resource = new ClassPathResource(fileProperties)
         properties = PropertiesLoaderUtils.loadProperties(resource)*/
-        Parametro p = RepositoryFactory.getRegistry().findOne( StringUtils.trimToEmpty(key) )
         //return properties.getProperty( key )
-      return StringUtils.trimToEmpty(p != null ? StringUtils.trimToEmpty(p.valor) : "")
     }
 
     static Boolean executeCommand( String command ){
