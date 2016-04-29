@@ -807,7 +807,7 @@ class Registry {
         if ( getOperatingSystem().equals("Linux") )
             fileProperties = "linux.properties"
         else
-        if ( getOperatingSystem().equals("Windows 7") )
+        if ( getOperatingSystem().startsWith("Windows") )
             fileProperties = "windows.properties"
         else
         if ( getOperatingSystem().equals("Windows XP") )
@@ -816,14 +816,16 @@ class Registry {
             fileProperties = "linux.properties"
 
         Parametro p = RepositoryFactory.getRegistry().findOne( StringUtils.trimToEmpty(key) )
-        if( p == null ){
+        /*if( StringUtils.trimToEmpty(key).equals("web_browser") ){
           Properties properties = new Properties();
           Resource resource = new ClassPathResource(fileProperties)
           properties = PropertiesLoaderUtils.loadProperties(resource)
+          println "fileProperties: "+ fileProperties
+          println "Propiedad llamada: "+properties.getProperty( key )
           return properties.getProperty( key )
-        } else {
+        } else {*/
           return StringUtils.trimToEmpty(p != null ? StringUtils.trimToEmpty(p.valor) : "")
-        }
+        //}
         /*Properties properties = new Properties();
         Resource resource = new ClassPathResource(fileProperties)
         properties = PropertiesLoaderUtils.loadProperties(resource)*/
