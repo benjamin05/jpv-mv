@@ -127,6 +127,7 @@ public class ReportBusiness {
     private static final String TAG_ROTO_NO_ENVIAR = "RNE";
     private static final String TAG_DESENTREGADO_POR_ROTO = "DPR";
     private static final String TAG_BODEGA = "BD";
+    private static final String SO_WINDOWS = "Windows";
 
     
     public List<IngresoPorDia> obtenerIngresoporDia( Date fechaInicio, Date fechaFin ) {
@@ -227,13 +228,19 @@ public class ReportBusiness {
                 Process p = Runtime.getRuntime().exec(cmd);
             }
 
-            JasperReport jasperReport = JasperCompileManager.compileReport( template.getInputStream() );
-            JasperPrint jasperPrint = JasperFillManager.fillReport( jasperReport, parametros, new JREmptyDataSource() );
-            jasperPrint.setProperty("net.sf.jasperreports.expo rt.character.encoding","ISO-8859-1");
-            //JasperExportManager.exportReportToHtmlFile( jasperPrint, report.getPath() );
-            //JasperExportManager.exportReportToPdfFile( jasperPrint, report.getPath() );
+
+
 
             try{
+              JasperReport jasperReport = JasperCompileManager.compileReport( template.getInputStream() );
+              JasperPrint jasperPrint = JasperFillManager.fillReport( jasperReport, parametros, new JREmptyDataSource() );
+              if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+                JasperExportManager.exportReportToHtmlFile( jasperPrint, report.getPath() );
+                Desktop.getDesktop().open( report );
+              } else {
+                jasperPrint.setProperty("net.sf.jasperreports.expo rt.character.encoding","ISO-8859-1");
+                //JasperExportManager.exportReportToHtmlFile( jasperPrint, report.getPath() );
+                //JasperExportManager.exportReportToPdfFile( jasperPrint, report.getPath() );
                 JRTextExporter exporter = new JRTextExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, report.getAbsolutePath());
@@ -243,9 +250,8 @@ public class ReportBusiness {
                 exporter.setParameter(JRTextExporterParameter.PAGE_HEIGHT, new Float(500));
                 exporter.setParameter(JRTextExporterParameter.BETWEEN_PAGES_TEXT, "");
                 exporter.exportReport();
-
-                Runtime.getRuntime().exec(Registry.getParametroOS("web_browser") + " " + report.getAbsolutePath());
-
+                Runtime.getRuntime().exec("firefox "+report.getAbsolutePath());
+              }
             } catch (JRException jRException) {
                 System.err.println(jRException);
             }
@@ -258,10 +264,8 @@ public class ReportBusiness {
             garbage.gc();
 
             return report.getPath();
-        } catch ( JRException e ) {
-            log.error( "error al compilar y generar reporte", e );
         } catch ( IOException e ) {
-            log.error( "error al compilar y generar reporte", e );
+          log.error( "error al compilar y generar reporte", e );
         }
         return report.getPath();
     }

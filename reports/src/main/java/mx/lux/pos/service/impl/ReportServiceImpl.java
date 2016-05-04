@@ -116,6 +116,8 @@ public class ReportServiceImpl implements ReportService {
     
     private static String INGRESOS_POR_PERIODO = "reports/Ingresos_Por_Periodo.jrxml";
 
+    private static final String SO_WINDOWS = "Windows";
+
     @Resource
     private NotaVentaRepository notaVentaRepository;
 
@@ -175,7 +177,12 @@ public class ReportServiceImpl implements ReportService {
 
         if ( fecha != null ) {
             Random random = new Random();
-            File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cierre-Diario%s.txt",random.nextInt()) );
+            File report = null;
+            if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+              report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cierre-Diario%s.html",random.nextInt()) );
+            } else {
+              report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cierre-Diario%s.txt",random.nextInt()) );
+            }
             org.springframework.core.io.Resource template = new ClassPathResource( CIERRE_DIARIO );
             log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -301,8 +308,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteIngresosXSucursal()" );
 
         if ( fechaInicio != null && fechaFin != null ) {
-
-            File report = new File( System.getProperty( "java.io.tmpdir" ), "Ingresos-por-Sucursal.txt" );
+            File report = null;
+            if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+              report = new File( System.getProperty( "java.io.tmpdir" ), "Ingresos-por-Sucursal.html" );
+            } else {
+              report = new File( System.getProperty( "java.io.tmpdir" ), "Ingresos-por-Sucursal.txt" );
+            }
             org.springframework.core.io.Resource template = new ClassPathResource( INGRESOS_POR_SUCURSAL );
             log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -343,8 +354,12 @@ public class ReportServiceImpl implements ReportService {
         if ( fechaInicio != null && fechaFin != null ) {
             fechaInicio = DateUtils.truncate( fechaInicio, Calendar.DAY_OF_MONTH );
             fechaFin = new Date( DateUtils.ceiling( fechaFin, Calendar.DAY_OF_MONTH ).getTime() - 1 );
-
-            File report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas.txt" );
+            File report = null;
+            if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+              report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas.html" );
+            } else {
+              report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas.txt" );
+            }
             org.springframework.core.io.Resource template = new ClassPathResource( VENTAS );
             log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -380,7 +395,12 @@ public class ReportServiceImpl implements ReportService {
             fechaFin = new Date( DateUtils.ceiling( fechaFin, Calendar.DAY_OF_MONTH ).getTime() - 1 );
 
             Random random = new Random();
-            File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Ventas-por-Vendedor%s.txt", random.nextInt()) );
+            File report = null;
+            if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+              report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Ventas-por-Vendedor%s.html", random.nextInt()) );
+            } else {
+              report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Ventas-por-Vendedor%s.txt", random.nextInt()) );
+            }
             org.springframework.core.io.Resource template = new ClassPathResource( VENTAS_POR_VENDEDOR_COMPLETO );
             log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -406,7 +426,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteTrabajosSinEntregar()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Sin-Entregar%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Sin-Entregar%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Sin-Entregar%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( TRABAJOS_SIN_ENTREGAR );
         log.info( "Ruta:{}", report.getAbsolutePath() );
         Integer totalFacturas = 0;
@@ -508,7 +533,12 @@ public class ReportServiceImpl implements ReportService {
       log.info( "obtenerReporteVentasMultipago()" );
 
       Random random = new Random();
-      File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Multipago%s.txt",random.nextInt()) );
+      File report = null;
+      if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+        report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Multipago%s.html",random.nextInt()) );
+      } else {
+        report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Multipago%s.txt",random.nextInt()) );
+      }
       org.springframework.core.io.Resource template = new ClassPathResource( MULTIPAGO );
       log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -532,7 +562,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteCancelacionesResumido()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cancelaciones%s.txt",random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cancelaciones%s.html",random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cancelaciones%s.txt",random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( CANCELACIONES_RESUMIDO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -563,7 +598,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteCancelacionesCompleto()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cancelaciones%s.txt",random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cancelaciones%s.html",random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cancelaciones%s.txt",random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( CANCELACIONES_COMPLETO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -590,8 +630,12 @@ public class ReportServiceImpl implements ReportService {
     
     public String obtenerReporteVentasporLineaFactura( Date fechaInicio, Date fechaFin, String articulo, boolean gogle, boolean oftalmico, boolean todo ) {
         log.info( "obtenerReporteVentasporLineaFactura()" );
-
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Linea-Factura.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Linea-Factura.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Linea-Factura.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( VENTA_POR_LINEA_FACTURA );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -647,8 +691,12 @@ public class ReportServiceImpl implements ReportService {
     
     public String obtenerReporteVentasporLineaArticulo( Date fechaInicio, Date fechaFin, String articulo, boolean gogle, boolean oftalmico, boolean todo ) {
         log.info( "obtenerReporteVentasporLineaArticulo()" );
-
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Linea-Factura.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Linea-Factura.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Linea-Factura.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( VENTA_POR_LINEA_ARTICULO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -688,8 +736,12 @@ public class ReportServiceImpl implements ReportService {
     
     public String obtenerReporteVentasMarca( Date fechaInicio, Date fechaFin,  String marca, boolean noMostrarArticulos, boolean gogle, boolean oftalmico, boolean todo ) {
         log.info( "obtenerReporteVentasMarca()" );
-
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Marca.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Marca.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Marca.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( VENTA_POR_MARCA );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -725,8 +777,12 @@ public class ReportServiceImpl implements ReportService {
     
     public String obtenerReporteVentasVendedorporMarca( Date fechaInicio, Date fechaFin, String marca, boolean mostrarArticulos, boolean gogle, boolean oftalmico, boolean todo ) {
         log.info( "obtenerReporteVentasVendedorporMarca()" );
-
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Vendedor-Por-Marca.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Vendedor-Por-Marca.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Vendedor-Por-Marca.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( VENTA_POR_VENDEDOR_MARCA );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -772,7 +828,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteExistenciasporMarca()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Existencias-Por-Marca%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Existencias-Por-Marca%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Existencias-Por-Marca%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( EXISTENCIAS_POR_MARCA );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -802,7 +863,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteExistenciasporMarcaResumido()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Existencias-Por-Marca%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Existencias-Por-Marca%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Existencias-Por-Marca%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( EXISTENCIAS_POR_MARCA_RESUMIDO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -831,7 +897,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteExistenciasporArticulo()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Existencias-Por-Articulo%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Existencias-Por-Articulo%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Existencias-Por-Articulo%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( EXISTENCIAS_POR_ARTICULO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -865,7 +936,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteControldeTrabajos()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Control-de-Trabajos%s.txt",random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Control-de-Trabajos%s.html",random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Control-de-Trabajos%s.txt",random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( CONTROL_DE_TRABAJOS );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -889,7 +965,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteTrabajosEntregados()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Entregados%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Entregados%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Entregados%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( TRABAJOS_ENTREGADOS );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -918,7 +999,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteTrabajosEntregadosporEmpleado()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Entregados-Por-Empleado%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Entregados-Por-Empleado%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Entregados-Por-Empleado%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( TRABAJOS_ENTREGADOS_POR_EMPLEADO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -945,7 +1031,12 @@ public class ReportServiceImpl implements ReportService {
     public String obtenerReporteVentasCompleto( Date fechaInicio, Date fechaFin ) {
         log.info( "obtenerReporteVentasCompleto()" );
 
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Completo.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Completo.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Completo.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( VENTAS_COMPLETO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1020,7 +1111,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteFacturasFiscales()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Facturas-Fiscales%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Facturas-Fiscales%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Facturas-Fiscales%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( FACTURAS_FISCALES );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1050,7 +1146,12 @@ public class ReportServiceImpl implements ReportService {
     public String obtenerReporteDescuentos( Date fechaInicio, Date fechaFin ) {
         log.info( "obtenerReporteDescuentos()" );
 
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Descuentos.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Descuentos.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Descuentos.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( DESCUENTOS );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1080,7 +1181,12 @@ public class ReportServiceImpl implements ReportService {
     public String obtenerReportePromocionesAplicadas( Date fechaInicio, Date fechaFin ) {
         log.info( "obtenerReportePromociones()" );
 
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Promociones-Aplicadas.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Promociones-Aplicadas.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Promociones-Aplicadas.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( PROMOCIONES_APLICADAS );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1109,7 +1215,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReportePagos()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Pagos%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Pagos%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Pagos%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( PAGOS );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1138,7 +1249,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteCotizaciones()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cotizaciones%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cotizaciones%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cotizaciones%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( COTIZACIONES );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1184,7 +1300,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteExamenesResumido()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Resumido%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Resumido%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Resumido%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( EXAMENES_RESUMIDO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1213,7 +1334,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteExamenesCompleto()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Completo%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Completo%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Completo%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( EXAMENES_COMPLETO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1265,7 +1391,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteVentasporOptometrista()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Ventas-Por-Optometrista-Completo%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Ventas-Por-Optometrista-Completo%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Ventas-Por-Optometrista-Completo%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( VENTAS_POR_OPTOMETRISTA_COMPLETO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1294,7 +1425,12 @@ public class ReportServiceImpl implements ReportService {
                                                                boolean lux, boolean todaVenta, boolean primera, boolean mayor, boolean resumen ) {
         log.info( "obtenerReporteVentasporOptometrista()" );
 
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Optometrista-Resumido.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Optometrista-Resumido.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-Por-Optometrista-Resumido.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( VENTAS_POR_OPTOMETRISTA_RESUMIDO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1322,7 +1458,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReportePromociones()" );
         log.info( "fecha::", fechaImpresion );
 
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Promociones.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Promociones.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Promociones.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( PROMOCIONES );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1346,7 +1487,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteDeKardex" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Kardex-Por-SKU%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Kardex-Por-SKU%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Kardex-Por-SKU%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( KARDEX );
         log.info( "Ruta:{}", report.getAbsolutePath() );
         fechaInicio = DateUtils.truncate( fechaInicio, Calendar.DAY_OF_MONTH );
@@ -1432,7 +1578,12 @@ public class ReportServiceImpl implements ReportService {
     
     public String obtenerReporteDeVentasDelDiaActual( Date fechaVentas, Boolean artPrecioMayorCero ) {
         log.debug( "obtenerReporteDeVentasDelDiaActual()" );
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-del-dia.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-del-dia.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-del-dia.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( VENTAS_DEL_DIA );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1507,7 +1658,12 @@ public class ReportServiceImpl implements ReportService {
     
     public String obtenerReporteDeIngresosPorPeriodo( Date dateStart, Date dateEnd ) {
         log.debug( "obtenerReporteDeIngresosPorPeriodo()" );
-        File report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-del-dia.txt" );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-del-dia.html" );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), "Ventas-del-dia.txt" );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( INGRESOS_POR_PERIODO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1536,7 +1692,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteVentasMasVision()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Ventas-Completo%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Ventas-Completo%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Ventas-Completo%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( VENTAS_MASVISION );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1580,7 +1741,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteDescuentos()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Descuentos%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Descuentos%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Descuentos%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( DESCUENTOS );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1647,7 +1813,12 @@ public class ReportServiceImpl implements ReportService {
       log.info( "obtenerReporteDeCupones()" );
 
       Random random = new Random();
-      File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cupones%s.txt", random.nextInt()) );
+      File report = null;
+      if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+        report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cupones%s.html", random.nextInt()) );
+      } else {
+        report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cupones%s.txt", random.nextInt()) );
+      }
       org.springframework.core.io.Resource template = new ClassPathResource( CUPONES );
       log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1684,7 +1855,12 @@ public class ReportServiceImpl implements ReportService {
       log.info( "obtenerReporteDeCuponesMv()" );
 
       Random random = new Random();
-      File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cupones%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cupones%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Cupones%s.txt", random.nextInt()) );
+        }
       org.springframework.core.io.Resource template = new ClassPathResource( CUPONESMV );
       log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1771,7 +1947,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteTrabajosSinEntregarAuditoria()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Sin-Entregar-Auditoria%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Sin-Entregar-Auditoria%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Trabajos-Sin-Entregar-Auditoria%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( TRABAJOS_SIN_ENTREGAR_AUDITORIA );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1812,7 +1993,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteExamenesPorOpto( )" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Por-Optometrista%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Por-Optometrista%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Por-Optometrista%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( EXAMENES_POR_OPTOMETRISTA );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1861,7 +2047,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteExamenesPorOptoCompleto( )" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Por-Optometrista-Detallado%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Por-Optometrista-Detallado%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Examenes-Por-Optometrista-Detallado%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( EXAMENES_POR_OPTOMETRISTA_COMPLETO );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1911,7 +2102,12 @@ public class ReportServiceImpl implements ReportService {
         log.info( "obtenerReporteBodegas()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Bodegas%s.txt", random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Bodegas%s.html", random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Bodegas%s.txt", random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( BODEGAS );
         log.info( "Ruta:{}", report.getAbsolutePath() );
 
@@ -1975,7 +2171,12 @@ public class ReportServiceImpl implements ReportService {
       log.info( "obtenerReporteSubgerentesAsignados()" );
 
         Random random = new Random();
-        File report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Subgerentes-Asignados%s.txt",random.nextInt()) );
+        File report = null;
+        if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Subgerentes-Asignados%s.html",random.nextInt()) );
+        } else {
+          report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Subgerentes-Asignados%s.txt",random.nextInt()) );
+        }
         org.springframework.core.io.Resource template = new ClassPathResource( SUBGERENTES_ASIGNADOS );
         log.info( "Ruta:{}", report.getAbsolutePath() );
         dateStart = DateUtils.truncate( dateStart, Calendar.DAY_OF_MONTH );
