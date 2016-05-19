@@ -159,6 +159,10 @@ class InvTrOutBoundDriver extends InvTrDriver {
                 pView.panel.comboSiteTo.text = pView.panel.TXT_SITE_TO_PROMPT
             }
         }
+        if( !pView.data.viewMode.text.contains("ENVIO A ALMACEN") ){
+          pView.panel.lblCauseIssue.visible = false
+          pView.panel.cbReasonsIssue.visible = false
+        }
     }
 
     void onSkuDoubleClicked( InvTrView pView ) {

@@ -1,7 +1,9 @@
 package mx.lux.pos.ui.view.driver
 
+import mx.lux.pos.model.CausaDev
 import mx.lux.pos.ui.controller.InvTrController
 import mx.lux.pos.ui.model.InvTrSku
+import mx.lux.pos.ui.model.InvTrViewMode
 import mx.lux.pos.ui.model.adapter.InvTrAdapter
 import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.panel.InvTrView
@@ -21,6 +23,12 @@ class InvTrIssueDriver extends InvTrDriver {
     Boolean valid = (! StringUtils.isEmpty( rmks ) )
     if (valid) {
       valid = ! rmks.equalsIgnoreCase( pView.panel.TXT_REMARKS_PROMPT.trim( ) )
+      if(valid){
+        valid = ! rmks.equalsIgnoreCase( "La coma no esta permitida" )
+        if(valid){
+          valid = ! rmks.contains(",")
+        }
+      }
     }
     return valid
   }
@@ -42,7 +50,12 @@ class InvTrIssueDriver extends InvTrDriver {
 
     if ( pView.data.flagOnRemarks ) {
       UI_Standards.setFlagged( pView.panel.txtRemarks  )
-      pView.panel.txtRemarks.setText( pView.panel.TXT_REMARKS_PROMPT )
+      if( pView.panel.txtRemarks.text.contains(",") ){
+        pView.panel.txtRemarks.setText( "La coma no esta permitida" )
+      } else {
+        pView.panel.txtRemarks.setText( pView.panel.TXT_REMARKS_PROMPT )
+      }
+
     } else {
       UI_Standards.setFlagged( pView.panel.txtRemarks, false )
     }
@@ -56,6 +69,16 @@ class InvTrIssueDriver extends InvTrDriver {
     pView.data.flagOnPartSeed = ( pView.data.getSkuList( ).size( ) == 0 )
     pView.data.flagOnRemarks = ( ! isRemarksValid( pView ) )
     validated = ! ( pView.data.flagOnSiteTo || pView.data.flagOnPartSeed || pView.data.flagOnRemarks )
+    if(pView.panel.cbReasonsIssue.visible){
+      String causa = pView.panel.cbReasonsIssue.selectedItem as String
+      if( StringUtils.trimToEmpty(causa).length() <= 0 ){
+        validated = false
+          pView.panel.lblStatus.setText( "Seleccione una causa" )
+          pView.panel.lblStatus.visible = true
+      } else {
+        pView.panel.lblStatus.visible = false
+      }
+    }
 
     // Assign
     if ( validated ) {
@@ -143,16 +166,19 @@ class InvTrIssueDriver extends InvTrDriver {
       for(InvTrSku article : pView.data.skuList){
           quantity = quantity+article.qty
       }
-    pView.panel.lblStatus.setText( pView.data.accessStatus( ) )
+    pView.panel.lblStatus.setText( StringUtils.trimToEmpty(pView.panel.lblStatus.text).length() <= 0 ? pView.data.accessStatus( ) : StringUtils.trimToEmpty(pView.panel.lblStatus.text))
     pView.panel.txtEffDate.setText( pView.adapter.getText( pView.data, InvTrAdapter.FLD_TODAY ) )
     pView.panel.txtUser.setText( pView.adapter.getText( pView.data.currentUser ) )
     pView.panel.browserSku.fireTableDataChanged( )
     pView.panel.txtType.setText( String.format( '%d', quantity ) )
-      if(quantity > 0){
-          pView.panel.comboSiteTo.setSelection( pView.panel.comboSiteTo.selection )
-      } else {
-          pView.panel.comboSiteTo.setItems(InvTrController.instance.listaAlmacenes())
-      }
+    if(quantity > 0){
+      pView.panel.comboSiteTo.setSelection( pView.panel.comboSiteTo.selection )
+    } else {
+      pView.panel.comboSiteTo.setItems(InvTrController.instance.listaAlmacenes())
+    }
+    String typeIssue = pView.panel.comboViewMode.selection.text
+    pView.panel.lblCauseIssue.visible = true
+    pView.panel.cbReasonsIssue.visible = true
   }
 
   void onSkuDoubleClicked( InvTrView pView ) {

@@ -61,9 +61,9 @@ class InvTrViewMode {
       OTHER_ISSUE = new InvTrViewMode( inventory.obtenerTipoTransaccionOtraSalida() )
       OTHER_ISSUE.text = "[OTRAS_SALIDAS]LENTES DE CONTACTO"
       ISSUE_FRAMES = new InvTrViewMode( inventory.obtenerTipoTransaccionSalida() )
-      ISSUE_FRAMES.text = "[SALIDA_ARMAZONES] SALIDA TOTAL ARMAZONES"
+      ISSUE_FRAMES.text = "[SALIDA] SALIDA ARMAZONES"
       ISSUE_ACCESORIES = new InvTrViewMode( inventory.obtenerTipoTransaccionSalida() )
-      ISSUE_ACCESORIES.text = "[SALIDA_ACCESORIOS] SALIDA TOTAL ACCESORIOS"
+      ISSUE_ACCESORIES.text = "[SALIDA] SALIDA ACCESORIOS"
       //list.addAll( [QUERY, ISSUE, RECEIPT, ADJUST, RETURN, OUTBOUND,INBOUND, FILE_ADJUST] )
       if( user != null && IOController.getInstance().isManager(user.username) ){
         list.addAll( [QUERY, RECEIPT, ISSUE, ADJUST, INBOUND, OUTBOUND, OTHER_RECEIPT, OTHER_ISSUE] )

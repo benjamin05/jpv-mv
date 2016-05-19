@@ -1570,6 +1570,25 @@ class TicketServiceImpl implements TicketService {
           mostratCodigo = true
         }
       }
+      String causa = ""
+      String letra = ""
+      if( siteTo != null ){
+        String[] data = pTrans.observaciones.split(",")
+        if( data.length > 1 ){
+          remarks = adapter.split( StringUtils.trimToEmpty( data[0] ), 36 )
+          causa = StringUtils.trimToEmpty( data[1] )
+          if( StringUtils.trimToEmpty(causa).equalsIgnoreCase("Armazon en mal estado") ){
+            letra = "A"
+          } else if( StringUtils.trimToEmpty(causa).equalsIgnoreCase("Demo Lens") ){
+            letra = "B"
+          } else if( StringUtils.trimToEmpty(causa).equalsIgnoreCase("Exceso muestrario") ){
+            letra = "C"
+          } else {
+            remarks = adapter.split( StringUtils.trimToEmpty( pTrans.observaciones ), 36 )
+            causa = "Armazon solicitado"
+          }
+        }
+      }
       def tkInvTr = [
           nombre_ticket: "ticket-salida-inventario",
           titulo: titulo,
@@ -1589,7 +1608,11 @@ class TicketServiceImpl implements TicketService {
           remarks_2: ( remarks.size() > 1 ? remarks.get( 1 ) : "" ),
           quantity: cantidad,
           parts: parts,
-          barcode: barcode
+          barcode: barcode,
+          causa: causa,
+          letra: letra,
+          espacios: "  ",
+          mostrarLetra: (StringUtils.trimToEmpty(letra).length() > 0 && mostratCodigo)
       ]
       imprimeTicket( "template/ticket-salida-inventario.vm", tkInvTr )
     } else if ( InventorySearch.esTipoTransaccionAjuste( pTrans.idTipoTrans ) ) {

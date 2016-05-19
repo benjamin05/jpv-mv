@@ -69,6 +69,10 @@ class InvTrQueryDriver extends InvTrDriver {
     }
     pView.panel.selector.setText( pView.data.selectorText )
     pView.panel.browserSku.fireTableDataChanged()
+    if( !pView.data.viewMode.text.contains("ENVIO A ALMACEN") ){
+      pView.panel.lblCauseIssue.visible = false
+      pView.panel.cbReasonsIssue.visible = false
+    }
   }
 
 }

@@ -107,6 +107,10 @@ class InvTrMassiveReceiptDriver extends InvTrDriver {
       } else {
           pView.panel.comboSiteTo.setItems(new ArrayList<Sucursal>())
       }
+      if( !pView.data.viewMode.text.contains("ENVIO A ALMACEN") ){
+        pView.panel.lblCauseIssue.visible = false
+        pView.panel.cbReasonsIssue.visible = false
+      }
   }
 
   Boolean searchRemission( InvTrView pView ) {

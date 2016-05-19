@@ -73,6 +73,10 @@ class InvTrFileAdjustDriver extends InvTrDriver {
     pView.panel.txtRemarks.setText( pView.data.postRemarks )
     pView.panel.txtUser.setText( pView.adapter.getText( pView.data.currentUser ) )
     pView.panel.browserSku.fireTableDataChanged()
+    if( !pView.data.viewMode.text.contains("ENVIO A ALMACEN") ){
+      pView.panel.lblCauseIssue.visible = false
+      pView.panel.cbReasonsIssue.visible = false
+    }
   }
 
   Boolean searchAdjust( InvTrView pView ) {

@@ -149,6 +149,10 @@ class InvTrOtherIssueDriver extends InvTrDriver {
     pView.panel.txtUser.setText( pView.adapter.getText( pView.data.currentUser ) )
     pView.panel.browserSku.fireTableDataChanged( )
     pView.panel.txtType.setText( String.format( '%d', quantity ) )
+    if( !pView.data.viewMode.text.contains("ENVIO A ALMACEN") ){
+      pView.panel.lblCauseIssue.visible = false
+      pView.panel.cbReasonsIssue.visible = false
+    }
       /*if(quantity > 0){
           pView.panel.comboSiteTo.setSelection( pView.panel.comboSiteTo.selection )
       } else {

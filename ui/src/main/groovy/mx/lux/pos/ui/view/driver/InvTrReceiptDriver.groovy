@@ -72,6 +72,10 @@ class InvTrReceiptDriver extends InvTrDriver {
       pView.panel.txtType.setText( String.format( '%d', quantity ) )
     pView.panel.txtUser.setText( pView.adapter.getText( pView.data.currentUser ) )
     pView.panel.browserSku.fireTableDataChanged()
+    if( !pView.data.viewMode.text.contains("ENVIO A ALMACEN") ){
+      pView.panel.lblCauseIssue.visible = false
+      pView.panel.cbReasonsIssue.visible = false
+    }
   }
 
   Boolean searchRemission( InvTrView pView ) {
