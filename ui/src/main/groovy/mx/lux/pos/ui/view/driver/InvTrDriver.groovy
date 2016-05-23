@@ -85,6 +85,7 @@ class InvTrDriver {
     pView.panel.lblStatus.setText( "" )
     pView.panel.btnCancel.setVisible( false )
     pView.panel.btnPrint.setText( pView.panel.TXT_BTN_PRINT_CAPTION )
+    pView.panel.cbReasonsIssue.setSelectedIndex(0)
   }
 
   void refreshUI( InvTrView pView ) { }
