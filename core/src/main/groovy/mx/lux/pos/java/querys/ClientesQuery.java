@@ -149,4 +149,24 @@ public class ClientesQuery {
         }
         return lstClientes;
     }
+
+
+    public static ClientesJava busquedaClienteByRx(String rx) throws ParseException{
+      ClientesJava clientesJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "";
+        sql = String.format("SELECT * FROM clientes WHERE id_cliente IN (SELECT NULLIF(id_cliente, '')::int FROM jb WHERE rx = '%s');", StringUtils.trimToEmpty(rx));
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          clientesJava = new ClientesJava();
+          clientesJava.mapeoCliente( rs );
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return clientesJava;
+    }
 }

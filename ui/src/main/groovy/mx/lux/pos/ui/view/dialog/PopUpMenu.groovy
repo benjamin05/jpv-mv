@@ -55,6 +55,7 @@ public class PopUpMenu extends JFrame implements TableModelListener {
     private JMenuItem itemStopCall;
     private JMenuItem itemNotSend;
     private JMenuItem itemSend;
+    private JMenuItem itemNewReplacement;
     private JMenuItem itemDesretener;
     private EnvioPanel sendPanel;
 
@@ -62,6 +63,7 @@ public class PopUpMenu extends JFrame implements TableModelListener {
     private static final String TAG_PANEL_ENVIO = "envio"
     private static final String TAG_PANEL_RECEPCION = "recepcion"
     private static final String TAG_PANEL_CONTACTOS = "contactos"
+    private static final String TAG_PANEL_REPOSICION = "reposicion"
 	
 	public PopUpMenu( Component component, Integer x, Integer y, final String rx, String panel, JPanel jPanel ){
 	    pMenu = new JPopupMenu();
@@ -72,6 +74,7 @@ public class PopUpMenu extends JFrame implements TableModelListener {
         itemStopCall = new JMenuItem("No Contactar");
         itemNotSend = new JMenuItem("No Enviar");
         itemSend = new JMenuItem("Enviar");
+        itemNewReplacement = new JMenuItem("Nueva Reposicion");
         //itemInfoPino = new JMenuItem("Info Laboratorio");
         //itemRetener = new JMenuItem("Retener");
         //itemDesretener = new JMenuItem("Desretener");
@@ -83,9 +86,11 @@ public class PopUpMenu extends JFrame implements TableModelListener {
         pMenu.add(itemStopCall);
         pMenu.add(itemNotSend);
         pMenu.add(itemSend);
+        pMenu.add(itemNewReplacement)
         //pMenu.add(itemInfoPino);
         //pMenu.add( itemRetener );
         //pMenu.add(itemDesretener);
+        itemNewReplacement.visible = false
         String[] data = StringUtils.trimToEmpty(panel).split(",")
         if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_CONSULTA) ){
           itemNotSend.visible = false
@@ -105,6 +110,8 @@ public class PopUpMenu extends JFrame implements TableModelListener {
         } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_CONTACTOS) ){
           itemNotSend.visible = false
           itemSend.visible = false
+        } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_REPOSICION) ){
+          itemNewReplacement.visible = true
         }
 	    pMenu.show(component, x, y);
         //pMenu.setLocation(x,y);
@@ -200,6 +207,15 @@ public class PopUpMenu extends JFrame implements TableModelListener {
               sendPanel.doBindings()
             }
         });
+
+        itemNewReplacement.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              NewReplacementDialog dialog = new NewReplacementDialog()
+              dialog.show()
+            }
+        });
+
         /*itemRetener.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

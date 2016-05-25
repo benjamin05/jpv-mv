@@ -1,0 +1,69 @@
+#parse("template/constantes-impresora.vm")
+#parse("template/macros.vm")
+#macro(TITULO_RECETA $factura)#INICIO_ESTILO(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)RECETA${HT}${HT}#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)FACTURA #INICIO_ESTILO(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)${factura}#FIN_ESTILO()${LF}#end
+#define($COLUMNAS)${GS}P${writer.write(32)}${writer.write(32)}#end
+#define($COL_DET_1)${ESC}${writer.write(36)}${writer.write(8)}${writer.write(0)}#end
+#define($COL_DET_2)${ESC}${writer.write(36)}${writer.write(22)}${writer.write(0)}#end
+#define($COL_DET_3)${ESC}${writer.write(36)}${writer.write(36)}${writer.write(0)}#end
+#define($COL_DET_4)${ESC}${writer.write(36)}${writer.write(50)}${writer.write(0)}#end
+#define($COL_DET_5)${ESC}${writer.write(36)}${writer.write(64)}${writer.write(0)}#end
+#define($COL_DET_6)${ESC}${writer.write(36)}${writer.write(78)}${writer.write(0)}#end
+#define($COL_7)${ESC}${writer.write(36)}${writer.write(70)}${writer.write(0)}#end
+#define($COL_DIST_1)${ESC}${writer.write(36)}${writer.write(25)}${writer.write(0)}#end
+#define($COL_DIST_2)${ESC}${writer.write(36)}${writer.write(39)}${writer.write(0)}#end
+#define($COL_DIST_3)${ESC}${writer.write(36)}${writer.write(70)}${writer.write(0)}#end
+## Inicia ticket
+${COLUMNAS}
+#CODIGO_BARRAS(${codigoCombo}, 2, 0)
+#CODIGO_BARRAS(${codigoFolio}, 3, 1)
+#CODIGO_BARRAS(${codigoSuc}, 3, 1)
+${LF}
+#SET_STYLE(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)NUM. OR:    ${folio}
+#LINEA_SEPARACION_SIMPLE()
+#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_A} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)RX REPOSICION${CR}
+#LINEA_SEPARACION_SIMPLE()
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)SUCURSAL: ${sucursal}#ALINEAR_DERECHA()     ${fechaActual}#FIN_ESTILO()${CR}
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)CAPTURO: ${emp}#FIN_ESTILO()${CR}
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)CLIENTE: ${cliente}#FIN_ESTILO()${CR}
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)TELEFONO: Casa: ${telCasa} Trabajo: ${telTrabajo} ext. ${extTrabajo}#FIN_ESTILO()${CR}
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)Adicional: ${telAdi} ext. ${extAdi}#FIN_ESTILO()${CR}
+#LINEA_SEPARACION_SIMPLE()
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} ${NEGRITA} 0 0 0)FACTURA: #FIN_ESTILO()#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)${factura}#FIN_ESTILO()${CR}
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} ${NEGRITA} 0 0 0)REPOSICION: #FIN_ESTILO()#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)${numRepo}#FIN_ESTILO()${CR}
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} ${NEGRITA} 0 0 0)FECHA FACTURA: #FIN_ESTILO()#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)${fechaFac}#FIN_ESTILO()${CR}
+#SEPARACION()${CR}${LF}
+                   #SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})RX#FIN_ESTILO()#FIN_NEGRITAS()${CR}
+${COLUMNAS}#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)
+${COL_DET_1}ESFER${COL_DET_2}CILIND${COL_DET_3}EJE${COL_DET_4}ADD${COL_DET_5}PRISMA
+DER${COL_DET_1}#altnull(${lente.ODEsfer})${COL_DET_2}#altnull(${lente.ODCil})${COL_DET_3}#altnull(${lente.ODEje})${COL_DET_4}#altnull(${lente.ODAdd})${COL_DET_5}#altnull(${ODPris})${CR}
+IZQ${COL_DET_1}#altnull(${lente.OIEsfer})${COL_DET_2}#altnull(${lente.OICil})${COL_DET_3}#altnull(${lente.OIEje})${COL_DET_4}#altnull(${lente.OIAdd})${COL_DET_5}#altnull(${OIPris})${CR}
+DIST INT LEJOS: #altnull(${lente.distIntLejos})${COL_DIST_2}DIST MONOCULAR DER: #altnull(${lente.distMonoD})${CR}
+DIST INT CERCA: #altnull(${lente.distIntCercas})${COL_DIST_2}DIST MONOCULAR IZQ: #altnull(${lente.distMonoI})${CR}
+ALTURA SEGMENTO: #altnull(${lente.alturaSeg})
+#FIN_ESTILO()${LF}
+------------------------------------------
+#ETIQUETA_VALOR("MATERIAL ARMAZON:" "#altnull(${lente.material})")
+#ETIQUETA_VALOR("LENTE:" "#altnull(${lente.lente})")
+#ETIQUETA_VALOR("ARMAZON:" "#altnull(${lente.armazon})")
+#ETIQUETA_VALOR("USO:" "#altnull(${lente.uso})")
+------------------------------------------
+#ALINEAR_CENTRO()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})REPOSICION ${numRepo}#FIN_ESTILO()#FIN_NEGRITAS()${CR}
+#ALINEAR_IZQUIERDA()#SET_STYLE(${FUENTE_B} ${NEGRITA} 0 0 ${SUBRAYADO})CAMPO${COL_DET_2}OJO${COL_DET_3}VAL. ANTERIOR${COL_DET_5}VAL. ACTUAL
+#SET_STYLE(${FUENTE_B} 0 0 0 0)#foreach( $det in $detalles )${det.tipo}${COL_DET_2} ${det.ojo}${COL_DET_3}   ${det.vOld}${COL_DET_5}  ${det.vNew}${CR}${LF}#end
+------------------------------------------
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} ${NEGRITA} 0 0 0)OBSERVACIONES: #FIN_ESTILO()#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)${obs}#FIN_ESTILO()${CR}
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} ${NEGRITA} 0 0 0)PROBLEMA: #FIN_ESTILO()#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)${problema}#FIN_ESTILO()${CR}
+#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} ${NEGRITA} 0 0 0)DIAGNOSTICO: #FIN_ESTILO()#ALINEAR_IZQUIERDA()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)${diagnostico}#FIN_ESTILO()${LF}
+------------------------------------------
+${LF}
+${LF}
+#ALINEAR_CENTRO()#SIN_NEGRITA()#DO()#LINEA_FIRMA()${LF}
+#ALINEAR_CENTRO()#INICIO_ESTILO(${FUENTE_B} ${NEGRITA} 0 0 0)${gerente}#FIN_ESTILO()${LF}
+
+#ALINEAR_CENTRO()#INICIO_ESTILO(${FUENTE_B} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)${resp}#FIN_ESTILO()${LF}
+#ALINEAR_CENTRO()#INICIO_ESTILO(${FUENTE_B} 0 0 0 0)${causa}#FIN_ESTILO()${LF}
+#ALINEAR_CENTRO()#INICIO_ESTILO(${FUENTE_B} ${NEGRITA} ${DOBLE_ALTURA} ${DOBLE_ANCHURA} 0)ELABORAR:${ojo}#FIN_ESTILO()${LF}
+${LF}
+#CODIGO_BARRAS(${codigoFolio}, 3, 1)
+#AVANZAR_LINEAS(5)
+#CORTE()

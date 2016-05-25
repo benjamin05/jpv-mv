@@ -5,11 +5,14 @@ import mx.lux.pos.java.querys.ClientesQuery
 import mx.lux.pos.java.querys.ImpHistorialQuery
 import mx.lux.pos.java.querys.MunicipioQuery
 import mx.lux.pos.java.querys.NotaVentaQuery
+import mx.lux.pos.java.querys.RepoQuery
 import mx.lux.pos.java.repository.ClientesJava
 import mx.lux.pos.java.repository.ExamenJava
 import mx.lux.pos.java.repository.ImpHistorialJava
 import mx.lux.pos.java.repository.MunicipioJava
 import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.Repo
+import mx.lux.pos.java.repository.RepoDetJava
 import mx.lux.pos.java.service.ClienteServiceJava
 import mx.lux.pos.java.service.ContactoServiceJava
 import mx.lux.pos.java.service.ExamenServiceJava
@@ -1155,6 +1158,23 @@ class CustomerController {
       cliente = nota.cliente
     }
     return Customer.toCustomer(cliente)
+  }
+
+
+  static ClientesJava buscaClientePorRx(String rx) {
+    return ClientesQuery.busquedaClienteByRx( rx )
+  }
+
+
+  public static void saveReposicion(Repo repo) {
+    RepoQuery.saveRepo( repo )
+  }
+
+
+  public static void saveListaReposicionDet(List<RepoDetJava> lstRepoDet) {
+    for(RepoDetJava repoDet : lstRepoDet){
+      RepoQuery.saveRepoDet( repoDet )
+    }
   }
 
 

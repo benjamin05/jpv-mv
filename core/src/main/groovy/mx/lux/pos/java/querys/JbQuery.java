@@ -696,4 +696,52 @@ public class JbQuery {
       }
       return folio;
     }
+
+
+    public static List<JbJava> buscaJbRotosPendientes( ){
+      List<JbJava> lstJb = new ArrayList<JbJava>();
+      JbJava jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb WHERE estado = 'RS' AND rx IN (SELECT rx FROM jb_rotos);" );
+        rs = stmt.executeQuery(sql);
+        con.close();
+        if( rs != null ){
+          while (rs.next()) {
+            jbJava = new JbJava();
+            jbJava = jbJava.setValores( rs );
+            lstJb.add(jbJava);
+          }
+        }
+      } catch (SQLException err) {
+           System.out.println( err );
+      }
+      return lstJb;
+    }
+
+
+    public static List<JbRotos> buscaJbRotosDetPendientes( String rx ){
+      List<JbRotos> lstJb = new ArrayList<JbRotos>();
+      JbRotos jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb_rotos WHERE rx = '%s';", StringUtils.trimToEmpty(rx) );
+        rs = stmt.executeQuery(sql);
+        con.close();
+        if( rs != null ){
+          while (rs.next()) {
+            jbJava = new JbRotos();
+            jbJava = jbJava.mapeoJbRotos( rs );
+            lstJb.add(jbJava);
+          }
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      } catch (ParseException e) {
+        e.printStackTrace();
+      }
+        return lstJb;
+    }
 }

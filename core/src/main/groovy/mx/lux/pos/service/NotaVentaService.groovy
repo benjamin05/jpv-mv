@@ -1,5 +1,6 @@
 package mx.lux.pos.service
 
+import mx.lux.pos.java.repository.Repo
 import mx.lux.pos.model.*
 
 interface NotaVentaService {
@@ -173,5 +174,7 @@ interface NotaVentaService {
   Boolean validaNotaNoAnulada( String idFactura )
 
   List<NotaVenta> obtenerNotasPorCancelar(  )
+
+  void generaAcusesReposicion( Repo repo )
 
 }

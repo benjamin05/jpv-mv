@@ -59,6 +59,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JPanel contactosPanel
     private JPanel priceListPanel
     private JPanel invoicePanel
+    private JPanel reposicionPanel
     private JToolBar infoBar
     Boolean openSoi
     private JLabel userLabel
@@ -136,6 +137,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem consultaMenuItem
     private JMenuItem envioMenuItem
     private JMenuItem recepcionMenuItem
+    private JMenuItem repocisionMenuItem
     private JMenuItem contactosMenuItem
     private PromotionService promotionService
 
@@ -680,6 +682,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 recepcionMenuItem.visible = userLoggedIn
                                 contactosMenuItem.visible = userLoggedIn
                                 sobresMenuItem.visible = userLoggedIn
+                                repocisionMenuItem.visible = userLoggedIn
                             },
                             visible: Registry.showJobsControl()
                     ) {
@@ -752,6 +755,21 @@ class MainWindow extends JFrame implements KeyListener {
                                   garbage.gc();
                                   EnvelopesDialog dialog = new EnvelopesDialog()
                                   dialog.show()
+                                }
+                        )
+                        repocisionMenuItem = menuItem( text: 'Reposiciones',
+                                visible: true,
+                                actionPerformed: {
+                                    clean( reposicionPanel )
+                                    if( reposicionPanel == null ){
+                                        mainPanel.remove( reposicionPanel )
+                                        reposicionPanel = null
+                                        reposicionPanel = new ReposicionPanel()
+                                        clean( reposicionPanel )
+                                        mainPanel.add( 'reposicionPanel', reposicionPanel )
+                                        mainPanel.layout.show( mainPanel, 'reposicionPanel' )
+                                    }
+                                    mainPanel.layout.show( mainPanel, 'reposicionPanel' )
                                 }
                         )
                     }
@@ -1101,6 +1119,11 @@ class MainWindow extends JFrame implements KeyListener {
         mainPanel.remove( contactosPanel )
         contactosPanel.finalize()
         contactosPanel = null
+      }
+      if( !panelSelected.equals(reposicionPanel) ){
+        mainPanel.remove( reposicionPanel )
+        reposicionPanel.finalize()
+        reposicionPanel = null
       }
       Runtime garbage = Runtime.getRuntime();
       garbage.gc();

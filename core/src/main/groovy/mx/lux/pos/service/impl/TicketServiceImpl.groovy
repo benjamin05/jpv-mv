@@ -7,6 +7,7 @@ import mx.lux.pos.java.querys.DoctoInvQuery
 import mx.lux.pos.java.querys.EmpleadoQuery
 import mx.lux.pos.java.querys.JbQuery
 import mx.lux.pos.java.querys.NotaVentaQuery
+import mx.lux.pos.java.querys.RepoQuery
 import mx.lux.pos.java.repository.CuponMvJava
 import mx.lux.pos.java.repository.DetalleNotaVentaJava
 import mx.lux.pos.java.repository.DoctoInvJava
@@ -17,6 +18,9 @@ import mx.lux.pos.java.repository.JbSobres
 import mx.lux.pos.java.repository.JbViaje
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.PagoJava
+import mx.lux.pos.java.repository.Repo
+import mx.lux.pos.java.repository.RepoCausa
+import mx.lux.pos.java.repository.RepoDetJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
 import mx.lux.pos.repository.impl.RepositoryFactory
@@ -3216,6 +3220,134 @@ class TicketServiceImpl implements TicketService {
     } else {
       log.debug( "no se encuentra el sobre" )
     }
+  }
+
+  void imprimeReposicion( Repo repo ) {
+    List<NotaVenta> notaVentaTmp = notaVentaRepository.findByFactura( StringUtils.trimToEmpty(repo.factura) )
+    NotaVenta notaVenta = notaVentaTmp.size() > 0 ? notaVentaTmp.first() : null
+    String codigoCombo = StringUtils.trimToEmpty(repo.suc)+StringUtils.trimToEmpty(repo.folio)
+    String codigoFolio = StringUtils.trimToEmpty(repo.folio)
+    String codigoSuc = StringUtils.trimToEmpty(repo.suc)
+    Sucursal suc = sucursalRepository.findOne( Registry.currentSite )
+    Empleado emp = empleadoRepository.findOne(StringUtils.trimToEmpty(repo.emp))
+    Cliente cliente = clienteRepository.findOne(repo.idCliente)
+    Receta rx = recetaRepository.findById( notaVenta.receta )
+    String armazonCli = ''
+    DetalleNotaVenta artArmazon = new DetalleNotaVenta()
+    List<DetalleNotaVenta> articulos = detalleNotaVentaRepository.findByIdFactura(notaVenta?.id)
+    String articulo = ''
+    String trat = ''
+    Iterator iterator = articulos.iterator();
+    while (iterator.hasNext()) {
+      DetalleNotaVenta detalle = iterator.next()
+      articulo = articulo + ' ' + detalle?.articulo?.articulo + ','
+      if(StringUtils.trimToEmpty(detalle?.articulo?.idGenerico).equals('A')){
+        artArmazon = detalle
+      }
+      if(StringUtils.trimToEmpty(detalle?.articulo?.idGenerico).equals('G')){
+        trat =  detalle?.articulo?.descripcion
+      }
+    }
+    if(notaVenta?.fArmazonCli){
+      armazonCli = 'ARMAZON DEL CLIENTE'
+    } else {
+      if(artArmazon?.articulo != null){
+        armazonCli = artArmazon?.articulo?.articulo +' '+ artArmazon?.articulo?.codigoColor + ' [' + artArmazon?.surte + ']'
+      }
+    }
+    String usoLente = rx != null ? rx?.sUsoAnteojos.trim() : ''
+    switch (usoLente) {
+      case 'i': usoLente = 'INTERMEDIO'
+        break
+      case 'c': usoLente = 'CERCA'
+        break
+      case 'l': usoLente = 'LEJOS'
+        break
+      case 'b': usoLente = 'BIFOCAL'
+        break
+      case 'p': usoLente = 'PROGRESIVO'
+        break
+      case 't': usoLente = 'BIFOCAL INTERMEDIO'
+        break
+    }
+    def detalleLente = [
+              ODEsfer:rx?.odEsfR,
+              ODCil:rx?.odCilR,
+              ODEje:rx?.odEjeR,
+              ODAdd:rx?.odAdcR,
+              ODPris:rx?.odPrismaH + rx?.odPrismaV,
+
+              OIEsfer:rx?.oiEsfR,
+              OICil:rx?.oiCilR,
+              OIEje:rx?.oiEjeR,
+              OIAdd:rx?.oiAdcR,
+              OIPris:rx?.oiPrismaH + rx?.oiPrismaV,
+
+              distIntLejos:rx?.diLejosR,
+              distIntCercas:rx?.diCercaR,
+              distMonoD:rx?.diOd,
+              distMonoI:rx?.diOi,
+              alturaSeg:rx?.altOblR,
+
+              dh: rx?.dh,
+              dv: rx?.dv,
+              pte: rx?.pte,
+              base: rx?.base,
+
+              armazon: armazonCli,
+              uso: usoLente,
+              tratamiento: trat,
+              material: notaVenta?.udf2,
+              formaLente: notaVenta?.udf3,
+              surte: artArmazon?.surte,
+              lente: StringUtils.trimToEmpty(notaVenta.codigo_lente)
+    ]
+
+    Empleado gerente = empleadoRepository.findById( Registry.idManager )
+    String causa = ""
+    List<RepoCausa> lstCausas = RepoQuery.busquedaRepoCausa()
+    for(RepoCausa repoCausa : lstCausas){
+      if(StringUtils.trimToEmpty(repoCausa.idCausa.toString()).equalsIgnoreCase(StringUtils.trimToEmpty(repo.causa)) ){
+        causa = repoCausa.descr
+      }
+    }
+    String ojo = ""
+    if(StringUtils.trimToEmpty(repo.ojo).equalsIgnoreCase("P")){
+      ojo = "PAR"
+    } else if(StringUtils.trimToEmpty(repo.ojo).equalsIgnoreCase("R")){
+      ojo = "DERECHO"
+    } else if(StringUtils.trimToEmpty(repo.ojo).equalsIgnoreCase("L")){
+      ojo = "IZQUIERDO"
+    }
+    List<RepoDetJava> detalles = RepoQuery.busquedaRepoDetByNumOrderAndFactura(repo.numOrden, repo.factura)
+    def datos = [
+      codigoCombo: codigoCombo,
+      codigoFolio: codigoFolio,
+      codigoSuc: codigoSuc,
+      folio: repo.folio,
+      sucursal: "${StringUtils.trimToEmpty(suc.nombre)}[${StringUtils.trimToEmpty(suc.centroCostos)}]",
+      fechaActual: new Date().format("dd-MM-yyyy"),
+      emp: emp != null ? emp.nombreCompleto : "",
+      cliente: repo.cliente,
+      telCasa: cliente != null ? cliente.telefonoCasa : "",
+      telTrabajo: cliente != null ? cliente.telefonoTrabajo : "",
+      extTrabajo: cliente != null ? cliente.extTrabajo : "",
+      telAdi: cliente != null ? cliente.telefonoAdicional : "",
+      extAdi: cliente != null ? cliente.extAdicional : "",
+      factura: StringUtils.trimToEmpty(repo.factura),
+      numRepo: StringUtils.trimToEmpty(repo.numOrden.toString()),
+      fechaFac: notaVenta != null ? notaVenta.fechaHoraFactura.format("dd-MM-yyyy") : "",
+      lente: detalleLente,
+      obs: StringUtils.trimToEmpty(repo.observaciones),
+      problema: StringUtils.trimToEmpty(repo.problema),
+      diagnostico: StringUtils.trimToEmpty(repo.dx),
+      gerente: gerente != null ? gerente.nombreCompleto : "",
+      resp: repo.area,
+      causa: causa,
+      detalles: detalles,
+      ojo: ojo
+    ]
+    this.imprimeTicket( 'template/ticket-reposicion.vm', datos )
   }
 
 

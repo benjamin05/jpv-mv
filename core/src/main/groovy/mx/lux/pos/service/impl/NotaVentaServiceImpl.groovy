@@ -4,6 +4,10 @@ import com.mysema.query.BooleanBuilder
 import com.mysema.query.types.OrderSpecifier
 import com.mysema.query.types.Predicate
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.NotaVentaQuery
+import mx.lux.pos.java.repository.DetalleNotaVentaJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.Repo
 import mx.lux.pos.model.*
 import mx.lux.pos.service.ArticuloService
 import mx.lux.pos.repository.*
@@ -2268,6 +2272,83 @@ class NotaVentaServiceImpl implements NotaVentaService {
   List<NotaVenta> obtenerNotasPorCancelar(  ){
     QNotaVenta qNotaVenta = QNotaVenta.notaVenta
     return notaVentaRepository.findAll( qNotaVenta.factura.isNull().or(qNotaVenta.factura.isEmpty()) ) as List<NotaVenta>
+  }
+
+
+  @Override
+  @Transactional
+  void generaAcusesReposicion( Repo repo ) {
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( repo.factura )
+    String armazon = ""
+    for(DetalleNotaVentaJava det : notaVenta.detalles){
+      if( StringUtils.trimToEmpty(det.articulo.idGenerico).equalsIgnoreCase("A") ){
+        armazon = det.articulo.articulo
+      }
+    }
+    String rutaPorEnviar = Registry.archivePath.trim()
+    File file = new File( "${rutaPorEnviar}/${StringUtils.trimToEmpty(Registry.currentSite.toString())}${repo.folio}" )
+    PrintStream strOut = new PrintStream( file )
+    StringBuffer sb = new StringBuffer()
+    sb.append("${StringUtils.trimToEmpty(Registry.currentSite.toString())}|${StringUtils.trimToEmpty(repo.folio)}|" +
+            "${StringUtils.trimToEmpty(notaVenta.codigoLente)}|${StringUtils.trimToEmpty(repo.odEsf)}|${StringUtils.trimToEmpty(repo.odCil)}" +
+            "|${StringUtils.trimToEmpty(repo.odEje)}|${StringUtils.trimToEmpty(repo.odAdi)}|${StringUtils.trimToEmpty(repo.odPrisma)}" +
+            "|${StringUtils.trimToEmpty(repo.odPrismaV)}|${StringUtils.trimToEmpty(repo.oiEsf)}|${StringUtils.trimToEmpty(repo.oiCil)}" +
+            "|${StringUtils.trimToEmpty(repo.oiEje)}|${StringUtils.trimToEmpty(repo.oiAdi)}|${StringUtils.trimToEmpty(repo.oiPrisma)}" +
+            "|${StringUtils.trimToEmpty(repo.oiPrismaV)}|${StringUtils.trimToEmpty(repo.diLejos)}|${StringUtils.trimToEmpty(repo.diCerca)}" +
+            "|${StringUtils.trimToEmpty(repo.diOd)}|${StringUtils.trimToEmpty(repo.diOi)}|${StringUtils.trimToEmpty(repo.altObl)}" +
+            "|${StringUtils.trimToEmpty(notaVenta?.udf2)}|${StringUtils.trimToEmpty(repo.observaciones)}|${StringUtils.trimToEmpty(repo.ojo)}" +
+            "|${StringUtils.trimToEmpty("")}|${StringUtils.trimToEmpty(armazon)}")
+    strOut.println sb.toString()
+    strOut.close()
+
+    Acuse acuse = new Acuse()
+    acuse.idTipo = "REPO"
+    try {
+      acuse = acuseRepository.saveAndFlush( acuse )
+      log.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )
+    } catch ( Exception e ) {
+      log.error( e.getMessage() )
+    }
+    acuse.contenido = String.format( 'sucursal=%s|', StringUtils.trimToEmpty(repo.suc) )
+    acuse.contenido += String.format( 'receta=%s|', StringUtils.trimToEmpty(repo.folio) )
+    acuse.contenido += String.format( 'codigo=%s|', StringUtils.trimToEmpty(notaVenta != null ? StringUtils.trimToEmpty(notaVenta.codigoLente) : "" ) )
+    acuse.contenido += String.format( 'esfera_d=%s|', StringUtils.trimToEmpty(repo.odEsf) )
+    acuse.contenido += String.format( 'cilindro_d=%s|', StringUtils.trimToEmpty(repo.odCil) )
+    acuse.contenido += String.format( 'eje_d=%s|', StringUtils.trimToEmpty(repo.odEje) )
+    acuse.contenido += String.format( 'adicion_d=%s|', StringUtils.trimToEmpty(repo.odAdc) )
+    acuse.contenido += String.format( 'prisma_d_h=%s|', StringUtils.trimToEmpty(repo.odPrisma) )
+    acuse.contenido += String.format( 'prisma_d_v=%s|', StringUtils.trimToEmpty(repo.odPrismaV) )
+    acuse.contenido += String.format( 'esfera_i=%s|', StringUtils.trimToEmpty(repo.oiEsf) )
+    acuse.contenido += String.format( 'cilindro_i=%s|', StringUtils.trimToEmpty(repo.oiCil) )
+    acuse.contenido += String.format( 'eje_i=%s|', StringUtils.trimToEmpty(repo.oiEje) )
+    acuse.contenido += String.format( 'adicion_i=%s|', StringUtils.trimToEmpty(repo.oiAdi) )
+    acuse.contenido += String.format( 'prisma_i_h=%s|', StringUtils.trimToEmpty(repo.oiPrisma) )
+    acuse.contenido += String.format( 'prisma_i_=%s|', StringUtils.trimToEmpty(repo.oiPrismaV) )
+    acuse.contenido += String.format( 'distancia_l=%s|', StringUtils.trimToEmpty(repo.diLejos) )
+    acuse.contenido += String.format( 'distancia_c=%s|', StringUtils.trimToEmpty(repo.diCerca) )
+    acuse.contenido += String.format( 'distancia_m_d=%s|', StringUtils.trimToEmpty(repo.diOd) )
+    acuse.contenido += String.format( 'distancia_m_i=%s|', StringUtils.trimToEmpty(repo.diOi) )
+    acuse.contenido += String.format( 'altura=%s|', StringUtils.trimToEmpty(repo.altObl) )
+    acuse.contenido += String.format( 'tratamientos=%s|', StringUtils.trimToEmpty(notaVenta?.udf2) )
+    acuse.contenido += String.format( 'observaciones=%s|', StringUtils.trimToEmpty(repo.observaciones) )
+    acuse.contenido += String.format( 'par=%s|', StringUtils.trimToEmpty(repo.ojo) )
+    acuse.contenido += String.format( 'forma=%s|', "" )
+    acuse.contenido += String.format( 'armazon=%s|', StringUtils.trimToEmpty(armazon) )
+    acuse.contenido += String.format( 'archivo=%s|', StringUtils.trimToEmpty(file.name) )
+    acuse.contenido += String.format( 'altura_ind_d=%s|', StringUtils.trimToEmpty(repo.alturaIndDer) )
+    acuse.contenido += String.format( 'altura_ind_i=%s|', StringUtils.trimToEmpty(repo.alturaIndIzq) )
+    acuse.contenido += String.format( 'd_vertex=%s|', StringUtils.trimToEmpty(repo.distanciaVertex) )
+    acuse.contenido += String.format( 'ang_panto=%s|', StringUtils.trimToEmpty(repo.anguloPantoscopico) )
+    acuse.contenido += String.format( 'ang_facial=%s|', StringUtils.trimToEmpty(repo.anguloFacial) )
+    acuse.contenido += String.format( 'corredor=%s|', StringUtils.trimToEmpty(repo.tamanoCorredor) )
+    acuse.contenido += String.format( 'diam_lent=%s|', StringUtils.trimToEmpty(repo.diametroLenticular) )
+    acuse.fechaCarga = new Date()
+    try {
+      acuse = acuseRepository.saveAndFlush( acuse )
+      log.debug( String.format( 'Acuse: (%d) %s -> %s', acuse.id, acuse.idTipo, acuse.contenido ) )
+    } catch ( Exception e ) {
+      log.error( e.getMessage() )
+    }
   }
 
 

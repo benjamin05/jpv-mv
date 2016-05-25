@@ -5,6 +5,7 @@ import mx.lux.pos.java.querys.AcusesQuery
 import mx.lux.pos.java.querys.AcusesTipoQuery
 import mx.lux.pos.java.querys.DescuentosClaveQuery
 import mx.lux.pos.java.querys.DescuentosQuery
+import mx.lux.pos.java.querys.EmpleadoQuery
 import mx.lux.pos.java.querys.FormaContactoQuery
 import mx.lux.pos.java.querys.JbQuery
 import mx.lux.pos.java.querys.JbTrackQuery
@@ -12,6 +13,7 @@ import mx.lux.pos.java.querys.ParametrosQuery
 import mx.lux.pos.java.querys.PedidoLcQuery
 import mx.lux.pos.java.querys.PreciosQuery
 import mx.lux.pos.java.querys.PromocionQuery
+import mx.lux.pos.java.querys.RepoQuery
 import mx.lux.pos.java.querys.TipoContactoQuery
 import mx.lux.pos.java.repository.AcusesJava
 import mx.lux.pos.java.repository.AcusesTipoJava
@@ -27,6 +29,7 @@ import mx.lux.pos.java.repository.ExamenJava
 import mx.lux.pos.java.repository.FormaContactoJava
 import mx.lux.pos.java.repository.JbJava
 import mx.lux.pos.java.repository.JbLlamadaJava
+import mx.lux.pos.java.repository.JbRotos
 import mx.lux.pos.java.repository.JbSobres
 import mx.lux.pos.java.repository.JbViaje
 import mx.lux.pos.java.repository.NotaVentaJava
@@ -36,6 +39,10 @@ import mx.lux.pos.java.repository.PedidoLcJava
 import mx.lux.pos.java.repository.PreciosJava
 import mx.lux.pos.java.repository.PromocionJava
 import mx.lux.pos.java.repository.RecetaJava
+import mx.lux.pos.java.repository.Repo
+import mx.lux.pos.java.repository.RepoCausa
+import mx.lux.pos.java.repository.RepoDetJava
+import mx.lux.pos.java.repository.RepoResp
 import mx.lux.pos.java.repository.TipoContactoJava
 import mx.lux.pos.java.repository.TmpServiciosJava
 import mx.lux.pos.java.service.ArticulosServiceJava
@@ -4208,6 +4215,70 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
         }
       }
     }
+  }
+
+
+  static List<JbJava> findJbRotos( ){
+    List<JbJava> lstJbTmp = JbQuery.buscaJbRotosPendientes( )
+    return lstJbTmp
+  }
+
+
+  static List<JbRotos> findJbRotosDet( String rx ){
+    List<JbRotos> lstJbRoto = JbQuery.buscaJbRotosDetPendientes( rx )
+    return lstJbRoto
+  }
+
+
+  static EmpleadoJava buscaEmpleado(String idEmp) {
+    return EmpleadoQuery.buscaEmpPorIdEmpleado( idEmp )
+  }
+
+
+  static List<RepoResp> buscaResponsables() {
+    List<RepoResp> lstRepoResp = new ArrayList<>()
+    RepoResp repoResp = new RepoResp()
+    repoResp.responsable = ""
+    lstRepoResp.add( repoResp )
+    lstRepoResp.addAll( RepoQuery.busquedaRepoResp( ) )
+    return lstRepoResp
+  }
+
+
+  static List<RepoCausa> buscaCausas() {
+    List<RepoCausa> lstRepoCausa = new ArrayList<>()
+    RepoCausa repoCausa = new RepoCausa()
+    repoCausa.descr = ""
+    lstRepoCausa.add( repoCausa )
+    lstRepoCausa.addAll( RepoQuery.busquedaRepoCausa( ) )
+    return lstRepoCausa
+  }
+
+
+
+  static List<RepoDetJava> buscaRepoDetByBill( String bill ) {
+    return RepoQuery.busquedaRepoDetByFactura( bill )
+  }
+
+
+  static Integer buscaNextNumeroOrdenRepo(String bill) {
+    Integer last = RepoQuery.buscaUltimoNumByFactura( bill )
+    if( last == null ){
+      last = 1
+    } else {
+      last = last+1
+    }
+    return last
+  }
+
+
+  static void makeAcusesReposicion(Repo repo) {
+    notaVentaService.generaAcusesReposicion( repo )
+  }
+
+
+  static void printReposicion( Repo repo ){
+    ticketService.imprimeReposicion( repo )
   }
 
 
