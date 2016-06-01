@@ -664,10 +664,21 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               article = StringUtils.trimToEmpty(inputTmp[0])+"*"
               results = ItemController.findItemsByQuery(article)
             }
+            Boolean hasLens = false
+            Boolean hasFrame = false
+            Boolean valid = true
+            for(OrderItem it: order.items){
+              if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
+                hasLens = true
+              } else if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+                hasFrame = true
+              }
+            }
             if (results?.any()) {
               Item item = new Item()
               if (results.size() == 1) {
                 item = results.first()
+                if( !(hasFrame && hasLens && StringUtils.trimToEmpty(item.type).equalsIgnoreCase(TAG_GENERICO_ARMAZON)) ){
                 ArticulosJava art = ItemController.findArticleJava( item.id )
                 if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
                   if( OrderController.validArticleGenericNoDelivered(item.id) ||
@@ -707,6 +718,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                   sb.optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
                           .createDialog(new JTextField(), "Articulo Invalido").show()
                 }
+              }
               } else {
                 if(log.equalsIgnoreCase("actionPerformed")){
                   focusItem = true
@@ -721,6 +733,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                 dialog.show()
                 item = dialog.item
                 if (item?.id) {
+                  if( !(hasFrame && hasLens && StringUtils.trimToEmpty(item.type).equalsIgnoreCase(TAG_GENERICO_ARMAZON)) ){
                   ArticulosJava art = ItemController.findArticleJava( item.id )
                   if( !art.sArticulo.equalsIgnoreCase(TAG_ARTICULO_NO_VIGENTE) ){
                     if( OrderController.validArticleGenericNoDelivered(item.id) ||
@@ -763,6 +776,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     sb.optionPane(message: "Articulo no vigente", optionType: JOptionPane.DEFAULT_OPTION)
                             .createDialog(new JTextField(), "Articulo Invalido").show()
                   }
+                }
                 }
               }
             } else if( StringUtils.trimToEmpty(article).equalsIgnoreCase(TAG_RECETA_LC) ){
