@@ -583,7 +583,7 @@ class InventarioServiceImpl implements InventarioService {
                   }
                 }
               }
-              if( valid ){
+              if( valid && lstDetalles.size() > 0 ){
                 Integer cantidadTotal = 0
                 for(TransInvDetalle det : lstDetalles){
                   Articulo articulo = articuloRepository.findOne( det.sku )
@@ -635,6 +635,11 @@ class InventarioServiceImpl implements InventarioService {
                 ticketService.imprimeTransInv( transInv )
                 def newFile = new File( destination, file.name )
                 def moved = file.renameTo( newFile )
+              } else if( lstDetalles.size() <= 0 ){
+                List<TransInvDetalle> lstDet = transInvDetalleRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
+                lstTransInv.first().trDet.addAll(lstDet)
+                TransInv transInv = lstTransInv.first()
+                ticketService.imprimeTransInv( transInv )
               }
             }
           } catch ( Exception e ){

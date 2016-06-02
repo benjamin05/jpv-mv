@@ -1512,9 +1512,10 @@ class TicketServiceImpl implements TicketService {
           partColor: adapter.getText( part, adapter.FLD_PART_CODE_PLUS_COLOR ) ,
           desc: adapter.getText( part, adapter.FLD_PART_DESC ),
           price: String.format( '%12s', adapter.getText( part, adapter.FLD_PART_PRICE ) ),
-          qty: isSalidaIncomp ? String.format( '%5s', trDet.linea ) : String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
+          qty: isSalidaIncomp ? "SIN EXISTENCIA" : String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
       ]
-        cantidad = isSalidaIncomp ? cantidad+trDet.linea : cantidad+trDet.cantidad
+        //cantidad = isSalidaIncomp ? cantidad+trDet.linea : cantidad+trDet.cantidad
+        cantidad = cantidad+trDet.cantidad
         parts.add( tkPart )
     }
     String barcode = ""
@@ -1609,10 +1610,12 @@ class TicketServiceImpl implements TicketService {
           quantity: cantidad,
           parts: parts,
           barcode: barcode,
-          causa: causa,
+          causa: isSalidaIncomp ? "Sin existencia" : causa,
           letra: letra,
           espacios: "  ",
-          mostrarLetra: (StringUtils.trimToEmpty(letra).length() > 0 && mostratCodigo)
+          mostrarLetra: (StringUtils.trimToEmpty(letra).length() > 0 && mostratCodigo),
+          salidaCompleta: !isSalidaIncomp,
+          mostrarCausa: true
       ]
       imprimeTicket( "template/ticket-salida-inventario.vm", tkInvTr )
     } else if ( InventorySearch.esTipoTransaccionAjuste( pTrans.idTipoTrans ) ) {
@@ -1681,7 +1684,8 @@ class TicketServiceImpl implements TicketService {
                 remarks_1: ( remarks.size() > 0 ? remarks.get( 0 ) : "" ),
                 remarks_2: ( remarks.size() > 1 ? remarks.get( 1 ) : "" ),
                 quantity: cantidad,
-                parts: parts
+                parts: parts,
+                mostrarCausa: false
         ]
         if( StringUtils.trimToEmpty(pTrans.idTipoTrans).equalsIgnoreCase("ENTRADA") ){
           imprimeTicket( "template/ticket-entrada-inventario.vm", tkInvTr )
