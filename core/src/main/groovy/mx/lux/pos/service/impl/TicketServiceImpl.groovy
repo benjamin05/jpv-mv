@@ -1512,10 +1512,11 @@ class TicketServiceImpl implements TicketService {
           partColor: adapter.getText( part, adapter.FLD_PART_CODE_PLUS_COLOR ) ,
           desc: adapter.getText( part, adapter.FLD_PART_DESC ),
           price: String.format( '%12s', adapter.getText( part, adapter.FLD_PART_PRICE ) ),
-          qty: isSalidaIncomp ? "SIN EXISTENCIA" : String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
+          //qty: isSalidaIncomp ? String.format( '%5s', trDet.linea ) : String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) )
+          qty: isSalidaIncomp && !pNewTransaction ? "SIN EXISTENCIA" : (isSalidaIncomp ? String.format( '%5s', trDet.linea ) : String.format( '%5s', adapter.getText( trDet, adapter.FLD_TRD_QTY ) ))
       ]
-        //cantidad = isSalidaIncomp ? cantidad+trDet.linea : cantidad+trDet.cantidad
-        cantidad = cantidad+trDet.cantidad
+        cantidad = isSalidaIncomp ? cantidad+trDet.linea : cantidad+trDet.cantidad
+        //cantidad = cantidad+trDet.cantidad
         parts.add( tkPart )
     }
     String barcode = ""
@@ -1610,11 +1611,11 @@ class TicketServiceImpl implements TicketService {
           quantity: cantidad,
           parts: parts,
           barcode: barcode,
-          causa: isSalidaIncomp ? "Sin existencia" : causa,
+          causa: (isSalidaIncomp && !pNewTransaction) ? "Sin existencia" : causa,
           letra: letra,
           espacios: "  ",
           mostrarLetra: (StringUtils.trimToEmpty(letra).length() > 0 && mostratCodigo),
-          salidaCompleta: !isSalidaIncomp,
+          salidaCompleta: (!isSalidaIncomp && !pNewTransaction),
           mostrarCausa: true
       ]
       imprimeTicket( "template/ticket-salida-inventario.vm", tkInvTr )

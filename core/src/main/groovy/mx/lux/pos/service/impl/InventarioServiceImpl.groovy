@@ -639,7 +639,7 @@ class InventarioServiceImpl implements InventarioService {
                 List<TransInvDetalle> lstDet = transInvDetalleRepository.findByIdTipoTransAndFolio(TR_TYPE_ISSUE,folio)
                 lstTransInv.first().trDet.addAll(lstDet)
                 TransInv transInv = lstTransInv.first()
-                ticketService.imprimeTransInv( transInv )
+                ticketService.imprimeTransInv( transInv, false )
               }
             }
           } catch ( Exception e ){
