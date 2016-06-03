@@ -1076,7 +1076,7 @@ class CancelacionServiceImpl implements CancelacionService {
             precioCalcOferta: detalleNotaVenta.precioCalcOferta,
             precioConv: detalleNotaVenta.precioConv,
             idTipoDetalle: StringUtils.trimToEmpty(detalleNotaVenta.idTipoDetalle),
-            surte: surte
+            surte: StringUtils.trimToEmpty(surte).equalsIgnoreCase("P") ? "S" : surte
         )
           if (detalle != null) {
               nota = notaVentaService.registrarDetalleNotaVentaEnNotaVentaReasignCupon(nota.id, detalle)
