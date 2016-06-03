@@ -640,6 +640,8 @@ class InventarioServiceImpl implements InventarioService {
                 lstTransInv.first().trDet.addAll(lstDet)
                 TransInv transInv = lstTransInv.first()
                 ticketService.imprimeTransInv( transInv, false )
+                def newFile = new File( destination, file.name )
+                def moved = file.renameTo( newFile )
               }
             }
           } catch ( Exception e ){
