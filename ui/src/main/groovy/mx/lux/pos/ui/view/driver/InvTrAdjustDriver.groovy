@@ -107,6 +107,10 @@ class InvTrAdjustDriver extends InvTrDriver {
     pView.panel.txtEffDate.setText( pView.adapter.getText( pView.data, InvTrAdapter.FLD_TODAY ) )
     pView.panel.txtUser.setText( pView.adapter.getText( pView.data.currentUser ) )
     pView.panel.browserSku.fireTableDataChanged( )
+    if( !pView.data.viewMode.text.contains("ENVIO A ALMACEN") ){
+      pView.panel.lblCauseIssue.visible = false
+      pView.panel.cbReasonsIssue.visible = false
+    }
   }
 
   void onButtonCancel( InvTrView pView ) {

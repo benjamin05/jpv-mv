@@ -1,5 +1,6 @@
 package mx.lux.pos.ui.view.panel
 
+import mx.lux.pos.model.CausaDev
 import mx.lux.pos.model.InvAdjustSheet
 import mx.lux.pos.model.Shipment
 import mx.lux.pos.model.TransInvDetalle
@@ -211,6 +212,8 @@ class InvTrView implements NavigationBarListener {
           }
           if( OrderController.dayIsOpen() ){
             if ( InvTrViewMode.ISSUE.equals(data.viewMode) && onlyFrames ) {
+              String causaDev = this.panel.cbReasonsIssue.selectedItem as String
+              this.data.postRemarks = this.panel.txtRemarks.text+","+causaDev
               Integer folio = controller.generatedIssueFile( this )
               if( folio != null && folio > 0 ){
                 controller.requestPrint( InvTrViewMode.ISSUE.trType.idTipoTrans, folio )
@@ -279,5 +282,10 @@ class InvTrView implements NavigationBarListener {
   void requestNewSearch( ) {
     controller.requestNewSearch( this )
   }
+
+  List<CausaDev> findCausas(){
+    return controller.findCausasDev( )
+  }
+
 
 }

@@ -377,7 +377,8 @@ class InvTrController {
         confirmed = ( confirm == JOptionPane.YES_OPTION )
       }
       if ( confirmed ) {
-        if ( pNewMode.equals( InvTrViewMode.ISSUE ) ) {
+        if ( pNewMode.equals( InvTrViewMode.ISSUE ) || pNewMode.equals( InvTrViewMode.ISSUE_ACCESORIES ) ||
+                pNewMode.equals( InvTrViewMode.ISSUE_FRAMES ) ) {
           dispatchViewModeIssue( pView )
         } else if ( pNewMode.equals( InvTrViewMode.RECEIPT ) ) {
           dispatchViewModeReceipt( pView )
@@ -744,6 +745,9 @@ class InvTrController {
 
   void requestSaveAndPrint( InvTrView pView ) {
     log.debug( "[Controller] Save and Print" )
+    /*if(pView.panel.){
+
+    }*/
     InvTrRequest request = RequestAdapter.getRequest( pView.data )
     Boolean value = false
     if( TAG_SALIDA_TIENDA.equalsIgnoreCase(StringUtils.trimToEmpty(request?.trType)) ){
@@ -944,11 +948,15 @@ class InvTrController {
             }
           }
           filename = file.absolutePath
+          String filenm = file.name
+          String[] strFile = StringUtils.trimToEmpty(filenm).split(/\./)
           log.debug( String.format( "[Controller] File found: %s", filename ) )
+          Sucursal suc = new Sucursal()
+          suc.id = 0
           data.inFile = new File( filename )
-          data.postRemarks = document.trReason
+          data.postRemarks = strFile.last()+","+document.trReason
           data.postReference = document.ref
-          data.postSiteTo = null
+          data.postSiteTo = suc
           data.postTrType = RepositoryFactory.trTypes.findOne("SALIDA")
           Integer contador = 1
           for ( InvAdjustLine det in document.lines ) {
@@ -963,7 +971,7 @@ class InvTrController {
             }
           }
           InvTrRequest request = RequestAdapter.getRequest( data )
-          request.remarks = request.remarks.replaceAll("[^a-zA-Z0-9]+"," ");
+          //request.remarks = request.remarks.replaceAll("[^a-zA-Z0-9]+"," ");
           Integer trNbr = null
           if( validReference(StringUtils.trimToEmpty(data.postTrType.idTipoTrans), StringUtils.trimToEmpty(data.postReference)) ){
             trNbr = ServiceManager.getInventoryService().solicitarTransaccion( request )
@@ -1124,6 +1132,28 @@ class InvTrController {
       }
     }
 
+  }
+
+
+
+  static List<CausaDev> findCausasDev(  ){
+    List<CausaDev> lstCausasDevTmp = RepositoryFactory.causeDev.findAll( )
+    List<CausaDev> lstCausasDev = new ArrayList<>()
+    for(CausaDev causaDev : lstCausasDevTmp){
+      if(!StringUtils.trimToEmpty(causaDev.causa).equalsIgnoreCase("Armazon solicitado")){
+        lstCausasDev.add(causaDev)
+      }
+    }
+    CausaDev causaVacia = new CausaDev()
+    causaVacia.causa = ""
+    lstCausasDev.add( causaVacia )
+    Collections.sort(lstCausasDev, new Comparator<CausaDev>() {
+        @Override
+        int compare(CausaDev o1, CausaDev o2) {
+            return o1.causa.compareTo(o2.causa)
+        }
+    })
+    return lstCausasDev
   }
 
 

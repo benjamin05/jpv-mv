@@ -2,6 +2,7 @@ package mx.lux.pos.ui.view.panel
 
 import groovy.swing.SwingBuilder
 import mx.lux.pos.model.Sucursal
+import mx.lux.pos.ui.controller.InvTrController
 import mx.lux.pos.ui.model.InvTrViewMode
 import mx.lux.pos.ui.model.adapter.SiteAdapter
 import mx.lux.pos.ui.model.adapter.StringAdapter
@@ -70,9 +71,11 @@ class InvTrPanel extends JPanel {
   JButton btnCancel
   ComboBoxHintSelector<Sucursal> comboSiteTo = new ComboBoxHintSelector<Sucursal>( new SiteAdapter( ) )
   ComboBoxSelector<InvTrViewMode> comboViewMode = new ComboBoxSelector<InvTrViewMode>( new StringAdapter<InvTrViewMode>( ) )
+  JComboBox cbReasonsIssue
   JLabel lblSelector
   JLabel lblStatus
   JLabel lblType
+  JLabel lblCauseIssue
   JTextField txtType
   JTextField txtNbr
   JTextField txtEffDate
@@ -165,6 +168,8 @@ class InvTrPanel extends JPanel {
       comboBox( comboViewMode.comboBox, maximumSize: MAX_SIZE )
       comboViewMode.setItems( view.data.viewModeList )
       comboViewMode.comboBox.actionPerformed = { view.onViewModeChanged( ) }
+      lblCauseIssue = label( "Causa:", visible: false, constraints: 'hidemode 3' )
+      cbReasonsIssue = comboBox( items: view.findCausas()*.causa, maximumSize: MAX_SIZE, visible: false, constraints: 'hidemode 3' )
       lblType = label( TXT_TR_TYPE_LABEL, constraints: 'hidemode 3' )
       txtType = textField( editable: false,
           background: UI_Standards.LOCKED_BACKGROUND,

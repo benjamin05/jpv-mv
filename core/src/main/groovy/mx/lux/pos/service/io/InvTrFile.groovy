@@ -22,7 +22,7 @@ class InvTrFile {
     Sku, Qty
   }
   private static enum DetFldIssue {
-      Article, Color, ModSend, Qty, MovType, Remarks, Sku
+      Article, Color, ModSend, Qty, Remarks, MovType, Sku
   }
   private static enum HdrFld {
     Site, TrType, TrNbr, TrDate, SiteTo, Ref, Folio, LineNum, Remarks
