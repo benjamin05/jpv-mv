@@ -666,7 +666,6 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
             Boolean hasLens = false
             Boolean hasFrame = false
-            Boolean valid = true
             for(OrderItem it: order.items){
               if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
                 hasLens = true
@@ -1203,6 +1202,20 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             }
           }
         }
+        Boolean hasLens = false
+        Integer quantFrame = 0
+        Boolean validQuantity = true
+        for(OrderItem it: order.items){
+          if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
+            hasLens = true
+          } else if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+            quantFrame = quantFrame+it.quantity
+          }
+        }
+        if( hasLens && quantFrame > 1){
+          validQuantity = false
+        }
+        if( validQuantity ){
         if( warranty ){
           if( validLensesPack() ){
             if( OrderController.validRxData(order.id, dio) ){
@@ -1321,6 +1334,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             ).createDialog( this, TXT_ERROR_WARRANTY )
               .show()
           }
+        }
+      } else {
+        JOptionPane.showMessageDialog( null, "Cantidad de armazon incorrecta.",
+                "Error", JOptionPane.ERROR_MESSAGE )
         }
       } else {
           JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
@@ -2006,6 +2023,20 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           warranty = true
         }
       }
+      Boolean hasLens = false
+      Integer quantFrame = 0
+      Boolean validQuantity = true
+      for(OrderItem it: order.items){
+        if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
+          hasLens = true
+        } else if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+          quantFrame = quantFrame+it.quantity
+        }
+      }
+      if( hasLens && quantFrame > 1){
+        validQuantity = false
+      }
+      if( validQuantity ){
       if( warranty ){
         if( validLensesPack() ){
         if( OrderController.validRxData(order.id, dio) ){
@@ -2113,6 +2144,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
           }
       }
+      } else {
+        JOptionPane.showMessageDialog( null, "Cantidad de armazon incorrecta.",
+                "Error", JOptionPane.ERROR_MESSAGE )
+      }
     } else {
         JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
               "Venta Anulada", JOptionPane.ERROR_MESSAGE )
@@ -2209,6 +2244,20 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           warranty = true
         }
       }
+      Boolean hasLens = false
+      Integer quantFrame = 0
+      Boolean validQuantity = true
+      for(OrderItem it: order.items){
+        if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_LENTE) ){
+          hasLens = true
+        } else if( StringUtils.trimToEmpty(it.item.type).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
+          quantFrame = quantFrame+it.quantity
+        }
+      }
+      if( hasLens && quantFrame > 1){
+        validQuantity = false
+      }
+      if( validQuantity ){
       if( warranty ){
         if( validLensesPack() ){
           if( OrderController.validRxData( order.id, dio ) ){
@@ -2307,6 +2356,10 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
               JOptionPane.showMessageDialog( null, MSJ_ERROR_WARRANTY,
                       TXT_ERROR_WARRANTY, JOptionPane.ERROR_MESSAGE )
           }
+      }
+      } else {
+        JOptionPane.showMessageDialog( null, "Cantidad de armazon incorrecta.",
+                "Error", JOptionPane.ERROR_MESSAGE )
       }
     } else {
           JOptionPane.showMessageDialog( null, "La venta ya ha sido anulada",
