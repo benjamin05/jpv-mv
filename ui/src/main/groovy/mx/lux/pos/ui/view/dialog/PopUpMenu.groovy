@@ -67,6 +67,7 @@ public class PopUpMenu extends JFrame implements TableModelListener {
 	
 	public PopUpMenu( Component component, Integer x, Integer y, final String rx, String panel, JPanel jPanel ){
 	    pMenu = new JPopupMenu();
+        itemNewReplacement = new JMenuItem("Nueva Reposicion");
         itemConsultaTrabajo = new JMenuItem("Consultar Trabajo");
         itemRxData = new JMenuItem("Datos Receta");
         itemCustomerData = new JMenuItem("Datos Cliente");
@@ -74,11 +75,10 @@ public class PopUpMenu extends JFrame implements TableModelListener {
         itemStopCall = new JMenuItem("No Contactar");
         itemNotSend = new JMenuItem("No Enviar");
         itemSend = new JMenuItem("Enviar");
-        itemNewReplacement = new JMenuItem("Nueva Reposicion");
         //itemInfoPino = new JMenuItem("Info Laboratorio");
         //itemRetener = new JMenuItem("Retener");
         //itemDesretener = new JMenuItem("Desretener");
-
+        pMenu.add(itemNewReplacement)
         pMenu.add(itemRxData);
         pMenu.add(itemConsultaTrabajo);
         pMenu.add(itemCustomerData);
@@ -86,7 +86,7 @@ public class PopUpMenu extends JFrame implements TableModelListener {
         pMenu.add(itemStopCall);
         pMenu.add(itemNotSend);
         pMenu.add(itemSend);
-        pMenu.add(itemNewReplacement)
+
         //pMenu.add(itemInfoPino);
         //pMenu.add( itemRetener );
         //pMenu.add(itemDesretener);

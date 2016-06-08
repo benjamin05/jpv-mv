@@ -19,6 +19,7 @@ import mx.lux.pos.ui.view.dialog.FreedomCouponDialog
 import mx.lux.pos.ui.view.dialog.ImportEmployeeDialog
 import mx.lux.pos.ui.view.dialog.RecalculateDialog
 import mx.lux.pos.ui.view.dialog.ReprintEnsureDialog
+import mx.lux.pos.ui.view.dialog.RotosDialog
 import mx.lux.pos.ui.view.panel.*
 import net.miginfocom.swing.MigLayout
 import org.apache.commons.lang.StringUtils
@@ -60,6 +61,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JPanel priceListPanel
     private JPanel invoicePanel
     private JPanel reposicionPanel
+    private JPanel rotosPanel
     private JToolBar infoBar
     Boolean openSoi
     private JLabel userLabel
@@ -138,6 +140,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem envioMenuItem
     private JMenuItem recepcionMenuItem
     private JMenuItem repocisionMenuItem
+    private JMenuItem rotosMenuItem
     private JMenuItem contactosMenuItem
     private PromotionService promotionService
 
@@ -683,6 +686,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 contactosMenuItem.visible = userLoggedIn
                                 sobresMenuItem.visible = userLoggedIn
                                 repocisionMenuItem.visible = userLoggedIn
+                                rotosMenuItem.visible = userLoggedIn
                             },
                             visible: Registry.showJobsControl()
                     ) {
@@ -770,6 +774,13 @@ class MainWindow extends JFrame implements KeyListener {
                                         mainPanel.layout.show( mainPanel, 'reposicionPanel' )
                                     }
                                     mainPanel.layout.show( mainPanel, 'reposicionPanel' )
+                                }
+                        )
+                        rotosMenuItem = menuItem( text: 'Rotos',
+                                visible: true,
+                                actionPerformed: {
+                                  RotosDialog dialog = new RotosDialog()
+                                  dialog.show()
                                 }
                         )
                     }

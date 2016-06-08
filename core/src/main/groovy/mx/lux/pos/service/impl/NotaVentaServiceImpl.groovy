@@ -2297,7 +2297,7 @@ class NotaVentaServiceImpl implements NotaVentaService {
             "|${StringUtils.trimToEmpty(repo.oiPrismaV)}|${StringUtils.trimToEmpty(repo.diLejos)}|${StringUtils.trimToEmpty(repo.diCerca)}" +
             "|${StringUtils.trimToEmpty(repo.diOd)}|${StringUtils.trimToEmpty(repo.diOi)}|${StringUtils.trimToEmpty(repo.altObl)}" +
             "|${StringUtils.trimToEmpty(notaVenta?.udf2)}|${StringUtils.trimToEmpty(repo.observaciones)}|${StringUtils.trimToEmpty(repo.ojo)}" +
-            "|${StringUtils.trimToEmpty("")}|${StringUtils.trimToEmpty(armazon)}")
+            "|${StringUtils.trimToEmpty("")}|${StringUtils.trimToEmpty(armazon)}|")
     strOut.println sb.toString()
     strOut.close()
 

@@ -4282,4 +4282,29 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
+  static Order orderValidToRoto( String bill ) {
+    NotaVentaJava notaventa = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(bill) )
+    if( notaventa != null ){
+      JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(bill) )
+      if( jb == null ){
+        notaventa = null
+      } else if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("TE") || StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("CN") ){
+        notaventa = null
+      }
+    }
+    return notaventa != null ? Order.toOrder(notaventa) : null
+  }
+
+
+
+  static String promiseDateByBill(String bill) {
+    String promiseDate = ""
+    JbJava jb = JbQuery.buscarPorRx( bill )
+    if( jb != null ){
+      promiseDate = StringUtils.trimToEmpty(jb.fechaPromesa.format("dd/MM/yyyy"))
+    }
+    return promiseDate
+  }
+
+
 }

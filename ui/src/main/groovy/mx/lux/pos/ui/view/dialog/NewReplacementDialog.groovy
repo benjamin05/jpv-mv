@@ -132,8 +132,8 @@ class NewReplacementDialog extends JDialog implements FocusListener {
           txtIdResponsable.addFocusListener( this )
           txtResponsable = textField( enabled: false )
           label( text: "Causa" )
-          cbCausa = comboBox( items: lstRepoCausa*.descr, constraints: 'span 2' )
-          label( " ", constraints: 'span 2' )
+          cbCausa = comboBox( items: lstRepoCausa*.descr )
+          label( " ", constraints: 'span 3' )
           label( text: "Problema" )
           txtProblema = textField( constraints: 'span 5', document: new UpperCaseDocument() )
           label( text: "Diagnostico" )
@@ -156,7 +156,7 @@ class NewReplacementDialog extends JDialog implements FocusListener {
                     label(text: 'D.M.', toolTipText: 'Distancia Monocular', horizontalAlignment: JTextField.CENTER  )
                     label()
                     label()
-                    cbOd = checkBox( text: "OD", toolTipText: 'Ojo Derecho' )
+                    cbOd = checkBox( text: "OD", toolTipText: 'Ojo Derecho', selected: true )
                     //label(text: 'O.D.', toolTipText: 'Ojo Derecho')
                     txtOdEsfera = textField( horizontalAlignment: JTextField.RIGHT, enabled: false )
                     txtOdEsfera.addFocusListener(new FocusListener() {
@@ -250,7 +250,7 @@ class NewReplacementDialog extends JDialog implements FocusListener {
                             }
                         }
                     })
-                    cbOi = checkBox( text: "OI", toolTipText: 'Ojo Izquierdo' )
+                    cbOi = checkBox( text: "OI", toolTipText: 'Ojo Izquierdo', selected: true )
                     //label(text: 'O.I.', toolTipText: 'Ojo Izquierdo')
                     txtOiEsfera = textField( horizontalAlignment: JTextField.RIGHT, enabled: false )
                     txtOiEsfera.addFocusListener(new FocusListener() {
@@ -422,7 +422,7 @@ class NewReplacementDialog extends JDialog implements FocusListener {
   }
 
   protected void onButtonOk( ) {
-    if( receta != null && receta.id != null && txtOdEsfera.enabled && txtOiEsfera.enabled ){
+    if( receta != null && receta.id != null && (cbOd.selected || cbOi.selected) ){
       if( validData() ){
       List<RepoDetJava> lstRepoDet = new ArrayList<>()
       Integer numOrden = OrderController.buscaNextNumeroOrdenRepo( StringUtils.trimToEmpty(txtRx.text) )
