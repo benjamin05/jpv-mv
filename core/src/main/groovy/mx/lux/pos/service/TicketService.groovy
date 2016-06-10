@@ -1,6 +1,7 @@
 package mx.lux.pos.service
 
 import mx.lux.pos.java.repository.CuponMvJava
+import mx.lux.pos.java.repository.JbRotos
 import mx.lux.pos.java.repository.JbSobres
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.Repo
@@ -77,6 +78,8 @@ interface TicketService {
   void imprimeSobre( JbSobres jbSobre )
 
   void imprimeReposicion( Repo repo )
+
+  void imprimeRoto( JbRotos jbRotos, Integer idSobre )
 
 
 }

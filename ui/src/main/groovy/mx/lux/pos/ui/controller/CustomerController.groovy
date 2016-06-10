@@ -25,6 +25,7 @@ import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.service.*
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.service.impl.FormaContactoService
+import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.model.*
 import mx.lux.pos.ui.view.dialog.*
 import mx.lux.pos.ui.view.panel.OrderPanel
@@ -407,6 +408,7 @@ class CustomerController {
         pListener.setOrder(o)
         pListener.setPromotion(o)
         pListener.enableUI()
+        //pListener.setEnabledMenus( type )
       } else {
         pListener.operationTypeSelected = OperationType.DEFAULT
       }

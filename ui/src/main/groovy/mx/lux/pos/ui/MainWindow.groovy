@@ -190,7 +190,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 actionPerformed: {
                                     mainPanel.remove( orderPanel )
                                     orderPanel = null
-                                    orderPanel = new OrderPanel()
+                                    orderPanel = new OrderPanel( this )
                                     clean( orderPanel )
                                     mainPanel.add( 'orderPanel', orderPanel )
                                     mainPanel.layout.show( mainPanel, 'orderPanel' )
@@ -260,7 +260,7 @@ class MainWindow extends JFrame implements KeyListener {
                                   if (!customerDialog.canceled) {
                                     if( orderPanel.order.id == null ){
                                       mainPanel.remove( orderPanel )
-                                      orderPanel = new OrderPanel()
+                                      orderPanel = new OrderPanel( this )
                                       mainPanel.add( 'orderPanel', orderPanel )
                                       mainPanel.layout.show( mainPanel, 'orderPanel' )
                                     }
@@ -779,7 +779,7 @@ class MainWindow extends JFrame implements KeyListener {
                         rotosMenuItem = menuItem( text: 'Rotos',
                                 visible: true,
                                 actionPerformed: {
-                                  RotosDialog dialog = new RotosDialog()
+                                  RotosDialog dialog = new RotosDialog( null )
                                   dialog.show()
                                 }
                         )
@@ -960,7 +960,7 @@ class MainWindow extends JFrame implements KeyListener {
     private def doForwardToDefaultPanel = {
         User user = Session.get( SessionItem.USER ) as User
         Branch branch = Session.get( SessionItem.BRANCH ) as Branch
-        orderPanel = new OrderPanel()
+        orderPanel = new OrderPanel( this )
         mainPanel.add( 'orderPanel', orderPanel )
         mainPanel.layout.show( mainPanel, 'orderPanel' )
 

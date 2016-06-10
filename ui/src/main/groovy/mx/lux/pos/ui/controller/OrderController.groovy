@@ -86,6 +86,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.swing.*
+import java.sql.Timestamp
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.concurrent.ExecutorService
@@ -4300,10 +4301,71 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   static String promiseDateByBill(String bill) {
     String promiseDate = ""
     JbJava jb = JbQuery.buscarPorRx( bill )
-    if( jb != null ){
+    if( jb != null && jb.fechaPromesa != null ){
       promiseDate = StringUtils.trimToEmpty(jb.fechaPromesa.format("dd/MM/yyyy"))
     }
     return promiseDate
+  }
+
+
+
+   static Integer getRotoNumber( String rx ){
+     return JbQuery.buscaJbRotosDetPendientes( rx ).size()
+   }
+
+  static void saveJbRoto( JbRotos jbRoto ) {
+    JbQuery.saveJbRotos( jbRoto )
+  }
+
+
+  static void updateJbAndNotaVenta( String bill, Date fechaProm ) {
+    JbJava jb = JbQuery.buscarPorRx( bill )
+    if ( jb.getVolverLlamar() != null ) {
+      jb.setVolverLlamar( null );
+    }
+    if ( jb.getRoto() != null ) {
+      jb.setRoto( jb.getRoto() + 1 );
+    } else {
+      jb.setRoto( 1 );
+    }
+    jb.setFechaPromesa( fechaProm );
+    jb.estado = "RPE"
+    JbQuery.updateJb( jb )
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( bill );
+    if ( notaVenta != null ) {
+      notaVenta.fechaPrometida = fechaProm;
+      NotaVentaQuery.updateNotaVenta( notaVenta )
+    }
+  }
+
+
+  static void saveJbSobre( String bill ) {
+    JbSobres jbSobre = new JbSobres();
+    List<JbRotos> lstRotos = JbQuery.buscaJbRotosDetPendientes( bill )
+    Collections.sort(lstRotos, new Comparator<JbRotos>() {
+        @Override
+        int compare(JbRotos o1, JbRotos o2) {
+            return o1.numRoto.compareTo(o2.numRoto)
+        }
+    })
+    JbRotos jbRoto = lstRotos.last()
+    Integer idRoto = jbRoto.getIdRoto();
+    jbSobre.setFolioSobre( idRoto.toString());
+    jbSobre.setArea("ROTO ARMAZON");
+    jbSobre.setContenido(jbRoto.getMaterial());
+    jbSobre.setDest("ROTO ARMAZON");
+    jbSobre.setFecha( new Timestamp( new Date().getTime() ) );
+    jbSobre.setIdMod( "0" );
+    jbSobre.setEmp("ROTO");
+    jbSobre.setIdViaje("1")
+    jbSobre.rx = ""
+    JbQuery.saveJbSobres( jbSobre );
+  }
+
+
+  static void printRoto( JbRotos jbRotos ) {
+    JbSobres jbSobre = JbQuery.buscaUltimoSobre()
+    ticketService.imprimeRoto(jbRotos,jbSobre.idSobre)
   }
 
 

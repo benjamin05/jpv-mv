@@ -1,10 +1,12 @@
 package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
+import mx.lux.pos.java.repository.JbRotos
 import mx.lux.pos.ui.controller.CustomerController
 import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.OrderItem
+import mx.lux.pos.ui.model.UpperCaseDocument
 import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.verifier.DateVerifier
 import net.miginfocom.swing.MigLayout
@@ -18,6 +20,7 @@ import java.awt.event.ActionListener
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.text.DateFormat
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 
 class RotosDialog extends JDialog {
@@ -42,12 +45,18 @@ class RotosDialog extends JDialog {
   private JTextField txtPromiseDate
   private JButton btnGuardar
 
+  Date validDate = null
+
   private Order order
 
   public boolean button = false
 
-  RotosDialog( ) {
+  RotosDialog( Order order ) {
+    this.order = order
     buildUI()
+    if(order != null){
+      txtRx.requestFocus()
+    }
     disableComponents()
   }
 
@@ -67,7 +76,7 @@ class RotosDialog extends JDialog {
               layout: new MigLayout( "wrap 3", "[fill][fill][grow,fill]", "[][]" ) ) {
           typeRoto = buttonGroup()
           label( "Rx" )
-          txtRx = textField( )
+          txtRx = textField( text: order != null ? order.bill : "" )
           label( " " )
           txtRx.addFocusListener( new FocusListener() {
               @Override
@@ -103,7 +112,7 @@ class RotosDialog extends JDialog {
                 }
             })
             label( text: "Causa Roto" )
-            txtCauseRoto = textField( constraints: 'span2' )
+            txtCauseRoto = textField( constraints: 'span2', document: new UpperCaseDocument() )
             label( text: "Responsable" )
             txtResponsable = textField( )
             txtResponsable.addFocusListener( new FocusListener() {
@@ -163,7 +172,11 @@ class RotosDialog extends JDialog {
           }
         }
       } else if( !cbFrame.selected && cbLens.selected ){
-        txtMaterial.text = ""
+        for(OrderItem oi : order.items){
+          if( StringUtils.trimToEmpty(oi.item.type).equalsIgnoreCase("B") ){
+            txtMaterial.text = StringUtils.trimToEmpty(oi?.item?.name)
+          }
+        }
       }
     }
   }
@@ -198,7 +211,27 @@ class RotosDialog extends JDialog {
 
   protected void onButtonOk( ) {
     if( validData() ){
+      JbRotos jbRotos = new JbRotos()
+      jbRotos.rx = StringUtils.trimToEmpty(order.bill)
+      jbRotos.tipo = cbFrame.selected ? "A" : "B"
+      jbRotos.material = StringUtils.trimToEmpty(txtMaterial.text)
+      jbRotos.causa = StringUtils.trimToEmpty(txtCauseRoto.text)
+      jbRotos.emp = StringUtils.trimToEmpty(txtResponsable.text)
+      jbRotos.numRoto = OrderController.getRotoNumber(txtRx.text)+1
+      jbRotos.alta = true
+      jbRotos.fechaProm = validDate
+      jbRotos.llamada = cbYes.selected
+      jbRotos.fecha = new Date()
+      jbRotos.idMod = '0'
+      OrderController.saveJbRoto( jbRotos )
+      OrderController.updateJbAndNotaVenta( jbRotos.rx, validDate )
+      if(StringUtils.trimToEmpty(jbRotos.tipo).equalsIgnoreCase("A")){
+        OrderController.saveJbSobre( jbRotos.rx )
+        OrderController.printRoto( jbRotos )
+      }
       dispose()
+    } else {
+      sb.optionPane(message: 'Verifique los datos').createDialog(txtPromiseDate, 'Datos incorrectos').show()
     }
   }
 
@@ -218,19 +251,50 @@ class RotosDialog extends JDialog {
   void disableComponents(){
     //cbLens.enabled = false
     //cbFrame.enabled = false
-    cbYes.enabled = false
-    cbNo.enabled = false
-    txtCauseRoto.enabled = false
-    txtResponsable.enabled = false
-    txtMaterial.enabled = false
-    txtPromiseDate.enabled = false
-    btnGuardar.enabled = false
-
+    if( order == null || StringUtils.trimToEmpty(order.id).length() <= 0 ){
+      cbYes.enabled = false
+      cbNo.enabled = false
+      txtCauseRoto.enabled = false
+      txtResponsable.enabled = false
+      txtMaterial.enabled = false
+      txtPromiseDate.enabled = false
+      btnGuardar.enabled = false
+    }
   }
 
 
   Boolean validData( ){
-
+    Boolean valid = true
+    if( !cbFrame.selected && !cbLens.selected ){
+      valid = false
+    } else if( StringUtils.trimToEmpty(txtCauseRoto.text).length() <= 0 ){
+      valid = false
+    } else if( StringUtils.trimToEmpty(txtResponsable.text).length() <= 0 ){
+      valid = false
+    } else if( !cbYes.selected && !cbNo.selected ){
+      valid = false
+    } else if( StringUtils.trimToEmpty(txtPromiseDate.text).length() <= 0 ){
+      valid = false
+    } else if( StringUtils.trimToEmpty(txtPromiseDate.text).length() > 0 ){
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
+        Integer dayInt = 0
+        Integer monthInt = 0
+        Integer yearInt = 0
+        try{
+            dayInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPromiseDate.text).substring(0,2))
+            monthInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPromiseDate.text).substring(3,5))
+            yearInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPromiseDate.text).substring(6,10))
+            validDate = df.parse( StringUtils.trimToEmpty(txtPromiseDate.text) )
+            Calendar fecha = new GregorianCalendar();
+            Integer currentYear = fecha.get(Calendar.YEAR);
+            if( validDate != null && validDate.after(new Date()) && (dayInt <= 31 && monthInt <= 12 && yearInt >= currentYear) ){
+              println "fecha valida"
+            } else {
+              valid = false
+            }
+        } catch ( Exception e ) {println e}
+    }
+    return valid
   }
 
 

@@ -135,13 +135,15 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
 
     private String MSJ_ERROR_WARRANTY = ""
     private String TXT_ERROR_WARRANTY = ""
+    private MainWindow mainWindow
 
     public Integer numQuote = 0
 
-    OrderPanel() {
+    OrderPanel( MainWindow mainWindow ) {
         sb = new SwingBuilder()
         order = new Order()
         dioptra = new Dioptra()
+        this.mainWindow = mainWindow
         advanceOnlyInventariable = false
         String clientesActivos = OrderController.obtieneTiposClientesActivos()
         for(OperationType customer : lstCustomers){
@@ -426,6 +428,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         } else {
           cancelOrderButton.visible = false
         }
+        setEnabledMenus( )
     }
 
     //Busca y actualiza la nota actual para mostrar los datos correspondientes
@@ -2727,6 +2730,27 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
     }
     println "Algo aplicado: "+applied
     return applied
+  }
+
+
+  void setEnabledMenus( ){
+    if( OperationType.EDIT_PAYING.equals(operationType.selectedItem as OperationType) ){
+      mainWindow.ordersMenu.enabled = false
+      mainWindow.inventoryMenu.enabled = false
+      mainWindow.reportsMenu.enabled = false
+      mainWindow.toolsMenu.enabled = false
+      mainWindow.clientsMenu.enabled = false
+      mainWindow.controlTrabajosMenu.enabled = false
+      mainWindow.lcMenu.enabled = false
+    } else {
+      mainWindow.ordersMenu.enabled = true
+      mainWindow.inventoryMenu.enabled = true
+      mainWindow.reportsMenu.enabled = true
+      mainWindow.toolsMenu.enabled = true
+      mainWindow.clientsMenu.enabled = true
+      mainWindow.controlTrabajosMenu.enabled = true
+      mainWindow.lcMenu.enabled = true
+    }
   }
 
 
