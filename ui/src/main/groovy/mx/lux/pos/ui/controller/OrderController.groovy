@@ -3312,7 +3312,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           frame = true
         }
         String type = StringUtils.trimToEmpty(item.subtipo).length() > 0 ? StringUtils.trimToEmpty(item.subtipo) : StringUtils.trimToEmpty(item.idGenSubtipo)
-        if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) ){
+        if( isChildSafe( type ) ){
           lensKid = true
         } else if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
           if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){
@@ -4366,6 +4366,18 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   static void printRoto( JbRotos jbRotos ) {
     JbSobres jbSobre = JbQuery.buscaUltimoSobre()
     ticketService.imprimeRoto(jbRotos,jbSobre.idSobre)
+  }
+
+  static Boolean isChildSafe( String type ){
+    Boolean itIs = false
+    String secondChar = ""
+    if( StringUtils.trimToEmpty(type).length() > 1 ){
+      secondChar = type.substring(1,2)
+    }
+    if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) && secondChar.isNumber() ){
+      itIs = true
+    }
+    return itIs
   }
 
 
