@@ -1,8 +1,12 @@
 package mx.lux.pos.ui.view.dialog
 
+import mx.lux.pos.java.repository.JbNotasJava
+import mx.lux.pos.model.JbNotas
 import mx.lux.pos.ui.MainWindow
 import mx.lux.pos.ui.model.Customer
+import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.view.panel.EnvioPanel
+import mx.lux.pos.ui.view.panel.OrdenServicioPanel
 
 import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
@@ -56,14 +60,19 @@ public class PopUpMenu extends JFrame implements TableModelListener {
     private JMenuItem itemNotSend;
     private JMenuItem itemSend;
     private JMenuItem itemNewReplacement;
+    private JMenuItem itemNewServiceOrder;
+    private JMenuItem itemPrintServiceOrder;
+    private JMenuItem itemDeliverServiceOrder;
     private JMenuItem itemDesretener;
     private EnvioPanel sendPanel;
+    private OrdenServicioPanel oSPanel;
 
     private static final String TAG_PANEL_CONSULTA = "consulta"
     private static final String TAG_PANEL_ENVIO = "envio"
     private static final String TAG_PANEL_RECEPCION = "recepcion"
     private static final String TAG_PANEL_CONTACTOS = "contactos"
     private static final String TAG_PANEL_REPOSICION = "reposicion"
+    private static final String TAG_PANEL_ORDEN_SERVICIO = "ordenServicio"
 	
 	public PopUpMenu( Component component, Integer x, Integer y, final String rx, String panel, JPanel jPanel ){
 	    pMenu = new JPopupMenu();
@@ -75,6 +84,9 @@ public class PopUpMenu extends JFrame implements TableModelListener {
         itemStopCall = new JMenuItem("No Contactar");
         itemNotSend = new JMenuItem("No Enviar");
         itemSend = new JMenuItem("Enviar");
+        itemNewServiceOrder = new JMenuItem("Nueva Orden");
+        itemPrintServiceOrder = new JMenuItem("Imprimir");
+        itemDeliverServiceOrder = new JMenuItem("Entregar")
         //itemInfoPino = new JMenuItem("Info Laboratorio");
         //itemRetener = new JMenuItem("Retener");
         //itemDesretener = new JMenuItem("Desretener");
@@ -86,11 +98,17 @@ public class PopUpMenu extends JFrame implements TableModelListener {
         pMenu.add(itemStopCall);
         pMenu.add(itemNotSend);
         pMenu.add(itemSend);
+        pMenu.add(itemNewServiceOrder)
+        pMenu.add(itemPrintServiceOrder)
+        pMenu.add(itemDeliverServiceOrder)
 
         //pMenu.add(itemInfoPino);
         //pMenu.add( itemRetener );
         //pMenu.add(itemDesretener);
         itemNewReplacement.visible = false
+        itemNewServiceOrder.visible = false
+        itemPrintServiceOrder.visible = false
+        itemDeliverServiceOrder.visible = false
         String[] data = StringUtils.trimToEmpty(panel).split(",")
         if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_CONSULTA) ){
           itemNotSend.visible = false
@@ -112,6 +130,24 @@ public class PopUpMenu extends JFrame implements TableModelListener {
           itemSend.visible = false
         } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_REPOSICION) ){
           itemNewReplacement.visible = true
+        } else if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_ORDEN_SERVICIO) ){
+          itemNewServiceOrder.visible = true
+          this.oSPanel = jPanel as OrdenServicioPanel
+          if( StringUtils.trimToEmpty(rx).length() <= 0 ){
+            itemNewReplacement.visible = false;
+            itemRxData.visible = false;
+            itemConsultaTrabajo.visible = false;
+            itemCustomerData.visible = false;
+            itemReschedule.visible = false;
+            itemStopCall.visible = false;
+            itemNotSend.visible = false;
+            itemSend.visible = false;
+            itemPrintServiceOrder.visible = false
+            itemDeliverServiceOrder.visible = false
+          } else {
+            itemPrintServiceOrder.visible = true
+            itemDeliverServiceOrder.visible = true
+          }
         }
 	    pMenu.show(component, x, y);
         //pMenu.setLocation(x,y);
@@ -216,6 +252,43 @@ public class PopUpMenu extends JFrame implements TableModelListener {
             }
         });
 
+        itemNewServiceOrder.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              CustomerSearchOrderServiceDialog dialog = new CustomerSearchOrderServiceDialog( component, new Order() )
+              dialog.show()
+              if( !dialog.canceled ){
+                ServiceOrderDialog dialogService = new ServiceOrderDialog( dialog.customer )
+                dialogService.show()
+                if( StringUtils.trimToEmpty(dialogService.rx).length() > 0 ){
+                  OrderServiceContactDialog dialogContact = new OrderServiceContactDialog( dialog.customer,StringUtils.trimToEmpty(dialogService.rx) )
+                  dialogContact.show()
+                  oSPanel.doBindings()
+                }
+              }
+            }
+        });
+
+
+
+        itemPrintServiceOrder.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              JbNotasJava jbNota = OrderController.findJbNotaByRx( StringUtils.trimToEmpty(rx) )
+              if( jbNota != null ){
+                OrderController.printJbNota( jbNota )
+              }
+            }
+        })
+
+        itemDeliverServiceOrder.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              DeliverOrdenServiceDialog dialog = new DeliverOrdenServiceDialog( rx )
+              dialog.show()
+              oSPanel.doBindings()
+            }
+        })
         /*itemRetener.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
