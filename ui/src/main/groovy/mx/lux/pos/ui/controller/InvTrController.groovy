@@ -28,6 +28,7 @@ import mx.lux.pos.ui.view.dialog.InvTrSelectorDialog
 import mx.lux.pos.ui.view.dialog.PartSelectionDialog
 import mx.lux.pos.ui.view.dialog.ReceiptDialog
 import mx.lux.pos.ui.view.panel.InvTrView
+import mx.lux.pos.util.CustomDateUtils
 import mx.lux.pos.util.StringList
 import org.apache.commons.lang.StringUtils
 import org.apache.commons.lang3.time.DateUtils
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory
 import javax.swing.*
 import java.nio.channels.FileChannel
 import java.text.NumberFormat
+import java.text.ParseException
 import java.text.SimpleDateFormat
 
 class InvTrController {
@@ -493,8 +495,17 @@ class InvTrController {
   }
 
   void requestPart( InvTrView pView ) {
-      String[] part = pView.data.partSeed.split(',')
-      log.debug( String.format( "[Controller] Request Part with seed <%s>", part[0] ) )
+    String[] part = pView.data.partSeed.split(',')
+      /*if( pView.data.viewMode.equals(InvTrViewMode.ADJUST) && part.size() > 1 ){
+        Integer qty = 1
+        try{
+          qty = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(part[1]))
+          pView.data.postQty = qty
+        } catch ( ParseException e ){
+          println e.message
+        }
+      }*/
+    log.debug( String.format( "[Controller] Request Part with seed <%s>", part[0] ) )
     String seed = part[0]
     List<Articulo> partList = ItemController.findPartsByQuery( seed, true )
     if( partList.size() == 0 ){
@@ -804,9 +815,9 @@ class InvTrController {
           if (InvTrViewMode.RECEIPT.equals( viewMode ) || InvTrViewMode.INBOUND.equals( viewMode )) {
             String resultado = confirmaEntrada(viewMode, pView)
           }
-          /*if( InvTrViewMode.FILE_ADJUST.equals( viewMode ) ){
-            generaAcuseAjusteInventario(viewMode, pView)
-          }*/
+          if( InvTrViewMode.ADJUST.equals( viewMode ) ){
+            generaAcuseAjusteInventario( pView, trNbr )
+          }
           if( ServiceManager.getInventoryService().isReceiptDuplicate() ){
             dispatchPrintTransaction( viewMode.trType.idTipoTrans, trNbr )
           }
@@ -1155,6 +1166,24 @@ class InvTrController {
     })
     return lstCausasDev
   }
+
+
+    protected void generaAcuseAjusteInventario(InvTrView pView, Integer pInvTr){
+      String filename = String.format( "%d.%d.aja", pInvTr, Registry.currentSite)
+      String absolutePath = String.format( "%s%s%s", Registry.archivePath, File.separator, filename )
+      File file = new File( absolutePath )
+      PrintStream strOut = new PrintStream( file )
+
+      StringBuffer sb = new StringBuffer()
+      sb.append( "${StringUtils.trimToEmpty(Registry.currentSite.toString())}|${new Date().format("dd/MM/yyyy")}|${pView.data.skuList.size()}|" +
+              "${StringUtils.trimToEmpty(pInvTr.toString())}|${pView.data.postRemarks}|" )
+      for ( InvTrSku sku : pView.data.skuList ) {
+            sb.append( "\n" )
+            sb.append( "${sku.sku}|${sku.qty}|" )
+      }
+      strOut.println sb.toString()
+      strOut.close()
+    }
 
 
 }
