@@ -14,6 +14,7 @@ import mx.lux.pos.java.repository.DoctoInvJava
 import mx.lux.pos.java.repository.EmpleadoJava
 import mx.lux.pos.java.repository.JbDev
 import mx.lux.pos.java.repository.JbJava
+import mx.lux.pos.java.repository.JbRotos
 import mx.lux.pos.java.repository.JbSobres
 import mx.lux.pos.java.repository.JbViaje
 import mx.lux.pos.java.repository.NotaVentaJava
@@ -3376,6 +3377,27 @@ class TicketServiceImpl implements TicketService {
       ojo: ojo
     ]
     this.imprimeTicket( 'template/ticket-reposicion.vm', datos )
+  }
+
+
+
+  void imprimeRoto( JbRotos jbRotos, Integer idSobre ) {
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(jbRotos.rx) )
+    Sucursal sucursal = sucursalRepository.findOne(Registry.currentSite)
+    EmpleadoJava empleado = EmpleadoQuery.buscaEmpPorIdEmpleado(StringUtils.trimToEmpty(jbRotos.emp))
+    String codigoBarras = "P${StringUtils.trimToEmpty(sucursal?.id.toString())}${StringUtils.trimToEmpty(String.format( '%05d', idSobre))}"
+    def datos = [
+      rx: StringUtils.trimToEmpty(jbRotos.rx),
+      codigoBarras: codigoBarras,
+      sucursal: StringUtils.trimToEmpty(sucursal?.nombre),
+      date: StringUtils.trimToEmpty(new Date().format("dd-MM-yyyy")),
+      dateOrder: StringUtils.trimToEmpty(notaVenta?.fechaHoraFactura?.format("dd-MM-yyyy")),
+      material: StringUtils.trimToEmpty(jbRotos.material),
+      numRoto: jbRotos.numRoto,
+      causa: StringUtils.trimToEmpty(jbRotos.causa),
+      responsable: empleado != null ? empleado.nombreEmpleado : ""
+    ]
+    this.imprimeTicket( 'template/ticket-roto.vm', datos )
   }
 
 

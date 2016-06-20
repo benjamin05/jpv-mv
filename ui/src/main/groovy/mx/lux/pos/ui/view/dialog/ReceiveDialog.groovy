@@ -5,6 +5,7 @@ import mx.lux.pos.java.repository.JbJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.java.repository.RecetaJava
 import mx.lux.pos.ui.controller.OrderController
+import mx.lux.pos.ui.model.Order
 import mx.lux.pos.ui.model.Rx
 import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.verifier.DateVerifier
@@ -83,13 +84,13 @@ class ReceiveDialog extends JDialog {
         panel( constraints: BorderLayout.PAGE_END ) {
           borderLayout()
           panel( constraints: BorderLayout.LINE_END ) {
-            button( text: "Aceptar", preferredSize: UI_Standards.BUTTON_SIZE,
+            button( text: "Satisfactorio", preferredSize: [140,35],
                 actionPerformed: { onButtonOk() }
             )
-            /*button( text: "No Satisfactorio", preferredSize: [140,35],
+            button( text: "No Satisfactorio", preferredSize: [140,35],
                 actionPerformed: { onButtonNotOk() }
-            )*/
-            button( text: "Cerrar", preferredSize: UI_Standards.BUTTON_SIZE,
+            )
+            button( text: "Cerrar", preferredSize: [140,35],
                     actionPerformed: { onButtonCancel() }
             )
           }
@@ -139,7 +140,9 @@ class ReceiveDialog extends JDialog {
   }
 
   protected void onButtonNotOk( ) {
-    OrderController.receivedJb( jb.rx, viaje, "RETRASADO" )
+    RotosDialog dialog = new RotosDialog( Order.toOrder(OrderController.findOrderJavaByBill(jb.rx)) )
+    dialog.show()
+    //OrderController.receivedJb( jb.rx, viaje, "RETRASADO" )
     dispose()
   }
 

@@ -86,6 +86,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.swing.*
+import java.sql.Timestamp
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.concurrent.ExecutorService
@@ -3311,7 +3312,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           frame = true
         }
         String type = StringUtils.trimToEmpty(item.subtipo).length() > 0 ? StringUtils.trimToEmpty(item.subtipo) : StringUtils.trimToEmpty(item.idGenSubtipo)
-        if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) ){
+        if( isChildSafe( type ) ){
           lensKid = true
         } else if( StringUtils.trimToEmpty(item.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON)){
           if( StringUtils.trimToEmpty(item.tipo).equalsIgnoreCase(TAG_TIPO_SOLAR) ){
@@ -4279,6 +4280,104 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
   static void printReposicion( Repo repo ){
     ticketService.imprimeReposicion( repo )
+  }
+
+
+  static Order orderValidToRoto( String bill ) {
+    NotaVentaJava notaventa = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(bill) )
+    if( notaventa != null ){
+      JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(bill) )
+      if( jb == null ){
+        notaventa = null
+      } else if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("TE") || StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("CN") ){
+        notaventa = null
+      }
+    }
+    return notaventa != null ? Order.toOrder(notaventa) : null
+  }
+
+
+
+  static String promiseDateByBill(String bill) {
+    String promiseDate = ""
+    JbJava jb = JbQuery.buscarPorRx( bill )
+    if( jb != null && jb.fechaPromesa != null ){
+      promiseDate = StringUtils.trimToEmpty(jb.fechaPromesa.format("dd/MM/yyyy"))
+    }
+    return promiseDate
+  }
+
+
+
+   static Integer getRotoNumber( String rx ){
+     return JbQuery.buscaJbRotosDetPendientes( rx ).size()
+   }
+
+  static void saveJbRoto( JbRotos jbRoto ) {
+    JbQuery.saveJbRotos( jbRoto )
+  }
+
+
+  static void updateJbAndNotaVenta( String bill, Date fechaProm ) {
+    JbJava jb = JbQuery.buscarPorRx( bill )
+    if ( jb.getVolverLlamar() != null ) {
+      jb.setVolverLlamar( null );
+    }
+    if ( jb.getRoto() != null ) {
+      jb.setRoto( jb.getRoto() + 1 );
+    } else {
+      jb.setRoto( 1 );
+    }
+    jb.setFechaPromesa( fechaProm );
+    jb.estado = "RPE"
+    JbQuery.updateJb( jb )
+    NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( bill );
+    if ( notaVenta != null ) {
+      notaVenta.fechaPrometida = fechaProm;
+      NotaVentaQuery.updateNotaVenta( notaVenta )
+    }
+  }
+
+
+  static void saveJbSobre( String bill ) {
+    JbSobres jbSobre = new JbSobres();
+    List<JbRotos> lstRotos = JbQuery.buscaJbRotosDetPendientes( bill )
+    Collections.sort(lstRotos, new Comparator<JbRotos>() {
+        @Override
+        int compare(JbRotos o1, JbRotos o2) {
+            return o1.numRoto.compareTo(o2.numRoto)
+        }
+    })
+    JbRotos jbRoto = lstRotos.last()
+    Integer idRoto = jbRoto.getIdRoto();
+    jbSobre.setFolioSobre( idRoto.toString());
+    jbSobre.setArea("ROTO ARMAZON");
+    jbSobre.setContenido(jbRoto.getMaterial());
+    jbSobre.setDest("ROTO ARMAZON");
+    jbSobre.setFecha( new Timestamp( new Date().getTime() ) );
+    jbSobre.setIdMod( "0" );
+    jbSobre.setEmp("ROTO");
+    jbSobre.setIdViaje("1")
+    jbSobre.rx = ""
+    JbQuery.saveJbSobres( jbSobre );
+  }
+
+
+  static void printRoto( JbRotos jbRotos ) {
+    JbSobres jbSobre = JbQuery.buscaUltimoSobre()
+    ticketService.imprimeRoto(jbRotos,jbSobre.idSobre)
+  }
+
+  static Boolean isChildSafe( String type ){
+    Boolean itIs = false
+    String secondChar = ""
+    if( StringUtils.trimToEmpty(type).length() > 1 ){
+      secondChar = type.substring(1,2)
+    }
+    if( StringUtils.trimToEmpty(type).startsWith(TAG_SUBTIPO_NINO) && secondChar.isNumber() ){
+      itIs = true
+    }
+    return itIs
   }
 
 

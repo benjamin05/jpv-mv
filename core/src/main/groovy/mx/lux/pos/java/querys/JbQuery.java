@@ -744,4 +744,18 @@ public class JbQuery {
       }
         return lstJb;
     }
+
+
+    public static void saveJbRotos (JbRotos jbRotos ) {
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      String formatDate = "yyyy-MM-dd";
+      String sql = String.format("INSERT INTO jb_rotos (rx,tipo,material,causa,emp,num_roto,alta,fecha_prom,llamada,fecha,id_mod) " +
+              "VALUES('%s','%s','%s','%s','%s',%d,%s,%s,%s,%s,'%s');",jbRotos.getRx(),jbRotos.getTipo(),jbRotos.getMaterial(),
+              jbRotos.getCausa(),jbRotos.getEmp(),jbRotos.getNumRoto(),Utilities.toBoolean(jbRotos.getAlta()),
+              Utilities.toString(jbRotos.getFecha(), formatDate), Utilities.toBoolean(jbRotos.getLlamada()),
+              Utilities.toString(jbRotos.getFecha(), formatTimeStamp), jbRotos.getIdMod());
+        Connections db = new Connections();
+        db.updateQuery(sql);
+        db.close();
+    }
 }
