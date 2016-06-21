@@ -263,6 +263,8 @@ public class PopUpMenu extends JFrame implements TableModelListener {
                 if( StringUtils.trimToEmpty(dialogService.rx).length() > 0 ){
                   OrderServiceContactDialog dialogContact = new OrderServiceContactDialog( dialog.customer,StringUtils.trimToEmpty(dialogService.rx) )
                   dialogContact.show()
+                  oSPanel.lstServiceOrders.clear()
+                  oSPanel.lstServiceOrders = OrderController.findJbServicerOrders( )
                   oSPanel.doBindings()
                 }
               }
@@ -286,6 +288,8 @@ public class PopUpMenu extends JFrame implements TableModelListener {
             public void actionPerformed(ActionEvent e) {
               DeliverOrdenServiceDialog dialog = new DeliverOrdenServiceDialog( rx )
               dialog.show()
+              oSPanel.lstServiceOrders.clear()
+              oSPanel.lstServiceOrders = OrderController.findJbServicerOrders( )
               oSPanel.doBindings()
             }
         })

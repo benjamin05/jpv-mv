@@ -3938,6 +3938,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
   static List<JbJava> jbBySend( ) {
     List<JbJava> lstJb = JbQuery.buscarJbPorEstados( "PE", "RPE" )
+
     return lstJb
   }
 

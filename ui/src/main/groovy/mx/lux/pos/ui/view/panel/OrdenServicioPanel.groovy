@@ -10,6 +10,7 @@ import mx.lux.pos.ui.controller.OrderController
 import mx.lux.pos.ui.model.Customer
 import mx.lux.pos.ui.model.Invoice
 import mx.lux.pos.ui.model.Order
+import mx.lux.pos.ui.model.UpperCaseDocument
 import mx.lux.pos.ui.resources.UI_Standards
 import mx.lux.pos.ui.view.dialog.ConsultCustomerDialog
 import mx.lux.pos.ui.view.dialog.PopUpMenu
@@ -51,6 +52,7 @@ class OrdenServicioPanel extends JPanel{
   OrdenServicioPanel( ) {
     sb = new SwingBuilder()
     buildUI()
+    lstServiceOrders = OrderController.findJbServicerOrders( )
     doBindings()
   }
 
@@ -58,9 +60,9 @@ class OrdenServicioPanel extends JPanel{
     sb.panel( this, layout: new MigLayout('wrap ', '[fill,grow]', '[fill]') ) {
       panel( border: titledBorder(title: 'Busqueda'), layout: new MigLayout( 'center,wrap 5', '[fill][fill,grow][fill][fill,grow][fill,grow]' ) ) {
           label( 'Orden' )
-          txtOrden = textField( )
+          txtOrden = textField( document: new UpperCaseDocument() )
           label( 'Cliente' )
-          txtCliente = textField( )
+          txtCliente = textField( document: new UpperCaseDocument() )
           button( 'Buscar', actionPerformed: doSearchRx, maximumSize: UI_Standards.BUTTON_SIZE, constraints: 'span2' )
       }
       panel( layout: new MigLayout( 'wrap ', '[fill,grow]', '[]' ) ) {
@@ -79,7 +81,7 @@ class OrdenServicioPanel extends JPanel{
   }
 
   public void doBindings( ) {
-    lstServiceOrders = OrderController.findJbServicerOrders( )
+    //lstServiceOrders = OrderController.findJbServicerOrders( )
     receiveModel.rowsModel.setValue(lstServiceOrders)
     receiveModel.fireTableDataChanged()
   }
@@ -89,50 +91,34 @@ class OrdenServicioPanel extends JPanel{
     JButton source = ev.source as JButton
     source.enabled = false
     lstRotos.clear()
-    if( StringUtils.trimToEmpty(txtRx.text).length() > 0 && StringUtils.trimToEmpty(txtCliente.text).length() > 0 ){
-      List<JbJava> lstReceivedTmp = new ArrayList<>()
-      lstReceived.clear()
-      lstReceived.addAll(OrderController.findJbRotos())
-      for(JbJava jb : lstReceived){
-        if( StringUtils.trimToEmpty(txtRx.text).equalsIgnoreCase(StringUtils.trimToEmpty(jb.rx)) &&
+    if( StringUtils.trimToEmpty(txtOrden.text).length() > 0 && StringUtils.trimToEmpty(txtCliente.text).length() > 0 ){
+      lstServiceOrders.clear()
+      List<JbJava> lstServiceOrdersTmp = OrderController.findJbServicerOrders( )
+      for( JbJava jb : lstServiceOrdersTmp ){
+        if( StringUtils.trimToEmpty(txtOrden.text).equalsIgnoreCase(StringUtils.trimToEmpty(jb.rx)) &&
                 StringUtils.trimToEmpty(jb.cliente).contains(StringUtils.trimToEmpty(txtCliente.text.toUpperCase())) ){
-          lstReceivedTmp.add(jb)
+          lstServiceOrders.add(jb)
         }
       }
-      lstReceived.clear()
-      lstReceived.addAll(lstReceivedTmp)
-      receiveModel.rowsModel.setValue(lstReceived)
-      receiveModel.fireTableDataChanged()
-    } else if( StringUtils.trimToEmpty(txtRx.text).length() > 0 ){
-      List<JbJava> lstReceivedTmp = new ArrayList<>()
-      lstReceived.clear()
-      lstReceived.addAll(OrderController.findJbRotos())
-      for(JbJava jb : lstReceived){
-        if( StringUtils.trimToEmpty(txtRx.text).equalsIgnoreCase(StringUtils.trimToEmpty(jb.rx)) ){
-          lstReceivedTmp.add(jb)
+    } else if( StringUtils.trimToEmpty(txtOrden.text).length() > 0 ){
+      lstServiceOrders.clear()
+      List<JbJava> lstServiceOrdersTmp = OrderController.findJbServicerOrders( )
+      for( JbJava jb : lstServiceOrdersTmp ){
+        if( StringUtils.trimToEmpty(jb.rx).equals(StringUtils.trimToEmpty(txtOrden.text)) ){
+          lstServiceOrders.add(jb)
         }
       }
-      lstReceived.clear()
-      lstReceived.addAll(lstReceivedTmp)
-      receiveModel.rowsModel.setValue(lstReceived)
-      receiveModel.fireTableDataChanged()
     } else if(StringUtils.trimToEmpty(txtCliente.text).length() > 0) {
-      List<JbJava> lstReceivedTmp = new ArrayList<>()
-      lstReceived.clear()
-      lstReceived.addAll(OrderController.findJbRotos())
-      for(JbJava jb : lstReceived){
-        if( StringUtils.trimToEmpty(jb.cliente).contains(StringUtils.trimToEmpty(txtCliente.text.toUpperCase())) ){
-          lstReceivedTmp.add(jb)
+      lstServiceOrders.clear()
+      List<JbJava> lstServiceOrdersTmp = OrderController.findJbServicerOrders( )
+      for( JbJava jb : lstServiceOrdersTmp ){
+        if( StringUtils.trimToEmpty(jb.cliente).contains(StringUtils.trimToEmpty(txtCliente.text)) ){
+          lstServiceOrders.add(jb)
         }
       }
-      lstReceived.clear()
-      lstReceived.addAll(lstReceivedTmp)
-      receiveModel.rowsModel.setValue(lstReceived)
-      receiveModel.fireTableDataChanged()
     } else {
-      lstReceived = OrderController.findJbRotos()
-      receiveModel.rowsModel.setValue(lstReceived)
-      receiveModel.fireTableDataChanged()
+      lstServiceOrders.clear()
+      lstServiceOrders = OrderController.findJbServicerOrders( )
     }
     doBindings()
     source.enabled = true
