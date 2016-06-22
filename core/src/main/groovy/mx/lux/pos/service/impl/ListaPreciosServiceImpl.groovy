@@ -307,7 +307,7 @@ class ListaPreciosServiceImpl implements ListaPreciosService {
       log.debug( "Obteniendo listas de precios pendientes" )
       QListaPrecios lista = QListaPrecios.listaPrecios
       List<ListaPrecios> lstListaPrecios = listaPreciosRepository.findAll( lista.tipoCarga.isEmpty().or(lista.tipoCarga.isNull()).
-              and(lista.fechaCarga.isNull()) )
+              and(lista.fechaCarga.isNull()) ) as List<ListaPrecios>
       log.debug( "Numero de listas pendientes: ${lstListaPrecios.size()}" )
 
       return lstListaPrecios.size()

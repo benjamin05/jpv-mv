@@ -93,7 +93,7 @@ class OrdenServicioPanel extends JPanel{
     lstRotos.clear()
     if( StringUtils.trimToEmpty(txtOrden.text).length() > 0 && StringUtils.trimToEmpty(txtCliente.text).length() > 0 ){
       lstServiceOrders.clear()
-      List<JbJava> lstServiceOrdersTmp = OrderController.findJbServicerOrders( )
+      List<JbJava> lstServiceOrdersTmp = OrderController.findJbAllServicerOrders()
       for( JbJava jb : lstServiceOrdersTmp ){
         if( StringUtils.trimToEmpty(txtOrden.text).equalsIgnoreCase(StringUtils.trimToEmpty(jb.rx)) &&
                 StringUtils.trimToEmpty(jb.cliente).contains(StringUtils.trimToEmpty(txtCliente.text.toUpperCase())) ){
@@ -102,7 +102,7 @@ class OrdenServicioPanel extends JPanel{
       }
     } else if( StringUtils.trimToEmpty(txtOrden.text).length() > 0 ){
       lstServiceOrders.clear()
-      List<JbJava> lstServiceOrdersTmp = OrderController.findJbServicerOrders( )
+      List<JbJava> lstServiceOrdersTmp = OrderController.findJbAllServicerOrders( )
       for( JbJava jb : lstServiceOrdersTmp ){
         if( StringUtils.trimToEmpty(jb.rx).equals(StringUtils.trimToEmpty(txtOrden.text)) ){
           lstServiceOrders.add(jb)
@@ -110,7 +110,7 @@ class OrdenServicioPanel extends JPanel{
       }
     } else if(StringUtils.trimToEmpty(txtCliente.text).length() > 0) {
       lstServiceOrders.clear()
-      List<JbJava> lstServiceOrdersTmp = OrderController.findJbServicerOrders( )
+      List<JbJava> lstServiceOrdersTmp = OrderController.findJbAllServicerOrders( )
       for( JbJava jb : lstServiceOrdersTmp ){
         if( StringUtils.trimToEmpty(jb.cliente).contains(StringUtils.trimToEmpty(txtCliente.text)) ){
           lstServiceOrders.add(jb)

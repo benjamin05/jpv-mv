@@ -4421,6 +4421,12 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     return lstJbTmp
   }
 
+
+  static List<JbJava> findJbAllServicerOrders( ){
+    List<JbJava> lstJbTmp = JbQuery.buscaJbTodoOrdenesServicio( )
+    return lstJbTmp
+  }
+
   static List<JbServiciosJava> findJbServices( ){
     List<JbServiciosJava> lstServices = new ArrayList<>()
     lstServices.add( new JbServiciosJava() )

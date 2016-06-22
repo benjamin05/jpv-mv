@@ -778,6 +778,31 @@ public class JbQuery {
     }
 
 
+
+    public static List<JbJava> buscaJbTodoOrdenesServicio( ){
+      List<JbJava> lstJb = new ArrayList<JbJava>();
+      JbJava jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "SELECT * FROM jb WHERE rx like 'S%';";
+        rs = stmt.executeQuery(sql);
+        con.close();
+        if( rs != null ){
+          while (rs.next()) {
+            jbJava = new JbJava();
+            jbJava = jbJava.setValores( rs );
+            lstJb.add(jbJava);
+          }
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJb;
+    }
+
+
+
     public static List<JbServiciosJava> buscaJbServicios( ){
       List<JbServiciosJava> lstJb = new ArrayList<JbServiciosJava>();
       JbServiciosJava jbJava = null;
