@@ -587,6 +587,7 @@ class InvTrController {
         if(valid){
             if( partList.first().cantExistencia <= 0 && pView.data.viewMode.trType.tipoMov.trim().equalsIgnoreCase('S') ){
               if( pView.data.viewMode.equals(InvTrViewMode.ISSUE)){
+                JOptionPane.showMessageDialog( null, "Articulo sin existencia.","Error", JOptionPane.ERROR_MESSAGE )
                 pView.panel.stock = false
               } else {
                 Integer question =JOptionPane.showConfirmDialog( new JDialog(), pView.panel.MSG_NO_STOCK, pView.panel.TXT_NO_STOCK,
@@ -646,6 +647,7 @@ class InvTrController {
           if( valid ){
               if( selection.first().cantExistencia <= 0 && pView.data.viewMode.trType.tipoMov.trim().equalsIgnoreCase('S') ){
                 if( pView.data.viewMode.equals(InvTrViewMode.ISSUE) ){
+                  JOptionPane.showMessageDialog( null, "Articulo sin existencia.","Error", JOptionPane.ERROR_MESSAGE )
                   pView.panel.stock = false
                 } else {
                   Integer question =JOptionPane.showConfirmDialog( new JDialog(), pView.panel.MSG_NO_STOCK, pView.panel.TXT_NO_STOCK,
