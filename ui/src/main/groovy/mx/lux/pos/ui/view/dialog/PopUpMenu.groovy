@@ -63,6 +63,7 @@ public class PopUpMenu extends JFrame implements TableModelListener {
     private JMenuItem itemNewServiceOrder;
     private JMenuItem itemPrintServiceOrder;
     private JMenuItem itemDeliverServiceOrder;
+    private JMenuItem itemBodServiceOrder;
     private JMenuItem itemDesretener;
     private EnvioPanel sendPanel;
     private OrdenServicioPanel oSPanel;
@@ -87,6 +88,7 @@ public class PopUpMenu extends JFrame implements TableModelListener {
         itemNewServiceOrder = new JMenuItem("Nueva Orden");
         itemPrintServiceOrder = new JMenuItem("Imprimir");
         itemDeliverServiceOrder = new JMenuItem("Entregar")
+        itemBodServiceOrder = new JMenuItem("Bodega")
         //itemInfoPino = new JMenuItem("Info Laboratorio");
         //itemRetener = new JMenuItem("Retener");
         //itemDesretener = new JMenuItem("Desretener");
@@ -101,6 +103,7 @@ public class PopUpMenu extends JFrame implements TableModelListener {
         pMenu.add(itemNewServiceOrder)
         pMenu.add(itemPrintServiceOrder)
         pMenu.add(itemDeliverServiceOrder)
+        pMenu.add(itemBodServiceOrder)
 
         //pMenu.add(itemInfoPino);
         //pMenu.add( itemRetener );
@@ -109,6 +112,7 @@ public class PopUpMenu extends JFrame implements TableModelListener {
         itemNewServiceOrder.visible = false
         itemPrintServiceOrder.visible = false
         itemDeliverServiceOrder.visible = false
+        itemBodServiceOrder.visible = false
         String[] data = StringUtils.trimToEmpty(panel).split(",")
         if( StringUtils.trimToEmpty(data[0]).equalsIgnoreCase(TAG_PANEL_CONSULTA) ){
           itemNotSend.visible = false
@@ -145,8 +149,23 @@ public class PopUpMenu extends JFrame implements TableModelListener {
             itemPrintServiceOrder.visible = false
             itemDeliverServiceOrder.visible = false
           } else {
+            JbJava jb = OrderController.findJbByRx( rx )
+            if( jb != null && StringUtils.trimToEmpty(jb.estado).equals("TE") ){
+              itemNewReplacement.visible = false;
+              itemRxData.visible = false;
+              itemCustomerData.visible = false;
+              itemReschedule.visible = false;
+              itemStopCall.visible = false;
+              itemNotSend.visible = false;
+              itemSend.visible = false;
+              itemDeliverServiceOrder.visible = false
+            } else if( jb != null && StringUtils.trimToEmpty(jb.estado).equals("RS") ){
+              itemBodServiceOrder.visible = true
+              itemDeliverServiceOrder.visible = true
+            } else {
+              itemDeliverServiceOrder.visible = true
+            }
             itemPrintServiceOrder.visible = true
-            itemDeliverServiceOrder.visible = true
           }
         }
 	    pMenu.show(component, x, y);
@@ -199,6 +218,9 @@ public class PopUpMenu extends JFrame implements TableModelListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Customer customer = CustomerController.findCustomerByBill( rx )
+                if( customer == null ){
+                  customer = Customer.toCustomer(CustomerController.buscaClientePorRx( rx ))
+                }
                 if( customer != null && customer.id != null ){
                   ConsultCustomerDialog dialog = new ConsultCustomerDialog( component, customer, false )
                   dialog.show()
@@ -291,6 +313,17 @@ public class PopUpMenu extends JFrame implements TableModelListener {
               oSPanel.lstServiceOrders.clear()
               oSPanel.lstServiceOrders = OrderController.findJbServicerOrders( )
               oSPanel.doBindings()
+            }
+        })
+
+        itemBodServiceOrder.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              Integer question = JOptionPane.showConfirmDialog(new JDialog(), "¿Desea enviar el trabajo a bodega?", "Bodega",
+                      JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE)
+              if (question == 0) {
+                OrderController.sendBodOrderService( StringUtils.trimToEmpty(rx) )
+              }
             }
         })
         /*itemRetener.addActionListener(new ActionListener() {

@@ -1,11 +1,13 @@
 package mx.lux.pos.ui.view.dialog
 
 import groovy.swing.SwingBuilder
+import mx.lux.pos.java.repository.ClientesJava
 import mx.lux.pos.java.repository.FormaContactoJava
 import mx.lux.pos.java.repository.NotaVentaJava
 import mx.lux.pos.service.business.Registry
 import mx.lux.pos.ui.controller.ContactController
 import mx.lux.pos.ui.controller.CustomerController
+import mx.lux.pos.ui.model.Contact
 import mx.lux.pos.ui.model.Customer
 import mx.lux.pos.ui.model.UpperCaseDocument
 import net.miginfocom.swing.MigLayout
@@ -116,6 +118,20 @@ class OrderServiceContactDialog extends JDialog {
                 correo.setVisible(false)
                 arroba.setVisible(false)
                 dominio.setVisible(false)
+
+                ClientesJava cliente = CustomerController.buscaClientePorRx(StringUtils.trimToEmpty(rx))
+                if(StringUtils.trimToEmpty(typeName).equals('CORREO')){
+                  infoTipo.text = StringUtils.trimToEmpty(cliente.emailCli)
+                } else if (StringUtils.trimToEmpty(typeName).equals('RECADOS')){
+                  infoTipo.text = StringUtils.trimToEmpty(cliente.telTrabCli)
+                } else if (StringUtils.trimToEmpty(typeName).equals('TELEFONO')){
+                  infoTipo.text = StringUtils.trimToEmpty(cliente.telCasaCli)
+                } else if (StringUtils.trimToEmpty(typeName).equals('SMS')){
+                  infoTipo.text = StringUtils.trimToEmpty(cliente.telAdiCli)
+                }
+
+
+
             }else{
                 infoTipo.setVisible(false)
                 correo.setVisible(true)

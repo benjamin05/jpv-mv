@@ -932,6 +932,7 @@ public class NotaVentaServiceJava {
       JbQuery.eliminaJbLLamada( StringUtils.trimToEmpty(rx) );
 
       jb.setVolverLlamar( fechaLLamar );
+      jb.setNumLlamada( jb.getNumLlamada()+1 );
       JbQuery.updateJb( jb );
     }
   }

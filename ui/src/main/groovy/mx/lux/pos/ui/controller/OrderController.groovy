@@ -4093,7 +4093,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       JbQuery.saveJbTrack( jbTrack )
 
       JbLlamadaJava jbLlamada = new JbLlamadaJava()
-      jbLlamada.numLlamada = 0
+      jbLlamada.numLlamada = jb.numLlamada
       jbLlamada.rx = StringUtils.trimToEmpty(jb.rx)
       jbLlamada.fecha = new Date()
       jbLlamada.estado = 'PN'
@@ -4487,4 +4487,45 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       }
     }
   }
+
+
+  static void sendBodOrderService( String rx ){
+    JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(rx) )
+    if( jb != null ){
+      jb.estado = 'BD'
+      JbQuery.updateJb( jb )
+
+      User user = Session.get(SessionItem.USER) as User
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+      jbTrack.rx = StringUtils.trimToEmpty(rx)
+      jbTrack.estado = 'BD'
+      jbTrack.obs = "ENVIADO A BODEGA"
+      jbTrack.emp = StringUtils.trimToEmpty(user.username)
+      jbTrack.fecha = new Date()
+      jbTrack.idMod = StringUtils.trimToEmpty(user.username)
+      JbQuery.saveJbTrack( jbTrack )
+    }
+  }
+
+
+
+  static void saveJbLlamadaPend( String bill ) {
+    JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(bill))
+    if( jb != null ){
+      User user = Session.get(SessionItem.USER) as User
+      JbLlamadaJava jbLlamada = new JbLlamadaJava()
+      jbLlamada.numLlamada = jb.numLlamada
+      jbLlamada.rx = StringUtils.trimToEmpty(jb.rx)
+      jbLlamada.fecha = new Date()
+      jbLlamada.estado = 'PN'
+      jbLlamada.empAtendio = StringUtils.trimToEmpty(jb.empAtendio)
+      jbLlamada.tipo = "RETRASADO"
+      jbLlamada.idMod = StringUtils.trimToEmpty(user.username)
+      JbQuery.saveJbLLamada(jbLlamada)
+
+    }
+  }
+
+
+
 }

@@ -225,6 +225,9 @@ class RotosDialog extends JDialog {
       jbRotos.idMod = '0'
       OrderController.saveJbRoto( jbRotos )
       OrderController.updateJbAndNotaVenta( jbRotos.rx, validDate, jbRotos.causa )
+      if( cbYes.selected ){
+        OrderController.saveJbLlamadaPend( jbRotos.rx )
+      }
       if(StringUtils.trimToEmpty(jbRotos.tipo).equalsIgnoreCase("A")){
         OrderController.saveJbSobre( jbRotos.rx )
         OrderController.printRoto( jbRotos )

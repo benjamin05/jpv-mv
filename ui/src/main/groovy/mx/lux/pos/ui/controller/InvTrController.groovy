@@ -586,13 +586,18 @@ class InvTrController {
         }
         if(valid){
             if( partList.first().cantExistencia <= 0 && pView.data.viewMode.trType.tipoMov.trim().equalsIgnoreCase('S') ){
+              if( pView.data.viewMode.equals(InvTrViewMode.ISSUE)){
+                pView.panel.stock = false
+              } else {
                 Integer question =JOptionPane.showConfirmDialog( new JDialog(), pView.panel.MSG_NO_STOCK, pView.panel.TXT_NO_STOCK,
                         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE )
                 if( question == 0){
-                    dispatchPartsSelected( pView, partList )
+                  dispatchPartsSelected( pView, partList )
                 } else {
-                    pView.panel.stock = false
+                  pView.panel.stock = false
                 }
+
+              }
             } else {
                 dispatchPartsSelected( pView, partList )
             }
@@ -640,13 +645,17 @@ class InvTrController {
             }
           if( valid ){
               if( selection.first().cantExistencia <= 0 && pView.data.viewMode.trType.tipoMov.trim().equalsIgnoreCase('S') ){
+                if( pView.data.viewMode.equals(InvTrViewMode.ISSUE) ){
+                  pView.panel.stock = false
+                } else {
                   Integer question =JOptionPane.showConfirmDialog( new JDialog(), pView.panel.MSG_NO_STOCK, pView.panel.TXT_NO_STOCK,
                           JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE )
                   if( question == 0){
-                      dispatchPartsSelected( pView, selection )
+                    dispatchPartsSelected( pView, selection )
                   } else {
-                      pView.panel.stock = false
+                    pView.panel.stock = false
                   }
+                }
               } else {
                   log.debug( String.format( "[Controller] %d Selected, (%d) %s", selection.size(), selection[ 0 ].id, selection[ 0 ].descripcion ) )
                   dispatchPartsSelected( pView, selection )
@@ -1168,22 +1177,22 @@ class InvTrController {
   }
 
 
-    protected void generaAcuseAjusteInventario(InvTrView pView, Integer pInvTr){
-      String filename = String.format( "%d.%d.aja", pInvTr, Registry.currentSite)
-      String absolutePath = String.format( "%s%s%s", Registry.archivePath, File.separator, filename )
-      File file = new File( absolutePath )
-      PrintStream strOut = new PrintStream( file )
+  protected static void generaAcuseAjusteInventario(InvTrView pView, Integer pInvTr){
+    String filename = String.format( "%d.%d.aja", pInvTr, Registry.currentSite)
+    String absolutePath = String.format( "%s%s%s", Registry.archivePath, File.separator, filename )
+    File file = new File( absolutePath )
+    PrintStream strOut = new PrintStream( file )
 
-      StringBuffer sb = new StringBuffer()
-      sb.append( "${StringUtils.trimToEmpty(Registry.currentSite.toString())}|${new Date().format("dd/MM/yyyy")}|${pView.data.skuList.size()}|" +
-              "${StringUtils.trimToEmpty(pInvTr.toString())}|${pView.data.postRemarks}|" )
-      for ( InvTrSku sku : pView.data.skuList ) {
-            sb.append( "\n" )
-            sb.append( "${sku.sku}|${sku.qty}|" )
-      }
-      strOut.println sb.toString()
-      strOut.close()
+    StringBuffer sb = new StringBuffer()
+    sb.append( "${StringUtils.trimToEmpty(Registry.currentSite.toString())}|${new Date().format("dd/MM/yyyy")}|${pView.data.skuList.size()}|0|" +
+              "${StringUtils.trimToEmpty(pInvTr.toString())}|" )
+    for ( InvTrSku sku : pView.data.skuList ) {
+      sb.append( "\n" )
+      sb.append( "${sku.sku}|${sku.qty}|" )
     }
+    strOut.println sb.toString()
+    strOut.close()
+  }
 
 
 }

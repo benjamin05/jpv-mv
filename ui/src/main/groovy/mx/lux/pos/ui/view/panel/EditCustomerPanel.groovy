@@ -390,23 +390,23 @@ class EditCustomerPanel extends JPanel {
             ).createDialog(this, 'No se puede registrar la venta')
                     .show()
         }
-        if( StringUtils.trimToEmpty(txtTelefono.text) != '' ){
+        //if( StringUtils.trimToEmpty(txtTelefono.text) != '' ){
             if( StringUtils.trimToEmpty(txtTelefono.text).length() == 10 ){
 
             } else {
                 String tel = StringUtils.trimToEmpty(txtTelefono.text)
                 tel = tel.toUpperCase()
 
-                if ( ! tel.equals("ND") ) {
+                /*if ( ! tel.equals("ND") ) {
 
                     validData = false
                     sb.optionPane(message: 'El telefono debe tener 10 digitos')
                             .createDialog(txtTelefono, 'Telefono incorrecto')
                             .show()
-                }
+                }*/
             }
-        }
-        if( StringUtils.trimToEmpty(txtSms.text) != '' ){
+        //}
+        //if( StringUtils.trimToEmpty(txtSms.text) != '' ){
             if( StringUtils.trimToEmpty(txtSms.text).length() == 10 ){
 
             } else {
@@ -414,13 +414,13 @@ class EditCustomerPanel extends JPanel {
                 tel = tel.toUpperCase()
 
                 if ( ! tel.equals("ND") ) {
-                    validData = false
+                    /*validData = false
                     sb.optionPane(message: 'El telefono debe tener 10 digitos')
                             .createDialog(txtSms, 'Telefono incorrecto')
-                            .show()
+                            .show()*/
                 }
             }
-        }
+        //}
         if( StringUtils.trimToEmpty(txtBirthDate.text).length() > 0 ){
           Date validDate = null
           SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
@@ -451,15 +451,15 @@ class EditCustomerPanel extends JPanel {
           }
         }
 
-        if ( StringUtils.trimToEmpty(txtEmail.text) != '' ) {
+        //if ( StringUtils.trimToEmpty(txtEmail.text) != '' ) {
             if ( StringUtils.trimToEmpty(txtEmail.text).toUpperCase().equals("ND") ) {
 
             }else{
                 if ( StringUtils.trimToEmpty( dominio?.selectedItem?.toString() ).equals("") ) {
-                    validData = false
+                    //validData = false
                 }
             }
-        }
+        //}
 
         return validData
     }
@@ -523,10 +523,10 @@ class EditCustomerPanel extends JPanel {
                         if (StringUtils.trimToEmpty(txtTelefono.text).length() == 10) {
                             CustomerController.saveContact(customer, 2, StringUtils.trimToEmpty(txtTelefono.text))
                         } else {
-                            validData = false
+                            /*validData = false
                             sb.optionPane(message: 'El telefono debe tener 10 digitos')
                                     .createDialog(txtTelefono, 'Telefono incorrecto')
-                                    .show()
+                                    .show()*/
                         }
                     }
                 }
@@ -539,10 +539,10 @@ class EditCustomerPanel extends JPanel {
                         if (StringUtils.trimToEmpty(txtSms.text).length() == 10) {
                             CustomerController.saveContact(customer, 3, StringUtils.trimToEmpty(txtSms.text))
                         } else {
-                            validData = false
+                           /* validData = false
                             sb.optionPane(message: 'El telefono debe tener 10 digitos')
                                     .createDialog(txtSms, 'Telefono incorrecto')
-                                    .show()
+                                    .show()*/
                         }
                     }
                 }
@@ -811,21 +811,21 @@ class EditCustomerPanel extends JPanel {
 //                completo = false
             }
             if ( showMovil ) {
-                if (txtSms.getText().equals("")) {
+                /*if (txtSms.getText().equals("")) {
                     completo = false
-                }
+                }*/
             }
             if ( showTelefono ) {
-                if (txtTelefono.getText().equals("")) {
+                /*if (txtTelefono.getText().equals("")) {
                     completo = false
-                }
+                }*/
             }
             if ( showCorreo ) {
                 if ( StringUtils.trimToEmpty( txtEmail.getText() ).equals("") || StringUtils.trimToEmpty( dominio.selectedItem?.toString() ).equals("") ) {
                     if ( StringUtils.trimToEmpty( txtEmail.getText() ).toUpperCase().equals("ND") ) {
 
                     }else {
-                        completo = false
+                        //completo = false
                     }
                 }
             }
@@ -835,20 +835,20 @@ class EditCustomerPanel extends JPanel {
                     if ( StringUtils.trimToEmpty( txtEmail.getText() ).toUpperCase().equals("ND") ) {
 
                     }else {
-                        completo = false
+                        //completo = false
                     }
                 }
 //            }
 
 //            if (formaContacto == 3) { // SMS
                 if (txtSms.getText().equals("")) {
-                    completo = false
+                    //completo = false
                 }
 //            }
 
 //            if (formaContacto == 4) { // Telefono
                 if (txtTelefono.getText().equals("")) {
-                    completo = false
+                    //completo = false
                 }
 //            }
 

@@ -241,9 +241,11 @@ public class ConsultaPanel extends JPanel {
 	private JComboBox getCbEstados() {
 		if (cbEstados == null) {
 			cbEstados = new JComboBox();
-			List<JbEstadosGrupo> lstEstados = JbQuery.listaJbEstadosGrupo();
+			List<JbEstadosGrupo> lstEstados = new ArrayList<>();
+            lstEstados.add(new JbEstadosGrupo())
+            lstEstados.addAll(JbQuery.listaJbEstadosGrupo());
 			List<String> lstDescripcion = new ArrayList<String>();
-			lstEstados.set(0, new JbEstadosGrupo());
+			//lstEstados.set(0, new JbEstadosGrupo());
 			for(JbEstadosGrupo edos : lstEstados){
 				lstDescripcion.add(edos.getDescripcionGrupo());
 			}
