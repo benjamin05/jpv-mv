@@ -767,9 +767,6 @@ class InvTrController {
 
   void requestSaveAndPrint( InvTrView pView ) {
     log.debug( "[Controller] Save and Print" )
-    /*if(pView.panel.){
-
-    }*/
     InvTrRequest request = RequestAdapter.getRequest( pView.data )
     Boolean value = false
     if( TAG_SALIDA_TIENDA.equalsIgnoreCase(StringUtils.trimToEmpty(request?.trType)) ){
@@ -827,7 +824,15 @@ class InvTrController {
             String resultado = confirmaEntrada(viewMode, pView)
           }
           if( InvTrViewMode.ADJUST.equals( viewMode ) ){
-            generaAcuseAjusteInventario( pView, trNbr )
+            Boolean generatedAcuse = true
+            for(InvTrSku sku : pView.data.skuList){
+              if( StringUtils.trimToEmpty(sku.part.idGenerico).equalsIgnoreCase("E") ){
+                generatedAcuse = false
+              }
+            }
+            if( generatedAcuse ){
+              generaAcuseAjusteInventario( pView, trNbr )
+            }
           }
           if( ServiceManager.getInventoryService().isReceiptDuplicate() ){
             dispatchPrintTransaction( viewMode.trType.idTipoTrans, trNbr )
