@@ -14,7 +14,9 @@ import mx.lux.pos.java.repository.DoctoInvJava
 import mx.lux.pos.java.repository.EmpleadoJava
 import mx.lux.pos.java.repository.JbDev
 import mx.lux.pos.java.repository.JbJava
+import mx.lux.pos.java.repository.JbNotasJava
 import mx.lux.pos.java.repository.JbRotos
+import mx.lux.pos.java.repository.JbServiciosJava
 import mx.lux.pos.java.repository.JbSobres
 import mx.lux.pos.java.repository.JbViaje
 import mx.lux.pos.java.repository.NotaVentaJava
@@ -3398,6 +3400,41 @@ class TicketServiceImpl implements TicketService {
       responsable: empleado != null ? empleado.nombreEmpleado : ""
     ]
     this.imprimeTicket( 'template/ticket-roto.vm', datos )
+  }
+
+
+  @Override
+  void imprimeJbNota(JbNotasJava jbNotas){
+    Sucursal sucursal = sucursalRepository.findOne( Registry.currentSite )
+    String idSuc = StringUtils.trimToEmpty(sucursal.id.toString())
+    String idNota = StringUtils.trimToEmpty(String.format( '%05d', jbNotas.idNota))
+    String barcode = "S"+idSuc+idNota
+    String idServicio = ""
+    List<JbServiciosJava> lstServicios = JbQuery.buscaJbServicios()
+    for(JbServiciosJava jbServicio : lstServicios){
+      if( StringUtils.trimToEmpty(jbServicio.servicio).equalsIgnoreCase(StringUtils.trimToEmpty(jbNotas.servicio)) ){
+        idServicio = StringUtils.trimToEmpty(jbServicio.idServicio.toString())
+      }
+    }
+    Empleado empleado = empleadoRepository.findById( StringUtils.trimToEmpty(jbNotas.emp) )
+    Integer idCliente = 0
+    try{
+      idCliente = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(jbNotas.idCliente))
+    } catch ( ParseException e ){
+      println e.message
+    }
+    Cliente cliente = clienteRepository.findOne( idCliente )
+    def datos = [
+      date: new Date().format("dd-MM-yyyy"),
+      barcode: barcode,
+      idServicio: idServicio,
+      sucursal: sucursal,
+      emp: empleado != null ? empleado.nombreCompleto : "",
+      cliente: cliente != null ? cliente : new Cliente(),
+      nota: jbNotas,
+      fechaProm: jbNotas.fechaProm.format("dd-MM-yyyy")
+    ]
+    this.imprimeTicket( 'template/ticket-jb-nota.vm', datos )
   }
 
 

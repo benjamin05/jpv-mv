@@ -29,7 +29,9 @@ import mx.lux.pos.java.repository.ExamenJava
 import mx.lux.pos.java.repository.FormaContactoJava
 import mx.lux.pos.java.repository.JbJava
 import mx.lux.pos.java.repository.JbLlamadaJava
+import mx.lux.pos.java.repository.JbNotasJava
 import mx.lux.pos.java.repository.JbRotos
+import mx.lux.pos.java.repository.JbServiciosJava
 import mx.lux.pos.java.repository.JbSobres
 import mx.lux.pos.java.repository.JbViaje
 import mx.lux.pos.java.repository.NotaVentaJava
@@ -88,6 +90,7 @@ import org.springframework.stereotype.Component
 import javax.swing.*
 import java.sql.Timestamp
 import java.text.NumberFormat
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -3935,6 +3938,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
 
   static List<JbJava> jbBySend( ) {
     List<JbJava> lstJb = JbQuery.buscarJbPorEstados( "PE", "RPE" )
+
     return lstJb
   }
 
@@ -4089,7 +4093,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       JbQuery.saveJbTrack( jbTrack )
 
       JbLlamadaJava jbLlamada = new JbLlamadaJava()
-      jbLlamada.numLlamada = 0
+      jbLlamada.numLlamada = jb.numLlamada
       jbLlamada.rx = StringUtils.trimToEmpty(jb.rx)
       jbLlamada.fecha = new Date()
       jbLlamada.estado = 'PN'
@@ -4289,7 +4293,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(bill) )
       if( jb == null ){
         notaventa = null
-      } else if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("TE") || StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("CN") ){
+      } else if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("CN") ){
         notaventa = null
       }
     }
@@ -4318,8 +4322,12 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
-  static void updateJbAndNotaVenta( String bill, Date fechaProm ) {
+  static void updateJbAndNotaVenta( String bill, Date fechaProm, String causa ) {
     JbJava jb = JbQuery.buscarPorRx( bill )
+    Boolean desentregar = false
+    if( StringUtils.trimToEmpty(jb?.estado).equalsIgnoreCase("TE") ){
+      desentregar = true
+    }
     if ( jb.getVolverLlamar() != null ) {
       jb.setVolverLlamar( null );
     }
@@ -4331,9 +4339,35 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     jb.setFechaPromesa( fechaProm );
     jb.estado = "RPE"
     JbQuery.updateJb( jb )
+    User user = (User)Session.get( SessionItem.USER );
+    mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+    jbTrack.rx = StringUtils.trimToEmpty(jb.rx)
+    jbTrack.estado = "RPE"
+    jbTrack.obs = causa
+    jbTrack.emp = StringUtils.trimToEmpty(user.username)
+    jbTrack.idViaje = ""
+    jbTrack.fecha = new Date()
+    jbTrack.idMod = "0"
+    jbTrack.idJbTrack = ""
+    JbQuery.saveJbTrack( jbTrack )
+    if( desentregar ){
+      mx.lux.pos.java.repository.JbTrack jbTrackDpr = new mx.lux.pos.java.repository.JbTrack()
+      jbTrackDpr.rx = StringUtils.trimToEmpty(jb.rx)
+      jbTrackDpr.estado = "DPR"
+      jbTrackDpr.obs = causa
+      jbTrackDpr.emp = StringUtils.trimToEmpty(user.username)
+      jbTrackDpr.idViaje = ""
+      jbTrackDpr.fecha = new Date()
+      jbTrackDpr.idMod = "0"
+      jbTrackDpr.idJbTrack = ""
+      JbQuery.saveJbTrack( jbTrackDpr )
+    }
     NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( bill );
     if ( notaVenta != null ) {
       notaVenta.fechaPrometida = fechaProm;
+      if( desentregar ){
+        notaVenta.fechaEntrega = null
+      }
       NotaVentaQuery.updateNotaVenta( notaVenta )
     }
   }
@@ -4379,6 +4413,119 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     }
     return itIs
   }
+
+
+
+  static List<JbJava> findJbServicerOrders( ){
+    List<JbJava> lstJbTmp = JbQuery.buscaJbOrdenesServicio( )
+    return lstJbTmp
+  }
+
+
+  static List<JbJava> findJbAllServicerOrders( ){
+    List<JbJava> lstJbTmp = JbQuery.buscaJbTodoOrdenesServicio( )
+    return lstJbTmp
+  }
+
+  static List<JbServiciosJava> findJbServices( ){
+    List<JbServiciosJava> lstServices = new ArrayList<>()
+    lstServices.add( new JbServiciosJava() )
+    lstServices.addAll( JbQuery.buscaJbServicios( ) )
+    return lstServices
+  }
+
+
+  static Integer idJbNota( ){
+    return JbQuery.buscaNextFolioJbNotas( )
+  }
+
+
+  static void saveJbs( JbNotasJava jbNota, JbJava jb, mx.lux.pos.java.repository.JbTrack jbTrack ){
+    JbQuery.saveJbNotas( jbNota )
+    JbQuery.saveJb( jb )
+    JbQuery.saveJbTrack( jbTrack )
+  }
+
+
+
+  static JbNotasJava findJbNotaByRx(String rx) {
+    Integer idNota = 0
+    String id = StringUtils.trimToEmpty(rx.replaceFirst("S",""))
+    try{
+      idNota = NumberFormat.getInstance().parse( id )
+    } catch ( ParseException e ){
+      println e.message
+    }
+    return JbQuery.buscarJbNotaPorIdNota( idNota )
+  }
+
+
+  static void printJbNota(JbNotasJava jbNotas) {
+    ticketService.imprimeJbNota(jbNotas)
+  }
+
+
+  static void deliverOrderService( String rx, String obs ){
+    JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(rx) )
+    if( jb != null ){
+      jb.estado = 'TE'
+      JbQuery.updateJb( jb )
+
+      User user = Session.get(SessionItem.USER) as User
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+      jbTrack.rx = StringUtils.trimToEmpty(rx)
+      jbTrack.estado = 'TE'
+      jbTrack.obs = StringUtils.trimToEmpty(obs)
+      jbTrack.emp = StringUtils.trimToEmpty(user.username)
+      jbTrack.fecha = new Date()
+      jbTrack.idMod = '0'
+      JbQuery.saveJbTrack( jbTrack )
+
+      JbLlamadaJava jbLlamada = JbQuery.buscaJbLlamadaPorIdGrupo( StringUtils.trimToEmpty(rx) )
+      if(jbLlamada != null ){
+        JbQuery.eliminaJbLLamada(jbLlamada.rx)
+      }
+    }
+  }
+
+
+  static void sendBodOrderService( String rx ){
+    JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(rx) )
+    if( jb != null ){
+      jb.estado = 'BD'
+      JbQuery.updateJb( jb )
+
+      User user = Session.get(SessionItem.USER) as User
+      mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+      jbTrack.rx = StringUtils.trimToEmpty(rx)
+      jbTrack.estado = 'BD'
+      jbTrack.obs = "ENVIADO A BODEGA"
+      jbTrack.emp = StringUtils.trimToEmpty(user.username)
+      jbTrack.fecha = new Date()
+      jbTrack.idMod = StringUtils.trimToEmpty(user.username)
+      JbQuery.saveJbTrack( jbTrack )
+    }
+  }
+
+
+
+  static void saveJbLlamadaPend( String bill ) {
+    JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(bill))
+    if( jb != null ){
+      User user = Session.get(SessionItem.USER) as User
+      JbLlamadaJava jbLlamada = new JbLlamadaJava()
+      jbLlamada.numLlamada = jb.numLlamada
+      jbLlamada.rx = StringUtils.trimToEmpty(jb.rx)
+      jbLlamada.fecha = new Date()
+      jbLlamada.estado = 'PN'
+      jbLlamada.empAtendio = StringUtils.trimToEmpty(jb.empAtendio)
+      jbLlamada.tipo = "RETRASADO"
+      jbLlamada.idMod = StringUtils.trimToEmpty(user.username)
+      JbQuery.saveJbLLamada(jbLlamada)
+
+    }
+  }
+
 
 
 }

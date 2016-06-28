@@ -100,7 +100,7 @@ class EnvioPanel extends JPanel{
         scrollPane( ) {
           sendTable = table(selectionMode: ListSelectionModel.SINGLE_SELECTION, mouseClicked: doShowItemClickSend) {
             bySendModel = tableModel(list: lstBySend) {
-              closureColumn( header: 'Enviar', read: {JbJava tmp -> tmp?.rx}, preferredWidth: 200)
+              closureColumn( header: 'Enviar', read: {JbJava tmp -> "${StringUtils.trimToEmpty(tmp?.estado).startsWith("R") ? "R": ""}${tmp?.rx}"}, preferredWidth: 200)
             } as DefaultTableModel
           }
         }

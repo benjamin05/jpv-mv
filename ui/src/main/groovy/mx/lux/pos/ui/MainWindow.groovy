@@ -61,6 +61,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JPanel priceListPanel
     private JPanel invoicePanel
     private JPanel reposicionPanel
+    private JPanel serviceOrderPanel
     private JPanel rotosPanel
     private JToolBar infoBar
     Boolean openSoi
@@ -140,6 +141,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem envioMenuItem
     private JMenuItem recepcionMenuItem
     private JMenuItem repocisionMenuItem
+    private JMenuItem serviceOrderMenuItem
     private JMenuItem rotosMenuItem
     private JMenuItem contactosMenuItem
     private PromotionService promotionService
@@ -686,6 +688,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 contactosMenuItem.visible = userLoggedIn
                                 sobresMenuItem.visible = userLoggedIn
                                 repocisionMenuItem.visible = userLoggedIn
+                                serviceOrderMenuItem.visible = userLoggedIn
                                 rotosMenuItem.visible = userLoggedIn
                             },
                             visible: Registry.showJobsControl()
@@ -772,6 +775,21 @@ class MainWindow extends JFrame implements KeyListener {
                                         clean( reposicionPanel )
                                         mainPanel.add( 'reposicionPanel', reposicionPanel )
                                         mainPanel.layout.show( mainPanel, 'reposicionPanel' )
+                                    }
+                                    mainPanel.layout.show( mainPanel, 'reposicionPanel' )
+                                }
+                        )
+                        serviceOrderMenuItem = menuItem( text: 'Orden de Servicio',
+                                visible: true,
+                                actionPerformed: {
+                                    clean( serviceOrderPanel )
+                                    if( serviceOrderPanel == null ){
+                                        mainPanel.remove( serviceOrderPanel )
+                                        serviceOrderPanel = null
+                                        serviceOrderPanel = new OrdenServicioPanel()
+                                        clean( serviceOrderPanel )
+                                        mainPanel.add( 'serviceOrderPanel', serviceOrderPanel )
+                                        mainPanel.layout.show( mainPanel, 'serviceOrderPanel' )
                                     }
                                     mainPanel.layout.show( mainPanel, 'reposicionPanel' )
                                 }
@@ -1135,6 +1153,11 @@ class MainWindow extends JFrame implements KeyListener {
         mainPanel.remove( reposicionPanel )
         reposicionPanel.finalize()
         reposicionPanel = null
+      }
+      if( !panelSelected.equals(serviceOrderPanel) ){
+        mainPanel.remove( serviceOrderPanel )
+        serviceOrderPanel.finalize()
+        serviceOrderPanel = null
       }
       Runtime garbage = Runtime.getRuntime();
       garbage.gc();

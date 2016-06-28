@@ -224,7 +224,10 @@ class RotosDialog extends JDialog {
       jbRotos.fecha = new Date()
       jbRotos.idMod = '0'
       OrderController.saveJbRoto( jbRotos )
-      OrderController.updateJbAndNotaVenta( jbRotos.rx, validDate )
+      OrderController.updateJbAndNotaVenta( jbRotos.rx, validDate, jbRotos.causa )
+      if( cbYes.selected ){
+        OrderController.saveJbLlamadaPend( jbRotos.rx )
+      }
       if(StringUtils.trimToEmpty(jbRotos.tipo).equalsIgnoreCase("A")){
         OrderController.saveJbSobre( jbRotos.rx )
         OrderController.printRoto( jbRotos )
@@ -277,6 +280,8 @@ class RotosDialog extends JDialog {
       valid = false
     } else if( StringUtils.trimToEmpty(txtPromiseDate.text).length() > 0 ){
         SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy")
+        SimpleDateFormat df1 = new SimpleDateFormat("dd/MM/yyyy")
+        SimpleDateFormat df2 = new SimpleDateFormat("ddMMyyyy")
         Integer dayInt = 0
         Integer monthInt = 0
         Integer yearInt = 0
@@ -293,6 +298,36 @@ class RotosDialog extends JDialog {
               valid = false
             }
         } catch ( Exception e ) {println e}
+        if( validDate == null ){
+          try{
+            dayInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPromiseDate.text).substring(0,2))
+            monthInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPromiseDate.text).substring(3,5))
+            yearInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPromiseDate.text).substring(6,10))
+            validDate = df1.parse( StringUtils.trimToEmpty(txtPromiseDate.text) )
+            Calendar fecha = new GregorianCalendar();
+            Integer currentYear = fecha.get(Calendar.YEAR);
+            if( validDate != null && validDate.after(new Date()) && (dayInt <= 31 && monthInt <= 12 && yearInt >= currentYear) ){
+              println "fecha valida"
+            } else {
+              valid = false
+            }
+          } catch ( Exception e ) {println e}
+        }
+        if( validDate == null ){
+          try{
+            dayInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPromiseDate.text).substring(0,2))
+            monthInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPromiseDate.text).substring(3,5))
+            yearInt = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(txtPromiseDate.text).substring(6,10))
+            validDate = df2.parse( StringUtils.trimToEmpty(txtPromiseDate.text) )
+            Calendar fecha = new GregorianCalendar();
+            Integer currentYear = fecha.get(Calendar.YEAR);
+            if( validDate != null && validDate.after(new Date()) && (dayInt <= 31 && monthInt <= 12 && yearInt >= currentYear) ){
+              println "fecha valida"
+            } else {
+              valid = false
+            }
+          } catch ( Exception e ) {println e}
+        }
     }
     return valid
   }

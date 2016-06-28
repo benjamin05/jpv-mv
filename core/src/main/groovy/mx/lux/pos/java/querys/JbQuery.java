@@ -101,29 +101,24 @@ public class JbQuery {
 	}
 	
 	
-	public static JbJava buscarPorRx( String rx ){
-	JbJava jb = null;
+	public static JbNotasJava buscarJbNotaPorIdNota( Integer idNota ){
+	JbNotasJava jb = null;
 	try {
         Connection con = Connections.doConnect();
         stmt = con.createStatement();
-        String sql = "select * from jb where rx = '"+StringUtils.trimToEmpty(rx)+"';";
+        String sql = "select * from jb_notas where id_nota = "+idNota+";";
         rs = stmt.executeQuery(sql);
         con.close();
         while (rs.next()) {
-          jb = new JbJava();
-          Double saldo = 0.00;
-          String saldoTmp = rs.getString("saldo");
-          saldoTmp = saldoTmp != null ? saldoTmp.replace("$", "") : "0.00";
-          saldoTmp = saldoTmp != null ? saldoTmp.replace(",", "") : "0.00";
-          try{
-            saldo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(saldoTmp)).doubleValue();
-          } catch ( ParseException e ){ System.out.println( e );}
-          jb.setValores( rs );
+          jb = new JbNotasJava();
+          jb.mapeoJbNotas(rs);
         }
       } catch (SQLException err) {
         System.out.println( err );
-      }
-	  return jb;
+      } catch (ParseException e) {
+        e.printStackTrace();
+    }
+        return jb;
 	}
 	
 	public static JbEstados buscarEstadoPorId( String estado ){
@@ -758,4 +753,137 @@ public class JbQuery {
         db.updateQuery(sql);
         db.close();
     }
+
+
+    public static List<JbJava> buscaJbOrdenesServicio( ){
+      List<JbJava> lstJb = new ArrayList<JbJava>();
+      JbJava jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "SELECT * FROM jb WHERE estado != 'TE' AND rx like 'S%';";
+        rs = stmt.executeQuery(sql);
+        con.close();
+        if( rs != null ){
+          while (rs.next()) {
+            jbJava = new JbJava();
+            jbJava = jbJava.setValores( rs );
+            lstJb.add(jbJava);
+          }
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJb;
+    }
+
+
+
+    public static List<JbJava> buscaJbTodoOrdenesServicio( ){
+      List<JbJava> lstJb = new ArrayList<JbJava>();
+      JbJava jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = "SELECT * FROM jb WHERE rx like 'S%';";
+        rs = stmt.executeQuery(sql);
+        con.close();
+        if( rs != null ){
+          while (rs.next()) {
+            jbJava = new JbJava();
+            jbJava = jbJava.setValores( rs );
+            lstJb.add(jbJava);
+          }
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return lstJb;
+    }
+
+
+
+    public static List<JbServiciosJava> buscaJbServicios( ){
+      List<JbServiciosJava> lstJb = new ArrayList<JbServiciosJava>();
+      JbServiciosJava jbJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM jb_servicios;");
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          jbJava = new JbServiciosJava();
+          jbJava = jbJava.mapeoJbServicio(rs);
+          lstJb.add(jbJava);
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      } catch (ParseException e) {
+          e.printStackTrace();
+      }
+        return lstJb;
+    }
+
+
+    public static Integer buscaNextFolioJbNotas( ){
+      Integer id = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT nextval('jb_notas_id_nota_seq');" );
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          id = rs.getInt("nextval");
+        }
+      } catch (SQLException err) {
+            System.out.println( err );
+      }
+      return id;
+    }
+
+
+    public static void saveJbNotas (JbNotasJava jbNotas ) {
+      String formatTimeStamp = "yyyy-MM-dd HH:mm:ss.SSS";
+      String formatDate = "yyyy-MM-dd";
+      String sql = String.format("INSERT INTO jb_notas (id_nota,id_cliente,cliente,dejo,instruccion,emp,servicio,condicion,fecha_prom," +
+              "fecha_orden,fecha_mod,tipo_serv,id_mod) VALUES(%d,'%s','%s','%s','%s','%s','%s','%s',%s,%s,%s,'%s','%s');",
+              jbNotas.getIdNota(),jbNotas.getIdCliente(),jbNotas.getCliente(),jbNotas.getDejo(),jbNotas.getInstruccion(),
+              jbNotas.getEmp(),jbNotas.getServicio(),jbNotas.getCondicion(),Utilities.toString(jbNotas.getFechaProm(), formatDate),
+              Utilities.toString(jbNotas.getFechaOrden(), formatTimeStamp), Utilities.toString(jbNotas.getFechaMod(), formatTimeStamp),
+              jbNotas.getTipoServ(),jbNotas.getIdMod());
+      Connections db = new Connections();
+      db.updateQuery(sql);
+      db.close();
+    }
+
+
+
+    public static JbJava buscarPorRx( String rx ){
+        JbJava jb = null;
+        try {
+            Connection con = Connections.doConnect();
+            stmt = con.createStatement();
+            String sql = "select * from jb where rx = '"+StringUtils.trimToEmpty(rx)+"';";
+            rs = stmt.executeQuery(sql);
+            con.close();
+            while (rs.next()) {
+                jb = new JbJava();
+                Double saldo = 0.00;
+                String saldoTmp = rs.getString("saldo");
+                saldoTmp = saldoTmp != null ? saldoTmp.replace("$", "") : "0.00";
+                saldoTmp = saldoTmp != null ? saldoTmp.replace(",", "") : "0.00";
+                try{
+                    saldo = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(saldoTmp)).doubleValue();
+                } catch ( ParseException e ){ System.out.println( e );}
+                jb.setValores( rs );
+            }
+        } catch (SQLException err) {
+            System.out.println( err );
+        }
+        return jb;
+    }
+
+
 }
