@@ -3,6 +3,8 @@ package mx.lux.pos.service.impl
 import com.jcraft.jsch.ChannelExec
 import com.jcraft.jsch.JSch
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.EmpleadoQuery
+import mx.lux.pos.java.repository.ChecadasJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.*
 import mx.lux.pos.service.CierreDiarioService
@@ -212,6 +214,7 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
 
     //Parametro ubicacion = Registry.find( TipoParametro.RUTA_CIERRE )
     String ubicacion = Registry.getParametroOS("ruta_cierre")
+    String ubicacion1 = Registry.getParametroOS("ruta_por_enviar")
     try {
       generarFicheroZD( fechaCierre, sucursal, ubicacion )
       generarFicheroZO( fechaCierre, sucursal, ubicacion )
@@ -224,7 +227,7 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
       generarFicheroCO( fechaCierre, sucursal, ubicacion )
       generarFicheroff( fechaCierre, sucursal, ubicacion )
       generarFicheroZZ( fechaCierre, sucursal, ubicacion )
-
+      generarFicheroRCHE( fechaCierre, sucursal, ubicacion1 )
       String dateClose = df.format(fechaCierre)
       String today = df.format( new Date() )
       //if( dateClose.compareTo( today ) == 0 ){
@@ -889,6 +892,29 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
         numero_registros: promociones.size(),
         promociones: promociones ]
     generarFichero( ubicacion, nombreFichero, 'fichero-ZZ', datos )
+  }
+
+
+  // Fichero Promociones RCHE
+  private void generarFicheroRCHE( Date fechaCierre, Sucursal sucursal, String ubicacion ) {
+    String nombreFichero = "${ sucursal.id }${ CustomDateUtils.format( fechaCierre, 'ddMMyyyy' ) }.rche"
+    log.info( "Generando fichero rche ${ nombreFichero }" )
+    List<ChecadasJava> lstChecadas = EmpleadoQuery.buscaChecadasPorFecha( fechaCierre )
+    def checadas = []
+    for(ChecadasJava ch : lstChecadas){
+      def data = [
+        sucursal: StringUtils.trimToEmpty(ch.sucursal),
+        fecha: StringUtils.trimToEmpty(ch.fecha.format("dd/MM/yyyy")),
+        hora: StringUtils.trimToEmpty(ch.hora.format("HH:mm")),
+        empresa: StringUtils.trimToEmpty(ch.empresa),
+        empleado: StringUtils.trimToEmpty(ch.idEmpleado)
+      ]
+      checadas.add(data)
+    }
+    def datos = [ checadas: checadas ]
+    if( checadas.size() > 0 ){
+      generarFichero( ubicacion, nombreFichero, 'fichero-RCHE', datos )
+    }
   }
 
   // Fichero Promociones CO

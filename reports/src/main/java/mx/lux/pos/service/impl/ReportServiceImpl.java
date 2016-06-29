@@ -1,6 +1,7 @@
 package mx.lux.pos.service.impl;
 
 import com.mysema.query.BooleanBuilder;
+import mx.lux.pos.java.repository.ChecadasJava;
 import mx.lux.pos.model.*;
 import mx.lux.pos.repository.*;
 import mx.lux.pos.service.ReportService;
@@ -63,6 +64,8 @@ public class ReportServiceImpl implements ReportService {
     private static String MULTIPAGO = "reports/Multipago.jrxml";
 
     private static String SUBGERENTES_ASIGNADOS = "reports/Subgerentes_Asignados.jrxml";
+
+    private static String CHECADAS = "reports/Checadas.jrxml";
 
     private static String CANCELACIONES_COMPLETO = "reports/Cancelaciones_Completo.jrxml";
     
@@ -2197,5 +2200,39 @@ public class ReportServiceImpl implements ReportService {
         log.info( "reporte:{}", reporte );
 
         return null;
+    }
+
+
+
+    public String obtenerReporteChecadasPorFecha( Date dateStart, Date dateEnd ){
+      log.info( "obtenerReporteChecadasPorFecha()" );
+
+      Random random = new Random();
+      File report = null;
+      if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
+        report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Checadas%s.html",random.nextInt()) );
+      } else {
+        report = new File( System.getProperty( "java.io.tmpdir" ), String.format("checadas%s.txt",random.nextInt()) );
+      }
+      org.springframework.core.io.Resource template = new ClassPathResource( CHECADAS );
+      log.info( "Ruta:{}", report.getAbsolutePath() );
+      dateStart = DateUtils.truncate( dateStart, Calendar.DAY_OF_MONTH );
+      dateEnd = new Date( DateUtils.ceiling( dateEnd, Calendar.DAY_OF_MONTH ).getTime() - 1 );
+
+      Sucursal sucursal = sucursalService.obtenSucursalActual();
+      List<ChecadasJava> lstChecadas = reportBusiness.obtenerChecadasPorFecha(dateStart, dateEnd);
+      log.info( "tamañoLista:{}", lstChecadas.size() );
+
+      Map<String, Object> parametros = new HashMap<String, Object>();
+      parametros.put( "fechaActual", new SimpleDateFormat( "hh:mm" ).format( new Date() ) );
+      parametros.put( "fechaInicio", new SimpleDateFormat( "dd/MM/yyyy" ).format( dateStart ) );
+      parametros.put( "fechaFin", new SimpleDateFormat( "dd/MM/yyyy" ).format( dateEnd ) );
+      parametros.put( "sucursal", sucursal.getNombre() );
+      parametros.put( "lstChecadas", lstChecadas );
+
+      String reporte = reportBusiness.CompilayGeneraReporte( template, parametros, report );
+      log.info( "reporte:{}", reporte );
+
+      return null;
     }
 }

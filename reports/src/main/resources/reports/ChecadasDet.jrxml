@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ChecadasDet" language="groovy" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="1fbf47b7-3401-4ce9-a365-414e0f3b5800">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<field name="sucursal" class="java.lang.String"/>
+	<field name="fecha" class="java.util.Date"/>
+	<field name="hora" class="java.sql.Time"/>
+	<field name="nombreEmp" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="14" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="a12fa927-342a-47f8-872e-f2a893c784fd" x="0" y="0" width="77" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Sucursal]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="cab51837-39a2-4108-91b0-06605e85a70b" x="77" y="0" width="69" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fecha]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0ed1f53d-015b-4434-80eb-2188521322a6" x="146" y="0" width="52" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Hora]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b226775f-137e-40a5-8b74-ce93ecaf416e" x="198" y="0" width="326" height="14"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Empleado]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="9c652cb4-598a-483e-803d-b717f47f3013" x="0" y="0" width="77" height="12" isRemoveLineWhenBlank="true"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sucursal}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="a9a4baba-0752-42a4-907f-66b270947fa7" x="77" y="0" width="69" height="12" isRemoveLineWhenBlank="true"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fecha}]]></textFieldExpression>
+			</textField>
+			<textField pattern="HH:mm" isBlankWhenNull="true">
+				<reportElement uuid="9d39dfa4-aeab-4cda-b6d7-7f4ccf557ef8" x="146" y="0" width="52" height="12" isRemoveLineWhenBlank="true"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{hora}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="dade4e00-b08f-4317-8a91-80ad234c7605" x="198" y="0" width="326" height="12" isRemoveLineWhenBlank="true"/>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nombreEmp}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

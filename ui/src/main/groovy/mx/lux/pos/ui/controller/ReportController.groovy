@@ -41,7 +41,7 @@ class ReportController {
     Promotions, Kardex, SalesToday, PaymentsbyPeriod,
     Coupon, UndeliveredJobsAudit, ExamsByOpto,
     Cellar, CouponMv, Multipayment, KardexBySku,
-    Submanager
+    Submanager, Check
   }
 
   @Autowired
@@ -646,6 +646,23 @@ class ReportController {
   }
 
 
+  static void fireCheckReport(){
+    log.debug( "Imprime el reporte de checadas" )
+    if( twoDateDialog == null ){
+      twoDateDialog = new TwoDatesSelectionDialog()
+    }
+    twoDateDialog.setTitle( 'Checadas' )
+    twoDateDialog.activate()
+    Date dateStart = twoDateDialog.selectedDateStart
+    Date dateEnd = twoDateDialog.selectedDateEnd
+    if( dateStart != null && dateEnd != null && twoDateDialog.button ){
+      reportService.obtenerReporteChecadasPorFecha( dateStart, dateEnd )
+      twoDateDialog = null
+    }
+  }
+
+
+
   // Public Methods
   static void fireReport( Report pReport ) {
     switch ( pReport ) {
@@ -682,6 +699,7 @@ class ReportController {
       case Report.Cellar: fireCellarReport(); break;
       case Report.Multipayment: fireMultipaymentReport(); break;
       case Report.Submanager: fireSubmanagerReport(); break;
+      case Report.Check: fireCheckReport(); break;
     }
   }
 }

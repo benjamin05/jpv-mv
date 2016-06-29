@@ -21,4 +21,6 @@ interface EmpleadoService {
   LogAsignaSubgerente obtenerSubgerenteActual(  )
 
   List<LogAsignaSubgerente> obtenerSubgerentesActualYProgramados( )
+
+  void cargaArchivoRegionales( )
 }

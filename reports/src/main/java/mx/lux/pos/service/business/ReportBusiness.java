@@ -2,6 +2,8 @@ package mx.lux.pos.service.business;
 
 import com.mysema.query.BooleanBuilder;
 import com.mysema.query.types.OrderSpecifier;
+import mx.lux.pos.java.querys.EmpleadoQuery;
+import mx.lux.pos.java.repository.ChecadasJava;
 import mx.lux.pos.model.*;
 import mx.lux.pos.repository.*;
 import mx.lux.pos.service.impl.ReportServiceImpl;
@@ -2499,4 +2501,13 @@ public class ReportBusiness {
       List<LogAsignaSubgerente> lstLogs= (List<LogAsignaSubgerente>) logAsignaSubgerenteRepository.findAll(qLog.fecha.between(dateStart,dateEnd));
       return lstLogs;
     }
+
+
+
+    public List<ChecadasJava> obtenerChecadasPorFecha( Date dateStart, Date dateEnd ) {
+      List<ChecadasJava> lstChecadas = EmpleadoQuery.buscaChecadasPorRangoFecha(dateStart, dateEnd);
+      return lstChecadas;
+    }
+
+
 }
