@@ -871,7 +871,7 @@ class MainWindow extends JFrame implements KeyListener {
                                     AccessController.loadRegionalFile()
                                 }
                         )
-                        checkMenuItem = menuItem( text: 'Checador',
+                        checkMenuItem = menuItem( text: 'Checador Regional',
                                 visible: true,
                                 actionPerformed: {
                                     Runtime garbage = Runtime.getRuntime();

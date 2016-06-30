@@ -1,8 +1,10 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.EmpleadoQuery
 import mx.lux.pos.java.repository.ChecadasJava
 import mx.lux.pos.java.repository.EmpleadoJava
+import mx.lux.pos.java.repository.RegionalJava
 import mx.lux.pos.java.service.EmpleadoServiceJava
 import mx.lux.pos.model.Empleado
 import mx.lux.pos.model.LogAsignaSubgerente
@@ -397,4 +399,7 @@ class AccessController {
   }
 
 
+  static RegionalJava findRegionalByIdEmp( String idEmp ){
+    return EmpleadoQuery.buscaRegionalPorIdEmpleado( StringUtils.trimToEmpty(idEmp) )
+  }
 }

@@ -20,7 +20,7 @@ class CheckDialog extends JDialog {
   private DateVerifier dv = DateVerifier.instance
   private def sb = new SwingBuilder()
 
-  private JTextField txtcardCode
+  private JPasswordField txtcardCode
   private JLabel lblDate
   private JLabel lblEmployee
 
@@ -44,7 +44,7 @@ class CheckDialog extends JDialog {
         borderLayout()
         panel( constraints: BorderLayout.CENTER, layout: new MigLayout( "wrap 3", "[][grow,fill][fill]", "20[]10[]" ) ) {
           label( text: "Codigo" )
-          txtcardCode = textField( )
+          txtcardCode = passwordField( )
           lblDate = label( text: StringUtils.trimToEmpty(new Date().format("dd/MM/yyyy HH:mm:ss")) )
           label( " " )
           lblEmployee = label( text: "", constraints: 'span 2' )
@@ -85,7 +85,7 @@ class CheckDialog extends JDialog {
       ChecadasJava check = AccessController.checkEmployee( StringUtils.trimToEmpty(txtcardCode.text) )
       if( check != null ){
         lblDate.text = "${StringUtils.trimToEmpty(check.fecha.format("dd/MM/yyyy"))} ${StringUtils.trimToEmpty(check.hora.format("HH:mm:ss"))}"
-        lblEmployee.text = "${StringUtils.trimToEmpty(check.fecha.format("dd/MM/yyyy"))} ${StringUtils.trimToEmpty(check.hora.format("HH:mm:ss"))} ${AccessController.findEmployee(check.idEmpleado).nombreCompleto}"
+        lblEmployee.text = "${StringUtils.trimToEmpty(check.fecha.format("dd/MM/yyyy"))} ${StringUtils.trimToEmpty(check.hora.format("HH:mm:ss"))} ${AccessController.findRegionalByIdEmp(check.idEmpleado).nombre}"
         txtcardCode.text = ""
       } else {
         lblEmployee.text = "Credencial incorrecta"
