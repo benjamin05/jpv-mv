@@ -104,7 +104,7 @@ public class EmpleadoQuery {
       try {
         Connection con = Connections.doConnect();
         stmt = con.createStatement();
-        String sql = String.format("SELECT * FROM checadas WHERE fecha BETWEEN %s AND %s ORDER BY id_empleado,hora ASC;",
+        String sql = String.format("SELECT * FROM checadas WHERE fecha BETWEEN %s AND %s ORDER BY id_empleado ASC, fecha,hora DESC;",
                   Utilities.toString(fechaInicio, "yyyy-MM-dd HH:ss"), Utilities.toString(fechaFin, "yyyy-MM-dd HH:ss"));
         rs = stmt.executeQuery(sql);
         con.close();
@@ -124,7 +124,7 @@ public class EmpleadoQuery {
 
 
     public static RegionalJava buscaRegionalPorIdEmpleado(String idEmpleado){
-      RegionalJava emp = new RegionalJava();
+      RegionalJava emp = null;
       try {
         Connection con = Connections.doConnect();
         stmt = con.createStatement();
@@ -132,6 +132,7 @@ public class EmpleadoQuery {
         rs = stmt.executeQuery(sql);
         con.close();
         while (rs.next()) {
+          emp = new RegionalJava();
           emp = emp.mapeoRegional(rs);
         }
       } catch (SQLException err) {
@@ -139,16 +140,22 @@ public class EmpleadoQuery {
       } catch (ParseException e) {
           e.printStackTrace();
       }
-        return emp.getIdEmpleado() != null ? emp : null;
+        return emp != null ? emp : null;
     }
 
 
-    public static void saveRegional(RegionalJava regional) {
+    public static void saveOrUpdateRegional(RegionalJava regional) {
       Connections db = new Connections();
       String sql = "";
-      sql = String.format("INSERT INTO regional VALUES('%s','%s','%s','%s');", StringUtils.trimToEmpty(regional.getIdEmpresa()),
-              StringUtils.trimToEmpty(regional.getIdEmpleado()),StringUtils.trimToEmpty(regional.getNombre()),
-              StringUtils.trimToEmpty(regional.getCredencial()));
+      if( buscaRegionalPorIdEmpleado(StringUtils.trimToEmpty(regional.getIdEmpleado())) == null ){
+        sql = String.format("INSERT INTO regional VALUES('%s','%s','%s','%s');", StringUtils.trimToEmpty(regional.getIdEmpresa()),
+                StringUtils.trimToEmpty(regional.getIdEmpleado()),StringUtils.trimToEmpty(regional.getNombre()),
+                StringUtils.trimToEmpty(regional.getCredencial()));
+      } else {
+        sql = String.format("UPDATE regional SET id_empresa = '%s', nombre = '%s', credencial = '%s' WHERE id_empleado = '%s';",
+                StringUtils.trimToEmpty(regional.getIdEmpresa()),StringUtils.trimToEmpty(regional.getNombre()),
+                StringUtils.trimToEmpty(regional.getCredencial()),StringUtils.trimToEmpty(regional.getIdEmpleado()));
+      }
       db.insertQuery( sql );
       db.close();
     }

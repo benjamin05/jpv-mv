@@ -477,7 +477,7 @@ class MainWindow extends JFrame implements KeyListener {
                                     ReportController.fireReport( ReportController.Report.DailyClose )
                                 }
                         )
-                        checkReportMenuItem = menuItem( text: "Checadas",
+                        checkReportMenuItem = menuItem( text: "Checadas Regional",
                                 visible: false,
                                 actionPerformed: {
                                     Runtime garbage = Runtime.getRuntime();

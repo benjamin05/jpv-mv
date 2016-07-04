@@ -651,7 +651,7 @@ class ReportController {
     if( twoDateDialog == null ){
       twoDateDialog = new TwoDatesSelectionDialog()
     }
-    twoDateDialog.setTitle( 'Checadas' )
+    twoDateDialog.setTitle( 'Checadas Regional' )
     twoDateDialog.activate()
     Date dateStart = twoDateDialog.selectedDateStart
     Date dateEnd = twoDateDialog.selectedDateEnd

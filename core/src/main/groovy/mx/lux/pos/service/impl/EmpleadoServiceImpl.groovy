@@ -231,7 +231,7 @@ class EmpleadoServiceImpl implements EmpleadoService {
               regional.idEmpleado = linea[1]
               regional.nombre = linea[2]
               regional.credencial = linea[3]
-              EmpleadoQuery.saveRegional( regional )
+              EmpleadoQuery.saveOrUpdateRegional( regional )
             }
           }
           def newFile = new File( destination, file.name )

@@ -4,6 +4,7 @@ import com.mysema.query.BooleanBuilder;
 import com.mysema.query.types.OrderSpecifier;
 import mx.lux.pos.java.querys.EmpleadoQuery;
 import mx.lux.pos.java.repository.ChecadasJava;
+import mx.lux.pos.java.repository.ChecadasReporteJava;
 import mx.lux.pos.model.*;
 import mx.lux.pos.repository.*;
 import mx.lux.pos.service.impl.ReportServiceImpl;
@@ -2504,10 +2505,29 @@ public class ReportBusiness {
 
 
 
-    public List<ChecadasJava> obtenerChecadasPorFecha( Date dateStart, Date dateEnd ) {
+    public List<ChecadasReporteJava> obtenerChecadasPorFecha( Date dateStart, Date dateEnd ) {
+      List<ChecadasReporteJava> lstChecadasReport = new ArrayList<ChecadasReporteJava>();
       List<ChecadasJava> lstChecadas = EmpleadoQuery.buscaChecadasPorRangoFecha(dateStart, dateEnd);
-      return lstChecadas;
+      for(ChecadasJava checada : lstChecadas){
+        ChecadasReporteJava chec = FindOrCreate( lstChecadasReport, StringUtils.trimToEmpty(checada.getIdEmpleado()) );
+        chec.AcumulaChecadas(checada);
+      }
+      return lstChecadasReport;
     }
 
 
+    public ChecadasReporteJava FindOrCreate(  List<ChecadasReporteJava> lstChecadas, String idEmpleado ) {
+      ChecadasReporteJava found = null;
+      for ( ChecadasReporteJava checada : lstChecadas ) {
+        if ( checada.getIdEmpleado().equals(idEmpleado) ) {
+          found = checada;
+          break;
+        }
+      }
+      if ( found == null ) {
+        found = new ChecadasReporteJava( StringUtils.trimToEmpty(idEmpleado) );
+        lstChecadas.add( found );
+      }
+      return found;
+    }
 }

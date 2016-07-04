@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ChecadasHead" language="groovy" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="2669aac1-de24-41e9-825d-5b4b81914da8">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/sucursal/soi/jpv-sun/reports/src/main/resources/reports/"]]></defaultValueExpression>
+	</parameter>
+	<field name="empleado" class="java.lang.String"/>
+	<field name="lstChecadas" class="java.util.List"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="147" splitType="Stretch">
+			<subreport>
+				<reportElement uuid="18d4c766-2e8e-45a4-94f2-229d7e3638f5" x="0" y="47" width="595" height="100"/>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{lstChecadas})]]></dataSourceExpression>
+				<subreportExpression><![CDATA["reports/ChecadasDet.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement uuid="cab51837-39a2-4108-91b0-06605e85a70b" x="0" y="33" width="69" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fecha]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0ed1f53d-015b-4434-80eb-2188521322a6" x="69" y="33" width="52" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Hora]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="3c21489f-908b-463d-a441-d64e3040e235" x="76" y="0" width="394" height="18"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{empleado}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="e50da714-2bbb-4f63-865d-658306023181" x="0" y="0" width="76" height="18"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Empleado: ]]></text>
+			</staticText>
+		</band>
+	</detail>
+</jasperReport>

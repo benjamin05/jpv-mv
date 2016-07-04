@@ -96,5 +96,6 @@ class CheckDialog extends JDialog {
       txtcardCode.text = ""
       lblEmployee.text = ""
     }
+    txtcardCode.requestFocus()
   }
 }

@@ -2,6 +2,7 @@ package mx.lux.pos.service.impl;
 
 import com.mysema.query.BooleanBuilder;
 import mx.lux.pos.java.repository.ChecadasJava;
+import mx.lux.pos.java.repository.ChecadasReporteJava;
 import mx.lux.pos.model.*;
 import mx.lux.pos.repository.*;
 import mx.lux.pos.service.ReportService;
@@ -2210,9 +2211,9 @@ public class ReportServiceImpl implements ReportService {
       Random random = new Random();
       File report = null;
       if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
-        report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Checadas%s.html",random.nextInt()) );
+        report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Checadas-Regional%s.html",random.nextInt()) );
       } else {
-        report = new File( System.getProperty( "java.io.tmpdir" ), String.format("checadas%s.txt",random.nextInt()) );
+        report = new File( System.getProperty( "java.io.tmpdir" ), String.format("Checadas-Regional%s.txt",random.nextInt()) );
       }
       org.springframework.core.io.Resource template = new ClassPathResource( CHECADAS );
       log.info( "Ruta:{}", report.getAbsolutePath() );
@@ -2220,7 +2221,7 @@ public class ReportServiceImpl implements ReportService {
       dateEnd = new Date( DateUtils.ceiling( dateEnd, Calendar.DAY_OF_MONTH ).getTime() - 1 );
 
       Sucursal sucursal = sucursalService.obtenSucursalActual();
-      List<ChecadasJava> lstChecadas = reportBusiness.obtenerChecadasPorFecha(dateStart, dateEnd);
+      List<ChecadasReporteJava> lstChecadas = reportBusiness.obtenerChecadasPorFecha(dateStart, dateEnd);
       log.info( "tamañoLista:{}", lstChecadas.size() );
 
       Map<String, Object> parametros = new HashMap<String, Object>();

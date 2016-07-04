@@ -6,6 +6,7 @@ import org.apache.commons.lang.StringUtils;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.Date;
 
 public class ChecadasJava {
@@ -88,7 +89,7 @@ public class ChecadasJava {
 
 
     public ChecadasJava mapeoChecadas(ResultSet rs) throws SQLException, ParseException {
-	  this.setSucursal(rs.getString("sucursal"));
+      this.setSucursal(rs.getString("sucursal"));
       this.setFecha(rs.getDate("fecha"));
       this.setHora(rs.getTime("hora"));
       this.setEmpresa(rs.getString("empresa"));
