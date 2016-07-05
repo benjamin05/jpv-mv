@@ -834,8 +834,8 @@ class MainWindow extends JFrame implements KeyListener {
                                 freedomCouponMenuItem.visible = userLoggedIn
                                 supportMenu.visible = isManager
                                 assignSubManagerMenuItem.visible = isManager
-                                checkMenuItem.visible = userLoggedIn
-                                loadRegionalFileMenuItem.visible = userLoggedIn
+                                checkMenuItem.visible = isManager
+                                loadRegionalFileMenuItem.visible = isManager
                             }
                     ) {
                         assignSubManagerMenuItem = menuItem( text: 'Asigna Subgerente',
