@@ -1,8 +1,11 @@
 package mx.lux.pos.service.impl
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.EmpleadoQuery
+import mx.lux.pos.java.repository.RegionalJava
 import mx.lux.pos.model.AcusesTipo
 import mx.lux.pos.model.Empleado
+import mx.lux.pos.model.InvAdjustLine
 import mx.lux.pos.model.LogAsignaSubgerente
 import mx.lux.pos.model.Parametro
 import mx.lux.pos.model.TipoParametro
@@ -10,6 +13,7 @@ import mx.lux.pos.repository.AcusesTipoRepository
 import mx.lux.pos.repository.EmpleadoRepository
 import mx.lux.pos.repository.LogAsignaSubgerenteRepository
 import mx.lux.pos.repository.ParametroRepository
+import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.EmpleadoService
 import mx.lux.pos.service.business.Registry
 import org.apache.commons.lang3.StringUtils
@@ -204,6 +208,37 @@ class EmpleadoServiceImpl implements EmpleadoService {
       }
     }
     return log
+  }
+
+
+  @Override
+  void cargaArchivoRegionales( ){
+    Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
+    Parametro parametro = RepositoryFactory.registry.findOne( TipoParametro.RUTA_RECIBIDOS.value )
+    String ubicacionSource = ubicacion.valor
+    String ubicacionsDestination = parametro.valor
+    File source = new File( ubicacionSource )
+    File destination = new File( ubicacionsDestination )
+    if ( source.exists() && destination.exists() ) {
+      source.eachFile() { file ->
+        String[] dataName = StringUtils.trimToEmpty(file.getName()).split(/\./)
+        if ( dataName.last().equalsIgnoreCase( "ereg" ) ) {
+          file.eachLine { String line ->
+            String[] linea = StringUtils.trimToEmpty(line).split(/\|/)
+            if( linea.length >= 4 ){
+              RegionalJava regional = new RegionalJava()
+              regional.idEmpresa = linea[0]
+              regional.idEmpleado = linea[1]
+              regional.nombre = linea[2]
+              regional.credencial = linea[3]
+              EmpleadoQuery.saveOrUpdateRegional( regional )
+            }
+          }
+          def newFile = new File( destination, file.name )
+          def moved = file.renameTo( newFile )
+        }
+      }
+    }
   }
 
 

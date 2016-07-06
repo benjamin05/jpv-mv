@@ -56,24 +56,39 @@ class ArchiveTask {
       //String sSistemaOperativo = System.getProperty("os.name");
       //logger.debug(sSistemaOperativo);
       StringBuffer sb = new StringBuffer()
+      StringBuffer sbChec = new StringBuffer()
       StringBuffer sbDrop = new StringBuffer()
+      StringBuffer sbDropChec = new StringBuffer()
       StringBuffer sbMsgr = new StringBuffer()
+      StringBuffer sbMsgrChec = new StringBuffer()
       //sb.append( String.format( "%s ", Registry.archiveCommand ) );
       sb.append( String.format( "%s ", Registry.getParametroOS("comando_zip") ) );
       if( Registry.getOperatingSystem().trim().startsWith( SO_WINDOWS ) ){
         sb.append( String.format( '"%s" ', this.getArchiveFile() ) );
         sb.append( String.format( '"%s" ', this.baseDir + File.separator + this.filePattern ) )
         sb.append( String.format( '"%s" ', this.baseDir+File.separator+"*.inv" ) )
+        /*sbChec.append( String.format( '"%s" ', this.getArchiveFile() ) );
+        sbChec.append( String.format( '"%s" ', this.baseDir + File.separator + this.filePattern ) )
+        sbChec.append( String.format( '"%s" ', this.baseDir+File.separator+"*.rche" ) )*/
       } else {
         sb.append( String.format( '%s ', this.getArchiveFile() ) );
         sb.append( String.format( '%s ', this.baseDir + File.separator + this.filePattern ) )
         sb.append( String.format( '%s ', this.baseDir+File.separator+"*.inv" ) )
+        /*sbChec.append( String.format( '%s ', this.getArchiveFile() ) );
+        sbChec.append( String.format( '%s ', this.baseDir + File.separator + this.filePattern ) )
+        sbChec.append( String.format( '%s ', this.baseDir+File.separator+"*.rche" ) )*/
         sbDrop.append( String.format( '%s ', this.getArchiveFileDropbox() ) );
         sbDrop.append( String.format( '%s ', this.baseDir + File.separator + this.filePattern ) )
         sbDrop.append( String.format( '%s ', this.baseDir+File.separator+"*.inv" ) )
+        /*sbDropChec.append( String.format( '%s ', this.getArchiveFileDropbox() ) );
+        sbDropChec.append( String.format( '%s ', this.baseDir + File.separator + this.filePattern ) )
+        sbDropChec.append( String.format( '%s ', this.baseDir+File.separator+"*.rche" ) )*/
         sbMsgr.append( String.format( '%s ', this.getArchiveFileMessenger() ) );
         sbMsgr.append( String.format( '%s ', this.baseDir + File.separator + this.filePattern ) )
         sbMsgr.append( String.format( '%s ', this.baseDir+File.separator+"*.inv" ) )
+        /*sbMsgrChec.append( String.format( '%s ', this.getArchiveFileMessenger() ) );
+        sbMsgrChec.append( String.format( '%s ', this.baseDir + File.separator + this.filePattern ) )
+        sbMsgrChec.append( String.format( '%s ', this.baseDir+File.separator+"*.inv" ) )*/
       }
       StringBuffer sb2 = new StringBuffer()
       for ( char c : sb.toString().toCharArray() ) {
@@ -81,6 +96,15 @@ class ArchiveTask {
           sb2.append( File.separator )
         } else {
           sb2.append( c )
+        }
+      }
+
+      StringBuffer sb5 = new StringBuffer()
+      for ( char c : sbChec.toString().toCharArray() ) {
+        if ( ( c == '\\' ) || ( c == '/' ) ) {
+          sb5.append( File.separator )
+        } else {
+          sb5.append( c )
         }
       }
 
@@ -93,6 +117,15 @@ class ArchiveTask {
           }
       }
 
+      StringBuffer sb6 = new StringBuffer()
+      for ( char c : sbDropChec.toString().toCharArray() ) {
+        if ( ( c == '\\' ) || ( c == '/' ) ) {
+          sb6.append( File.separator )
+        } else {
+          sb6.append( c )
+        }
+      }
+
       StringBuffer sb4 = new StringBuffer()
       for ( char c : sbMsgr.toString().toCharArray() ) {
         if ( ( c == '\\' ) || ( c == '/' ) ) {
@@ -102,12 +135,27 @@ class ArchiveTask {
         }
       }
 
+      StringBuffer sb7 = new StringBuffer()
+      for ( char c : sbMsgrChec.toString().toCharArray() ) {
+        if ( ( c == '\\' ) || ( c == '/' ) ) {
+          sb7.append( File.separator )
+        } else {
+          sb7.append( c )
+        }
+      }
+
       String cmd = sb2.toString()
       String cmd1 = sb3.toString()
       String cmd2 = sb4.toString()
+      String cmd3 = sb5.toString()
+      String cmd4 = sb6.toString()
+      String cmd5 = sb7.toString()
       logger.debug( String.format( "ZIP Command: <%s>", cmd ) )
       logger.debug( String.format( "ZIP Command: <%s>", cmd1 ) )
       logger.debug( String.format( "ZIP Command: <%s>", cmd2 ) )
+      logger.debug( String.format( "ZIP Command: <%s>", cmd3 ) )
+      logger.debug( String.format( "ZIP Command: <%s>", cmd4 ) )
+      logger.debug( String.format( "ZIP Command: <%s>", cmd5 ) )
 
       File f = new File( this.getArchiveFile() )
       if ( f.exists() ) {
@@ -179,7 +227,10 @@ class ArchiveTask {
           // Genera archivos Mensajero
           command = Registry.getParametroOS("comando_zip") + " " + this.getArchiveFileMessenger() +' '+ Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' +"*.inv";
           logger.debug(command)
-          Process p2 = Runtime.getRuntime().exec(command);
+          /*Process p2 = Runtime.getRuntime().exec(command);
+            command = Registry.getParametroOS("comando_zip") + " " + this.getArchiveFileMessenger() +' '+ Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' +"*.rche";
+            logger.debug(command)
+            Runtime.getRuntime().exec(command);*/
         } else {
             File file = new File( 'empaqueta.sh' )
             if ( file.exists() ) {
@@ -196,6 +247,11 @@ class ArchiveTask {
             sb1.append('tar -cvf '+this.getArchiveFileMessenger()+' '+this.filePattern+' '+"*.inv")
             sb1.append( "\n" )
             sb1.append('tar -cvf '+this.getArchiveFileDropbox()+' '+this.filePattern+' '+"*.inv")
+            sb1.append( "\n" )
+            /*sb1.append('tar -cvf '+this.getArchiveFile()+' '+this.filePattern+' '+"*.rche")
+            sb1.append( "\n" )
+            sb1.append('tar -cvf '+this.getArchiveFileDropbox()+' '+this.filePattern+' '+"*.rche")
+            sb1.append( "\n" )*/
             strOut.println sb1.toString()
             strOut.close()
 

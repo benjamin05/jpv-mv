@@ -112,23 +112,22 @@ public class EmpleadoJava {
 	}
 	
 	public EmpleadoJava mapeoEmpleado( ResultSet rs ){
-		EmpleadoJava emp = new EmpleadoJava();
 		try{
-		emp.setIdEmpleado(rs.getString("id_empleado"));
-        emp.setNombreEmpleado(rs.getString("nombre_empleado"));        
-        emp.setApPatEmpleado(rs.getString("ap_pat_empleado"));        
-        emp.setApMatEmpleado(rs.getString("ap_mat_empleado"));        
-        emp.setIdPuesto(rs.getInt("id_puesto"));        
-        emp.setPasswd(rs.getString("passwd"));        
-        emp.setIdSync(rs.getString("id_sync"));        
-        emp.setFechaMod(rs.getDate("fecha_mod"));        
-        emp.setIdMod(rs.getString("id_mod"));        
-        emp.setIdSucursal(rs.getInt("id_sucursal"));        
-        emp.setIdEmpresa(rs.getInt("id_empresa"));
+		  this.setIdEmpleado(rs.getString("id_empleado"));
+          this.setNombreEmpleado(rs.getString("nombre_empleado"));
+          this.setApPatEmpleado(rs.getString("ap_pat_empleado"));
+          this.setApMatEmpleado(rs.getString("ap_mat_empleado"));
+          this.setIdPuesto(rs.getInt("id_puesto"));
+          this.setPasswd(rs.getString("passwd"));
+          this.setIdSync(rs.getString("id_sync"));
+          this.setFechaMod(rs.getDate("fecha_mod"));
+          this.setIdMod(rs.getString("id_mod"));
+          this.setIdSucursal(rs.getInt("id_sucursal"));
+          this.setIdEmpresa(rs.getInt("id_empresa"));
 		} catch (SQLException err) {
-            System.out.println( err );
+          System.out.println( err );
         }
-		return emp;
+		return this;
 	}
 	
 

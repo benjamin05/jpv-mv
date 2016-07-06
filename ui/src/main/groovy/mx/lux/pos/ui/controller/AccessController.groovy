@@ -1,7 +1,10 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.java.querys.EmpleadoQuery
+import mx.lux.pos.java.repository.ChecadasJava
 import mx.lux.pos.java.repository.EmpleadoJava
+import mx.lux.pos.java.repository.RegionalJava
 import mx.lux.pos.java.service.EmpleadoServiceJava
 import mx.lux.pos.model.Empleado
 import mx.lux.pos.model.LogAsignaSubgerente
@@ -19,6 +22,7 @@ import org.apache.commons.lang3.time.DateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import javax.swing.JOptionPane
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.regex.Pattern
@@ -377,5 +381,25 @@ class AccessController {
 
   static Empleado findEmployee( String idEmp ){
     return empleadoService.obtenerEmpleado( idEmp )
+  }
+
+  static ChecadasJava checkEmployee( String cardKey ){
+    return empleadoServiceJava.checadaEmpleado( StringUtils.trimToEmpty(cardKey) )
+  }
+
+
+  static Boolean loadRegionalFile( ){
+    try{
+      empleadoService.cargaArchivoRegionales( )
+      JOptionPane.showMessageDialog( null, "Se cargo el archivo correctamente","Carga Archivo", JOptionPane.INFORMATION_MESSAGE )
+    } catch ( Exception e ) {
+      println e.message
+      JOptionPane.showMessageDialog( null, "Error al cargar el archivo","Error", JOptionPane.ERROR_MESSAGE )
+    }
+  }
+
+
+  static RegionalJava findRegionalByIdEmp( String idEmp ){
+    return EmpleadoQuery.buscaRegionalPorIdEmpleado( StringUtils.trimToEmpty(idEmp) )
   }
 }

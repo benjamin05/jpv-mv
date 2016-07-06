@@ -12,6 +12,7 @@ import mx.lux.pos.ui.view.dialog.AuthorizationDialog
 import mx.lux.pos.ui.view.dialog.AuthorizationIpDialog
 import mx.lux.pos.ui.view.dialog.ChangeIpBoxDialog
 import mx.lux.pos.ui.view.dialog.ChangePasswordDialog
+import mx.lux.pos.ui.view.dialog.CheckDialog
 import mx.lux.pos.ui.view.dialog.CustomerSearchDialog
 import mx.lux.pos.ui.view.dialog.EntregaTrabajoDialog
 import mx.lux.pos.ui.view.dialog.EnvelopesDialog
@@ -87,6 +88,8 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem submanagersReportMenuItem
     private JMenuItem dailyCloseReportMenuItem
     private JMenuItem assignSubManagerMenuItem
+    private JMenuItem checkMenuItem
+    private JMenuItem checkReportMenuItem
     private JMenuItem incomePerBranchReportMenuItem
     private JMenuItem sellerRevenueReportMenuItem
     private JMenuItem undeliveredJobsReportMenuItem
@@ -110,6 +113,7 @@ class MainWindow extends JFrame implements KeyListener {
     private JMenuItem paymentsMenuItem
     private JMenuItem quoteMenuItem
     private JMenuItem importEmployeeMenuItem
+    private JMenuItem loadRegionalFileMenuItem
     private JMenuItem loadPartsMenuItem
     private JMenuItem loadPartClassMenuItem
     private JMenuItem generateInventoryFile
@@ -430,6 +434,7 @@ class MainWindow extends JFrame implements KeyListener {
                                 cellarReportMenuItem.visible = isManager
                                 cuponMvReportMenuItem.visible = userLoggedIn
                                 multipaymentMenuItem.visible = false
+                                checkReportMenuItem.visible = userLoggedIn
                             }
                     ) {
                         salesReportMenuItem = menuItem( text: "Ventas",
@@ -470,6 +475,14 @@ class MainWindow extends JFrame implements KeyListener {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
                                     ReportController.fireReport( ReportController.Report.DailyClose )
+                                }
+                        )
+                        checkReportMenuItem = menuItem( text: "Checadas Regional",
+                                visible: false,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    ReportController.fireReport( ReportController.Report.Check )
                                 }
                         )
                         jobControlMenuItem = menuItem( text: "Control de Trabajos",
@@ -821,6 +834,8 @@ class MainWindow extends JFrame implements KeyListener {
                                 freedomCouponMenuItem.visible = userLoggedIn
                                 supportMenu.visible = isManager
                                 assignSubManagerMenuItem.visible = isManager
+                                checkMenuItem.visible = isManager
+                                loadRegionalFileMenuItem.visible = isManager
                             }
                     ) {
                         assignSubManagerMenuItem = menuItem( text: 'Asigna Subgerente',
@@ -845,6 +860,23 @@ class MainWindow extends JFrame implements KeyListener {
                                     Runtime garbage = Runtime.getRuntime();
                                     garbage.gc();
                                     ChangePasswordDialog dialog = new ChangePasswordDialog()
+                                    dialog.show()
+                                }
+                        )
+                        loadRegionalFileMenuItem = menuItem( text: 'Carga Archivo Regionales',
+                                visible: true,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    AccessController.loadRegionalFile()
+                                }
+                        )
+                        checkMenuItem = menuItem( text: 'Checador Regional',
+                                visible: true,
+                                actionPerformed: {
+                                    Runtime garbage = Runtime.getRuntime();
+                                    garbage.gc();
+                                    CheckDialog dialog = new CheckDialog()
                                     dialog.show()
                                 }
                         )
