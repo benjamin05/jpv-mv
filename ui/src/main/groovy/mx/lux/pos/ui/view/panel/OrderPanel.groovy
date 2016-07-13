@@ -958,8 +958,9 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       rec = null
       try {
         //Receta Nueva
-        String artString = item.name
-        if (artString.equals('SV') || artString.equals('P') || artString.equals('B') || artString.equals('L')) {
+        String artString = item.type
+        //if (artString.equals('SV') || artString.equals('P') || artString.equals('B') || artString.equals('L')) {
+        if (artString.equals('B')) {
           Branch branch = Session.get(SessionItem.BRANCH) as Branch
           String uso = StringUtils.trimToEmpty(item.lensDesign)
           /*if( artString.equalsIgnoreCase('L') ){
@@ -1245,7 +1246,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                         for (int row = 0; row <= itemsModel.rowCount; row++) {
                             String artString = itemsModel.getValueAt(row, 0).toString()
                             Item it = itemsModel.rowModel.value.item
-                            if (artString.trim().equals('SV')) {
+                            if (it.type.trim().equalsIgnoreCase('B')) {
+                              artCount = artCount + 1
+                              tipoArt = StringUtils.trimToEmpty(it.lensDesign)
+                            }
+                            /*if (artString.trim().equals('SV')) {
                                 artCount = artCount + 1
                                 tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                             } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
@@ -1254,7 +1259,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                             } else if (artString.trim().equals('P')) {
                                 artCount = artCount + 1
                                 tipoArt = StringUtils.trimToEmpty(it.lensDesign)
-                            }
+                            }*/
                         }
                         armazonString = OrderController.armazonString(order?.id)
 
@@ -2003,6 +2008,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         if( !hasDioptra ){
             order.dioptra = null
+          println ""
         }
         dioptra = OrderController.generaDioptra(OrderController.preDioptra(order?.dioptra))
         String dio = OrderController.codigoDioptra(dioptra)
@@ -2064,8 +2070,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             if (i?.id != null || dio.trim().equals('nullnullnullnullnullnull')) {
               String tipoArt = null
               for (int row = 0; row <= itemsModel.rowCount; row++) {
-                          String artString = itemsModel.getValueAt(row, 0).toString()
-                          if (artString.trim().equals('SV')) {
+                  String artString = itemsModel.getValueAt(row, 0).toString()
+                  Item it = itemsModel.rowModel.value.item
+                  if (it.type.trim().equalsIgnoreCase('B')) {
+                    artCount = artCount + 1
+                    tipoArt = StringUtils.trimToEmpty(it.lensDesign)
+                  }
+                          /*if (artString.trim().equals('SV')) {
                               artCount = artCount + 1
                               Item it = itemsModel.rowModel.value.item
                               tipoArt = StringUtils.trimToEmpty(it.lensDesign)
@@ -2077,7 +2088,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                               artCount = artCount + 1
                               Item it = itemsModel.rowModel.value.item
                               tipoArt = StringUtils.trimToEmpty(it.lensDesign)
-                          }
+                          }*/
                       }
                       armazonString = OrderController.armazonString(order?.id)
 
@@ -2286,7 +2297,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                       for (int row = 0; row <= itemsModel.rowCount; row++) {
                           String artString = itemsModel.getValueAt(row, 0).toString()
                           Item it = itemsModel.rowModel.value.item
-                          if (artString.trim().equals('SV')) {
+                          if (it.type.trim().equalsIgnoreCase('B')) {
+                            artCount = artCount + 1
+                            tipoArt = StringUtils.trimToEmpty(it.lensDesign)
+                          }
+                          /*if (artString.trim().equals('SV')) {
                               artCount = artCount + 1
                               tipoArt = StringUtils.trimToEmpty(it.lensDesign)
                           } else if (artString.trim().equals('B') || artString.trim().equals('L')) {
@@ -2295,7 +2310,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                           } else if (artString.trim().equals('P')) {
                               artCount = artCount + 1
                               tipoArt = StringUtils.trimToEmpty(it.lensDesign)
-                          }
+                          }*/
                       }
                       armazonString = OrderController.armazonString(order?.id)
 
