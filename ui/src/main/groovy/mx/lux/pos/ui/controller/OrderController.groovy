@@ -1473,7 +1473,7 @@ class OrderController {
             String[] result = StringUtils.trimToEmpty(resultado).split(/\|/)
             String condicion = result[0]
 
-            if (condicion.trim().equals('Si')) {
+            if (condicion.trim().equalsIgnoreCase('Si')) {
                 String contenido = resultado + '|' + item?.id + '|' + item?.color + '|' + 'facturacion'
                 Date date = new Date()
                 SimpleDateFormat formateador = new SimpleDateFormat("hhmmss")
