@@ -186,7 +186,7 @@ class CancelacionServiceImpl implements CancelacionService {
                     log.warn("Se registro el movimiento de devolucion correctamente")
 
                     if( seValidaSurtePino( notaVenta ) ){
-                      acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
+                      //acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
                       /*if( !validandoEnvioPino( notaVenta.id ) ){
                         ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
                       }*/
@@ -198,7 +198,7 @@ class CancelacionServiceImpl implements CancelacionService {
                     if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
                       log.warn("Se registro el movimiento de devolucion correctamente")
                       if( seValidaSurtePino( notaVenta ) ){
-                        acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
+                        //acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
                         /*if( !validandoEnvioPino( notaVenta.id ) ){
                           ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
                         }*/
@@ -211,7 +211,7 @@ class CancelacionServiceImpl implements CancelacionService {
                       if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
                         log.warn("Se registro el movimiento de devolucion correctamente")
                         if( seValidaSurtePino( notaVenta ) ){
-                          acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
+                          //acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
                           /*if( !validandoEnvioPino( notaVenta.id ) ){
                             ServiceFactory.inventory.solicitarTransaccionDevolucionSP(notaVenta)
                           }*/

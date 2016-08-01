@@ -4,7 +4,9 @@ import com.mysema.query.BooleanBuilder
 import com.mysema.query.types.Predicate
 import groovy.util.logging.Slf4j
 import mx.lux.pos.java.querys.ArticulosQuery
+import mx.lux.pos.java.querys.JbQuery
 import mx.lux.pos.java.repository.ArticulosJava
+import mx.lux.pos.java.repository.JbJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.ArticuloRepository
 import mx.lux.pos.repository.DetalleNotaVentaRepository
@@ -597,6 +599,19 @@ class ArticuloServiceImpl implements ArticuloService {
   MontoGarantia obtenerMontoGarantia( BigDecimal precioArt ){
     QMontoGarantia qMontoGarantia = QMontoGarantia.montoGarantia1
     return montoGarantiaRepository.findOne( qMontoGarantia.montoGarantia.eq(precioArt) )
+  }
+
+
+  @Override
+  Boolean validarSP( String surte, String rx ) {
+    Boolean valid = true
+    if( StringUtils.trimToEmpty(surte).equalsIgnoreCase("P") ){
+      JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(rx))
+      if( jb != null && (!StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("RS") && !StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("TE"))){
+        valid = false
+      }
+    }
+    return valid
   }
 
 

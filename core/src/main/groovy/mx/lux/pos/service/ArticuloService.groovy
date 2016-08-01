@@ -90,4 +90,6 @@ interface ArticuloService {
   List<Generico> genericos()
 
   MontoGarantia obtenerMontoGarantia( BigDecimal precioArt )
+
+  Boolean validarSP( String surte, String rx )
 }
