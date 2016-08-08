@@ -29,7 +29,7 @@ class PromotionCombo implements IPromotion {
       if ( PromotionPriceType.FixedPrice.equals( pPart.priceType ) ) {
         promotionPrice = pPart.discountAmount
       } else if ( PromotionPriceType.FixedDiscountAmount.equals( pPart.priceType ) ) {
-        promotionPrice = basePrice - pPart.discountAmount
+        promotionPrice = basePrice >= pPart.discountAmount ? basePrice - pPart.discountAmount : 0.00
       } else if ( PromotionPriceType.Undefined.equals( pPart.priceType ) ) {
         promotionPrice = ( ( 100.0 - pPart.discountPercent ) * basePrice ) / 100.0
       }
