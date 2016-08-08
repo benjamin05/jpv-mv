@@ -477,7 +477,7 @@ class PrepareInvTrBusiness {
   }
 
 
-  InvTrRequest requestReturnReceipt( NotaVenta pNotaVenta ) {
+  InvTrRequest requestReturnReceipt( NotaVenta pNotaVenta, Boolean fromFile ) {
     InvTrRequest request = new InvTrRequest()
 
     request.trType = TR_TYPE_RECEIPT_RETURN
@@ -491,7 +491,7 @@ class PrepareInvTrBusiness {
     request.reference = pNotaVenta.id
 
     for ( DetalleNotaVenta det in pNotaVenta.detalles ) {
-      if ( parts.validarSP( StringUtils.trimToEmpty(det.surte), StringUtils.trimToEmpty(pNotaVenta.factura) ) ) {
+      if ( parts.validarSP( StringUtils.trimToEmpty(det.surte), StringUtils.trimToEmpty(pNotaVenta.factura), fromFile, StringUtils.trimToEmpty(det.articulo.idGenerico) ) ) {
         if ( parts.validarArticulo( det.idArticulo ) ) {
           request.skuList.add( new InvTrDetRequest( det.idArticulo, det.cantidadFac.intValue() ) )
         }

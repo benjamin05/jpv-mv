@@ -91,5 +91,5 @@ interface ArticuloService {
 
   MontoGarantia obtenerMontoGarantia( BigDecimal precioArt )
 
-  Boolean validarSP( String surte, String rx )
+  Boolean validarSP( String surte, String rx, Boolean fromFile, String generico )
 }

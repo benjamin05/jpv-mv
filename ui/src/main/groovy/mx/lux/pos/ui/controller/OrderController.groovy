@@ -1455,8 +1455,8 @@ class OrderController {
       if( ((StringUtils.trimToEmpty(item.subtype).startsWith('S') && !StringUtils.trimToEmpty(item.subtype).equalsIgnoreCase("SV"))
               || item.typ.equalsIgnoreCase('O')) ||
                 (StringUtils.trimToEmpty(item?.type).equals('A') && StringUtils.trimToEmpty(precio?.surte).equals('P')) ){
-        AcusesTipoJava acusesTipo = AcusesTipoQuery.buscaAcuseTipoPorIdTipo('AUT')
-        String url = acusesTipo?.pagina + '?id_suc=' + StringUtils.trimToEmpty(branch?.id.toString()) + '&id_col=' + item?.color?.trim() + '&id_art=' + StringUtils.trimToEmpty(item?.name.toString())
+        AcusesTipoJava acusesTipo = AcusesTipoQuery.buscaAcuseTipoPorIdTipo('verifica_sa')
+        String url = acusesTipo?.pagina + '?id_suc=' + StringUtils.trimToEmpty(branch?.id.toString()) + '&sku=' + StringUtils.trimToEmpty(item?.id.toString())+ '&exis=' + StringUtils.trimToEmpty(item?.stock.toString())
         String resultado = ''
         if(  detalleNotaVentaServiceJava.verificaValidacionSP(item?.id, order.id, '') ){
           resultado = callWS(url, item?.id, order.id)
@@ -1536,17 +1536,13 @@ class OrderController {
             sku = StringUtils.trimToEmpty(oi.item.id.toString())
           }
         }
-        String contenidoAPAR = "parteVal=" + parte
-        contenidoAPAR = contenidoAPAR + "|facturaVal=" + order?.bill
-        contenidoAPAR = contenidoAPAR + "|rxVal=" + rx
-        contenidoAPAR = contenidoAPAR + "|id_colVal=" + item?.color
+        String contenidoAPAR = "facturaVal=" + order?.bill
         contenidoAPAR = contenidoAPAR + "|id_sucVal=" + branch?.id
-        contenidoAPAR = contenidoAPAR + "|id_artVal=" + item?.name
-        contenidoAPAR = contenidoAPAR + "|id_acuseVal=" + (acuseRepository?.nextIdAcuse() +1).toString()
+        contenidoAPAR = contenidoAPAR + "|RecetaVal=" + rx
         contenidoAPAR = contenidoAPAR + "|skuVal=" + sku + '|'
         AcusesJava acuseAPAR = new AcusesJava()
         acuseAPAR?.contenido = contenidoAPAR
-        acuseAPAR?.idTipo = 'APAR'
+        acuseAPAR?.idTipo = 'aparta_sa'
         acuseAPAR?.intentos = 0
         acuseAPAR?.fechaCarga = new Date()
         AcusesQuery.saveAcuses(acuseAPAR)

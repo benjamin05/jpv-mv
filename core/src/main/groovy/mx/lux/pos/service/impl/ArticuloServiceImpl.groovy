@@ -5,8 +5,12 @@ import com.mysema.query.types.Predicate
 import groovy.util.logging.Slf4j
 import mx.lux.pos.java.querys.ArticulosQuery
 import mx.lux.pos.java.querys.JbQuery
+import mx.lux.pos.java.querys.NotaVentaQuery
+import mx.lux.pos.java.querys.TransInvQuery
 import mx.lux.pos.java.repository.ArticulosJava
 import mx.lux.pos.java.repository.JbJava
+import mx.lux.pos.java.repository.NotaVentaJava
+import mx.lux.pos.java.repository.TransInvJava
 import mx.lux.pos.model.*
 import mx.lux.pos.repository.ArticuloRepository
 import mx.lux.pos.repository.DetalleNotaVentaRepository
@@ -603,13 +607,45 @@ class ArticuloServiceImpl implements ArticuloService {
 
 
   @Override
-  Boolean validarSP( String surte, String rx ) {
+  Boolean validarSP( String surte, String rx, Boolean fromFile, String generico ) {
     Boolean valid = true
-    if( StringUtils.trimToEmpty(surte).equalsIgnoreCase("P") ){
+    if( StringUtils.trimToEmpty(generico).equalsIgnoreCase("A") ){
       JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(rx))
-      if( jb != null && (!StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("RS") && !StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("TE"))){
-        valid = false
+      if( StringUtils.trimToEmpty(surte).equalsIgnoreCase("P") ){
+        if( !fromFile ){
+          if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("CN") ){
+            List<mx.lux.pos.java.repository.JbTrack> lstTracks = JbQuery.buscarJbTrackPorRx(StringUtils.trimToEmpty(jb.rx))
+            if( lstTracks.size() > 0 ){
+              mx.lux.pos.java.repository.JbTrack jbTrack = lstTracks.get(lstTracks.size()-2)
+              if( jbTrack != null && (!StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("RS") && !StringUtils.trimToEmpty(jbTrack.estado).equalsIgnoreCase("TE"))){
+                valid = false
+              }
+            }
+          } else {
+            if( jb != null && (!StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("RS") && !StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("TE"))){
+              valid = false
+            }
+          }
+        } else {
+          NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(rx) )
+          if( notaVenta != null ){
+            TransInvJava transInv = TransInvQuery.buscaTransInvPorRefAndIdTipoTrans(StringUtils.trimToEmpty(notaVenta.idFactura), StringUtils.trimToEmpty("DEVOLUCION"))
+            if( transInv != null ){
+              valid = false
+            }
+          }
+        }
+      } else {
+        if( !fromFile ){
+          valid = false
+          if(StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("RS") || StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("TE") ||
+                  StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("PE") || StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("RTN") ){
+            valid = true
+          }
+        }
       }
+    } else if( fromFile ){                                                                                           |
+      valid = false
     }
     return valid
   }

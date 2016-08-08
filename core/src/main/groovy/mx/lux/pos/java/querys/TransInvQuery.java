@@ -120,4 +120,25 @@ public class TransInvQuery {
     }
 
 
+
+    public static TransInvJava buscaTransInvPorRefAndIdTipoTrans( String referencia, String idTipoTrans ){
+      TransInvJava transInvJava = null;
+      try {
+        Connection con = Connections.doConnect();
+        stmt = con.createStatement();
+        String sql = String.format("SELECT * FROM trans_inv WHERE id_tipo_trans = '%s' AND referencia = '%s';",
+                StringUtils.trimToEmpty(idTipoTrans), StringUtils.trimToEmpty(referencia));
+        rs = stmt.executeQuery(sql);
+        con.close();
+        while (rs.next()) {
+          transInvJava = new TransInvJava();
+          transInvJava = transInvJava.mapeoTransInv( rs );
+        }
+      } catch (SQLException err) {
+        System.out.println( err );
+      }
+      return transInvJava;
+    }
+
+
 }

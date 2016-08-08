@@ -13,6 +13,7 @@ import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.ArticuloService
 import mx.lux.pos.service.InventarioService
 import mx.lux.pos.service.business.Registry
+import mx.lux.pos.service.impl.ServiceFactory
 import mx.lux.pos.ui.model.InvTr
 import mx.lux.pos.ui.model.InvTrSku
 import mx.lux.pos.ui.model.InvTrViewMode
@@ -1201,5 +1202,43 @@ class InvTrController {
     strOut.close()
   }
 
+
+
+  void readPackingList( ){
+    Parametro ubicacion = Registry.find( TipoParametro.RUTA_POR_RECIBIR )
+    Parametro parametro = RepositoryFactory.registry.findOne( TipoParametro.RUTA_RECIBIDOS.value )
+    String ubicacionSource = ubicacion.valor
+    String ubicacionsDestination = parametro.valor
+    File source = new File( ubicacionSource )
+    File destination = new File( ubicacionsDestination )
+    if ( source.exists() && destination.exists() ) {
+      source.eachFile() { file ->
+        if ( file.getName().endsWith( ".pl" ) ) {
+          file.eachLine {
+            List<NotaVenta> lstNotas = RepositoryFactory.orders.findByFactura( StringUtils.trimToEmpty(it) )
+            if( lstNotas.size() > 0 ){
+              NotaVenta notaVenta = lstNotas.first()
+              if( notaVenta != null && StringUtils.trimToEmpty(notaVenta.sFactura).equalsIgnoreCase("T")){
+                Boolean hasSP = false
+                for(DetalleNotaVenta det : notaVenta.detalles){
+                  if( StringUtils.trimToEmpty(det.surte).equalsIgnoreCase("P")){
+                    hasSP = true
+                  }
+                }
+                if( hasSP ){
+                  ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta, true)
+                }
+              }
+            }
+          }
+          String filename = null
+          filename = file.absolutePath
+          File inFile = new File( filename )
+          File moved = new File( SettingsController.instance.processedPath, inFile.name )
+          inFile.renameTo( moved )
+        }
+      }
+    }
+  }
 
 }

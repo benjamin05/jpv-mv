@@ -179,10 +179,10 @@ class InventarioServiceImpl implements InventarioService {
     return registrado
   }
 
-  Boolean solicitarTransaccionDevolucion( NotaVenta pNotaVenta ) {
+  Boolean solicitarTransaccionDevolucion( NotaVenta pNotaVenta, Boolean fromFile ) {
     Boolean registrado = false
     PrepareInvTrBusiness task = PrepareInvTrBusiness.instance
-    InvTrRequest request = task.requestReturnReceipt( pNotaVenta )
+    InvTrRequest request = task.requestReturnReceipt( pNotaVenta, fromFile )
     if ( request != null ) {
       registrado = ( solicitarTransaccion( request ) != null )
     }

@@ -397,7 +397,7 @@ class CierreDiarioServiceImpl implements CierreDiarioService {
           precio: detalleNotaVenta.precioUnitLista?.toPlainString(),
           precio_factura: detalleNotaVenta.precioFactura?.toPlainString(),
           id_tipo_detalle: idTipoDetalle,
-          surte: StringUtils.isNotBlank( detalleNotaVenta.surte ) ? detalleNotaVenta.surte : '',
+          surte: StringUtils.trimToEmpty(detalleNotaVenta.surte).equalsIgnoreCase("P") ? "X" : StringUtils.trimToEmpty(detalleNotaVenta.surte),
           descuento: detalleNotaVenta.notaVenta.montoDescuento ? detalleNotaVenta.notaVenta.montoDescuento : '',
           codigo_color: StringUtils.isNotBlank( detalleNotaVenta.articulo?.codigoColor ) ? detalleNotaVenta.articulo.codigoColor : '',
           factura: StringUtils.trimToEmpty( detalleNotaVenta.notaVenta?.factura ),

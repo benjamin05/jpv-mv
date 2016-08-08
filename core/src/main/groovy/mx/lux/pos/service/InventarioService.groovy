@@ -24,7 +24,7 @@ interface InventarioService {
 
   Boolean solicitarTransaccionEntradaSP( NotaVenta pNotaVenta )
 
-  Boolean solicitarTransaccionDevolucion( NotaVenta pNotaVenta )
+  Boolean solicitarTransaccionDevolucion( NotaVenta pNotaVenta, Boolean fromFile )
 
   TransInv obtenerTransaccion( String pIdTipoTrans, Integer pFolio )
 

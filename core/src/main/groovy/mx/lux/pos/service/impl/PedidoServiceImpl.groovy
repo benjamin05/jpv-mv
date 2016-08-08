@@ -134,7 +134,7 @@ class PedidoServiceImpl implements PedidoService {
   Boolean solicitarTransaccionDevolucion( NotaVenta pNotaVenta ) {
     Boolean registrado = false
     PrepareInvTrBusiness task = PrepareInvTrBusiness.instance
-    InvTrRequest request = task.requestReturnReceipt( pNotaVenta )
+    InvTrRequest request = task.requestReturnReceipt( pNotaVenta, false )
     if ( request != null ) {
       registrado = ( solicitarTransaccion( request ) != null )
     }

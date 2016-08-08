@@ -182,7 +182,7 @@ class CancelacionServiceImpl implements CancelacionService {
                     log.warn("no se registra el movimiento, error al registrar devolucion")
                   }
                 } else if( transCupones ){
-                  if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
+                  if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta, false)) {
                     log.warn("Se registro el movimiento de devolucion correctamente")
 
                     if( seValidaSurtePino( notaVenta ) ){
@@ -195,7 +195,7 @@ class CancelacionServiceImpl implements CancelacionService {
                 } else {
                   Boolean transCanSameDay = Registry.transCanSameDay()
                   if( transCanSameDay ){
-                    if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
+                    if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta, false)) {
                       log.warn("Se registro el movimiento de devolucion correctamente")
                       if( seValidaSurtePino( notaVenta ) ){
                         //acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
@@ -208,7 +208,7 @@ class CancelacionServiceImpl implements CancelacionService {
                     String orderDate = notaVenta.fechaHoraFactura.format('dd-MM-yyyy')
                     String currentDate = new Date().format('dd-MM-yyyy')
                     if(currentDate.trim().equalsIgnoreCase(orderDate.trim())){
-                      if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta)) {
+                      if (ServiceFactory.inventory.solicitarTransaccionDevolucion(notaVenta, false)) {
                         log.warn("Se registro el movimiento de devolucion correctamente")
                         if( seValidaSurtePino( notaVenta ) ){
                           //acuseVerSPAcuseVerSPAcuseVerSP( notaVenta )
