@@ -1536,10 +1536,10 @@ class OrderController {
             sku = StringUtils.trimToEmpty(oi.item.id.toString())
           }
         }
-        String contenidoAPAR = "facturaVal=" + order?.bill
-        contenidoAPAR = contenidoAPAR + "|id_sucVal=" + branch?.id
-        contenidoAPAR = contenidoAPAR + "|RecetaVal=" + rx
-        contenidoAPAR = contenidoAPAR + "|skuVal=" + sku + '|'
+        String contenidoAPAR = "RxVal=" + rx
+        contenidoAPAR = contenidoAPAR + "|FacturaVal=" + order?.bill
+        contenidoAPAR = contenidoAPAR + "|Id_sucVal=" + branch?.id
+        contenidoAPAR = contenidoAPAR + "|SkuVal=" + sku + '|'
         AcusesJava acuseAPAR = new AcusesJava()
         acuseAPAR?.contenido = contenidoAPAR
         acuseAPAR?.idTipo = 'aparta_sa'

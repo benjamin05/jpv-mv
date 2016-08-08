@@ -644,7 +644,7 @@ class ArticuloServiceImpl implements ArticuloService {
           }
         }
       }
-    } else if( fromFile ){                                                                                           |
+    } else if( fromFile ){
       valid = false
     }
     return valid
