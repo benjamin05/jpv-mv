@@ -209,12 +209,17 @@ class RecetaServiceImpl implements RecetaService {
     private void generaArchivoEnvio( String contenido, String nombre) throws ServiceException {
             try {
                 String ruta = Registry.getParametroOS("ruta_por_enviar")
+                String rutaDrop = Registry.getParametroOS("ruta_por_enviar_dropbox")
                 File archivo = new File( ruta, nombre.toString() )
                 BufferedWriter out = new BufferedWriter( new FileWriter( archivo ) )
                 out.write( contenido )
                 out.close()
+                File archivoDrop = new File( rutaDrop, nombre.toString() )
+                BufferedWriter out1 = new BufferedWriter( new FileWriter( archivoDrop ) )
+                out1.write( contenido )
+                out1.close()
            } catch ( Exception e ) {
                 e.printStackTrace()
-            }
+           }
     }
 }
