@@ -610,7 +610,9 @@ class ArticuloServiceImpl implements ArticuloService {
   Boolean validarSP( String surte, String rx, Boolean fromFile, String generico ) {
     Boolean valid = true
     if( StringUtils.trimToEmpty(generico).equalsIgnoreCase("A") ){
+      NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(rx) )
       JbJava jb = JbQuery.buscarPorRx( StringUtils.trimToEmpty(rx))
+      if( notaVenta != null && notaVenta.fechaEntrega == null ){
       if( StringUtils.trimToEmpty(surte).equalsIgnoreCase("P") ){
         if( !fromFile ){
           if( StringUtils.trimToEmpty(jb.estado).equalsIgnoreCase("CN") ){
@@ -627,8 +629,7 @@ class ArticuloServiceImpl implements ArticuloService {
             }
           }
         } else {
-          NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaByFactura( StringUtils.trimToEmpty(rx) )
-          if( notaVenta != null ){
+          if( notaVenta != null && jb != null){
             TransInvJava transInv = TransInvQuery.buscaTransInvPorRefAndIdTipoTrans(StringUtils.trimToEmpty(notaVenta.idFactura), StringUtils.trimToEmpty("DEVOLUCION"))
             if( transInv != null ){
               valid = false
@@ -644,6 +645,7 @@ class ArticuloServiceImpl implements ArticuloService {
           }
         }
       }
+    }
     } else if( fromFile ){
       valid = false
     }
