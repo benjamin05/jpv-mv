@@ -225,8 +225,9 @@ class ArchiveTask {
           logger.debug(command)
           Process p1 = Runtime.getRuntime().exec(command);
           // Genera archivos Mensajero
-          command = Registry.getParametroOS("comando_zip") + " " + this.getArchiveFileMessenger() +' '+ Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' +"*.inv";
-          logger.debug(command)
+          String command2 = Registry.getParametroOS("comando_zip") + " " + this.getArchiveFileDropbox() +' '+ Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' +"*.inv";
+          logger.debug(command2)
+          Process p2 = Runtime.getRuntime().exec(command2);
           /*Process p2 = Runtime.getRuntime().exec(command);
             command = Registry.getParametroOS("comando_zip") + " " + this.getArchiveFileMessenger() +' '+ Registry.getParametroOS("ruta_cierre") + '/' + this.filePattern + ' ' + Registry.getParametroOS("ruta_cierre") + '/' +"*.rche";
             logger.debug(command)
