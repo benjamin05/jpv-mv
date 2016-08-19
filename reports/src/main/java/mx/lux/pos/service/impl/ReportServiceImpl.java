@@ -1487,7 +1487,7 @@ public class ReportServiceImpl implements ReportService {
 
 
     
-    public String obtenerReporteDeKardex(  String article, Date fechaInicio, Date fechaFin ) {
+    public String obtenerReporteDeKardex(  String article, Date fechaInicio, Date fechaFin, Integer sku ) {
         log.info( "obtenerReporteDeKardex" );
 
         Random random = new Random();
@@ -1525,6 +1525,12 @@ public class ReportServiceImpl implements ReportService {
                 and(booleanColor) );
         if( articulos.size() == 1){
             articulo = articulos.get(0);
+        } else if( articulos.size() > 1 && sku != null ){
+          for(Articulo art1 : articulos){
+            if(art1.getId().equals(sku)){
+              articulo = art1;
+            }
+          }
         }
         Integer exisInicial = 0;
         Integer exisActual = 0;

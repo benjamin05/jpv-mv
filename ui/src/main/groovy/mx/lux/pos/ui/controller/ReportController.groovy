@@ -1,12 +1,16 @@
 package mx.lux.pos.ui.controller
 
 import groovy.util.logging.Slf4j
+import mx.lux.pos.model.Articulo
+import mx.lux.pos.repository.impl.RepositoryFactory
 import mx.lux.pos.service.ReportService
 import mx.lux.pos.ui.view.dialog.*
 import org.apache.commons.lang.StringUtils
 import org.apache.commons.lang3.time.DateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import java.text.NumberFormat
 
 @Slf4j
 @Component
@@ -525,7 +529,7 @@ class ReportController {
     Date reportForDateEnd = kardexReportDialog.getSelectedDateEnd()
     if( StringUtils.trimToEmpty(articulo) != '' && reportForDateStart != null && reportForDateEnd != null ){
       //Integer sku = NumberFormat.getInstance().parse( strSku )
-      reportService.obtenerReporteDeKardex( articulo, reportForDateStart, reportForDateEnd )
+      reportService.obtenerReporteDeKardex( articulo, reportForDateStart, reportForDateEnd, null )
     }
     kardexReportDialog = null
   }
@@ -538,12 +542,18 @@ class ReportController {
     }
     kardexReportDialog.setTitle( "Kardex Por Sku" )
     kardexReportDialog.activate()
-    String articulo = reportService.obtenerArticuloPorSku(kardexReportDialog.getSku())
+    Integer sku = 0
+    try{
+      sku = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(kardexReportDialog.getSku()))
+    } catch ( NumberFormatException e ){
+      println e.message
+    }
+    Articulo articulo = RepositoryFactory.partMaster.findOne(sku)
     Date reportForDateStart = kardexReportDialog.getSelectedDateStart()
     Date reportForDateEnd = kardexReportDialog.getSelectedDateEnd()
-    if( StringUtils.trimToEmpty(articulo) != '' && reportForDateStart != null && reportForDateEnd != null ){
+    if( articulo != null && reportForDateStart != null && reportForDateEnd != null ){
       //Integer sku = NumberFormat.getInstance().parse( strSku )
-      reportService.obtenerReporteDeKardex( articulo, reportForDateStart, reportForDateEnd )
+      reportService.obtenerReporteDeKardex( StringUtils.trimToEmpty(articulo.articulo)+","+StringUtils.trimToEmpty(articulo.codigoColor), reportForDateStart, reportForDateEnd, articulo.id )
     }
     kardexReportDialog = null
   }

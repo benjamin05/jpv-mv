@@ -182,6 +182,8 @@ class InvTrView implements NavigationBarListener {
   }
 
   void onButtonPrint( ) {
+    panel.btnPrint.setEnabled(false)
+    println panel.btnPrint.enabled
     logger.debug( "[View] Print button selected" )
     if ( driver.assign( this ) ) {
       if (driver.doBeforeSave( this )) {
@@ -237,6 +239,7 @@ class InvTrView implements NavigationBarListener {
       logger.debug( "[View] Input not valid" )
       this.fireRefreshUI()
     }
+    panel.btnPrint.setEnabled(true)
   }
 
 

@@ -96,7 +96,7 @@ public interface ReportService {
     String obtenerReportePromociones( Date fechaImpresion );
 
     
-    String obtenerReporteDeKardex( String articulo, Date fechaInicio, Date fechaFin );
+    String obtenerReporteDeKardex( String articulo, Date fechaInicio, Date fechaFin, Integer sku );
 
     
     public String obtenerReporteDeVentasDelDiaActual( Date fechaVentas, Boolean artPrecioMayorCero );
