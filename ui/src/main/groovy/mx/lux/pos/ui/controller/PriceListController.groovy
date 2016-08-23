@@ -23,6 +23,7 @@ class PriceListController {
   private static String receivePath
   private static String priceListPath
   private static String receivedPath
+  private static String receivedDropPath
 
   @Autowired
   PriceListController( ListaPreciosService listaPreciosService, SucursalService sucursalService, TicketService ticketService ) {
@@ -32,6 +33,7 @@ class PriceListController {
     receivePath = listaPreciosService.obtenRutaPorRecibir()
     priceListPath = listaPreciosService.obtenRutaListaPrecios()
     receivedPath = listaPreciosService.obtenRutaRecibidos()
+    receivedDropPath = listaPreciosService.obtenRutaRecibidosDrop()
   }
 
   static void processPendingPriceLists( ) {
@@ -164,7 +166,22 @@ class PriceListController {
       if ( listaPrecios?.fechaCarga ) {
         def filename = priceList.filename
         def file = new File( priceListPath, filename )
+        def newFileDrop = new File( receivedDropPath, filename )
         log.debug( "archivo de carga: ${filename} en: ${priceListPath} - ${file?.exists()}" )
+        InputStream is = null;
+        OutputStream os = null;
+        try {
+          is = new FileInputStream(file);
+          os = new FileOutputStream(newFileDrop);
+          byte[] buffer = new byte[1024];
+          int length;
+          while ((length = is.read(buffer)) > 0) {
+            os.write(buffer, 0, length);
+          }
+        } finally {
+          is.close();
+          os.close();
+        }
         def newFile = new File( receivedPath, filename )
         def moved = file.renameTo( newFile )
         log.debug( "renombrando archivo a: ${newFile.path} - ${moved}" )

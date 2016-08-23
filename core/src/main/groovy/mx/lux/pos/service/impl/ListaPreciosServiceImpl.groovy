@@ -65,6 +65,14 @@ class ListaPreciosServiceImpl implements ListaPreciosService {
   }
 
   @Override
+  String obtenRutaRecibidosDrop( ) {
+    log.debug( "obteniendo ruta recibidos DropBox" )
+    def parametro = parametroRepository.findOne( TipoParametro.RUTA_POR_ENVIAR_DROPBOX.value )
+    log.debug( "ruta recibidos: ${parametro?.valor}" )
+    return parametro?.valor
+  }
+
+  @Override
   @Transactional
   ListaPrecios registrarListaPrecios( ListaPrecios listaPrecios ) {
     log.debug( "registrando lista precios: ${listaPrecios?.id}, ${listaPrecios?.filename}" )

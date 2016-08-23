@@ -354,14 +354,19 @@ class IOServiceImpl implements IOService {
         Integer idSuc = Registry.currentSite
         ParametroRepository repoParam = RepositoryFactory.registry
         String rutaPorEnviar = Registry.archivePath.trim()
+        String rutaPorEnviarDrop = Registry.archivePathDropbox.trim()
         File file = new File( "${rutaPorEnviar}/4.${idSuc}.REM.${remesa.clave}.ACU" )
+        File fileDrop = new File( "${rutaPorEnviarDrop}/4.${idSuc}.REM.${remesa.clave}.ACU" )
         PrintStream strOut = new PrintStream( file )
+        PrintStream strOutDrop = new PrintStream( fileDrop )
         StringBuffer sb = new StringBuffer()
         sb.append("${idSuc}|REM|${remesa.docto}|")
         sb.append( "\n" )
         sb.append("${remesa.fecha_carga.format('dd/MM/yyyy')}|${remesa.fecha_carga.format('HH:mm')}|${remesa.letra.trim()}${remesa.docto.trim()}|${remesa.sistema}|")
         strOut.println sb.toString()
         strOut.close()
+        strOutDrop.println sb.toString()
+        strOutDrop.close()
         logger.debug(file.absolutePath)
     }
     return remesa

@@ -193,16 +193,21 @@ class LcController {
           }  catch (Exception e) {println e}
 
           String fichero = "${Registry.archivePath}/${Registry.currentSite}-${pedidoLc.id}.LCR"
+          String ficheroDrop = "${Registry.archivePathDropbox}/${Registry.currentSite}-${pedidoLc.id}.LCR"
           Integer sucursal = Registry.currentSite
           log.debug( "Generando Fichero: ${ fichero }" )
           File file = new File( fichero )
+          File fileDrop = new File( ficheroDrop )
           if ( file.exists() ) { file.delete() }
           log.debug( 'Creando archivo de Recepcion de LC' )
           PrintStream strOut = new PrintStream( file )
+          PrintStream strOutDrop = new PrintStream( fileDrop )
           StringBuffer sb = new StringBuffer()
           sb.append("${sucursal}-${pedidoLc.id}|${pedidoLc.fechaRecepcion.format("dd-MM-yyyy")}|")
           strOut.println sb.toString()
           strOut.close()
+          strOutDrop.println sb.toString()
+          strOutDrop.close()
         return response
       } else if ( StringUtils.trimToNull( url ) != null ) {
         String variable = pView.data.claveCodificada + ">" + pView.data.postTrType.ultimoFolio

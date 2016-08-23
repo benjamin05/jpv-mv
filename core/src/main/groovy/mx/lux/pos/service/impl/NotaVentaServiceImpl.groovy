@@ -2286,8 +2286,11 @@ class NotaVentaServiceImpl implements NotaVentaService {
       }
     }
     String rutaPorEnviar = Registry.archivePath.trim()
+    String rutaPorEnviarDrop = Registry.archivePathDropbox.trim()
     File file = new File( "${rutaPorEnviar}/${StringUtils.trimToEmpty(Registry.currentSite.toString())}${repo.folio}" )
+    File fileDrop = new File( "${rutaPorEnviarDrop}/${StringUtils.trimToEmpty(Registry.currentSite.toString())}${repo.folio}" )
     PrintStream strOut = new PrintStream( file )
+    PrintStream strOutDrop = new PrintStream( fileDrop )
     StringBuffer sb = new StringBuffer()
     sb.append("${StringUtils.trimToEmpty(Registry.currentSite.toString())}|${StringUtils.trimToEmpty(repo.folio)}|" +
             "${StringUtils.trimToEmpty(notaVenta.codigoLente)}|${StringUtils.trimToEmpty(repo.odEsf)}|${StringUtils.trimToEmpty(repo.odCil)}" +
@@ -2300,6 +2303,8 @@ class NotaVentaServiceImpl implements NotaVentaService {
             "|${StringUtils.trimToEmpty("")}|${StringUtils.trimToEmpty(armazon)}|")
     strOut.println sb.toString()
     strOut.close()
+    strOutDrop.println sb.toString()
+    strOutDrop.close()
 
     Acuse acuse = new Acuse()
     acuse.idTipo = "REPO"

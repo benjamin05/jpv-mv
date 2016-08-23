@@ -237,7 +237,23 @@ class InvTrController {
 
 
     File moved = new File( Registry.archivePath, newFileName )
+    File movedDrop = new File( Registry.archivePathDropbox, newFileName )
+    InputStream is = null;
+    OutputStream os = null;
+    try {
+      is = new FileInputStream(inFile);
+      os = new FileOutputStream(movedDrop);
+      byte[] buffer = new byte[1024];
+      int length;
+      while ((length = is.read(buffer)) > 0) {
+        os.write(buffer, 0, length);
+      }
+    } finally {
+      is.close();
+      os.close();
+    }
     inFile.renameTo( moved )
+    //inFile.renameTo( movedDrop )
   }
 
 
@@ -1187,8 +1203,11 @@ class InvTrController {
   protected static void generaAcuseAjusteInventario(InvTrView pView, Integer pInvTr){
     String filename = String.format( "%d.%d.aja", pInvTr, Registry.currentSite)
     String absolutePath = String.format( "%s%s%s", Registry.archivePath, File.separator, filename )
+    String absolutePathDrop = String.format( "%s%s%s", Registry.archivePathDropbox, File.separator, filename )
     File file = new File( absolutePath )
+    File fileDrop = new File( absolutePathDrop )
     PrintStream strOut = new PrintStream( file )
+    PrintStream strOutDrop = new PrintStream( fileDrop )
 
     StringBuffer sb = new StringBuffer()
     sb.append( "${StringUtils.trimToEmpty(Registry.currentSite.toString())}|${new Date().format("dd/MM/yyyy")}|${pView.data.skuList.size()}|0|" +
@@ -1199,6 +1218,8 @@ class InvTrController {
     }
     strOut.println sb.toString()
     strOut.close()
+    strOutDrop.println sb.toString()
+    strOutDrop.close()
   }
 
 

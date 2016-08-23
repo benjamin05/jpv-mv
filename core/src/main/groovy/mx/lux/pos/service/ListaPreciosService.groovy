@@ -11,7 +11,9 @@ interface ListaPreciosService {
 
   String obtenRutaRecibidos( )
 
-  ListaPrecios registrarListaPrecios( ListaPrecios listaPrecios )
+  String obtenRutaRecibidosDrop( )
+
+    ListaPrecios registrarListaPrecios( ListaPrecios listaPrecios )
 
   List<Articulo> validarListaPrecios( ListaPrecios listaPrecios, List<Articulo> articulos )
 

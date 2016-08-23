@@ -522,9 +522,12 @@ class InventarioServiceImpl implements InventarioService {
           transInvDetalleRepository.saveAndFlush( transInvDetalle )
         }
         String rutaPorEnviar = Registry.archivePath.trim()
+        String rutaPorEnviarDropBox = Registry.archivePathDropbox.trim()
         Integer contador = 0
         File file = new File( "${rutaPorEnviar}/${idSuc}_${transInv.folio}.sd" )
+        File fileDropBox = new File( "${rutaPorEnviarDropBox}/${idSuc}_${transInv.folio}.sd" )
         PrintStream strOut = new PrintStream( file )
+        PrintStream strOutDB = new PrintStream( fileDropBox )
         StringBuffer sb = new StringBuffer()
         sb.append("${transInv.folio}|${transInv.observaciones}|${pRequest.skuList.size()}|")
         sb.append( "\n" )
@@ -535,6 +538,8 @@ class InventarioServiceImpl implements InventarioService {
         }
         strOut.println sb.toString()
         strOut.close()
+        strOutDB.println sb.toString()
+        strOutDB.close()
         log.debug(file.absolutePath)
       }
     }
