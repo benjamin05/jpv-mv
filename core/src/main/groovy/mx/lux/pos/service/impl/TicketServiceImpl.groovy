@@ -1791,7 +1791,9 @@ class TicketServiceImpl implements TicketService {
         devolucionesLst.each { Devolucion dev ->
           BigDecimal monto = dev?.monto ?: 0
           if ( 'd'.equalsIgnoreCase( dev?.tipo ) ) {
-            totalDevoluciones += monto
+            if( !StringUtils.trimToEmpty(dev.idFormaPago).equalsIgnoreCase("C1")  ){
+              totalDevoluciones += monto
+            }
             def item = [
                 original: "${dev?.pago?.eTipoPago?.descripcion ?: ''}",
                 devolucion: "${dev?.formaPago?.descripcion ?: ''}",
@@ -1813,7 +1815,9 @@ class TicketServiceImpl implements TicketService {
               devEfec = devEfec.add( dev.monto )
             }
             log.debug( "genera devolucion: ${item}" )
-            devoluciones.add( item )
+            if( !StringUtils.trimToEmpty(dev.idFormaPago).equalsIgnoreCase("C1") ){
+              devoluciones.add( item )
+            }
           } else {
             totalTransferencias += monto
             String referenciaPago

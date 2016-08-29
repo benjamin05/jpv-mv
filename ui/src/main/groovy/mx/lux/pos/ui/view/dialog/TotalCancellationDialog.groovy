@@ -98,7 +98,7 @@ class TotalCancellationDialog extends JDialog {
     TotalCancellationDialog( Component parent, String orderId, Boolean transf, Boolean askAuth ) {
     order = OrderController.getOrder( orderId )
     email = CustomerController.findCustomerEmail( order.customer.id )
-    payments = PaymentController.findPaymentsByOrderId( orderId ) as List<Payment>
+    payments = PaymentController.findPaymentsToCancellByOrderId( orderId ) as List<Payment>
     devBank = OrderController.findDevBanks( )
     alreadyCanc = transf
     this.askAuth = askAuth
@@ -299,9 +299,9 @@ class TotalCancellationDialog extends JDialog {
         //amount = amount+", "+String.format( '$%.2f-%s',payment.amount.subtract(couponsAmount),tipoPago)
       if( StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_TC) ){
           amountNbrTc = (amountNbrTc.add(paymentForDev)).subtract(couponsAmount)
-        } else if( StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_C1) ) {
+        } /*else if( StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_C1) ) {
           amountNbrC1 = (amountNbrC1.add(paymentForDev)).subtract(couponsAmount)
-        } else if( StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_TD) ||
+        } */else if( StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_TD) ||
               StringUtils.trimToEmpty(payment.paymentTypeOri).equalsIgnoreCase(TAG_FORMA_PAGO_EF)) {
           amountNbrTd = (amountNbrTd.add(paymentForDev)).subtract(couponsAmount)
         } else {

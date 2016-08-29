@@ -517,6 +517,9 @@ class NoSaleDialog extends JDialog {
   }
 
     private void validacion(JTextField txtField, double max, double min, double interval, String format, String mask){
+        if( StringUtils.trimToEmpty(txtField.text).contains("-.") ){
+          txtField.text = ""
+        }
         if (txtField.text.trim().length() > 0 && !txtField.text.trim().equals('0')) {
             double number
             String txt = txtField.text.trim()

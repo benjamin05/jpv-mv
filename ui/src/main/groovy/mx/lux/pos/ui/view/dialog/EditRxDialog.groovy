@@ -526,6 +526,9 @@ class EditRxDialog extends JDialog{
     }
 
     private void validacion(JTextField txtField, double max, double min, double interval, String format, String mask) {
+        if( StringUtils.trimToEmpty(txtField.text).contains("-.") ){
+          txtField.text = ""
+        }
         if (txtField.text.trim().length() > 0 && !txtField.text.trim().equals('0')) {
             double number
             String txt = txtField.text.trim()
@@ -1051,6 +1054,10 @@ class EditRxDialog extends JDialog{
         } else if( txtOdDm.visible && StringUtils.trimToEmpty(txtOdDm.text).length() <= 0 ){
           dataValid = false
         } else if( txtOiDm.visible && StringUtils.trimToEmpty(txtOiDm.text).length() <= 0 ){
+          dataValid = false
+        } else if( txtOdAd.visible && StringUtils.trimToEmpty(txtOdAd.text).length() <= 0 ){
+          dataValid = false
+        } else if( txtOiAd.visible && StringUtils.trimToEmpty(txtOiAd.text).length() <= 0 ){
           dataValid = false
         } else if(StringUtils.trimToEmpty(txtOdCil.text).length() > 0 && StringUtils.trimToEmpty(txtOdEje.text).length() <= 0){
           dataValid = false

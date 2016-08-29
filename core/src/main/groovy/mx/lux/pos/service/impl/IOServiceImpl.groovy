@@ -318,12 +318,15 @@ class IOServiceImpl implements IOService {
     if ( transInv != null ) {
         RemesasRepository repo = RepositoryFactory.remittanceRepository
         QRemesas rem = QRemesas.remesas
-        remesa = repo.findOne( rem.clave.eq(transInv.referencia.trim()) )
-        if(remesa != null){
-          remesa.estado = TAG_ESTADO_REM_CARGADA
-          remesa.fecha_carga = new Date()
-          remesa = repo.save( remesa )
-          repo.flush()
+        List<Remesas> lstRemesas = repo.findAll( rem.clave.eq(transInv.referencia.trim()) ) as List<Remesas>
+        if(lstRemesas.size() > 0){
+          for(Remesas rem1 : lstRemesas){
+            rem1.estado = TAG_ESTADO_REM_CARGADA
+            rem1.fecha_carga = new Date()
+            rem1 = repo.save( rem1 )
+            repo.flush()
+            remesa = rem1
+          }
         } else {
           String sistema = ''
           TransInvDetalleRepository transInvDetalleRepository = RepositoryFactory.inventoryDetail

@@ -99,6 +99,27 @@ class PaymentController {
     return [ ]
   }
 
+
+
+  static List<Payment> findPaymentsToCancellByOrderId( String orderId ) {
+    log.info( "obteniendo pagos por orden id: ${orderId}" )
+    List<Pago> resultsTmp = pagoService.listarPagosPorIdFactura( orderId )
+    List<Pago> results = new ArrayList<>()
+    for(Pago pay : resultsTmp){
+      if( !StringUtils.trimToEmpty(pay.idFPago).equalsIgnoreCase("C1") ){
+        results.add(pay)
+      }
+    }
+    if ( results?.any() ) {
+      return results.collect { Pago pago ->
+        Payment.toPaymment( pago )
+      }
+    }
+    return [ ]
+  }
+
+
+
   static String obtenerMensaje( String clave ){
     log.debug( 'obtenerMensaje( clave )' )
     return mensajeService.obtenerMensajePorClave( clave )
