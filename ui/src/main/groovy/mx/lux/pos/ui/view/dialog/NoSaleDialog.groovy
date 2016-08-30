@@ -673,6 +673,10 @@ class NoSaleDialog extends JDialog {
             dataValid = false
         } else if( txtOiDm.enabled && StringUtils.trimToEmpty(txtOiDm.text).length() <= 0 ){
             dataValid = false
+        } else if( txtOdAd.enabled && StringUtils.trimToEmpty(txtOdAd.text).length() <= 0 ){
+            dataValid = false
+        } else if( txtOiAd.enabled && StringUtils.trimToEmpty(txtOiAd.text).length() <= 0 ){
+            dataValid = false
         } else if(StringUtils.trimToEmpty(txtOdCil.text).length() > 0 && StringUtils.trimToEmpty(txtOdEje.text).length() <= 0){
             dataValid = false
         } else if(StringUtils.trimToEmpty(txtOiCil.text).length() > 0 && StringUtils.trimToEmpty(txtOiEje.text).length() <= 0){
