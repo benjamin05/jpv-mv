@@ -410,7 +410,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       } else {
         customerName.enabled = true
       }
-      if( currentOperationType.equals(OperationType.EDIT_PAYING) && order.items.size() > 0 ){
+      if( (currentOperationType.equals(OperationType.EDIT_PAYING) || currentOperationType.equals(OperationType.PENDING)) && order.items.size() > 0 ){
         customerName.enabled = false
         operationType.enabled = false
       } else {
@@ -2755,6 +2755,14 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       mainWindow.reportsMenu.enabled = false
       mainWindow.toolsMenu.enabled = false
       mainWindow.clientsMenu.enabled = false
+      mainWindow.controlTrabajosMenu.enabled = false
+      mainWindow.lcMenu.enabled = false
+    } else if( OperationType.PENDING.equals(operationType.selectedItem as OperationType) && order.items.size() > 0 ){
+      mainWindow.ordersMenu.enabled = false
+      mainWindow.inventoryMenu.enabled = false
+      mainWindow.reportsMenu.enabled = false
+      mainWindow.toolsMenu.enabled = false
+      //mainWindow.clientsMenu.enabled = false
       mainWindow.controlTrabajosMenu.enabled = false
       mainWindow.lcMenu.enabled = false
     } else {
