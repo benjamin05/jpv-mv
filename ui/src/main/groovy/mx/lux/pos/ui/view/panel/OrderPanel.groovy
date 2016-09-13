@@ -1021,9 +1021,11 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       Branch branch = Session.get(SessionItem.BRANCH) as Branch
       Boolean isOnePackage = OrderController.validOnlyOnePackage( order.items, item.id )
       Boolean isOneLens = OrderController.validOnlyOneLens( order.items, item.id )
+      Boolean isOneFrame = OrderController.validOnlyOneFrame( order.items, item.id )
       SurteSwitch surteSwitch = OrderController.surteCallWS(branch, item, 'S', order)
       surteSwitch = surteSu(item, surteSwitch)
       Boolean esInventariable = ItemController.esInventariable( item.id )
+      if( isOneFrame ){
       if( isOnePackage ){
         if( isOneLens ){
           if (surteSwitch?.agregaArticulo && surteSwitch?.surteSucursal) {
@@ -1120,6 +1122,13 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         }
         sb.optionPane(message: MSJ_PAQUETE_INVALIDO, messageType: JOptionPane.ERROR_MESSAGE,)
                 .createDialog(this, TXT_PAQUETE_INVALIDO).show()
+      }
+      }else {
+        if(log.equalsIgnoreCase("actionPerformed")){
+          focusItem = true
+        }
+        sb.optionPane(message: "Solo se puede insertar un armazon", messageType: JOptionPane.ERROR_MESSAGE,)
+                .createDialog(this, "Error").show()
       }
     }
 

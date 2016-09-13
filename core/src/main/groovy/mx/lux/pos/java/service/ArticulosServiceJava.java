@@ -22,6 +22,7 @@ public class ArticulosServiceJava {
 
   private static final String TAG_GENERICO_H = "H";
   private static final String TAG_GENERICO_B = "B";
+  private static final String TAG_GENERICO_A = "A";
   private static final String TAG_TRANSACCION_ENTRADA = "E";
   private static final String TAG_TRANSACCION_SALIDA = "S";
 
@@ -332,6 +333,39 @@ public class ArticulosServiceJava {
     }
     return existencia;
   }
+
+
+
+  public Boolean validaUnSoloArmazon( List<Integer> lstIds, Integer idArticulo ) throws ParseException {
+    log.debug( "validaUnSoloArmazon( )" );
+    Boolean esUnSoloArmazon = true;
+    Boolean esArmazon = false;
+    Boolean existeArmazon = false;
+    ArticulosJava articulo = ArticulosQuery.busquedaArticuloPorId(idArticulo);
+    List<ArticulosJava> lstArticulo = new ArrayList<ArticulosJava>();
+    for(Integer id : lstIds){
+      ArticulosJava articulo1 = new ArticulosJava();
+      articulo1 = ArticulosQuery.busquedaArticuloPorId( id );
+      if(articulo1 != null){
+        lstArticulo.add( articulo1 );
+      }
+    }
+    if( articulo != null ){
+      if(StringUtils.trimToEmpty(articulo.getIdGenerico()).equalsIgnoreCase(TAG_GENERICO_A)){
+        esArmazon = true;
+      }
+    }
+    for(ArticulosJava art : lstArticulo){
+      if( StringUtils.trimToEmpty(art.getIdGenerico()).equalsIgnoreCase(TAG_GENERICO_A) ){
+        existeArmazon = true;
+      }
+    }
+    if( esArmazon && existeArmazon ){
+      esUnSoloArmazon = false;
+    }
+    return  esUnSoloArmazon;
+  }
+
 
 
 }

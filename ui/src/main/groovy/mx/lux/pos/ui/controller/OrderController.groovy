@@ -122,6 +122,7 @@ class OrderController {
     private static final String TAG_GENERICO_SEGUROS = 'J'
     private static final String TAG_GENERICO_ARMAZON = 'A'
     private static final String TAG_GENERICO_LENTE = 'B'
+    private static final String TAG_GENERICO_LENTE_CONTACTO = 'H'
     private static final String TAG_SEGUROS_ARMAZON = 'SS'
     private static final String TAG_SEGUROS_OFTALMICO = 'SEG'
     private static final String TAG_TIPO_OFTALMICO = 'O'
@@ -3540,6 +3541,8 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
       Boolean hasSV = false
       Boolean hasMF = false
       Boolean hasFrame = false
+      Boolean hasSunFrame = false
+      Boolean hasLC = false
       for(DetalleNotaVenta det : nota.detalles){
         if( StringUtils.trimToEmpty(det?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) ){
           hasFrame = true
@@ -3556,12 +3559,36 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
             hasMF = true
           }
         }
+        if( StringUtils.trimToEmpty(det?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_LENTE_CONTACTO) ){
+          hasLC = true
+        }
+        if( StringUtils.trimToEmpty(det?.articulo?.idGenerico).equalsIgnoreCase(TAG_GENERICO_ARMAZON) &&
+                StringUtils.trimToEmpty(det?.articulo?.tipo).equalsIgnoreCase("G") ){
+          hasSunFrame = true
+        }
       }
-      if( montoParcial.compareTo(Registry.validAmountPromoAge) >= 0 ){
-        montoValido = true
-      }
-      if( nota?.idCliente != Registry.genericCustomer && montoValido && hasFrame && (hasSV || hasMF) ){
-        if( nota.cliente != null && nota?.cliente?.fechaNacimiento != null ){
+      String[] data = StringUtils.trimToEmpty(Registry.validAmountPromoAge).split(",")
+      if( nota?.idCliente != Registry.genericCustomer ){
+      if( hasFrame && (hasSV || hasMF) ){
+        String a = ''
+        for(String amounts : data){
+          if( amounts.startsWith("B") ){
+            a = amounts
+          }
+        }
+        String[] d = StringUtils.trimToEmpty(a).split(":")
+        Double validAmount = 0.00
+        if( d.size() >= 3 ){
+          try{
+            validAmount = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(d[2]))
+          } catch ( ParseException e ){
+            println e.message
+          }
+        }
+        if( montoParcial.compareTo(validAmount) >= 0 ){
+          montoValido = true
+        }
+        if( montoValido && nota.cliente != null && nota?.cliente?.fechaNacimiento != null ){
           Date fechaActual = new Date();
           SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
           String hoy = formato.format(fechaActual);
@@ -3577,12 +3604,95 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
               anos = anos - 1;
             }
           }
-          if( hasSV ){
+          //if( hasSV ){
             monto = new BigDecimal( anos*Registry.amountPromoAgeMonofocal )
-          } else if( hasMF ){
+          /*} else if( hasMF ){
             monto = new BigDecimal( anos*Registry.amountPromoAgeMultifocal )
-          }
+          }*/
         }
+      } else if( hasLC ){
+          String a = ''
+          for(String amounts : data){
+            if( amounts.startsWith("H") ){
+              a = amounts
+            }
+          }
+          String[] d = StringUtils.trimToEmpty(a).split(":")
+          Double validAmount = 0.00
+          if( d.size() >= 3 ){
+            try{
+              validAmount = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(d[2]))
+            } catch ( ParseException e ){
+              println e.message
+            }
+          }
+          if( montoParcial.compareTo(validAmount) >= 0 ){
+            montoValido = true
+          }
+          if( montoValido && nota.cliente != null && nota?.cliente?.fechaNacimiento != null ){
+              Date fechaActual = new Date();
+              SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+              String hoy = formato.format(fechaActual);
+              String[] dat1 = formato.format(nota?.cliente?.fechaNacimiento).split("/");
+              String[] dat2 = hoy.split("/");
+              Integer anos = Integer.parseInt(dat2[2]) - Integer.parseInt(dat1[2]);
+              Integer mes = Integer.parseInt(dat2[1]) - Integer.parseInt(dat1[1]);
+              if (mes < 0) {
+                  anos = anos - 1;
+              } else if (mes == 0) {
+                  int dia = Integer.parseInt(dat2[0]) - Integer.parseInt(dat1[0]);
+                  if (dia < 0) {
+                      anos = anos - 1;
+                  }
+              }
+              //if( hasSV ){
+              monto = new BigDecimal( anos*Registry.amountPromoAgeMonofocal )
+              /*} else if( hasMF ){
+                monto = new BigDecimal( anos*Registry.amountPromoAgeMultifocal )
+              }*/
+          }
+      } else if( hasSunFrame ){
+          String a = ''
+          for(String amounts : data){
+            if( amounts.startsWith("A") ){
+              a = amounts
+            }
+          }
+          String[] d = StringUtils.trimToEmpty(a).split(":")
+          Double validAmount = 0.00
+          if( d.size() >= 3 ){
+              try{
+                  validAmount = NumberFormat.getInstance().parse(StringUtils.trimToEmpty(d[2]))
+              } catch ( ParseException e ){
+                  println e.message
+              }
+          }
+          if( montoParcial.compareTo(validAmount) >= 0 ){
+              montoValido = true
+          }
+          if( montoValido && nota.cliente != null && nota?.cliente?.fechaNacimiento != null ){
+              Date fechaActual = new Date();
+              SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+              String hoy = formato.format(fechaActual);
+              String[] dat1 = formato.format(nota?.cliente?.fechaNacimiento).split("/");
+              String[] dat2 = hoy.split("/");
+              Integer anos = Integer.parseInt(dat2[2]) - Integer.parseInt(dat1[2]);
+              Integer mes = Integer.parseInt(dat2[1]) - Integer.parseInt(dat1[1]);
+              if (mes < 0) {
+                  anos = anos - 1;
+              } else if (mes == 0) {
+                  int dia = Integer.parseInt(dat2[0]) - Integer.parseInt(dat1[0]);
+                  if (dia < 0) {
+                      anos = anos - 1;
+                  }
+              }
+              //if( hasSV ){
+              monto = new BigDecimal( anos*Registry.amountPromoAgeMonofocal )
+              /*} else if( hasMF ){
+                monto = new BigDecimal( anos*Registry.amountPromoAgeMultifocal )
+              }*/
+          }
+      }
       }
     }
     return monto
@@ -4526,6 +4636,15 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
     }
   }
 
+
+  static Boolean validOnlyOneFrame( List<OrderItem> lstItems, Integer idItem ){
+    List<Integer> lstIds = new ArrayList<Integer>()
+    for(OrderItem item : lstItems){
+      lstIds.add( item.item.id )
+    }
+    Boolean unLente = articulosServiceJava.validaUnSoloArmazon( lstIds, idItem )
+    return unLente
+  }
 
 
 }
