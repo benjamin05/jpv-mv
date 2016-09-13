@@ -690,8 +690,8 @@ class Registry {
     return asDouble( TipoParametro.MONTO_PROMO_EDAD_MULTIFOCAL )
   }
 
-  static String getValidAmountPromoAge( ) {
-    return asString(TipoParametro.MONTO_VALIDO_PROMO_EDAD)
+  static Double getValidAmountPromoAge( ) {
+    return asDouble( mx.lux.pos.java.TipoParametro.MONTO_VALIDO_PROMO_EDAD )
   }
 
   static Double getAmountToGenerateFFCoupon( ) {

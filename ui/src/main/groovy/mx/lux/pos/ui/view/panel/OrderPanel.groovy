@@ -1216,7 +1216,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
             quantFrame = quantFrame+it.quantity
           }
         }
-        if( quantFrame > 1){
+        if( hasLens && quantFrame > 1){
           validQuantity = false
         }
         if( validQuantity ){
@@ -2042,7 +2042,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           quantFrame = quantFrame+it.quantity
         }
       }
-      if( quantFrame > 1){
+      if( hasLens && quantFrame > 1){
         validQuantity = false
       }
       if( validQuantity ){
@@ -2268,7 +2268,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
           quantFrame = quantFrame+it.quantity
         }
       }
-      if( quantFrame > 1){
+      if( hasLens && quantFrame > 1){
         validQuantity = false
       }
       if( validQuantity ){
