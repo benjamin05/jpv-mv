@@ -4308,7 +4308,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
-  static void saveAcuseFax(String idOrder) {x
+  static void saveAcuseFax(String idOrder) {
     NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( StringUtils.trimToEmpty(idOrder) )
     if(NotaVenta != null){
       for(DetalleNotaVentaJava det : notaVenta.detalles){
