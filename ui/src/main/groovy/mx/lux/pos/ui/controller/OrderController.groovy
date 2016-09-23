@@ -4308,7 +4308,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
   }
 
 
-  static void saveAcuseFax(String idOrder) {
+  static void saveAcuseFax(String idOrder) {x
     NotaVentaJava notaVenta = NotaVentaQuery.busquedaNotaById( StringUtils.trimToEmpty(idOrder) )
     if(NotaVenta != null){
       for(DetalleNotaVentaJava det : notaVenta.detalles){
@@ -4318,7 +4318,7 @@ static Boolean validWarranty( Descuento promotionApplied, Item item ){
           acuse.setIdTipo("FAX");
           acuse = AcusesQuery.saveAcuses(acuse);
           String contenidoAcuse = "id_articuloVal="+StringUtils.trimToEmpty(det?.articulo?.articulo)+"|id_sucVal="+StringUtils.trimToEmpty(String.valueOf(Registry.getCurrentSite()))+
-                    "|rxVal="+StringUtils.trimToEmpty(notaVenta.receta.toString())+"|id_colorVal="+StringUtils.trimToEmpty(det.articulo.colorCode)+
+                    "|rxVal="+StringUtils.trimToEmpty(notaVenta.factura.toString())+"|id_colorVal="+StringUtils.trimToEmpty(det.articulo.colorCode)+
                     "|id_acuseVal="+StringUtils.trimToEmpty(acuse.getIdAcuse().toString())+"|skuVal="+StringUtils.trimToEmpty(det.idArticulo.toString())+"|";
           acuse.setContenido(contenidoAcuse);
           AcusesQuery.saveAcuses(acuse);

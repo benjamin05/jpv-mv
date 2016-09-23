@@ -364,10 +364,12 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
                     if( StringUtils.trimToEmpty(orderItem.item.type).equalsIgnoreCase(TAG_GENERICO_SEGUROS) ){
                         amountEnsure = amountEnsure.add(orderItem.item.price)
                     } else {
-                        amountParcial = amountParcial.add(orderItem.item.price)
+                        amountParcial = amountParcial.add(orderItem.item.price.multiply(orderItem.quantity))
                     }
                 }
-
+                if( amountParcial.compareTo(BigDecimal.ZERO) < 0 ){
+                  amountParcial = BigDecimal.ZERO
+                }
                 total.text = NumberFormat.getCurrencyInstance(Locale.US).format((amountParcial.subtract(promoAmount)).add(amountEnsure))
                 due.text = NumberFormat.getCurrencyInstance(Locale.US).format(((amountParcial.subtract(promoAmount)).add(amountEnsure)).subtract(order.paid))
             } else {
@@ -1393,7 +1395,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
         OrderController.savePromisedDate(order?.id, diaPrometido)
         Double pAnticipo = Registry.getAdvancePct()
         Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
-        if( onlyInventariable && order?.paid < order?.total ){
+        if( onlyInventariable && order?.paid < (order?.total.subtract(promoAmount)) ){
           AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo requiere autorizaci\u00f3n")
           authDialog.show()
           if (authDialog.authorized) {
@@ -1474,7 +1476,7 @@ implements IPromotionDrivenPanel, FocusListener, CustomerListener {
       if (validOrder) {
         Boolean onlyInventariable = OrderController.validOnlyInventariable( order )
         Boolean noDelivered = OrderController.validGenericNoDelivered( order.id )
-        if( onlyInventariable && order?.paid < order?.total && !noDelivered ){
+        if( onlyInventariable && order?.paid < (order?.total.subtract(promoAmount)) && !noDelivered ){
           AuthorizationDialog authDialog = new AuthorizationDialog(this, "Anticipo requiere autorizaci\u00f3n")
           authDialog.show()
           if (authDialog.authorized) {
