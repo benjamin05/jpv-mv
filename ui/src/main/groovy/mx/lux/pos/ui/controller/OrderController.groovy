@@ -1406,6 +1406,28 @@ class OrderController {
         if( nuevojbTrack.rx != null ){
           JbTrackQuery.insertJbTrack(nuevojbTrack)
         }
+
+        List<mx.lux.pos.java.repository.JbTrack> lstTracks = JbQuery.buscarJbTrackPorRx(StringUtils.trimToEmpty(notaVenta.factura))
+        Boolean hasFax = false
+        for(mx.lux.pos.java.repository.JbTrack tr : lstTracks){
+          if( StringUtils.trimToEmpty(tr.estado).equalsIgnoreCase("FAX")){
+            hasFax = true
+          }
+        }
+        if( hasFax ){
+          JbJava jbFax = JbQuery.buscarPorRx( StringUtils.trimToEmpty(notaVenta.factura) )
+          jbFax.estado = 'EP';
+          JbQuery.updateJb( jbFax );
+          mx.lux.pos.java.repository.JbTrack jbTrack = new mx.lux.pos.java.repository.JbTrack()
+          jbTrack.rx = StringUtils.trimToEmpty(notaVenta.factura)
+          jbTrack.estado = 'EP'
+          jbTrack.obs = "Viaje 1"
+          jbTrack.emp = StringUtils.trimToEmpty(notaVenta.idEmpleado)
+          jbTrack.idViaje =   "1"
+          jbTrack.fecha = new Date()
+          jbTrack.idMod = '0'
+          JbQuery.saveJbTrack( jbTrack )
+        }
       }
       return creaJB
     }
